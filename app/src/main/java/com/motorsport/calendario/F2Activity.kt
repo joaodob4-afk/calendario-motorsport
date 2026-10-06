@@ -3,6 +3,8 @@ package com.motorsport.calendario
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -15,11 +17,39 @@ import java.time.format.DateTimeFormatter
 
 class F2Activity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val handler =
+        Handler(Looper.getMainLooper())
+
+    private var contadorView:
+            TextView? = null
+
+    private var proximoHorario:
+            LocalDateTime? = null
+
+    private val atualizarContador =
+        object : Runnable {
+
+            override fun run() {
+
+                atualizarTextoContador()
+
+                handler.postDelayed(
+                    this,
+                    60_000
+                )
+            }
+        }
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         val etapaNumero =
-            intent.getIntExtra("ETAPA", 1)
+            intent.getIntExtra(
+                "ETAPA",
+                1
+            )
 
         val evento =
             F2Calendar.eventos.find {
@@ -33,6 +63,7 @@ class F2Activity : AppCompatActivity() {
 
         val conteudo =
             LinearLayout(this).apply {
+
                 orientation =
                     LinearLayout.VERTICAL
 
@@ -165,17 +196,20 @@ class F2Activity : AppCompatActivity() {
         val agora =
             LocalDateTime.now()
 
-        var proximaSessao: F2Session? = null
-        var proximoHorario: LocalDateTime? = null
-
         val formato =
             DateTimeFormatter.ofPattern(
                 "dd/MM/yyyy HH:mm"
             )
 
+        var proximaSessao:
+                F2Session? = null
+
         for (sessao in evento.sessoes) {
 
-            if (sessao.horario == "A confirmar") {
+            if (
+                sessao.horario ==
+                "A confirmar"
+            ) {
                 continue
             }
 
@@ -197,12 +231,14 @@ class F2Activity : AppCompatActivity() {
                     )
                 ) {
 
-                    proximaSessao = sessao
-                    proximoHorario = horario
+                    proximaSessao =
+                        sessao
+
+                    proximoHorario =
+                        horario
                 }
 
             } catch (_: Exception) {
-                // Horário inválido não entra na contagem.
             }
         }
 
@@ -212,37 +248,45 @@ class F2Activity : AppCompatActivity() {
                 when {
 
                     sessao.horario ==
-                            "A confirmar" -> "⚪"
+                            "A confirmar" ->
+                        "⚪"
 
                     sessao.nome.contains(
                         "Treino",
                         ignoreCase = true
-                    ) -> "🟢"
+                    ) ->
+                        "🟢"
 
                     sessao.nome.contains(
                         "Classificação",
                         ignoreCase = true
-                    ) -> "🔵"
+                    ) ->
+                        "🔵"
 
                     sessao.nome.contains(
                         "Sprint",
                         ignoreCase = true
-                    ) -> "🟡"
+                    ) ->
+                        "🟡"
 
                     sessao.nome.contains(
                         "Feature",
                         ignoreCase = true
-                    ) -> "🔴"
+                    ) ->
+                        "🔴"
 
-                    else -> "⚪"
+                    else ->
+                        "⚪"
                 }
+
+            val eProxima =
+                sessao == proximaSessao
 
             adicionarSessao(
                 conteudo,
                 sessao,
                 emoji,
-                sessao == proximaSessao &&
-                        proximoHorario != null
+                eProxima
             )
         }
 
@@ -282,6 +326,10 @@ class F2Activity : AppCompatActivity() {
             }
 
         setContentView(scrollView)
+
+        handler.post(
+            atualizarContador
+        )
     }
 
     private fun adicionarSessao(
@@ -291,71 +339,13 @@ class F2Activity : AppCompatActivity() {
         eProxima: Boolean
     ) {
 
-        var texto =
-            "$emoji ${sessao.nome}\n\n" +
-            "📅 ${sessao.data}\n" +
-            "🕐 ${sessao.horario}"
-
-        if (eProxima) {
-
-            val formato =
-                DateTimeFormatter.ofPattern(
-                    "dd/MM/yyyy HH:mm"
-                )
-
-            try {
-
-                val horario =
-                    LocalDateTime.parse(
-                        "${sessao.data} ${sessao.horario}",
-                        formato
-                    )
-
-                val agora =
-                    LocalDateTime.now()
-
-                val duracao =
-                    Duration.between(
-                        agora,
-                        horario
-                    )
-
-                val totalMinutos =
-                    duracao.toMinutes()
-
-                if (totalMinutos >= 0) {
-
-                    val dias =
-                        totalMinutos / 1440
-
-                    val horas =
-                        (totalMinutos % 1440) / 60
-
-                    val minutos =
-                        totalMinutos % 60
-
-                    val contagem =
-                        if (dias > 0) {
-                            "⏳ Começa em ${dias}d ${horas}h ${minutos}min"
-                        } else if (horas > 0) {
-                            "⏳ Começa em ${horas}h ${minutos}min"
-                        } else {
-                            "⏳ Começa em ${minutos}min"
-                        }
-
-                    texto +=
-                        "\n\n$contagem"
-                }
-
-            } catch (_: Exception) {
-                // Não mostra contagem se o horário for inválido.
-            }
-        }
-
         val sessaoView =
             TextView(this).apply {
 
-                text = texto
+                text =
+                    "$emoji ${sessao.nome}\n\n" +
+                    "📅 ${sessao.data}\n" +
+                    "🕐 ${sessao.horario}"
 
                 textSize = 18f
 
@@ -380,22 +370,129 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
-        val parametros =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+        if (eProxima) {
+
+            contadorView =
+                TextView(this).apply {
+
+                    textSize = 16f
+
+                    setTextColor(
+                        Color.WHITE
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    setPadding(
+                        20,
+                        0,
+                        20,
+                        20
+                    )
+
+                    text = ""
+
+                }
+
+            layout.addView(
+                sessaoView
             )
 
-        parametros.setMargins(
-            0,
-            8,
-            0,
-            8
+            layout.addView(
+                contadorView
+            )
+
+        } else {
+
+            val parametros =
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+            parametros.setMargins(
+                0,
+                8,
+                0,
+                8
+            )
+
+            layout.addView(
+                sessaoView,
+                parametros
+            )
+        }
+    }
+
+    private fun atualizarTextoContador() {
+
+        val view =
+            contadorView ?: return
+
+        val horario =
+            proximoHorario ?: return
+
+        val agora =
+            LocalDateTime.now()
+
+        val duracao =
+            Duration.between(
+                agora,
+                horario
+            )
+
+        if (duracao.isZero ||
+            duracao.isNegative
+        ) {
+
+            view.text =
+                "🏁 A sessão está começando!"
+
+            return
+        }
+
+        val totalMinutos =
+            duracao.toMinutes()
+
+        val dias =
+            totalMinutos / 1440
+
+        val horas =
+            (totalMinutos % 1440) / 60
+
+        val minutos =
+            totalMinutos % 60
+
+        view.text =
+            if (dias > 0) {
+
+                "⏳ Começa em " +
+                "${dias}d " +
+                "${horas}h " +
+                "${minutos}min"
+
+            } else if (horas > 0) {
+
+                "⏳ Começa em " +
+                "${horas}h " +
+                "${minutos}min"
+
+            } else {
+
+                "⏳ Começa em " +
+                "${minutos}min"
+            }
+    }
+
+    override fun onDestroy() {
+
+        handler.removeCallbacks(
+            atualizarContador
         )
 
-        layout.addView(
-            sessaoView,
-            parametros
-        )
+        super.onDestroy()
     }
 }
