@@ -1,5 +1,6 @@
 package com.motorsport.calendario
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -68,9 +69,13 @@ class MainActivity : AppCompatActivity() {
 
         calendario.setOnClickListener {
             when (categoriaAtual) {
-                "F1" -> carregarCalendarioF1(evento, sessao)
 
-                "F2" -> carregarCalendarioF2(evento, sessao)
+                "F1" -> carregarCalendarioF1(
+                    evento,
+                    sessao
+                )
+
+                "F2" -> abrirDetalhesF2()
 
                 else -> {
                     evento.text = "Programação completa"
@@ -81,9 +86,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         when (categoria) {
-            "F1" -> carregarF1(evento, sessao)
 
-            "F2" -> carregarF2(evento, sessao)
+            "F1" -> carregarF1(
+                evento,
+                sessao
+            )
+
+            "F2" -> carregarF2(
+                evento,
+                sessao
+            )
 
             else -> {
                 evento.text = "Calendário automático"
@@ -97,6 +109,44 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun abrirDetalhesF2() {
+
+        val hoje = java.time.LocalDate.now()
+
+        var proximo: F2Event? = null
+
+        for (item in F2Calendar.eventos) {
+
+            val inicio = java.time.LocalDate.parse(
+                item.inicio,
+                DateTimeFormatter.ofPattern(
+                    "dd/MM/yyyy"
+                )
+            )
+
+            if (!inicio.isBefore(hoje)) {
+                proximo = item
+                break
+            }
+        }
+
+        if (proximo == null) {
+            return
+        }
+
+        val intent = Intent(
+            this,
+            F2Activity::class.java
+        )
+
+        intent.putExtra(
+            "ETAPA",
+            proximo.etapa
+        )
+
+        startActivity(intent)
+    }
+
     private fun carregarF1(
         evento: TextView,
         sessao: TextView
@@ -106,25 +156,35 @@ class MainActivity : AppCompatActivity() {
                 val races = buscarCorridasF1()
 
                 val agora = java.time.Instant.now()
-                val brasilia = ZoneId.of("America/Sao_Paulo")
+                val brasilia = ZoneId.of(
+                    "America/Sao_Paulo"
+                )
 
                 var proximaCorrida: JSONObject? = null
                 var proximaData: OffsetDateTime? = null
 
                 for (i in 0 until races.length()) {
-                    val race = races.getJSONObject(i)
 
-                    val data = race.getString("date")
-                    val hora = race.optString(
-                        "time",
-                        "00:00:00Z"
-                    )
+                    val race =
+                        races.getJSONObject(i)
 
-                    val horario = OffsetDateTime.parse(
-                        "${data}T${hora}"
-                    )
+                    val data =
+                        race.getString("date")
 
-                    if (horario.toInstant().isAfter(agora)) {
+                    val hora =
+                        race.optString(
+                            "time",
+                            "00:00:00Z"
+                        )
+
+                    val horario =
+                        OffsetDateTime.parse(
+                            "${data}T${hora}"
+                        )
+
+                    if (horario.toInstant()
+                            .isAfter(agora)
+                    ) {
                         proximaCorrida = race
                         proximaData = horario
                         break
@@ -132,9 +192,11 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (proximaCorrida == null) {
+
                     runOnUiThread {
                         evento.text =
                             "Nenhuma corrida futura encontrada."
+
                         sessao.text = ""
                     }
 
@@ -158,10 +220,11 @@ class MainActivity : AppCompatActivity() {
                     horarioBrasilia.format(formato)
 
                 runOnUiThread {
+
                     evento.text =
-                        "🏁 " + nome + "\n\n" +
+                        "🏁 $nome\n\n" +
                         "🔴 Corrida\n" +
-                        "📅 " + dataCorrida
+                        "📅 $dataCorrida"
 
                     sessao.text =
                         "Toque em \"VER PROGRAMAÇÃO COMPLETA\" " +
@@ -169,7 +232,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
+
                 runOnUiThread {
+
                     evento.text =
                         "Erro ao carregar calendário."
 
@@ -185,15 +250,21 @@ class MainActivity : AppCompatActivity() {
         evento: TextView,
         sessao: TextView
     ) {
-        val hoje = java.time.LocalDate.now()
+
+        val hoje =
+            java.time.LocalDate.now()
 
         var proximo: F2Event? = null
 
         for (item in F2Calendar.eventos) {
-            val inicio = java.time.LocalDate.parse(
-                item.inicio,
-                DateTimeFormatter.ofPattern("dd/MM/yyyy")
-            )
+
+            val inicio =
+                java.time.LocalDate.parse(
+                    item.inicio,
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy"
+                    )
+                )
 
             if (!inicio.isBefore(hoje)) {
                 proximo = item
@@ -202,17 +273,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (proximo == null) {
-            evento.text = "Temporada 2026 encerrada"
-            sessao.text = "Não há etapas futuras cadastradas."
+
+            evento.text =
+                "Temporada 2026 encerrada"
+
+            sessao.text =
+                "Não há etapas futuras cadastradas."
+
             return
         }
 
         evento.text =
-            "🏁 Etapa " + proximo.etapa + "\n\n" +
-            proximo.circuito + "\n" +
-            "🇺🇳 " + proximo.pais + "\n\n" +
-            "📅 " + proximo.inicio +
-            " até " + proximo.fim
+            "🏁 Etapa ${proximo.etapa}\n\n" +
+            "${proximo.circuito}\n" +
+            "🇺🇳 ${proximo.pais}\n\n" +
+            "📅 ${proximo.inicio} até " +
+            proximo.fim
 
         sessao.text =
             "🏎️ FÓRMULA 2\n\n" +
@@ -224,49 +300,27 @@ class MainActivity : AppCompatActivity() {
         evento: TextView,
         sessao: TextView
     ) {
-        val texto = StringBuilder()
-
-        texto.append("🏎️ FÓRMULA 2\n")
-        texto.append("📅 CALENDÁRIO 2026\n\n")
-
-        for (item in F2Calendar.eventos) {
-            texto.append("━━━━━━━━━━━━━━━━━━\n\n")
-
-            texto.append("🏁 ETAPA ")
-            texto.append(item.etapa)
-            texto.append("\n\n")
-
-            texto.append(item.circuito)
-            texto.append("\n")
-
-            texto.append("🇺🇳 ")
-            texto.append(item.pais)
-            texto.append("\n\n")
-
-            texto.append("📅 ")
-            texto.append(item.inicio)
-            texto.append(" até ")
-            texto.append(item.fim)
-            texto.append("\n\n")
-        }
-
-        evento.text = texto.toString()
-        sessao.text =
-            "Os horários detalhados das sessões serão adicionados na próxima etapa."
+        abrirDetalhesF2()
     }
 
-    private fun buscarCorridasF1(): org.json.JSONArray {
+    private fun buscarCorridasF1():
+            org.json.JSONArray {
 
         val url = URL(
             "https://api.jolpi.ca/ergast/f1/current/races/"
         )
 
         val connection =
-            url.openConnection() as HttpURLConnection
+            url.openConnection()
+                    as HttpURLConnection
 
         connection.requestMethod = "GET"
-        connection.connectTimeout = 15000
-        connection.readTimeout = 15000
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
 
         connection.setRequestProperty(
             "User-Agent",
@@ -276,7 +330,9 @@ class MainActivity : AppCompatActivity() {
         val resposta =
             connection.inputStream
                 .bufferedReader()
-                .use { it.readText() }
+                .use {
+                    it.readText()
+                }
 
         connection.disconnect()
 
@@ -290,37 +346,57 @@ class MainActivity : AppCompatActivity() {
         evento: TextView,
         sessao: TextView
     ) {
-        evento.text = "🏎️ FÓRMULA 1"
-        sessao.text = "Carregando programação..."
+
+        evento.text =
+            "🏎️ FÓRMULA 1"
+
+        sessao.text =
+            "Carregando programação..."
 
         Thread {
-            try {
-                val races = buscarCorridasF1()
 
-                val brasilia = ZoneId.of("America/Sao_Paulo")
+            try {
+
+                val races =
+                    buscarCorridasF1()
+
+                val brasilia =
+                    ZoneId.of(
+                        "America/Sao_Paulo"
+                    )
 
                 val formato =
                     DateTimeFormatter.ofPattern(
                         "dd/MM/yyyy - HH:mm"
                     )
 
-                val texto = StringBuilder()
+                val texto =
+                    StringBuilder()
 
-                texto.append("📅 PROGRAMAÇÃO COMPLETA\n\n")
+                texto.append(
+                    "📅 PROGRAMAÇÃO COMPLETA\n\n"
+                )
+
                 texto.append(
                     "Todos os horários em Brasília\n\n"
                 )
 
                 for (i in 0 until races.length()) {
 
-                    val race = races.getJSONObject(i)
+                    val race =
+                        races.getJSONObject(i)
 
-                    texto.append("━━━━━━━━━━━━━━━━━━━━\n\n")
+                    texto.append(
+                        "━━━━━━━━━━━━━━━━━━━━\n\n"
+                    )
 
                     texto.append("🏁 ")
                     texto.append(
-                        race.getString("raceName")
+                        race.getString(
+                            "raceName"
+                        )
                     )
+
                     texto.append("\n\n")
 
                     adicionarSessao(
@@ -390,12 +466,17 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 runOnUiThread {
-                    evento.text = texto.toString()
+
+                    evento.text =
+                        texto.toString()
+
                     sessao.text = ""
                 }
 
             } catch (e: Exception) {
+
                 runOnUiThread {
+
                     evento.text =
                         "Erro ao carregar programação."
 
@@ -404,6 +485,7 @@ class MainActivity : AppCompatActivity() {
                         e.javaClass.simpleName
                 }
             }
+
         }.start()
     }
 
@@ -415,6 +497,7 @@ class MainActivity : AppCompatActivity() {
         brasilia: ZoneId,
         formato: DateTimeFormatter
     ) {
+
         try {
 
             val data: String
@@ -422,12 +505,14 @@ class MainActivity : AppCompatActivity() {
 
             if (campo == "date") {
 
-                data = race.getString("date")
+                data =
+                    race.getString("date")
 
-                hora = race.optString(
-                    "time",
-                    "00:00:00Z"
-                )
+                hora =
+                    race.optString(
+                        "time",
+                        "00:00:00Z"
+                    )
 
             } else {
 
@@ -455,8 +540,11 @@ class MainActivity : AppCompatActivity() {
             texto.append("\n")
 
             texto.append("📅 ")
+
             texto.append(
-                horarioBrasilia.format(formato)
+                horarioBrasilia.format(
+                    formato
+                )
             )
 
             texto.append("\n\n")
