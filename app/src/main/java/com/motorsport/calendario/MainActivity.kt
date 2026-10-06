@@ -37,12 +37,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<TextView>(R.id.btnFormulaE).setOnClickListener {
-            abrirCategoria("Fórmula E")
+            abrirCategoria("Formula E")
         }
     }
 
     private fun abrirCategoria(categoria: String) {
-
         setContentView(R.layout.activity_category)
 
         val titulo = findViewById<TextView>(R.id.categoryTitle)
@@ -72,14 +71,12 @@ class MainActivity : AppCompatActivity() {
             carregarF1(evento, sessao)
         } else {
             evento.text = "Calendário automático"
-            sessao.text = """
-                Esta categoria será adicionada em breve.
-
-                • Treinos
-                • Classificação
-                • Corrida
-                • Horários de Brasília
-            """.trimIndent()
+            sessao.text =
+                "Esta categoria será adicionada em breve.\n\n" +
+                "• Treinos\n" +
+                "• Classificação\n" +
+                "• Corrida\n" +
+                "• Horários de Brasília"
         }
     }
 
@@ -87,11 +84,8 @@ class MainActivity : AppCompatActivity() {
         evento: TextView,
         sessao: TextView
     ) {
-
         Thread {
-
             try {
-
                 val url = URL(
                     "https://api.jolpi.ca/ergast/f1/current/races/"
                 )
@@ -108,9 +102,10 @@ class MainActivity : AppCompatActivity() {
                     "CalendarioMotorsport/1.0"
                 )
 
-                val resposta = connection.inputStream
-                    .bufferedReader()
-                    .use { it.readText() }
+                val resposta =
+                    connection.inputStream
+                        .bufferedReader()
+                        .use { it.readText() }
 
                 connection.disconnect()
 
@@ -126,10 +121,10 @@ class MainActivity : AppCompatActivity() {
                 var proximaData: OffsetDateTime? = null
 
                 for (i in 0 until races.length()) {
-
                     val race = races.getJSONObject(i)
 
                     val data = race.getString("date")
+
                     val hora = race.optString(
                         "time",
                         "00:00:00Z"
@@ -147,31 +142,52 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 if (proximaCorrida == null) {
-
                     runOnUiThread {
                         evento.text =
                             "Nenhuma corrida futura encontrada."
+
                         sessao.text = ""
                     }
 
                     return@Thread
                 }
 
-                val formato = DateTimeFormatter.ofPattern(
-                    "dd/MM/yyyy - HH:mm"
-                )
+                val formato =
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy - HH:mm"
+                    )
 
                 val horarioBrasilia =
-                    proximaData!!.atZoneSameInstant(brasilia)
+                    proximaData!!
+                        .atZoneSameInstant(brasilia)
 
                 val nome =
-                    proximaCorrida!!.getString("raceName")
+                    proximaCorrida!!
+                        .getString("raceName")
 
                 val dataCorrida =
                     horarioBrasilia.format(formato)
 
                 runOnUiThread {
-
                     evento.text =
-                        "🏁 $nome\n\n" +
-                        "🔴
+                        "🏁 " + nome + "\n\n" +
+                        "🔴 Corrida\n" +
+                        "📅 " + dataCorrida
+
+                    sessao.text =
+                        "Carregando próxima sessão..."
+                }
+
+            } catch (e: Exception) {
+                runOnUiThread {
+                    evento.text =
+                        "Erro ao carregar calendário."
+
+                    sessao.text =
+                        "Erro: " +
+                        e.javaClass.simpleName
+                }
+            }
+        }.start()
+    }
+}
