@@ -537,7 +537,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
         connection.disconnect()
-
         return JSONObject(resposta)
             .getJSONObject("MRData")
             .getJSONObject("RaceTable")
