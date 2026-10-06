@@ -21,14 +21,14 @@ class F1Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this).apply {
+        val conteudo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 24, 24, 24)
             setBackgroundColor(Color.BLACK)
         }
 
         val titulo = TextView(this).apply {
-            text = "🏎️ FÓRMULA 1\n\nPROGRAMAÇÃO 2026"
+            text = "🏎️ FÓRMULA 1\n\nEVENTO ATUAL"
             textSize = 26f
             setTextColor(Color.WHITE)
             setTypeface(null, Typeface.BOLD)
@@ -36,16 +36,17 @@ class F1Activity : AppCompatActivity() {
             setPadding(0, 0, 0, 24)
         }
 
-        layout.addView(titulo)
+        conteudo.addView(titulo)
 
         val carregando = TextView(this).apply {
-            text = "Carregando programação..."
+            text = "Carregando informações do evento..."
             textSize = 18f
             setTextColor(Color.LTGRAY)
             gravity = Gravity.CENTER
+            setPadding(0, 20, 0, 20)
         }
 
-        layout.addView(carregando)
+        conteudo.addView(carregando)
 
         val voltar = Button(this).apply {
             text = "VOLTAR"
@@ -63,21 +64,24 @@ class F1Activity : AppCompatActivity() {
 
         parametrosVoltar.setMargins(0, 24, 0, 24)
 
-        layout.addView(
+        conteudo.addView(
             voltar,
             parametrosVoltar
         )
 
         val scrollView = ScrollView(this).apply {
-            addView(layout)
+            addView(conteudo)
         }
 
         setContentView(scrollView)
 
-        carregarCalendario(layout, carregando)
+        carregarEventoAtual(
+            conteudo,
+            carregando
+        )
     }
 
-    private fun carregarCalendario(
+    private fun carregarEventoAtual(
         layout: LinearLayout,
         carregando: TextView
     ) {
@@ -86,21 +90,63 @@ class F1Activity : AppCompatActivity() {
 
             try {
 
-                val races = buscarCorridasF1()
+                val races =
+                    buscarCorridasF1()
+
+                val agora =
+                    java.time.Instant.now()
+
+                var eventoAtual: JSONObject? =
+                    null
+
+                for (i in 0 until races.length()) {
+
+                    val race =
+                        races.getJSONObject(i)
+
+                    val data =
+                        race.getString("date")
+
+                    val hora =
+                        race.optString(
+                            "time",
+                            "00:00:00Z"
+                        )
+
+                    val horario =
+                        OffsetDateTime.parse(
+                            "${data}T${hora}"
+                        )
+
+                    if (
+                        horario.toInstant()
+                            .isAfter(agora)
+                    ) {
+
+                        eventoAtual = race
+                        break
+                    }
+                }
+
+                if (eventoAtual == null) {
+
+                    runOnUiThread {
+
+                        carregando.text =
+                            "Nenhum evento futuro encontrado."
+                    }
+
+                    return@Thread
+                }
 
                 runOnUiThread {
 
                     layout.removeView(carregando)
 
-                    for (i in 0 until races.length()) {
-
-                        val race = races.getJSONObject(i)
-
-                        adicionarEtapa(
-                            layout,
-                            race
-                        )
-                    }
+                    mostrarEvento(
+                        layout,
+                        eventoAtual!!
+                    )
                 }
 
             } catch (e: Exception) {
@@ -108,66 +154,19 @@ class F1Activity : AppCompatActivity() {
                 runOnUiThread {
 
                     carregando.text =
-                        "Erro ao carregar programação.\n\n" +
+                        "Erro ao carregar evento.\n\n" +
+                        "Erro: " +
                         e.javaClass.simpleName
                 }
             }
+
         }.start()
     }
 
-    private fun buscarCorridasF1(): org.json.JSONArray {
-
-        val url = URL(
-            "https://api.jolpi.ca/ergast/f1/current/races/"
-        )
-
-        val connection =
-            url.openConnection() as HttpURLConnection
-
-        connection.requestMethod = "GET"
-        connection.connectTimeout = 15000
-        connection.readTimeout = 15000
-
-        connection.setRequestProperty(
-            "User-Agent",
-            "CalendarioMotorsport/1.0"
-        )
-
-        val resposta =
-            connection.inputStream
-                .bufferedReader()
-                .use {
-                    it.readText()
-                }
-
-        connection.disconnect()
-
-        return JSONObject(resposta)
-            .getJSONObject("MRData")
-            .getJSONObject("RaceTable")
-            .getJSONArray("Races")
-    }
-
-    private fun adicionarEtapa(
+    private fun mostrarEvento(
         layout: LinearLayout,
         race: JSONObject
     ) {
-
-        val card = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(20, 20, 20, 20)
-            setBackgroundColor(Color.DKGRAY)
-        }
-
-        val nome = TextView(this).apply {
-            text = "🏁 ${race.getString("raceName")}"
-            textSize = 21f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-        }
-
-        card.addView(nome)
 
         val brasilia =
             ZoneId.of("America/Sao_Paulo")
@@ -177,8 +176,49 @@ class F1Activity : AppCompatActivity() {
                 "dd/MM/yyyy - HH:mm"
             )
 
+        val nome =
+            race.getString("raceName")
+
+        val circuito =
+            race
+                .optJSONObject("Circuit")
+                ?.optString(
+                    "circuitName",
+                    "Circuito não informado"
+                )
+                ?: "Circuito não informado"
+
+        val localizacao =
+            race
+                .optJSONObject("Circuit")
+                ?.optJSONObject("Location")
+
+        val cidade =
+            localizacao
+                ?.optString("local", "")
+
+        val pais =
+            localizacao
+                ?.optString("country", "")
+
+        val cabecalho = TextView(this).apply {
+
+            text =
+                "🏁 $nome\n\n" +
+                "🏟️ $circuito\n" +
+                "📍 ${cidade ?: ""} - ${pais ?: ""}"
+
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+            gravity = Gravity.CENTER
+            setPadding(10, 20, 10, 24)
+        }
+
+        layout.addView(cabecalho)
+
         adicionarSessao(
-            card,
+            layout,
             race,
             "FirstPractice",
             "🟢 TREINO LIVRE 1",
@@ -187,7 +227,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "SecondPractice",
             "🟢 TREINO LIVRE 2",
@@ -196,7 +236,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "ThirdPractice",
             "🟢 TREINO LIVRE 3",
@@ -205,7 +245,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "SprintQualifying",
             "🟡 CLASSIFICAÇÃO SPRINT",
@@ -214,7 +254,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "Sprint",
             "🟡 SPRINT",
@@ -223,7 +263,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "Qualifying",
             "🔵 CLASSIFICAÇÃO",
@@ -232,26 +272,17 @@ class F1Activity : AppCompatActivity() {
         )
 
         adicionarSessao(
-            card,
+            layout,
             race,
             "date",
             "🔴 CORRIDA",
             brasilia,
             formato
         )
-
-        val parametros = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-
-        parametros.setMargins(0, 0, 0, 18)
-
-        layout.addView(card, parametros)
     }
 
     private fun adicionarSessao(
-        card: LinearLayout,
+        layout: LinearLayout,
         race: JSONObject,
         campo: String,
         nome: String,
@@ -266,12 +297,14 @@ class F1Activity : AppCompatActivity() {
 
             if (campo == "date") {
 
-                data = race.getString("date")
+                data =
+                    race.getString("date")
 
-                hora = race.optString(
-                    "time",
-                    "00:00:00Z"
-                )
+                hora =
+                    race.optString(
+                        "time",
+                        "00:00:00Z"
+                    )
 
             } else {
 
@@ -291,25 +324,101 @@ class F1Activity : AppCompatActivity() {
                 )
 
             val horarioBrasilia =
-                horarioUtc.atZoneSameInstant(
-                    brasilia
-                )
+                horarioUtc
+                    .atZoneSameInstant(
+                        brasilia
+                    )
 
-            val texto = TextView(this).apply {
+            val card = TextView(this).apply {
 
                 text =
-                    "$nome\n" +
-                    "📅 ${horarioBrasilia.format(formato)}"
+                    "$nome\n\n" +
+                    "📅 ${
+                        horarioBrasilia.format(
+                            formato
+                        )
+                    }"
 
-                textSize = 17f
+                textSize = 18f
                 setTextColor(Color.WHITE)
-                setTypeface(null, Typeface.BOLD)
-                setPadding(10, 12, 10, 12)
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.DKGRAY
+                )
             }
 
-            card.addView(texto)
+            val parametros =
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+            parametros.setMargins(
+                0,
+                8,
+                0,
+                8
+            )
+
+            layout.addView(
+                card,
+                parametros
+            )
 
         } catch (_: Exception) {
+            // Sessão inexistente não será exibida.
         }
+    }
+
+    private fun buscarCorridasF1():
+        org.json.JSONArray {
+
+        val url =
+            URL(
+                "https://api.jolpi.ca/ergast/f1/current/races/"
+            )
+
+        val connection =
+            url.openConnection()
+                    as HttpURLConnection
+
+        connection.requestMethod =
+            "GET"
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
+
+        connection.setRequestProperty(
+            "User-Agent",
+            "CalendarioMotorsport/1.0"
+        )
+
+        val resposta =
+            connection.inputStream
+                .bufferedReader()
+                .use {
+                    it.readText()
+                }
+
+        connection.disconnect()
+
+        return JSONObject(resposta)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
     }
 }
