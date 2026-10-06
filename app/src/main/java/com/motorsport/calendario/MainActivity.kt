@@ -288,7 +288,7 @@ class MainActivity : AppCompatActivity() {
             "📅 ${proximo.inicio} até " +
             proximo.fim
 
-        sessao.text = ""
+        
     }
 
     private fun carregarCalendarioF2(
