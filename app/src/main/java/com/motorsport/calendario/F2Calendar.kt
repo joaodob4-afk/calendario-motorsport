@@ -26,10 +26,10 @@ object F2Calendar {
             "06/03/2026",
             "08/03/2026",
             listOf(
-                F2Session("Treino Livre", "06/03/2026", "00:00"),
-                F2Session("Classificação", "06/03/2026", "00:00"),
-                F2Session("Corrida 1", "07/03/2026", "00:00"),
-                F2Session("Corrida 2", "08/03/2026", "00:00")
+                F2Session("Treino Livre", "05/03/2026", "20:00"),
+                F2Session("Classificação", "06/03/2026", "00:55"),
+                F2Session("Corrida Sprint", "07/03/2026", "00:30"),
+                F2Session("Corrida Feature", "07/03/2026", "21:25")
             )
         ),
 
@@ -40,10 +40,10 @@ object F2Calendar {
             "01/05/2026",
             "03/05/2026",
             listOf(
-                F2Session("Treino Livre", "01/05/2026", "00:00"),
-                F2Session("Classificação", "01/05/2026", "00:00"),
-                F2Session("Corrida 1", "02/05/2026", "00:00"),
-                F2Session("Corrida 2", "03/05/2026", "00:00")
+                F2Session("Treino Livre", "01/05/2026", "10:30"),
+                F2Session("Classificação", "01/05/2026", "15:30"),
+                F2Session("Corrida Sprint", "02/05/2026", "11:00"),
+                F2Session("Corrida Feature", "03/05/2026", "13:30")
             )
         ),
 
@@ -54,10 +54,10 @@ object F2Calendar {
             "22/05/2026",
             "24/05/2026",
             listOf(
-                F2Session("Treino Livre", "22/05/2026", "00:00"),
-                F2Session("Classificação", "22/05/2026", "00:00"),
-                F2Session("Corrida 1", "23/05/2026", "00:00"),
-                F2Session("Corrida 2", "24/05/2026", "00:00")
+                F2Session("Treino Livre", "22/05/2026", "11:05"),
+                F2Session("Classificação", "22/05/2026", "15:00"),
+                F2Session("Corrida Sprint", "23/05/2026", "15:10"),
+                F2Session("Corrida Feature", "24/05/2026", "13:05")
             )
         ),
 
@@ -68,10 +68,11 @@ object F2Calendar {
             "04/06/2026",
             "07/06/2026",
             listOf(
-                F2Session("Treino Livre", "04/06/2026", "00:00"),
-                F2Session("Classificação", "05/06/2026", "00:00"),
-                F2Session("Corrida 1", "06/06/2026", "00:00"),
-                F2Session("Corrida 2", "07/06/2026", "00:00")
+                F2Session("Treino Livre", "04/06/2026", "10:00"),
+                F2Session("Classificação Grupo A", "05/06/2026", "10:10"),
+                F2Session("Classificação Grupo B", "05/06/2026", "10:34"),
+                F2Session("Corrida Sprint", "06/06/2026", "09:15"),
+                F2Session("Corrida Feature", "07/06/2026", "04:25")
             )
         ),
 
@@ -82,10 +83,10 @@ object F2Calendar {
             "12/06/2026",
             "14/06/2026",
             listOf(
-                F2Session("Treino Livre", "12/06/2026", "00:00"),
-                F2Session("Classificação", "12/06/2026", "00:00"),
-                F2Session("Corrida 1", "13/06/2026", "00:00"),
-                F2Session("Corrida 2", "14/06/2026", "00:00")
+                F2Session("Treino Livre", "12/06/2026", "06:05"),
+                F2Session("Classificação", "12/06/2026", "10:55"),
+                F2Session("Corrida Sprint", "13/06/2026", "09:15"),
+                F2Session("Corrida Feature", "14/06/2026", "06:25")
             )
         ),
 
@@ -96,10 +97,10 @@ object F2Calendar {
             "26/06/2026",
             "28/06/2026",
             listOf(
-                F2Session("Treino Livre", "26/06/2026", "00:00"),
-                F2Session("Classificação", "26/06/2026", "00:00"),
-                F2Session("Corrida 1", "27/06/2026", "00:00"),
-                F2Session("Corrida 2", "28/06/2026", "00:00")
+                F2Session("Treino Livre", "26/06/2026", "06:05"),
+                F2Session("Classificação", "26/06/2026", "10:55"),
+                F2Session("Corrida Sprint", "27/06/2026", "09:15"),
+                F2Session("Corrida Feature", "28/06/2026", "05:10")
             )
         ),
 
@@ -110,10 +111,10 @@ object F2Calendar {
             "03/07/2026",
             "05/07/2026",
             listOf(
-                F2Session("Treino Livre", "03/07/2026", "00:00"),
-                F2Session("Classificação", "03/07/2026", "00:00"),
-                F2Session("Corrida 1", "04/07/2026", "00:00"),
-                F2Session("Corrida 2", "05/07/2026", "00:00")
+                F2Session("Treino Livre", "03/07/2026", "06:00"),
+                F2Session("Classificação", "03/07/2026", "09:55"),
+                F2Session("Corrida Sprint", "04/07/2026", "09:45"),
+                F2Session("Corrida Feature", "05/07/2026", "07:15")
             )
         ),
 
@@ -124,10 +125,10 @@ object F2Calendar {
             "17/07/2026",
             "19/07/2026",
             listOf(
-                F2Session("Treino Livre", "17/07/2026", "00:00"),
-                F2Session("Classificação", "17/07/2026", "00:00"),
-                F2Session("Corrida 1", "18/07/2026", "00:00"),
-                F2Session("Corrida 2", "19/07/2026", "00:00")
+                F2Session("Treino Livre", "17/07/2026", "06:05"),
+                F2Session("Classificação", "17/07/2026", "10:55"),
+                F2Session("Corrida Sprint", "18/07/2026", "09:15"),
+                F2Session("Corrida Feature", "19/07/2026", "05:00")
             )
         ),
 
@@ -138,10 +139,10 @@ object F2Calendar {
             "24/07/2026",
             "26/07/2026",
             listOf(
-                F2Session("Treino Livre", "24/07/2026", "00:00"),
-                F2Session("Classificação", "24/07/2026", "00:00"),
-                F2Session("Corrida 1", "25/07/2026", "00:00"),
-                F2Session("Corrida 2", "26/07/2026", "00:00")
+                F2Session("Treino Livre", "24/07/2026", "06:05"),
+                F2Session("Classificação", "24/07/2026", "10:55"),
+                F2Session("Corrida Sprint", "25/07/2026", "09:15"),
+                F2Session("Corrida Feature", "26/07/2026", "06:25")
             )
         ),
 
@@ -152,10 +153,10 @@ object F2Calendar {
             "04/09/2026",
             "06/09/2026",
             listOf(
-                F2Session("Treino Livre", "04/09/2026", "00:00"),
-                F2Session("Classificação", "04/09/2026", "00:00"),
-                F2Session("Corrida 1", "05/09/2026", "00:00"),
-                F2Session("Corrida 2", "06/09/2026", "00:00")
+                F2Session("Treino Livre", "04/09/2026", "05:00"),
+                F2Session("Classificação", "04/09/2026", "09:55"),
+                F2Session("Corrida Sprint", "05/09/2026", "09:15"),
+                F2Session("Corrida Feature", "06/09/2026", "04:45")
             )
         ),
 
@@ -166,24 +167,10 @@ object F2Calendar {
             "11/09/2026",
             "13/09/2026",
             listOf(
-                F2Session("Treino Livre", "11/09/2026", "00:00"),
-                F2Session("Classificação", "11/09/2026", "00:00"),
-                F2Session("Corrida 1", "12/09/2026", "00:00"),
-                F2Session("Corrida 2", "13/09/2026", "00:00")
-            )
-        ),
-
-        F2Event(
-            12,
-            "Baku",
-            "Azerbaijão",
-            "24/09/2026",
-            "26/09/2026",
-            listOf(
-                F2Session("Treino Livre", "24/09/2026", "00:00"),
-                F2Session("Classificação", "24/09/2026", "00:00"),
-                F2Session("Corrida 1", "25/09/2026", "00:00"),
-                F2Session("Corrida 2", "26/09/2026", "00:00")
+                F2Session("Treino Livre", "11/09/2026", "06:05"),
+                F2Session("Classificação", "11/09/2026", "10:00"),
+                F2Session("Corrida Sprint", "12/09/2026", "09:15"),
+                F2Session("Corrida Feature", "13/09/2026", "06:25")
             )
         ),
 
@@ -194,10 +181,10 @@ object F2Calendar {
             "27/11/2026",
             "29/11/2026",
             listOf(
-                F2Session("Treino Livre", "27/11/2026", "00:00"),
-                F2Session("Classificação", "27/11/2026", "00:00"),
-                F2Session("Corrida 1", "28/11/2026", "00:00"),
-                F2Session("Corrida 2", "29/11/2026", "00:00")
+                F2Session("Treino Livre", "27/11/2026", "A confirmar"),
+                F2Session("Classificação", "27/11/2026", "A confirmar"),
+                F2Session("Corrida Sprint", "28/11/2026", "A confirmar"),
+                F2Session("Corrida Feature", "29/11/2026", "A confirmar")
             )
         ),
 
@@ -208,10 +195,10 @@ object F2Calendar {
             "04/12/2026",
             "06/12/2026",
             listOf(
-                F2Session("Treino Livre", "04/12/2026", "00:00"),
-                F2Session("Classificação", "04/12/2026", "00:00"),
-                F2Session("Corrida 1", "05/12/2026", "00:00"),
-                F2Session("Corrida 2", "06/12/2026", "00:00")
+                F2Session("Treino Livre", "04/12/2026", "A confirmar"),
+                F2Session("Classificação", "04/12/2026", "A confirmar"),
+                F2Session("Corrida Sprint", "05/12/2026", "A confirmar"),
+                F2Session("Corrida Feature", "06/12/2026", "A confirmar")
             )
         )
     )
