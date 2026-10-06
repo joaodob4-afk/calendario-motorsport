@@ -9,6 +9,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class F2Activity : AppCompatActivity() {
 
@@ -159,6 +162,50 @@ class F2Activity : AppCompatActivity() {
 
         conteudo.addView(separador)
 
+        val agora =
+            LocalDateTime.now()
+
+        var proximaSessao: F2Session? = null
+        var proximoHorario: LocalDateTime? = null
+
+        val formato =
+            DateTimeFormatter.ofPattern(
+                "dd/MM/yyyy HH:mm"
+            )
+
+        for (sessao in evento.sessoes) {
+
+            if (sessao.horario == "A confirmar") {
+                continue
+            }
+
+            try {
+
+                val horario =
+                    LocalDateTime.parse(
+                        "${sessao.data} ${sessao.horario}",
+                        formato
+                    )
+
+                if (
+                    horario.isAfter(agora) &&
+                    (
+                        proximoHorario == null ||
+                        horario.isBefore(
+                            proximoHorario
+                        )
+                    )
+                ) {
+
+                    proximaSessao = sessao
+                    proximoHorario = horario
+                }
+
+            } catch (_: Exception) {
+                // Horário inválido não entra na contagem.
+            }
+        }
+
         for (sessao in evento.sessoes) {
 
             val emoji =
@@ -193,7 +240,9 @@ class F2Activity : AppCompatActivity() {
             adicionarSessao(
                 conteudo,
                 sessao,
-                emoji
+                emoji,
+                sessao == proximaSessao &&
+                        proximoHorario != null
             )
         }
 
@@ -238,16 +287,75 @@ class F2Activity : AppCompatActivity() {
     private fun adicionarSessao(
         layout: LinearLayout,
         sessao: F2Session,
-        emoji: String
+        emoji: String,
+        eProxima: Boolean
     ) {
+
+        var texto =
+            "$emoji ${sessao.nome}\n\n" +
+            "📅 ${sessao.data}\n" +
+            "🕐 ${sessao.horario}"
+
+        if (eProxima) {
+
+            val formato =
+                DateTimeFormatter.ofPattern(
+                    "dd/MM/yyyy HH:mm"
+                )
+
+            try {
+
+                val horario =
+                    LocalDateTime.parse(
+                        "${sessao.data} ${sessao.horario}",
+                        formato
+                    )
+
+                val agora =
+                    LocalDateTime.now()
+
+                val duracao =
+                    Duration.between(
+                        agora,
+                        horario
+                    )
+
+                val totalMinutos =
+                    duracao.toMinutes()
+
+                if (totalMinutos >= 0) {
+
+                    val dias =
+                        totalMinutos / 1440
+
+                    val horas =
+                        (totalMinutos % 1440) / 60
+
+                    val minutos =
+                        totalMinutos % 60
+
+                    val contagem =
+                        if (dias > 0) {
+                            "⏳ Começa em ${dias}d ${horas}h ${minutos}min"
+                        } else if (horas > 0) {
+                            "⏳ Começa em ${horas}h ${minutos}min"
+                        } else {
+                            "⏳ Começa em ${minutos}min"
+                        }
+
+                    texto +=
+                        "\n\n$contagem"
+                }
+
+            } catch (_: Exception) {
+                // Não mostra contagem se o horário for inválido.
+            }
+        }
 
         val sessaoView =
             TextView(this).apply {
 
-                text =
-                    "$emoji ${sessao.nome}\n\n" +
-                    "📅 ${sessao.data}\n" +
-                    "🕐 ${sessao.horario}"
+                text = texto
 
                 textSize = 18f
 
