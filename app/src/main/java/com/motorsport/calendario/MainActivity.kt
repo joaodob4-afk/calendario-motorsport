@@ -164,8 +164,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        R.anim.fade_in,
-                        0
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
                     )
                 }
 
@@ -180,8 +180,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        R.anim.fade_in,
-                        0
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
                     )
                 }
 
@@ -390,8 +390,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
         )
     }
 
@@ -493,8 +493,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
         )
     }
 
