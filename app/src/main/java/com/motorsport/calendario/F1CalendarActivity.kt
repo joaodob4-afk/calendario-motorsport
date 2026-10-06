@@ -1,5 +1,6 @@
 package com.motorsport.calendario
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -18,56 +19,115 @@ class F1CalendarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            setBackgroundColor(Color.BLACK)
-        }
+        val layout =
+            LinearLayout(this).apply {
 
-        val titulo = TextView(this).apply {
-            text = "🏎️ FÓRMULA 1\n\nCALENDÁRIO 2026"
-            textSize = 26f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 24)
-        }
+                orientation =
+                    LinearLayout.VERTICAL
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.rgb(11, 11, 15)
+                )
+            }
+
+        val titulo =
+            TextView(this).apply {
+
+                text =
+                    "FÓRMULA 1\n\n" +
+                    "CALENDÁRIO 2026"
+
+                textSize = 27f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                letterSpacing = 0.04f
+
+                setPadding(
+                    0,
+                    10,
+                    0,
+                    28
+                )
+            }
 
         layout.addView(titulo)
 
-        val carregando = TextView(this).apply {
-            text = "Carregando etapas..."
-            textSize = 18f
-            setTextColor(Color.LTGRAY)
-            gravity = Gravity.CENTER
-        }
+        val carregando =
+            TextView(this).apply {
+
+                text =
+                    "Carregando etapas..."
+
+                textSize = 17f
+
+                setTextColor(
+                    Color.LTGRAY
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    0,
+                    20,
+                    0,
+                    20
+                )
+            }
 
         layout.addView(carregando)
 
-        val voltar = Button(this).apply {
-            text = "VOLTAR"
-            textSize = 16f
+        val voltar =
+            Button(this).apply {
 
-            setOnClickListener {
-                finish()
+                text = "VOLTAR"
+                textSize = 15f
+
+                setOnClickListener {
+                    finish()
+                }
             }
-        }
 
-        val parametrosVoltar = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+        val parametrosVoltar =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltar.setMargins(
+            0,
+            24,
+            0,
+            20
         )
-
-        parametrosVoltar.setMargins(0, 24, 0, 24)
 
         layout.addView(
             voltar,
             parametrosVoltar
         )
 
-        val scrollView = ScrollView(this).apply {
-            addView(layout)
-        }
+        val scrollView =
+            ScrollView(this).apply {
+                addView(layout)
+            }
 
         setContentView(scrollView)
 
@@ -91,9 +151,13 @@ class F1CalendarActivity : AppCompatActivity() {
 
                 runOnUiThread {
 
-                    layout.removeView(carregando)
+                    layout.removeView(
+                        carregando
+                    )
 
-                    for (i in 0 until races.length()) {
+                    for (
+                        i in 0 until races.length()
+                    ) {
 
                         val race =
                             races.getJSONObject(i)
@@ -114,6 +178,7 @@ class F1CalendarActivity : AppCompatActivity() {
                         e.javaClass.simpleName
                 }
             }
+
         }.start()
     }
 
@@ -123,21 +188,22 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
 
         val nome =
-            race.getString("raceName")
-
-        val circuito =
-            race
-                .optJSONObject("Circuit")
-                ?.optString(
-                    "circuitName",
-                    ""
-                )
-                ?: ""
+            race.getString(
+                "raceName"
+            )
 
         val localizacao =
             race
                 .optJSONObject("Circuit")
                 ?.optJSONObject("Location")
+
+        val cidade =
+            localizacao
+                ?.optString(
+                    "local",
+                    ""
+                )
+                ?: ""
 
         val pais =
             localizacao
@@ -147,35 +213,48 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
                 ?: ""
 
-        val botao = Button(this).apply {
+        val botao =
+            TextView(this).apply {
 
-            text =
-                "🏁 $nome\n" +
-                "📍 $pais"
+                text =
+                    "🏁  $nome\n\n" +
+                    "$cidade • $pais"
 
-            textSize = 17f
+                textSize = 17f
 
-            setTextColor(Color.WHITE)
-
-            setTypeface(
-                null,
-                Typeface.BOLD
-            )
-
-            setPadding(
-                16,
-                16,
-                16,
-                16
-            )
-
-            setOnClickListener {
-
-                abrirEtapa(
-                    race
+                setTextColor(
+                    Color.WHITE
                 )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER_VERTICAL
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.rgb(36, 36, 43)
+                )
+
+                isClickable = true
+                isFocusable = true
+
+                setOnClickListener {
+
+                    abrirEtapa(
+                        race
+                    )
+                }
             }
-        }
 
         val parametros =
             LinearLayout.LayoutParams(
@@ -201,7 +280,7 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
 
         val intent =
-            android.content.Intent(
+            Intent(
                 this,
                 F1Activity::class.java
             )
