@@ -45,6 +45,11 @@ class F2Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        overridePendingTransition(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
+
         val etapaNumero =
             intent.getIntExtra(
                 "ETAPA",
@@ -88,17 +93,14 @@ class F2Activity : AppCompatActivity() {
 
                 textSize = 27f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 letterSpacing = 0.04f
 
@@ -122,17 +124,14 @@ class F2Activity : AppCompatActivity() {
 
                 textSize = 21f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 setPadding(
                     16,
@@ -172,12 +171,9 @@ class F2Activity : AppCompatActivity() {
 
                 textSize = 15f
 
-                setTextColor(
-                    Color.GRAY
-                )
+                setTextColor(Color.GRAY)
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 setPadding(
                     0,
@@ -318,7 +314,6 @@ class F2Activity : AppCompatActivity() {
             Button(this).apply {
 
                 text = "VOLTAR"
-
                 textSize = 15f
 
                 setOnClickListener {
@@ -373,9 +368,7 @@ class F2Activity : AppCompatActivity() {
 
                 textSize = 17f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
@@ -401,17 +394,14 @@ class F2Activity : AppCompatActivity() {
 
                     textSize = 15f
 
-                    setTextColor(
-                        Color.WHITE
-                    )
+                    setTextColor(Color.WHITE)
 
                     setTypeface(
                         null,
                         Typeface.BOLD
                     )
 
-                    gravity =
-                        Gravity.CENTER
+                    gravity = Gravity.CENTER
 
                     setPadding(
                         16,
