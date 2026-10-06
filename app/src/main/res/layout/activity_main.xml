@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,43 +9,96 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="🏁 Motorsport Calendar"
             android:textColor="#FFFFFF"
-            android:textSize="26sp"
+            android:textSize="28sp"
             android:textStyle="bold"
+            android:gravity="center"
             android:paddingBottom="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Corridas e horários"
-            android:textColor="#BBBBBB"
+            android:text="Escolha uma categoria"
+            android:textColor="#AAAAAA"
             android:textSize="16sp"
-            android:paddingBottom="20dp" />
+            android:gravity="center"
+            android:paddingBottom="24dp" />
+
+        <!-- F1 -->
 
         <TextView
+            android:id="@+id/btnF1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="PRÓXIMAS CORRIDAS"
-            android:textColor="#E10600"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:paddingBottom="10dp" />
-
-        <TextView
-            android:id="@+id/raceInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Carregando calendário..."
+            android:layout_height="85dp"
+            android:layout_marginBottom="14dp"
+            android:background="#D90404"
+            android:gravity="center"
+            android:text="🏎️  FÓRMULA 1"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:padding="16dp"
-            android:background="#202020" />
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- F2 -->
+
+        <TextView
+            android:id="@+id/btnF2"
+            android:layout_width="match_parent"
+            android:layout_height="85dp"
+            android:layout_marginBottom="14dp"
+            android:background="#7B2CBF"
+            android:gravity="center"
+            android:text="🏎️  FÓRMULA 2"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- F3 -->
+
+        <TextView
+            android:id="@+id/btnF3"
+            android:layout_width="match_parent"
+            android:layout_height="85dp"
+            android:layout_marginBottom="14dp"
+            android:background="#1565C0"
+            android:gravity="center"
+            android:text="🏎️  FÓRMULA 3"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- IndyCar -->
+
+        <TextView
+            android:id="@+id/btnIndyCar"
+            android:layout_width="match_parent"
+            android:layout_height="85dp"
+            android:layout_marginBottom="14dp"
+            android:background="#EF6C00"
+            android:gravity="center"
+            android:text="🏁  INDYCAR"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Fórmula E -->
+
+        <TextView
+            android:id="@+id/btnFormulaE"
+            android:layout_width="match_parent"
+            android:layout_height="85dp"
+            android:layout_marginBottom="14dp"
+            android:background="#2E7D32"
+            android:gravity="center"
+            android:text="⚡  FÓRMULA E"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
