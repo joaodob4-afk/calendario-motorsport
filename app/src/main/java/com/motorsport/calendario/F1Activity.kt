@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -21,65 +22,121 @@ class F1Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            setBackgroundColor(Color.BLACK)
-        }
+        val conteudo =
+            LinearLayout(this).apply {
+                orientation =
+                    LinearLayout.VERTICAL
+
+                setPadding(
+                    24,
+                    24,
+                    24,
+                    24
+                )
+
+                setBackgroundColor(
+                    Color.BLACK
+                )
+            }
 
         val selecionada =
             intent.getStringExtra("RACE") != null
 
-        val titulo = TextView(this).apply {
-            text = if (selecionada) {
-                "🏎️ FÓRMULA 1\n\nPROGRAMAÇÃO DA ETAPA"
-            } else {
-                "🏎️ FÓRMULA 1\n\nPRÓXIMO EVENTO"
-            }
+        val titulo =
+            TextView(this).apply {
 
-            textSize = 26f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 24)
-        }
+                text =
+                    if (selecionada) {
+                        "🏎️ FÓRMULA 1\n\n" +
+                        "PROGRAMAÇÃO DA ETAPA"
+                    } else {
+                        "🏎️ FÓRMULA 1\n\n" +
+                        "PRÓXIMO EVENTO"
+                    }
+
+                textSize = 26f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    0,
+                    0,
+                    0,
+                    24
+                )
+            }
 
         conteudo.addView(titulo)
 
-        val carregando = TextView(this).apply {
-            text = "Carregando programação..."
-            textSize = 18f
-            setTextColor(Color.LTGRAY)
-            gravity = Gravity.CENTER
-            setPadding(0, 20, 0, 20)
-        }
+        val carregando =
+            TextView(this).apply {
+
+                text =
+                    "Carregando programação..."
+
+                textSize = 18f
+
+                setTextColor(
+                    Color.LTGRAY
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    0,
+                    20,
+                    0,
+                    20
+                )
+            }
 
         conteudo.addView(carregando)
 
-        val voltar = Button(this).apply {
-            text = "VOLTAR"
-            textSize = 16f
+        val voltar =
+            Button(this).apply {
 
-            setOnClickListener {
-                finish()
+                text = "VOLTAR"
+
+                textSize = 16f
+
+                setOnClickListener {
+                    finish()
+                }
             }
-        }
 
-        val parametrosVoltar = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+        val parametrosVoltar =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltar.setMargins(
+            0,
+            24,
+            0,
+            24
         )
-
-        parametrosVoltar.setMargins(0, 24, 0, 24)
 
         conteudo.addView(
             voltar,
             parametrosVoltar
         )
 
-        val scrollView = ScrollView(this).apply {
-            addView(conteudo)
-        }
+        val scrollView =
+            ScrollView(this).apply {
+                addView(conteudo)
+            }
 
         setContentView(scrollView)
 
@@ -116,10 +173,12 @@ class F1Activity : AppCompatActivity() {
                     val agora =
                         java.time.Instant.now()
 
-                    var proximo: JSONObject? =
-                        null
+                    var proximo:
+                            JSONObject? = null
 
-                    for (i in 0 until races.length()) {
+                    for (
+                        i in 0 until races.length()
+                    ) {
 
                         val race =
                             races.getJSONObject(i)
@@ -143,7 +202,9 @@ class F1Activity : AppCompatActivity() {
                                 .isAfter(agora)
                         ) {
 
-                            proximo = race
+                            proximo =
+                                race
+
                             break
                         }
                     }
@@ -159,7 +220,8 @@ class F1Activity : AppCompatActivity() {
                         return@Thread
                     }
 
-                    evento = proximo
+                    evento =
+                        proximo
                 }
 
                 runOnUiThread {
@@ -194,7 +256,9 @@ class F1Activity : AppCompatActivity() {
     ) {
 
         val brasilia =
-            ZoneId.of("America/Sao_Paulo")
+            ZoneId.of(
+                "America/Sao_Paulo"
+            )
 
         val formato =
             DateTimeFormatter.ofPattern(
@@ -202,7 +266,9 @@ class F1Activity : AppCompatActivity() {
             )
 
         val nome =
-            race.getString("raceName")
+            race.getString(
+                "raceName"
+            )
 
         val circuito =
             race
@@ -220,37 +286,53 @@ class F1Activity : AppCompatActivity() {
 
         val cidade =
             localizacao
-                ?.optString("local", "")
+                ?.optString(
+                    "local",
+                    ""
+                )
                 ?: ""
 
         val pais =
             localizacao
-                ?.optString("country", "")
+                ?.optString(
+                    "country",
+                    ""
+                )
                 ?: ""
 
-        val cabecalho = TextView(this).apply {
+        val cabecalho =
+            TextView(this).apply {
 
-            text =
-                "🏁 $nome\n\n" +
-                "🏟️ $circuito\n" +
-                "📍 $cidade - $pais"
+                text =
+                    "🏁 $nome\n\n" +
+                    "🏟️ $circuito\n" +
+                    "📍 $cidade - $pais"
 
-            textSize = 22f
-            setTextColor(Color.WHITE)
-            setTypeface(
-                null,
-                Typeface.BOLD
-            )
-            gravity = Gravity.CENTER
-            setPadding(
-                10,
-                20,
-                10,
-                24
-            )
-        }
+                textSize = 22f
 
-        layout.addView(cabecalho)
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    10,
+                    20,
+                    10,
+                    24
+                )
+            }
+
+        layout.addView(
+            cabecalho
+        )
 
         adicionarSessao(
             layout,
@@ -333,7 +415,9 @@ class F1Activity : AppCompatActivity() {
             if (campo == "date") {
 
                 data =
-                    race.getString("date")
+                    race.getString(
+                        "date"
+                    )
 
                 hora =
                     race.optString(
@@ -344,13 +428,19 @@ class F1Activity : AppCompatActivity() {
             } else {
 
                 val sessao =
-                    race.getJSONObject(campo)
+                    race.getJSONObject(
+                        campo
+                    )
 
                 data =
-                    sessao.getString("date")
+                    sessao.getString(
+                        "date"
+                    )
 
                 hora =
-                    sessao.getString("time")
+                    sessao.getString(
+                        "time"
+                    )
             }
 
             val horarioUtc =
@@ -363,34 +453,94 @@ class F1Activity : AppCompatActivity() {
                     brasilia
                 )
 
-            val card = TextView(this).apply {
-
-                text =
-                    "$nome\n\n" +
-                    "📅 ${
-                        horarioBrasilia.format(
-                            formato
-                        )
-                    }"
-
-                textSize = 18f
-                setTextColor(Color.WHITE)
-                setTypeface(
-                    null,
-                    Typeface.BOLD
+            val agora =
+                java.time.ZonedDateTime.now(
+                    brasilia
                 )
 
-                setPadding(
-                    20,
-                    20,
-                    20,
-                    20
-                )
+            var texto =
+                "$nome\n\n" +
+                "📅 ${
+                    horarioBrasilia.format(
+                        formato
+                    )
+                }"
 
-                setBackgroundColor(
-                    Color.DKGRAY
+            if (
+                horarioBrasilia.isAfter(
+                    agora
                 )
+            ) {
+
+                val duracao =
+                    Duration.between(
+                        agora,
+                        horarioBrasilia
+                    )
+
+                val totalMinutos =
+                    duracao.toMinutes()
+
+                val dias =
+                    totalMinutos / 1440
+
+                val horas =
+                    (totalMinutos % 1440) / 60
+
+                val minutos =
+                    totalMinutos % 60
+
+                val contagem =
+                    if (dias > 0) {
+
+                        "⏳ Começa em " +
+                        "${dias}d " +
+                        "${horas}h " +
+                        "${minutos}min"
+
+                    } else if (horas > 0) {
+
+                        "⏳ Começa em " +
+                        "${horas}h " +
+                        "${minutos}min"
+
+                    } else {
+
+                        "⏳ Começa em " +
+                        "${minutos}min"
+                    }
+
+                texto +=
+                    "\n\n$contagem"
             }
+
+            val card =
+                TextView(this).apply {
+
+                    text = texto
+
+                    textSize = 18f
+
+                    setTextColor(
+                        Color.WHITE
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    setPadding(
+                        20,
+                        20,
+                        20,
+                        20
+                    )
+
+                    setBackgroundColor(
+                        Color.DKGRAY
+                    )
+                }
 
             val parametros =
                 LinearLayout.LayoutParams(
