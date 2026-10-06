@@ -3,7 +3,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101010">
+    android:background="#0B0B0F"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,30 +16,36 @@
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="← Categorias"
-            android:textColor="#BBBBBB"
-            android:textSize="16sp"
-            android:paddingBottom="20dp" />
+            android:text="‹  VOLTAR"
+            android:textColor="#8A8A94"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:paddingTop="6dp"
+            android:paddingBottom="24dp"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/categoryTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🏎️ FÓRMULA 1"
+            android:text="FÓRMULA 1"
             android:textColor="#FFFFFF"
-            android:textSize="28sp"
+            android:textSize="30sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:paddingBottom="25dp" />
+            android:letterSpacing="0.04"
+            android:paddingBottom="28dp" />
 
         <TextView
             android:id="@+id/nextEventTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="PRÓXIMO EVENTO"
-            android:textColor="#AAAAAA"
-            android:textSize="14sp"
+            android:textColor="#77777F"
+            android:textSize="12sp"
             android:textStyle="bold"
+            android:letterSpacing="0.10"
             android:paddingBottom="8dp" />
 
         <TextView
@@ -47,31 +54,39 @@
             android:layout_height="wrap_content"
             android:text="Carregando..."
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="19sp"
             android:textStyle="bold"
-            android:padding="18dp"
-            android:background="#202020" />
+            android:gravity="center_vertical"
+            android:padding="22dp"
+            android:background="#24242B"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/fullCalendarButton"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="18dp"
-            android:text="📅  VER PROGRAMAÇÃO COMPLETA"
+            android:layout_height="62dp"
+            android:layout_marginTop="16dp"
+            android:text="VER PROGRAMAÇÃO COMPLETA"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:background="#303030" />
+            android:letterSpacing="0.04"
+            android:background="#303038"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/categoryInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:paddingTop="20dp" />
+            android:textColor="#B0B0B8"
+            android:textSize="15sp"
+            android:lineSpacingExtra="5dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="20dp" />
 
     </LinearLayout>
 
