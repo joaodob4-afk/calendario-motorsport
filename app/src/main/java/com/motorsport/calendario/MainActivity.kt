@@ -3,9 +3,12 @@ package com.motorsport.calendario
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import org.json.JSONObject
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,17 +19,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         raceInfo = findViewById(R.id.raceInfo)
-
         raceInfo.text = "Carregando calendário da F1..."
 
+        carregarCalendario()
+    }
+
+    private fun carregarCalendario() {
+
         Thread {
+
             try {
+
                 val url = URL("https://api.jolpi.ca/ergast/f1/current.json")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.requestMethod = "GET"
-                connection.connectTimeout = 10000
-                connection.readTimeout = 10000
+                connection.connectTimeout = 15000
+                connection.readTimeout = 15000
 
                 val resposta = connection.inputStream
                     .bufferedReader()
@@ -35,22 +44,75 @@ class MainActivity : AppCompatActivity() {
                 connection.disconnect()
 
                 val json = JSONObject(resposta)
+
                 val races = json
                     .getJSONObject("MRData")
                     .getJSONObject("RaceTable")
                     .getJSONArray("Races")
 
+                val brasilia = ZoneId.of("America/Sao_Paulo")
+
                 val texto = StringBuilder()
+
                 texto.append("🏎️ FÓRMULA 1\n\n")
 
                 for (i in 0 until races.length()) {
+
                     val race = races.getJSONObject(i)
 
                     val nome = race.getString("raceName")
-                    val data = race.getString("date")
 
-                    texto.append("🏁 $nome\n")
-                    texto.append("📅 $data\n\n")
+                    texto.append("🏁 $nome\n\n")
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "FirstPractice",
+                        "🟢 Treino Livre 1",
+                        brasilia
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "SecondPractice",
+                        "🟢 Treino Livre 2",
+                        brasilia
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "ThirdPractice",
+                        "🟢 Treino Livre 3",
+                        brasilia
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "Sprint",
+                        "🟡 Sprint",
+                        brasilia
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "Qualifying",
+                        "🔵 Classificação",
+                        brasilia
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "date",
+                        "🔴 Corrida",
+                        brasilia
+                    )
+
+                    texto.append("\n")
                 }
 
                 runOnUiThread {
@@ -60,12 +122,50 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
 
                 runOnUiThread {
+
                     raceInfo.text =
-                        "Não foi possível carregar o calendário.\n\n" +
-                        "${e.javaClass.simpleName}\n" +
+                        "Erro ao carregar o calendário.\n\n" +
+                        "${e.javaClass.simpleName}\n\n" +
                         "${e.message}"
                 }
             }
+
         }.start()
+    }
+
+    private fun adicionarSessao(
+        texto: StringBuilder,
+        race: JSONObject,
+        campo: String,
+        nomeSessao: String,
+        brasilia: ZoneId
+    ) {
+
+        try {
+
+            val objeto = race.getJSONObject(campo)
+
+            val data = objeto.getString("date")
+            val hora = objeto.getString("time")
+
+            val horarioUtc = OffsetDateTime.parse(
+                "${data}T${hora}"
+            )
+
+            val horarioBrasilia =
+                horarioUtc.atZoneSameInstant(brasilia)
+
+            val formato =
+                DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm")
+
+            texto.append(nomeSessao)
+                .append(": ")
+                .append(horarioBrasilia.format(formato))
+                .append("\n")
+
+        } catch (_: Exception) {
+
+            // Sessão não existe nesse Grande Prêmio.
+        }
     }
 }
