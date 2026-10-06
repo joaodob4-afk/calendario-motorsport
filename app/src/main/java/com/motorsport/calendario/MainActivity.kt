@@ -226,9 +226,7 @@ class MainActivity : AppCompatActivity() {
                         "🔴 Corrida\n" +
                         "📅 $dataCorrida"
 
-                    sessao.text =
-                        "Toque em \"VER PROGRAMAÇÃO COMPLETA\" " +
-                        "para ver todas as sessões."
+                    
                 }
 
             } catch (e: Exception) {
