@@ -68,14 +68,14 @@ class F2Activity : AppCompatActivity() {
                     LinearLayout.VERTICAL
 
                 setPadding(
-                    24,
-                    24,
-                    24,
-                    24
+                    20,
+                    20,
+                    20,
+                    20
                 )
 
                 setBackgroundColor(
-                    Color.BLACK
+                    Color.rgb(11, 11, 15)
                 )
             }
 
@@ -83,10 +83,10 @@ class F2Activity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "🏎️ FÓRMULA 2\n\n" +
+                    "FÓRMULA 2\n\n" +
                     "PROGRAMAÇÃO DA ETAPA"
 
-                textSize = 26f
+                textSize = 27f
 
                 setTextColor(
                     Color.WHITE
@@ -100,11 +100,13 @@ class F2Activity : AppCompatActivity() {
                 gravity =
                     Gravity.CENTER
 
+                letterSpacing = 0.04f
+
                 setPadding(
                     0,
+                    10,
                     0,
-                    0,
-                    24
+                    28
                 )
             }
 
@@ -121,7 +123,7 @@ class F2Activity : AppCompatActivity() {
                 textSize = 21f
 
                 setTextColor(
-                    Color.LTGRAY
+                    Color.WHITE
                 )
 
                 setTypeface(
@@ -133,14 +135,34 @@ class F2Activity : AppCompatActivity() {
                     Gravity.CENTER
 
                 setPadding(
-                    0,
-                    10,
-                    0,
-                    10
+                    16,
+                    22,
+                    16,
+                    22
+                )
+
+                setBackgroundColor(
+                    Color.rgb(36, 36, 43)
                 )
             }
 
-        conteudo.addView(etapa)
+        val parametrosEtapa =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosEtapa.setMargins(
+            0,
+            0,
+            0,
+            12
+        )
+
+        conteudo.addView(
+            etapa,
+            parametrosEtapa
+        )
 
         val periodo =
             TextView(this).apply {
@@ -148,7 +170,7 @@ class F2Activity : AppCompatActivity() {
                 text =
                     "📅 ${evento.inicio} → ${evento.fim}"
 
-                textSize = 16f
+                textSize = 15f
 
                 setTextColor(
                     Color.GRAY
@@ -159,7 +181,7 @@ class F2Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    0,
+                    8,
                     0,
                     24
                 )
@@ -172,10 +194,10 @@ class F2Activity : AppCompatActivity() {
 
                 text = "PROGRAMAÇÃO"
 
-                textSize = 15f
+                textSize = 13f
 
                 setTextColor(
-                    Color.WHITE
+                    Color.rgb(119, 119, 127)
                 )
 
                 setTypeface(
@@ -183,11 +205,13 @@ class F2Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
+                letterSpacing = 0.10f
+
                 setPadding(
                     0,
                     8,
                     0,
-                    8
+                    10
                 )
             }
 
@@ -295,7 +319,7 @@ class F2Activity : AppCompatActivity() {
 
                 text = "VOLTAR"
 
-                textSize = 16f
+                textSize = 15f
 
                 setOnClickListener {
                     finish()
@@ -312,7 +336,7 @@ class F2Activity : AppCompatActivity() {
             0,
             24,
             0,
-            24
+            20
         )
 
         conteudo.addView(
@@ -343,11 +367,11 @@ class F2Activity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "$emoji ${sessao.nome}\n\n" +
+                    "$emoji  ${sessao.nome}\n\n" +
                     "📅 ${sessao.data}\n" +
                     "🕐 ${sessao.horario}"
 
-                textSize = 18f
+                textSize = 17f
 
                 setTextColor(
                     Color.WHITE
@@ -366,7 +390,7 @@ class F2Activity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.DKGRAY
+                    Color.rgb(36, 36, 43)
                 )
             }
 
@@ -375,7 +399,7 @@ class F2Activity : AppCompatActivity() {
             contadorView =
                 TextView(this).apply {
 
-                    textSize = 16f
+                    textSize = 15f
 
                     setTextColor(
                         Color.WHITE
@@ -386,23 +410,41 @@ class F2Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
+                    gravity =
+                        Gravity.CENTER
+
                     setPadding(
-                        20,
-                        0,
-                        20,
-                        20
+                        16,
+                        10,
+                        16,
+                        16
                     )
 
-                    text = ""
-
+                    setBackgroundColor(
+                        Color.rgb(48, 48, 56)
+                    )
                 }
 
             layout.addView(
                 sessaoView
             )
 
+            val parametrosContador =
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+
+            parametrosContador.setMargins(
+                0,
+                0,
+                0,
+                6
+            )
+
             layout.addView(
-                contadorView
+                contadorView,
+                parametrosContador
             )
 
         } else {
@@ -415,9 +457,9 @@ class F2Activity : AppCompatActivity() {
 
             parametros.setMargins(
                 0,
-                8,
+                6,
                 0,
-                8
+                6
             )
 
             layout.addView(
@@ -444,7 +486,8 @@ class F2Activity : AppCompatActivity() {
                 horario
             )
 
-        if (duracao.isZero ||
+        if (
+            duracao.isZero ||
             duracao.isNegative
         ) {
 
@@ -469,20 +512,17 @@ class F2Activity : AppCompatActivity() {
         view.text =
             if (dias > 0) {
 
-                "⏳ Começa em " +
-                "${dias}d " +
-                "${horas}h " +
-                "${minutos}min"
+                "⏳  COMEÇA EM  " +
+                "${dias}d ${horas}h ${minutos}min"
 
             } else if (horas > 0) {
 
-                "⏳ Começa em " +
-                "${horas}h " +
-                "${minutos}min"
+                "⏳  COMEÇA EM  " +
+                "${horas}h ${minutos}min"
 
             } else {
 
-                "⏳ Começa em " +
+                "⏳  COMEÇA EM  " +
                 "${minutos}min"
             }
     }
