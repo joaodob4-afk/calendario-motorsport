@@ -14,6 +14,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mostrarMenu()
+    }
+
+    private fun mostrarMenu() {
         setContentView(R.layout.activity_main)
 
         findViewById<TextView>(R.id.btnF1).setOnClickListener {
@@ -42,7 +46,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_category)
 
         val titulo = findViewById<TextView>(R.id.categoryTitle)
-        val info = findViewById<TextView>(R.id.categoryInfo)
+        val evento = findViewById<TextView>(R.id.nextEvent)
+        val sessao = findViewById<TextView>(R.id.nextSession)
+        val calendario = findViewById<TextView>(R.id.fullCalendarButton)
+        val voltar = findViewById<TextView>(R.id.backButton)
 
         titulo.text = when (categoria) {
             "F1" -> "🏎️ FÓRMULA 1"
@@ -52,15 +59,22 @@ class MainActivity : AppCompatActivity() {
             else -> "⚡ FÓRMULA E"
         }
 
-        info.text = "Carregando calendário..."
+        voltar.setOnClickListener {
+            mostrarMenu()
+        }
+
+        calendario.setOnClickListener {
+            evento.text = "Programação completa"
+            sessao.text = "Em breve mostraremos todas as sessões."
+        }
 
         if (categoria == "F1") {
-            carregarF1(info)
+            carregarF1(evento, sessao)
         } else {
-            info.text = """
-                Calendário automático em preparação.
+            evento.text = "Calendário automático"
+            sessao.text = """
+                Esta categoria será adicionada em breve.
 
-                Em breve esta categoria terá:
                 • Treinos
                 • Classificação
                 • Corrida
@@ -69,7 +83,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun carregarF1(info: TextView) {
+    private fun carregarF1(
+        evento: TextView,
+        sessao: TextView
+    ) {
 
         Thread {
 
@@ -97,167 +114,26 @@ class MainActivity : AppCompatActivity() {
 
                 connection.disconnect()
 
-                val json = JSONObject(resposta)
-
-                val races = json
+                val races = JSONObject(resposta)
                     .getJSONObject("MRData")
                     .getJSONObject("RaceTable")
                     .getJSONArray("Races")
 
-                val brasilia = ZoneId.of("America/Sao_Paulo")
+                val agora = java.time.Instant.now()
+                val brasilia =
+                    ZoneId.of("America/Sao_Paulo")
 
-                val formato =
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy - HH:mm"
-                    )
-
-                val texto = StringBuilder()
-
-                texto.append("PRÓXIMOS EVENTOS\n\n")
+                var proximaCorrida: JSONObject? = null
+                var proximaData: OffsetDateTime? = null
 
                 for (i in 0 until races.length()) {
 
-                    val race =
-                        races.getJSONObject(i)
+                    val race = races.getJSONObject(i)
 
-                    texto.append("🏁 ")
-                        .append(race.getString("raceName"))
-                        .append("\n\n")
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "FirstPractice",
-                        "🟢 Treino Livre 1",
-                        brasilia,
-                        formato
+                    val data = race.getString("date")
+                    val hora = race.optString(
+                        "time",
+                        "00:00:00Z"
                     )
 
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "SecondPractice",
-                        "🟢 Treino Livre 2",
-                        brasilia,
-                        formato
-                    )
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "ThirdPractice",
-                        "🟢 Treino Livre 3",
-                        brasilia,
-                        formato
-                    )
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "SprintQualifying",
-                        "🟡 Classificação Sprint",
-                        brasilia,
-                        formato
-                    )
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "Sprint",
-                        "🟡 Sprint",
-                        brasilia,
-                        formato
-                    )
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "Qualifying",
-                        "🔵 Classificação",
-                        brasilia,
-                        formato
-                    )
-
-                    adicionarSessao(
-                        texto,
-                        race,
-                        "date",
-                        "🔴 Corrida",
-                        brasilia,
-                        formato
-                    )
-
-                    texto.append("\n")
-                }
-
-                runOnUiThread {
-                    info.text = texto.toString()
-                }
-
-            } catch (e: Exception) {
-
-                runOnUiThread {
-                    info.text =
-                        "Erro ao carregar calendário.\n\n" +
-                        e.javaClass.simpleName +
-                        "\n\n" +
-                        e.message
-                }
-            }
-
-        }.start()
-    }
-
-    private fun adicionarSessao(
-        texto: StringBuilder,
-        race: JSONObject,
-        campo: String,
-        nome: String,
-        brasilia: ZoneId,
-        formato: DateTimeFormatter
-    ) {
-
-        try {
-
-            val data: String
-            val hora: String
-
-            if (campo == "date") {
-
-                data = race.getString("date")
-                hora = race.optString(
-                    "time",
-                    "00:00:00Z"
-                )
-
-            } else {
-
-                val sessao =
-                    race.getJSONObject(campo)
-
-                data = sessao.getString("date")
-                hora = sessao.getString("time")
-            }
-
-            val horarioUtc =
-                OffsetDateTime.parse(
-                    "${data}T${hora}"
-                )
-
-            val horarioBrasilia =
-                horarioUtc.atZoneSameInstant(
-                    brasilia
-                )
-
-            texto.append(nome)
-                .append(": ")
-                .append(
-                    horarioBrasilia.format(formato)
-                )
-                .append("\n")
-
-        } catch (_: Exception) {
-            // Sessão não disponível neste GP.
-        }
-    }
-}
+                   
