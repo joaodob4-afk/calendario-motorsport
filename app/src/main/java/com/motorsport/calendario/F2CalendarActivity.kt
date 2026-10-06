@@ -16,6 +16,11 @@ class F2CalendarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        overridePendingTransition(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
+
         val layout =
             LinearLayout(this).apply {
 
@@ -43,17 +48,14 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 textSize = 27f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 letterSpacing = 0.04f
 
@@ -82,9 +84,7 @@ class F2CalendarActivity : AppCompatActivity() {
 
                     textSize = 17f
 
-                    setTextColor(
-                        Color.WHITE
-                    )
+                    setTextColor(Color.WHITE)
 
                     setTypeface(
                         null,
@@ -121,8 +121,11 @@ class F2CalendarActivity : AppCompatActivity() {
                             evento.etapa
                         )
 
-                        startActivity(
-                            intent
+                        startActivity(intent)
+
+                        overridePendingTransition(
+                            android.R.anim.fade_in,
+                            android.R.anim.fade_out
                         )
                     }
                 }
