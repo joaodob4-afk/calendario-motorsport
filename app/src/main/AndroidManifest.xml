@@ -23,6 +23,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".F2CalendarActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true">
 
