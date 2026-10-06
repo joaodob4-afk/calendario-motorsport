@@ -289,7 +289,6 @@ class MainActivity : AppCompatActivity() {
             "🇺🇳 ${proximo.pais}\n\n" +
             "📅 ${proximo.inicio} até ${proximo.fim}"
 
-        // Quadrante do meio vazio
         sessao.text = ""
     }
 
@@ -414,7 +413,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
                 texto.append(
-                    "Todos os horários em Brasília\n\n"
+                    "🇧🇷 Todos os horários em Brasília\n\n"
                 )
 
                 for (i in 0 until races.length()) {
@@ -538,7 +537,6 @@ class MainActivity : AppCompatActivity() {
         try {
 
             val data: String
-
             val hora: String
 
             if (campo == "date") {
