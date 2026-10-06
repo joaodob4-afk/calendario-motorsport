@@ -27,8 +27,16 @@ class F1Activity : AppCompatActivity() {
             setBackgroundColor(Color.BLACK)
         }
 
+        val selecionada =
+            intent.getStringExtra("RACE") != null
+
         val titulo = TextView(this).apply {
-            text = "🏎️ FÓRMULA 1\n\nEVENTO ATUAL"
+            text = if (selecionada) {
+                "🏎️ FÓRMULA 1\n\nPROGRAMAÇÃO DA ETAPA"
+            } else {
+                "🏎️ FÓRMULA 1\n\nPRÓXIMO EVENTO"
+            }
+
             textSize = 26f
             setTextColor(Color.WHITE)
             setTypeface(null, Typeface.BOLD)
@@ -39,7 +47,7 @@ class F1Activity : AppCompatActivity() {
         conteudo.addView(titulo)
 
         val carregando = TextView(this).apply {
-            text = "Carregando informações do evento..."
+            text = "Carregando programação..."
             textSize = 18f
             setTextColor(Color.LTGRAY)
             gravity = Gravity.CENTER
@@ -75,13 +83,13 @@ class F1Activity : AppCompatActivity() {
 
         setContentView(scrollView)
 
-        carregarEventoAtual(
+        carregarEvento(
             conteudo,
             carregando
         )
     }
 
-    private fun carregarEventoAtual(
+    private fun carregarEvento(
         layout: LinearLayout,
         carregando: TextView
     ) {
@@ -90,62 +98,79 @@ class F1Activity : AppCompatActivity() {
 
             try {
 
-                val races =
-                    buscarCorridasF1()
+                val raceExtra =
+                    intent.getStringExtra("RACE")
 
-                val agora =
-                    java.time.Instant.now()
+                val evento: JSONObject
 
-                var eventoAtual: JSONObject? =
-                    null
+                if (raceExtra != null) {
 
-                for (i in 0 until races.length()) {
+                    evento =
+                        JSONObject(raceExtra)
 
-                    val race =
-                        races.getJSONObject(i)
+                } else {
 
-                    val data =
-                        race.getString("date")
+                    val races =
+                        buscarCorridasF1()
 
-                    val hora =
-                        race.optString(
-                            "time",
-                            "00:00:00Z"
-                        )
+                    val agora =
+                        java.time.Instant.now()
 
-                    val horario =
-                        OffsetDateTime.parse(
-                            "${data}T${hora}"
-                        )
+                    var proximo: JSONObject? =
+                        null
 
-                    if (
-                        horario.toInstant()
-                            .isAfter(agora)
-                    ) {
+                    for (i in 0 until races.length()) {
 
-                        eventoAtual = race
-                        break
+                        val race =
+                            races.getJSONObject(i)
+
+                        val data =
+                            race.getString("date")
+
+                        val hora =
+                            race.optString(
+                                "time",
+                                "00:00:00Z"
+                            )
+
+                        val horario =
+                            OffsetDateTime.parse(
+                                "${data}T${hora}"
+                            )
+
+                        if (
+                            horario.toInstant()
+                                .isAfter(agora)
+                        ) {
+
+                            proximo = race
+                            break
+                        }
                     }
-                }
 
-                if (eventoAtual == null) {
+                    if (proximo == null) {
 
-                    runOnUiThread {
+                        runOnUiThread {
 
-                        carregando.text =
-                            "Nenhum evento futuro encontrado."
+                            carregando.text =
+                                "Nenhum evento futuro encontrado."
+                        }
+
+                        return@Thread
                     }
 
-                    return@Thread
+                    evento = proximo
                 }
 
                 runOnUiThread {
 
-                    layout.removeView(carregando)
+                    layout.removeView(
+                        carregando
+                    )
 
                     mostrarEvento(
                         layout,
-                        eventoAtual!!
+                        evento
                     )
                 }
 
@@ -196,23 +221,33 @@ class F1Activity : AppCompatActivity() {
         val cidade =
             localizacao
                 ?.optString("local", "")
+                ?: ""
 
         val pais =
             localizacao
                 ?.optString("country", "")
+                ?: ""
 
         val cabecalho = TextView(this).apply {
 
             text =
                 "🏁 $nome\n\n" +
                 "🏟️ $circuito\n" +
-                "📍 ${cidade ?: ""} - ${pais ?: ""}"
+                "📍 $cidade - $pais"
 
             textSize = 22f
             setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
+            setTypeface(
+                null,
+                Typeface.BOLD
+            )
             gravity = Gravity.CENTER
-            setPadding(10, 20, 10, 24)
+            setPadding(
+                10,
+                20,
+                10,
+                24
+            )
         }
 
         layout.addView(cabecalho)
@@ -324,10 +359,9 @@ class F1Activity : AppCompatActivity() {
                 )
 
             val horarioBrasilia =
-                horarioUtc
-                    .atZoneSameInstant(
-                        brasilia
-                    )
+                horarioUtc.atZoneSameInstant(
+                    brasilia
+                )
 
             val card = TextView(this).apply {
 
