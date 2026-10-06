@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         mostrarMenu()
     }
 
@@ -163,8 +164,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out
+                        R.anim.fade_in,
+                        0
                     )
                 }
 
@@ -179,8 +180,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        android.R.anim.fade_in,
-                        android.R.anim.fade_out
+                        R.anim.fade_in,
+                        0
                     )
                 }
 
@@ -389,8 +390,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            0
         )
     }
 
@@ -492,8 +493,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            0
         )
     }
 
