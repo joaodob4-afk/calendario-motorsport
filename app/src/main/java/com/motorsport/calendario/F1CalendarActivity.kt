@@ -1,27 +1,28 @@
 package com.motorsport.calendario
 
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
 class F1CalendarActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            0
         )
 
         val layout =
@@ -51,14 +52,17 @@ class F1CalendarActivity : AppCompatActivity() {
 
                 textSize = 27f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity = Gravity.CENTER
+                gravity =
+                    Gravity.CENTER
 
                 letterSpacing = 0.04f
 
@@ -76,13 +80,16 @@ class F1CalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "Carregando etapas..."
+                    "Carregando calendário..."
 
                 textSize = 17f
 
-                setTextColor(Color.LTGRAY)
+                setTextColor(
+                    Color.LTGRAY
+                )
 
-                gravity = Gravity.CENTER
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     0,
@@ -95,48 +102,56 @@ class F1CalendarActivity : AppCompatActivity() {
         layout.addView(carregando)
 
         val voltar =
-            Button(this).apply {
+            TextView(this).apply {
 
-                text = "VOLTAR"
+                text =
+                    "‹  VOLTAR"
+
                 textSize = 15f
+
+                setTextColor(
+                    Color.rgb(
+                        138,
+                        138,
+                        148
+                    )
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                setPadding(
+                    0,
+                    20,
+                    0,
+                    20
+                )
 
                 setOnClickListener {
                     finish()
                 }
             }
 
-        val parametrosVoltar =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltar.setMargins(
-            0,
-            24,
-            0,
-            20
-        )
-
         layout.addView(
-            voltar,
-            parametrosVoltar
+            voltar
         )
 
-        val scrollView =
+        val scroll =
             ScrollView(this).apply {
                 addView(layout)
             }
 
-        setContentView(scrollView)
+        setContentView(scroll)
 
-        carregarEtapas(
+        carregarCalendario(
             layout,
             carregando
         )
     }
 
-    private fun carregarEtapas(
+    private fun carregarCalendario(
         layout: LinearLayout,
         carregando: TextView
     ) {
@@ -145,7 +160,7 @@ class F1CalendarActivity : AppCompatActivity() {
 
             try {
 
-                val races =
+                val corridas =
                     buscarCorridasF1()
 
                 runOnUiThread {
@@ -155,11 +170,13 @@ class F1CalendarActivity : AppCompatActivity() {
                     )
 
                     for (
-                        i in 0 until races.length()
+                        i in 0 until corridas.length()
                     ) {
 
                         val race =
-                            races.getJSONObject(i)
+                            corridas.getJSONObject(
+                                i
+                            )
 
                         adicionarEtapa(
                             layout,
@@ -174,6 +191,7 @@ class F1CalendarActivity : AppCompatActivity() {
 
                     carregando.text =
                         "Erro ao carregar calendário.\n\n" +
+                        "Erro: " +
                         e.javaClass.simpleName
                 }
             }
@@ -187,7 +205,19 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
 
         val nome =
-            race.getString("raceName")
+            race.optString(
+                "raceName",
+                "Grande Prêmio"
+            )
+
+        val circuito =
+            race
+                .optJSONObject("Circuit")
+                ?.optString(
+                    "circuitName",
+                    "Circuito não informado"
+                )
+                ?: "Circuito não informado"
 
         val localizacao =
             race
@@ -196,32 +226,45 @@ class F1CalendarActivity : AppCompatActivity() {
 
         val cidade =
             localizacao
-                ?.optString("local", "")
+                ?.optString(
+                    "local",
+                    ""
+                )
                 ?: ""
 
         val pais =
             localizacao
-                ?.optString("country", "")
+                ?.optString(
+                    "country",
+                    ""
+                )
                 ?: ""
 
-        val botao =
+        val data =
+            race.optString(
+                "date",
+                ""
+            )
+
+        val card =
             TextView(this).apply {
 
                 text =
-                    "🏁  $nome\n\n" +
-                    "$cidade • $pais"
+                    "🏁 $nome\n\n" +
+                    "📍 $circuito\n" +
+                    "$cidade • $pais\n\n" +
+                    "📅 $data"
 
                 textSize = 17f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
-
-                gravity =
-                    Gravity.CENTER_VERTICAL
 
                 setPadding(
                     20,
@@ -231,14 +274,20 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.rgb(36, 36, 43)
+                    Color.rgb(
+                        36,
+                        36,
+                        43
+                    )
                 )
 
                 isClickable = true
-                isFocusable = true
 
                 setOnClickListener {
-                    abrirEtapa(race)
+
+                    abrirEtapa(
+                        race
+                    )
                 }
             }
 
@@ -256,7 +305,7 @@ class F1CalendarActivity : AppCompatActivity() {
         )
 
         layout.addView(
-            botao,
+            card,
             parametros
         )
     }
@@ -266,7 +315,7 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
 
         val intent =
-            Intent(
+            android.content.Intent(
                 this,
                 F1Activity::class.java
             )
@@ -276,16 +325,18 @@ class F1CalendarActivity : AppCompatActivity() {
             race.toString()
         )
 
-        startActivity(intent)
+        startActivity(
+            intent
+        )
 
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            0
         )
     }
 
     private fun buscarCorridasF1():
-        org.json.JSONArray {
+        JSONArray {
 
         val url =
             URL(
@@ -296,11 +347,14 @@ class F1CalendarActivity : AppCompatActivity() {
             url.openConnection()
                     as HttpURLConnection
 
-        connection.requestMethod = "GET"
+        connection.requestMethod =
+            "GET"
 
-        connection.connectTimeout = 15000
+        connection.connectTimeout =
+            15000
 
-        connection.readTimeout = 15000
+        connection.readTimeout =
+            15000
 
         connection.setRequestProperty(
             "User-Agent",
