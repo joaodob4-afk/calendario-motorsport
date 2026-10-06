@@ -36,7 +36,11 @@ class F2CalendarActivity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.rgb(11, 11, 15)
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
                 )
             }
 
@@ -71,7 +75,9 @@ class F2CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(titulo)
+        layout.addView(
+            titulo
+        )
 
         val voltar =
             TextView(this).apply {
@@ -83,9 +89,9 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 setTextColor(
                     Color.rgb(
-                        138,
-                        138,
-                        148
+                        143,
+                        166,
+                        186
                     )
                 )
 
@@ -106,9 +112,13 @@ class F2CalendarActivity : AppCompatActivity() {
                 }
             }
 
-        layout.addView(voltar)
+        layout.addView(
+            voltar
+        )
 
-        for (evento in F2Calendar.eventos) {
+        for (
+            evento in F2Calendar.eventos
+        ) {
 
             adicionarEtapa(
                 layout,
@@ -121,7 +131,9 @@ class F2CalendarActivity : AppCompatActivity() {
                 addView(layout)
             }
 
-        setContentView(scroll)
+        setContentView(
+            scroll
+        )
     }
 
     private fun adicionarEtapa(
@@ -134,7 +146,7 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 text =
                     "🏁 ETAPA ${evento.etapa}\n\n" +
-                    "${evento.circuito}\n" +
+                    evento.circuito + "\n" +
                     "📍 ${evento.pais}\n\n" +
                     "📅 ${evento.inicio} — ${evento.fim}"
 
@@ -156,13 +168,10 @@ class F2CalendarActivity : AppCompatActivity() {
                     20
                 )
 
-                setBackgroundColor(
-                    Color.rgb(
-                        36,
-                        36,
-                        43
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
                     )
-                )
 
                 isClickable = true
                 isFocusable = true
