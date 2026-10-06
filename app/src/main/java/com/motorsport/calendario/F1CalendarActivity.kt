@@ -1,4 +1,4 @@
-ackage com.motorsport.calendario
+package com.motorsport.calendario
 
 import android.graphics.Color
 import android.graphics.Typeface
