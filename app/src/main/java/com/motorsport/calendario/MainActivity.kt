@@ -27,15 +27,19 @@ class MainActivity : AppCompatActivity() {
     private fun carregarCalendario() {
 
         Thread {
-
             try {
 
-                val url = URL("https://api.jolpi.ca/ergast/f1/current.json")
+                val url = URL("https://api.jolpi.ca/ergast/f1/current/races/")
                 val connection = url.openConnection() as HttpURLConnection
 
                 connection.requestMethod = "GET"
                 connection.connectTimeout = 15000
                 connection.readTimeout = 15000
+
+                connection.setRequestProperty(
+                    "User-Agent",
+                    "CalendarioMotorsport/1.0"
+                )
 
                 val resposta = connection.inputStream
                     .bufferedReader()
@@ -52,6 +56,9 @@ class MainActivity : AppCompatActivity() {
 
                 val brasilia = ZoneId.of("America/Sao_Paulo")
 
+                val formato =
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm")
+
                 val texto = StringBuilder()
 
                 texto.append("🏎️ FÓRMULA 1\n\n")
@@ -60,16 +67,17 @@ class MainActivity : AppCompatActivity() {
 
                     val race = races.getJSONObject(i)
 
-                    val nome = race.getString("raceName")
-
-                    texto.append("🏁 $nome\n\n")
+                    texto.append("🏁 ")
+                        .append(race.getString("raceName"))
+                        .append("\n\n")
 
                     adicionarSessao(
                         texto,
                         race,
                         "FirstPractice",
                         "🟢 Treino Livre 1",
-                        brasilia
+                        brasilia,
+                        formato
                     )
 
                     adicionarSessao(
@@ -77,7 +85,8 @@ class MainActivity : AppCompatActivity() {
                         race,
                         "SecondPractice",
                         "🟢 Treino Livre 2",
-                        brasilia
+                        brasilia,
+                        formato
                     )
 
                     adicionarSessao(
@@ -85,7 +94,17 @@ class MainActivity : AppCompatActivity() {
                         race,
                         "ThirdPractice",
                         "🟢 Treino Livre 3",
-                        brasilia
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "SprintQualifying",
+                        "🟡 Classificação Sprint",
+                        brasilia,
+                        formato
                     )
 
                     adicionarSessao(
@@ -93,7 +112,8 @@ class MainActivity : AppCompatActivity() {
                         race,
                         "Sprint",
                         "🟡 Sprint",
-                        brasilia
+                        brasilia,
+                        formato
                     )
 
                     adicionarSessao(
@@ -101,7 +121,8 @@ class MainActivity : AppCompatActivity() {
                         race,
                         "Qualifying",
                         "🔵 Classificação",
-                        brasilia
+                        brasilia,
+                        formato
                     )
 
                     adicionarSessao(
@@ -109,7 +130,8 @@ class MainActivity : AppCompatActivity() {
                         race,
                         "date",
                         "🔴 Corrida",
-                        brasilia
+                        brasilia,
+                        formato
                     )
 
                     texto.append("\n")
@@ -122,9 +144,8 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
 
                 runOnUiThread {
-
                     raceInfo.text =
-                        "Erro ao carregar o calendário.\n\n" +
+                        "Erro ao carregar calendário.\n\n" +
                         "${e.javaClass.simpleName}\n\n" +
                         "${e.message}"
                 }
@@ -137,16 +158,26 @@ class MainActivity : AppCompatActivity() {
         texto: StringBuilder,
         race: JSONObject,
         campo: String,
-        nomeSessao: String,
-        brasilia: ZoneId
+        nome: String,
+        brasilia: ZoneId,
+        formato: DateTimeFormatter
     ) {
 
         try {
 
-            val objeto = race.getJSONObject(campo)
+            val data: String
+            val hora: String
 
-            val data = objeto.getString("date")
-            val hora = objeto.getString("time")
+            if (campo == "date") {
+                data = race.getString("date")
+                hora = race.optString("time", "00:00:00Z")
+            } else {
+
+                val sessao = race.getJSONObject(campo)
+
+                data = sessao.getString("date")
+                hora = sessao.getString("time")
+            }
 
             val horarioUtc = OffsetDateTime.parse(
                 "${data}T${hora}"
@@ -155,17 +186,13 @@ class MainActivity : AppCompatActivity() {
             val horarioBrasilia =
                 horarioUtc.atZoneSameInstant(brasilia)
 
-            val formato =
-                DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm")
-
-            texto.append(nomeSessao)
+            texto.append(nome)
                 .append(": ")
                 .append(horarioBrasilia.format(formato))
                 .append("\n")
 
         } catch (_: Exception) {
-
-            // Sessão não existe nesse Grande Prêmio.
+            // Essa sessão não existe nesse GP.
         }
     }
 }
