@@ -120,8 +120,7 @@ class MainActivity : AppCompatActivity() {
                     .getJSONArray("Races")
 
                 val agora = java.time.Instant.now()
-                val brasilia =
-                    ZoneId.of("America/Sao_Paulo")
+                val brasilia = ZoneId.of("America/Sao_Paulo")
 
                 var proximaCorrida: JSONObject? = null
                 var proximaData: OffsetDateTime? = null
@@ -136,4 +135,43 @@ class MainActivity : AppCompatActivity() {
                         "00:00:00Z"
                     )
 
-                   
+                    val horario = OffsetDateTime.parse(
+                        "${data}T${hora}"
+                    )
+
+                    if (horario.toInstant().isAfter(agora)) {
+                        proximaCorrida = race
+                        proximaData = horario
+                        break
+                    }
+                }
+
+                if (proximaCorrida == null) {
+
+                    runOnUiThread {
+                        evento.text =
+                            "Nenhuma corrida futura encontrada."
+                        sessao.text = ""
+                    }
+
+                    return@Thread
+                }
+
+                val formato = DateTimeFormatter.ofPattern(
+                    "dd/MM/yyyy - HH:mm"
+                )
+
+                val horarioBrasilia =
+                    proximaData!!.atZoneSameInstant(brasilia)
+
+                val nome =
+                    proximaCorrida!!.getString("raceName")
+
+                val dataCorrida =
+                    horarioBrasilia.format(formato)
+
+                runOnUiThread {
+
+                    evento.text =
+                        "🏁 $nome\n\n" +
+                        "🔴
