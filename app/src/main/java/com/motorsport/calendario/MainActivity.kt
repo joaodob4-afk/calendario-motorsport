@@ -45,15 +45,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirCategoria(categoria: String) {
+
         categoriaAtual = categoria
 
         setContentView(R.layout.activity_category)
 
-        val titulo = findViewById<TextView>(R.id.categoryTitle)
-        val evento = findViewById<TextView>(R.id.nextEvent)
-        val sessao = findViewById<TextView>(R.id.nextSession)
-        val calendario = findViewById<TextView>(R.id.fullCalendarButton)
-        val voltar = findViewById<TextView>(R.id.backButton)
+        val titulo =
+            findViewById<TextView>(R.id.categoryTitle)
+
+        val evento =
+            findViewById<TextView>(R.id.nextEvent)
+
+        val sessao =
+            findViewById<TextView>(R.id.nextSession)
+
+        val calendario =
+            findViewById<TextView>(R.id.fullCalendarButton)
+
+        val voltar =
+            findViewById<TextView>(R.id.backButton)
 
         titulo.text = when (categoria) {
             "F1" -> "🏎️ FÓRMULA 1"
@@ -68,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         calendario.setOnClickListener {
+
             when (categoriaAtual) {
 
                 "F1" -> carregarCalendarioF1(
@@ -78,7 +89,9 @@ class MainActivity : AppCompatActivity() {
                 "F2" -> abrirDetalhesF2()
 
                 else -> {
-                    evento.text = "Programação completa"
+                    evento.text =
+                        "Programação completa"
+
                     sessao.text =
                         "Esta categoria será adicionada em breve."
                 }
@@ -98,7 +111,10 @@ class MainActivity : AppCompatActivity() {
             )
 
             else -> {
-                evento.text = "Calendário automático"
+
+                evento.text =
+                    "Calendário automático"
+
                 sessao.text =
                     "Esta categoria será adicionada em breve.\n\n" +
                     "• Treinos\n" +
@@ -109,59 +125,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun abrirDetalhesF2() {
-
-        val hoje = java.time.LocalDate.now()
-
-        var proximo: F2Event? = null
-
-        for (item in F2Calendar.eventos) {
-
-            val inicio = java.time.LocalDate.parse(
-                item.inicio,
-                DateTimeFormatter.ofPattern(
-                    "dd/MM/yyyy"
-                )
-            )
-
-            if (!inicio.isBefore(hoje)) {
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) {
-            return
-        }
-
-        val intent = Intent(
-            this,
-            F2Activity::class.java
-        )
-
-        intent.putExtra(
-            "ETAPA",
-            proximo.etapa
-        )
-
-        startActivity(intent)
-    }
-
     private fun carregarF1(
         evento: TextView,
         sessao: TextView
     ) {
+
         Thread {
+
             try {
-                val races = buscarCorridasF1()
 
-                val agora = java.time.Instant.now()
-                val brasilia = ZoneId.of(
-                    "America/Sao_Paulo"
-                )
+                val races =
+                    buscarCorridasF1()
 
-                var proximaCorrida: JSONObject? = null
-                var proximaData: OffsetDateTime? = null
+                val agora =
+                    java.time.Instant.now()
+
+                val brasilia =
+                    ZoneId.of("America/Sao_Paulo")
+
+                var proximaCorrida: JSONObject? =
+                    null
+
+                var proximaData: OffsetDateTime? =
+                    null
 
                 for (i in 0 until races.length()) {
 
@@ -182,11 +168,17 @@ class MainActivity : AppCompatActivity() {
                             "${data}T${hora}"
                         )
 
-                    if (horario.toInstant()
+                    if (
+                        horario.toInstant()
                             .isAfter(agora)
                     ) {
-                        proximaCorrida = race
-                        proximaData = horario
+
+                        proximaCorrida =
+                            race
+
+                        proximaData =
+                            horario
+
                         break
                     }
                 }
@@ -194,6 +186,7 @@ class MainActivity : AppCompatActivity() {
                 if (proximaCorrida == null) {
 
                     runOnUiThread {
+
                         evento.text =
                             "Nenhuma corrida futura encontrada."
 
@@ -210,14 +203,20 @@ class MainActivity : AppCompatActivity() {
 
                 val horarioBrasilia =
                     proximaData!!
-                        .atZoneSameInstant(brasilia)
+                        .atZoneSameInstant(
+                            brasilia
+                        )
 
                 val nome =
                     proximaCorrida!!
-                        .getString("raceName")
+                        .getString(
+                            "raceName"
+                        )
 
                 val dataCorrida =
-                    horarioBrasilia.format(formato)
+                    horarioBrasilia.format(
+                        formato
+                    )
 
                 runOnUiThread {
 
@@ -226,7 +225,7 @@ class MainActivity : AppCompatActivity() {
                         "🔴 Corrida\n" +
                         "📅 $dataCorrida"
 
-                    
+                    sessao.text = ""
                 }
 
             } catch (e: Exception) {
@@ -241,6 +240,7 @@ class MainActivity : AppCompatActivity() {
                         e.javaClass.simpleName
                 }
             }
+
         }.start()
     }
 
@@ -252,7 +252,8 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F2Event? = null
+        var proximo: F2Event? =
+            null
 
         for (item in F2Calendar.eventos) {
 
@@ -265,7 +266,9 @@ class MainActivity : AppCompatActivity() {
                 )
 
             if (!inicio.isBefore(hoje)) {
+
                 proximo = item
+
                 break
             }
         }
@@ -275,8 +278,7 @@ class MainActivity : AppCompatActivity() {
             evento.text =
                 "Temporada 2026 encerrada"
 
-            sessao.text =
-                "Não há etapas futuras cadastradas."
+            sessao.text = ""
 
             return
         }
@@ -285,31 +287,70 @@ class MainActivity : AppCompatActivity() {
             "🏁 Etapa ${proximo.etapa}\n\n" +
             "${proximo.circuito}\n" +
             "🇺🇳 ${proximo.pais}\n\n" +
-            "📅 ${proximo.inicio} até " +
-            proximo.fim
+            "📅 ${proximo.inicio} até ${proximo.fim}"
 
-        
+        // Quadrante do meio vazio
+        sessao.text = ""
     }
 
-    private fun carregarCalendarioF2(
-        evento: TextView,
-        sessao: TextView
-    ) {
-        abrirDetalhesF2()
+    private fun abrirDetalhesF2() {
+
+        val hoje =
+            java.time.LocalDate.now()
+
+        var proximo: F2Event? =
+            null
+
+        for (item in F2Calendar.eventos) {
+
+            val inicio =
+                java.time.LocalDate.parse(
+                    item.inicio,
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy"
+                    )
+                )
+
+            if (!inicio.isBefore(hoje)) {
+
+                proximo = item
+
+                break
+            }
+        }
+
+        if (proximo == null) {
+            return
+        }
+
+        val intent =
+            Intent(
+                this,
+                F2Activity::class.java
+            )
+
+        intent.putExtra(
+            "ETAPA",
+            proximo.etapa
+        )
+
+        startActivity(intent)
     }
 
     private fun buscarCorridasF1():
-            org.json.JSONArray {
+        org.json.JSONArray {
 
-        val url = URL(
-            "https://api.jolpi.ca/ergast/f1/current/races/"
-        )
+        val url =
+            URL(
+                "https://api.jolpi.ca/ergast/f1/current/races/"
+            )
 
         val connection =
             url.openConnection()
                     as HttpURLConnection
 
-        connection.requestMethod = "GET"
+        connection.requestMethod =
+            "GET"
 
         connection.connectTimeout =
             15000
@@ -386,6 +427,7 @@ class MainActivity : AppCompatActivity() {
                     )
 
                     texto.append("🏁 ")
+
                     texto.append(
                         race.getString(
                             "raceName"
@@ -496,12 +538,15 @@ class MainActivity : AppCompatActivity() {
         try {
 
             val data: String
+
             val hora: String
 
             if (campo == "date") {
 
                 data =
-                    race.getString("date")
+                    race.getString(
+                        "date"
+                    )
 
                 hora =
                     race.optString(
@@ -512,13 +557,19 @@ class MainActivity : AppCompatActivity() {
             } else {
 
                 val sessao =
-                    race.getJSONObject(campo)
+                    race.getJSONObject(
+                        campo
+                    )
 
                 data =
-                    sessao.getString("date")
+                    sessao.getString(
+                        "date"
+                    )
 
                 hora =
-                    sessao.getString("time")
+                    sessao.getString(
+                        "time"
+                    )
             }
 
             val horarioUtc =
@@ -532,6 +583,7 @@ class MainActivity : AppCompatActivity() {
                 )
 
             texto.append(nome)
+
             texto.append("\n")
 
             texto.append("📅 ")
