@@ -12,6 +12,15 @@
         android:padding="20dp">
 
         <TextView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="← Categorias"
+            android:textColor="#BBBBBB"
+            android:textSize="16sp"
+            android:paddingBottom="20dp" />
+
+        <TextView
             android:id="@+id/categoryTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -20,16 +29,60 @@
             android:textSize="28sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:paddingBottom="24dp" />
+            android:paddingBottom="25dp" />
+
+        <TextView
+            android:id="@+id/nextEventTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PRÓXIMO EVENTO"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/nextEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carregando..."
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:padding="18dp"
+            android:background="#202020" />
+
+        <TextView
+            android:id="@+id/nextSession"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carregando..."
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:padding="18dp"
+            android:layout_marginTop="12dp"
+            android:background="#202020" />
+
+        <TextView
+            android:id="@+id/fullCalendarButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="18dp"
+            android:text="📅  VER PROGRAMAÇÃO COMPLETA"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:background="#303030" />
 
         <TextView
             android:id="@+id/categoryInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Carregando calendário..."
+            android:text=""
             android:textColor="#FFFFFF"
-            android:textSize="17sp"
-            android:lineSpacingExtra="6dp" />
+            android:textSize="16sp"
+            android:paddingTop="20dp" />
 
     </LinearLayout>
 
