@@ -135,7 +135,7 @@
 
             <TextView
                 android:id="@+id/btnFormulaE"
-                android:layout_width="55%"
+                android:layout_width="220dp"
                 android:layout_height="120dp"
                 android:text="⚡&#10;&#10;FÓRMULA E"
                 android:textColor="#FFFFFF"
