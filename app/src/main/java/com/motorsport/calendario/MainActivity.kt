@@ -80,10 +80,6 @@ class MainActivity : AppCompatActivity() {
             mostrarMenu()
         }
 
-        /*
-         * O próximo evento da F1 abre
-         * a programação detalhada do evento.
-         */
         if (categoria == "F1") {
 
             evento.setOnClickListener {
@@ -92,10 +88,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        /*
-         * O botão de programação completa
-         * agora abre a lista de todas as etapas da F1.
-         */
         calendario.setOnClickListener {
 
             when (categoriaAtual) {
@@ -113,7 +105,13 @@ class MainActivity : AppCompatActivity() {
 
                 "F2" -> {
 
-                    abrirDetalhesF2()
+                    val intent =
+                        Intent(
+                            this,
+                            F2CalendarActivity::class.java
+                        )
+
+                    startActivity(intent)
                 }
 
                 else -> {
@@ -346,49 +344,6 @@ class MainActivity : AppCompatActivity() {
             "${proximo.circuito}\n" +
             "🇺🇳 ${proximo.pais}\n\n" +
             "📅 ${proximo.inicio} até ${proximo.fim}"
-    }
-
-    private fun abrirDetalhesF2() {
-
-        val hoje =
-            java.time.LocalDate.now()
-
-        var proximo: F2Event? =
-            null
-
-        for (item in F2Calendar.eventos) {
-
-            val inicio =
-                java.time.LocalDate.parse(
-                    item.inicio,
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                    )
-                )
-
-            if (!inicio.isBefore(hoje)) {
-
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) {
-            return
-        }
-
-        val intent =
-            Intent(
-                this,
-                F2Activity::class.java
-            )
-
-        intent.putExtra(
-            "ETAPA",
-            proximo.etapa
-        )
-
-        startActivity(intent)
     }
 
     private fun buscarCorridasF1():
