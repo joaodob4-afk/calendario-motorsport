@@ -80,29 +80,35 @@ class MainActivity : AppCompatActivity() {
             mostrarMenu()
         }
 
-        calendario.setOnClickListener {
+        /*
+         * Agora o quadrante do próximo evento da F1
+         * é clicável e abre os detalhes completos.
+         */
+        if (categoria == "F1") {
 
-            when (categoriaAtual) {
+            evento.setOnClickListener {
 
-                "F1" -> {
+                abrirEventoF1()
+            }
 
-                    val intent =
-                        Intent(
-                            this,
-                            F1Activity::class.java
-                        )
+            calendario.setOnClickListener {
 
-                    startActivity(intent)
-                }
+                abrirEventoF1()
+            }
 
-                "F2" -> {
-                    abrirDetalhesF2()
-                }
+        } else {
 
-                else -> {
+            calendario.setOnClickListener {
 
-                    evento.text =
-                        "Programação completa"
+                when (categoriaAtual) {
+
+                    "F2" -> abrirDetalhesF2()
+
+                    else -> {
+
+                        evento.text =
+                            "Programação completa"
+                    }
                 }
             }
         }
@@ -140,9 +146,6 @@ class MainActivity : AppCompatActivity() {
                 val agora =
                     java.time.Instant.now()
 
-                val brasilia =
-                    ZoneId.of("America/Sao_Paulo")
-
                 var proximaCorrida: JSONObject? =
                     null
 
@@ -173,11 +176,8 @@ class MainActivity : AppCompatActivity() {
                             .isAfter(agora)
                     ) {
 
-                        proximaCorrida =
-                            race
-
-                        proximaData =
-                            horario
+                        proximaCorrida = race
+                        proximaData = horario
 
                         break
                     }
@@ -193,6 +193,9 @@ class MainActivity : AppCompatActivity() {
 
                     return@Thread
                 }
+
+                val brasilia =
+                    ZoneId.of("America/Sao_Paulo")
 
                 val formato =
                     DateTimeFormatter.ofPattern(
@@ -216,12 +219,55 @@ class MainActivity : AppCompatActivity() {
                         formato
                     )
 
+                val qualificacao =
+                    proximaCorrida!!
+                        .optJSONObject(
+                            "Qualifying"
+                        )
+
+                var textoQualificacao =
+                    ""
+
+                if (qualificacao != null) {
+
+                    val dataQualificacao =
+                        qualificacao.getString(
+                            "date"
+                        )
+
+                    val horaQualificacao =
+                        qualificacao.getString(
+                            "time"
+                        )
+
+                    val horarioQualificacao =
+                        OffsetDateTime.parse(
+                            "${dataQualificacao}T${horaQualificacao}"
+                        )
+
+                    val horarioBrasiliaQualificacao =
+                        horarioQualificacao
+                            .atZoneSameInstant(
+                                brasilia
+                            )
+
+                    textoQualificacao =
+                        "🔵 Classificação\n" +
+                        "📅 ${
+                            horarioBrasiliaQualificacao
+                                .format(formato)
+                        }"
+                }
+
                 runOnUiThread {
 
                     evento.text =
                         "🏁 $nome\n\n" +
                         "🔴 Corrida\n" +
-                        "📅 $dataCorrida"
+                        "📅 $dataCorrida\n\n" +
+                        textoQualificacao +
+                        "\n\n" +
+                        "👆 TOQUE PARA VER OS DETALHES"
                 }
 
             } catch (e: Exception) {
@@ -236,6 +282,17 @@ class MainActivity : AppCompatActivity() {
             }
 
         }.start()
+    }
+
+    private fun abrirEventoF1() {
+
+        val intent =
+            Intent(
+                this,
+                F1Activity::class.java
+            )
+
+        startActivity(intent)
     }
 
     private fun carregarF2(
@@ -261,7 +318,6 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
-
                 break
             }
         }
@@ -302,7 +358,6 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
-
                 break
             }
         }
