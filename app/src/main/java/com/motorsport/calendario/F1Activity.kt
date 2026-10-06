@@ -49,6 +49,11 @@ class F1Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        overridePendingTransition(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
+
         val selecionada =
             intent.getStringExtra("RACE") != null
 
@@ -84,17 +89,14 @@ class F1Activity : AppCompatActivity() {
 
                 textSize = 27f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 letterSpacing = 0.04f
 
@@ -116,12 +118,9 @@ class F1Activity : AppCompatActivity() {
 
                 textSize = 17f
 
-                setTextColor(
-                    Color.LTGRAY
-                )
+                setTextColor(Color.LTGRAY)
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 setPadding(
                     0,
@@ -343,17 +342,14 @@ class F1Activity : AppCompatActivity() {
 
                 textSize = 21f
 
-                setTextColor(
-                    Color.WHITE
-                )
+                setTextColor(Color.WHITE)
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.CENTER
+                gravity = Gravity.CENTER
 
                 setPadding(
                     16,
@@ -466,9 +462,7 @@ class F1Activity : AppCompatActivity() {
             if (campo == "date") {
 
                 data =
-                    race.getString(
-                        "date"
-                    )
+                    race.getString("date")
 
                 hora =
                     race.optString(
@@ -484,14 +478,10 @@ class F1Activity : AppCompatActivity() {
                     )
 
                 data =
-                    sessao.getString(
-                        "date"
-                    )
+                    sessao.getString("date")
 
                 hora =
-                    sessao.getString(
-                        "time"
-                    )
+                    sessao.getString("time")
             }
 
             val horarioUtc =
@@ -521,9 +511,7 @@ class F1Activity : AppCompatActivity() {
 
                     textSize = 17f
 
-                    setTextColor(
-                        Color.WHITE
-                    )
+                    setTextColor(Color.WHITE)
 
                     setTypeface(
                         null,
@@ -633,7 +621,6 @@ class F1Activity : AppCompatActivity() {
             }
 
         } catch (_: Exception) {
-            // Sessão inexistente não será exibida.
         }
     }
 
