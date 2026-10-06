@@ -4,11 +4,13 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -98,6 +100,27 @@ class F2Activity : AppCompatActivity() {
             conteudo.addView(sessaoView, parametros)
         }
 
+        val voltar = Button(this).apply {
+            text = "VOLTAR"
+            textSize = 16f
+
+            setOnClickListener {
+                finish()
+            }
+        }
+
+        val parametrosVoltar = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        parametrosVoltar.setMargins(0, 24, 0, 24)
+
+        conteudo.addView(
+            voltar,
+            parametrosVoltar
+        )
+
         val scrollView = ScrollView(this).apply {
             addView(conteudo)
         }
@@ -109,7 +132,7 @@ class F2Activity : AppCompatActivity() {
         layout: LinearLayout,
         evento: F2Event
     ) {
-        val agora = java.time.LocalDateTime.now()
+        val agora = LocalDateTime.now()
 
         var proxima: F2Session? = null
 
@@ -168,6 +191,9 @@ class F2Activity : AppCompatActivity() {
 
         parametros.setMargins(0, 0, 0, 20)
 
-        layout.addView(destaque, parametros)
+        layout.addView(
+            destaque,
+            parametros
+        )
     }
 }
