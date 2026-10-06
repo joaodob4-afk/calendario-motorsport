@@ -12,6 +12,8 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
+    private var categoriaAtual = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mostrarMenu()
@@ -42,6 +44,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirCategoria(categoria: String) {
+        categoriaAtual = categoria
+
         setContentView(R.layout.activity_category)
 
         val titulo = findViewById<TextView>(R.id.categoryTitle)
@@ -63,8 +67,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         calendario.setOnClickListener {
-            evento.text = "Programação completa"
-            sessao.text = "Em breve mostraremos todas as sessões."
+            if (categoriaAtual == "F1") {
+                carregarCalendarioF1(evento, sessao)
+            } else {
+                evento.text = "Programação completa"
+                sessao.text =
+                    "Esta categoria será adicionada em breve."
+            }
         }
 
         if (categoria == "F1") {
@@ -86,33 +95,7 @@ class MainActivity : AppCompatActivity() {
     ) {
         Thread {
             try {
-                val url = URL(
-                    "https://api.jolpi.ca/ergast/f1/current/races/"
-                )
-
-                val connection =
-                    url.openConnection() as HttpURLConnection
-
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 15000
-                connection.readTimeout = 15000
-
-                connection.setRequestProperty(
-                    "User-Agent",
-                    "CalendarioMotorsport/1.0"
-                )
-
-                val resposta =
-                    connection.inputStream
-                        .bufferedReader()
-                        .use { it.readText() }
-
-                connection.disconnect()
-
-                val races = JSONObject(resposta)
-                    .getJSONObject("MRData")
-                    .getJSONObject("RaceTable")
-                    .getJSONArray("Races")
+                val races = buscarCorridasF1()
 
                 val agora = java.time.Instant.now()
                 val brasilia = ZoneId.of("America/Sao_Paulo")
@@ -124,7 +107,6 @@ class MainActivity : AppCompatActivity() {
                     val race = races.getJSONObject(i)
 
                     val data = race.getString("date")
-
                     val hora = race.optString(
                         "time",
                         "00:00:00Z"
@@ -175,7 +157,8 @@ class MainActivity : AppCompatActivity() {
                         "📅 " + dataCorrida
 
                     sessao.text =
-                        "Carregando próxima sessão..."
+                        "Toque em \"VER PROGRAMAÇÃO COMPLETA\" " +
+                        "para ver todas as sessões."
                 }
 
             } catch (e: Exception) {
@@ -189,5 +172,194 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    private fun carregarCalendarioF1(
+        evento: TextView,
+        sessao: TextView
+    ) {
+        evento.text = "Carregando calendário completo..."
+        sessao.text = "Aguarde..."
+
+        Thread {
+            try {
+                val races = buscarCorridasF1()
+
+                val brasilia = ZoneId.of("America/Sao_Paulo")
+                val formato =
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy - HH:mm"
+                    )
+
+                val texto = StringBuilder()
+
+                texto.append("🏎️ FÓRMULA 1\n")
+                texto.append("📅 CALENDÁRIO COMPLETO\n\n")
+
+                for (i in 0 until races.length()) {
+                    val race = races.getJSONObject(i)
+
+                    texto.append("━━━━━━━━━━━━━━━━━━\n")
+                    texto.append("🏁 ")
+                    texto.append(race.getString("raceName"))
+                    texto.append("\n\n")
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "FirstPractice",
+                        "🟢 Treino Livre 1",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "SecondPractice",
+                        "🟢 Treino Livre 2",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "ThirdPractice",
+                        "🟢 Treino Livre 3",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "SprintQualifying",
+                        "🟡 Classificação Sprint",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "Sprint",
+                        "🟡 Sprint",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "Qualifying",
+                        "🔵 Classificação",
+                        brasilia,
+                        formato
+                    )
+
+                    adicionarSessao(
+                        texto,
+                        race,
+                        "date",
+                        "🔴 Corrida",
+                        brasilia,
+                        formato
+                    )
+
+                    texto.append("\n")
+                }
+
+                runOnUiThread {
+                    evento.text = texto.toString()
+                    sessao.text = ""
+                }
+
+            } catch (e: Exception) {
+                runOnUiThread {
+                    evento.text =
+                        "Erro ao carregar calendário."
+
+                    sessao.text =
+                        "Erro: " +
+                        e.javaClass.simpleName
+                }
+            }
+        }.start()
+    }
+
+    private fun buscarCorridasF1(): org.json.JSONArray {
+        val url = URL(
+            "https://api.jolpi.ca/ergast/f1/current/races/"
+        )
+
+        val connection =
+            url.openConnection() as HttpURLConnection
+
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 15000
+        connection.readTimeout = 15000
+
+        connection.setRequestProperty(
+            "User-Agent",
+            "CalendarioMotorsport/1.0"
+        )
+
+        val resposta =
+            connection.inputStream
+                .bufferedReader()
+                .use { it.readText() }
+
+        connection.disconnect()
+
+        return JSONObject(resposta)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
+    }
+
+    private fun adicionarSessao(
+        texto: StringBuilder,
+        race: JSONObject,
+        campo: String,
+        nome: String,
+        brasilia: ZoneId,
+        formato: DateTimeFormatter
+    ) {
+        try {
+            val data: String
+            val hora: String
+
+            if (campo == "date") {
+                data = race.getString("date")
+                hora = race.optString(
+                    "time",
+                    "00:00:00Z"
+                )
+            } else {
+                val sessao =
+                    race.getJSONObject(campo)
+
+                data = sessao.getString("date")
+                hora = sessao.getString("time")
+            }
+
+            val horarioUtc =
+                OffsetDateTime.parse(
+                    "${data}T${hora}"
+                )
+
+            val horarioBrasilia =
+                horarioUtc.atZoneSameInstant(brasilia)
+
+            texto.append(nome)
+            texto.append(": ")
+            texto.append(
+                horarioBrasilia.format(formato)
+            )
+            texto.append("\n")
+
+        } catch (_: Exception) {
+        }
     }
 }
