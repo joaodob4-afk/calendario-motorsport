@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -23,46 +24,46 @@ class F2Activity : AppCompatActivity() {
             return
         }
 
-        val layout = LinearLayout(this).apply {
+        val conteudo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 24, 24, 24)
             setBackgroundColor(Color.BLACK)
         }
 
         val titulo = TextView(this).apply {
-            text = "F2 — Etapa ${evento.etapa}"
+            text = "🏎️ FÓRMULA 2\n\nETAPA ${evento.etapa}"
             textSize = 26f
             setTextColor(Color.WHITE)
             setTypeface(null, android.graphics.Typeface.BOLD)
             gravity = Gravity.CENTER
         }
 
-        layout.addView(titulo)
+        conteudo.addView(titulo)
 
         val circuito = TextView(this).apply {
-            text = "${evento.circuito} — ${evento.pais}"
-            textSize = 20f
+            text = "${evento.circuito}\n🇺🇳 ${evento.pais}"
+            textSize = 21f
             setTextColor(Color.LTGRAY)
             gravity = Gravity.CENTER
-            setPadding(0, 16, 0, 8)
+            setPadding(0, 20, 0, 10)
         }
 
-        layout.addView(circuito)
+        conteudo.addView(circuito)
 
         val periodo = TextView(this).apply {
-            text = "${evento.inicio} → ${evento.fim}"
+            text = "📅 ${evento.inicio} → ${evento.fim}"
             textSize = 16f
             setTextColor(Color.GRAY)
             gravity = Gravity.CENTER
             setPadding(0, 0, 0, 24)
         }
 
-        layout.addView(periodo)
+        conteudo.addView(periodo)
 
         for (sessao in evento.sessoes) {
 
             val sessaoView = TextView(this).apply {
-                text = "${sessao.nome}\n${sessao.data} • ${sessao.horario}"
+                text = "${sessao.nome}\n\n📅 ${sessao.data}\n🕐 ${sessao.horario}"
                 textSize = 18f
                 setTextColor(Color.WHITE)
                 setPadding(20, 20, 20, 20)
@@ -76,9 +77,13 @@ class F2Activity : AppCompatActivity() {
 
             parametros.setMargins(0, 8, 0, 8)
 
-            layout.addView(sessaoView, parametros)
+            conteudo.addView(sessaoView, parametros)
         }
 
-        setContentView(layout)
+        val scrollView = ScrollView(this).apply {
+            addView(conteudo)
+        }
+
+        setContentView(scrollView)
     }
 }
