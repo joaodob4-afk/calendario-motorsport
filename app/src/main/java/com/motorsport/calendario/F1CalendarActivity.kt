@@ -1,5 +1,6 @@
 package com.motorsport.calendario
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -39,7 +40,11 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.rgb(11, 11, 15)
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
                 )
             }
 
@@ -74,7 +79,9 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(titulo)
+        layout.addView(
+            titulo
+        )
 
         val carregando =
             TextView(this).apply {
@@ -99,7 +106,9 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(carregando)
+        layout.addView(
+            carregando
+        )
 
         val voltar =
             TextView(this).apply {
@@ -111,9 +120,9 @@ class F1CalendarActivity : AppCompatActivity() {
 
                 setTextColor(
                     Color.rgb(
-                        138,
-                        138,
-                        148
+                        143,
+                        166,
+                        186
                     )
                 )
 
@@ -124,7 +133,7 @@ class F1CalendarActivity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    20,
+                    0,
                     0,
                     20
                 )
@@ -143,7 +152,9 @@ class F1CalendarActivity : AppCompatActivity() {
                 addView(layout)
             }
 
-        setContentView(scroll)
+        setContentView(
+            scroll
+        )
 
         carregarCalendario(
             layout,
@@ -273,15 +284,13 @@ class F1CalendarActivity : AppCompatActivity() {
                     20
                 )
 
-                setBackgroundColor(
-                    Color.rgb(
-                        36,
-                        36,
-                        43
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
                     )
-                )
 
                 isClickable = true
+                isFocusable = true
 
                 setOnClickListener {
 
@@ -315,7 +324,7 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
 
         val intent =
-            android.content.Intent(
+            Intent(
                 this,
                 F1Activity::class.java
             )
