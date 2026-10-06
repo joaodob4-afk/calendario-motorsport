@@ -57,9 +57,6 @@ class MainActivity : AppCompatActivity() {
         val evento =
             findViewById<TextView>(R.id.nextEvent)
 
-        val sessao =
-            findViewById<TextView>(R.id.nextSession)
-
         val calendario =
             findViewById<TextView>(R.id.fullCalendarButton)
 
@@ -106,31 +103,20 @@ class MainActivity : AppCompatActivity() {
 
                     evento.text =
                         "Programação completa"
-
-                    sessao.text =
-                        "Esta categoria será adicionada em breve."
                 }
             }
         }
 
         when (categoria) {
 
-            "F1" -> carregarF1(
-                evento,
-                sessao
-            )
+            "F1" -> carregarF1(evento)
 
-            "F2" -> carregarF2(
-                evento,
-                sessao
-            )
+            "F2" -> carregarF2(evento)
 
             else -> {
 
                 evento.text =
-                    "Calendário automático"
-
-                sessao.text =
+                    "Calendário automático\n\n" +
                     "Esta categoria será adicionada em breve.\n\n" +
                     "• Treinos\n" +
                     "• Classificação\n" +
@@ -141,8 +127,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun carregarF1(
-        evento: TextView,
-        sessao: TextView
+        evento: TextView
     ) {
 
         Thread {
@@ -204,8 +189,6 @@ class MainActivity : AppCompatActivity() {
 
                         evento.text =
                             "Nenhuma corrida futura encontrada."
-
-                        sessao.text = ""
                     }
 
                     return@Thread
@@ -239,8 +222,6 @@ class MainActivity : AppCompatActivity() {
                         "🏁 $nome\n\n" +
                         "🔴 Corrida\n" +
                         "📅 $dataCorrida"
-
-                    sessao.text = ""
                 }
 
             } catch (e: Exception) {
@@ -248,9 +229,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     evento.text =
-                        "Erro ao carregar calendário."
-
-                    sessao.text =
+                        "Erro ao carregar calendário.\n\n" +
                         "Erro: " +
                         e.javaClass.simpleName
                 }
@@ -260,8 +239,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun carregarF2(
-        evento: TextView,
-        sessao: TextView
+        evento: TextView
     ) {
 
         val hoje =
@@ -293,8 +271,6 @@ class MainActivity : AppCompatActivity() {
             evento.text =
                 "Temporada 2026 encerrada"
 
-            sessao.text = ""
-
             return
         }
 
@@ -303,8 +279,6 @@ class MainActivity : AppCompatActivity() {
             "${proximo.circuito}\n" +
             "🇺🇳 ${proximo.pais}\n\n" +
             "📅 ${proximo.inicio} até ${proximo.fim}"
-
-        sessao.text = ""
     }
 
     private fun abrirDetalhesF2() {
