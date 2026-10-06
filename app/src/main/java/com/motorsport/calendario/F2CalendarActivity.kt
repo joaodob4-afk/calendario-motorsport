@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -13,12 +12,14 @@ import androidx.appcompat.app.AppCompatActivity
 
 class F2CalendarActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         overridePendingTransition(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
+            R.anim.fade_in,
+            0
         )
 
         val layout =
@@ -48,14 +49,17 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 textSize = 27f
 
-                setTextColor(Color.WHITE)
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity = Gravity.CENTER
+                gravity =
+                    Gravity.CENTER
 
                 letterSpacing = 0.04f
 
@@ -69,120 +73,150 @@ class F2CalendarActivity : AppCompatActivity() {
 
         layout.addView(titulo)
 
-        for (
-            evento in F2Calendar.eventos
-        ) {
+        val voltar =
+            TextView(this).apply {
 
-            val botao =
-                TextView(this).apply {
+                text =
+                    "‹  VOLTAR"
 
-                    text =
-                        "🏁  ETAPA ${evento.etapa}\n\n" +
-                        "${evento.circuito}\n" +
-                        "🇺🇳 ${evento.pais}\n\n" +
-                        "📅 ${evento.inicio} → ${evento.fim}"
+                textSize = 15f
 
-                    textSize = 17f
-
-                    setTextColor(Color.WHITE)
-
-                    setTypeface(
-                        null,
-                        Typeface.BOLD
+                setTextColor(
+                    Color.rgb(
+                        138,
+                        138,
+                        148
                     )
-
-                    gravity =
-                        Gravity.CENTER_VERTICAL
-
-                    setPadding(
-                        20,
-                        20,
-                        20,
-                        20
-                    )
-
-                    setBackgroundColor(
-                        Color.rgb(36, 36, 43)
-                    )
-
-                    isClickable = true
-                    isFocusable = true
-
-                    setOnClickListener {
-
-                        val intent =
-                            Intent(
-                                this@F2CalendarActivity,
-                                F2Activity::class.java
-                            )
-
-                        intent.putExtra(
-                            "ETAPA",
-                            evento.etapa
-                        )
-
-                        startActivity(intent)
-
-                        overridePendingTransition(
-                            android.R.anim.fade_in,
-                            android.R.anim.fade_out
-                        )
-                    }
-                }
-
-            val parametros =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
                 )
 
-            parametros.setMargins(
-                0,
-                6,
-                0,
-                6
-            )
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
 
-            layout.addView(
-                botao,
-                parametros
-            )
-        }
-
-        val voltar =
-            Button(this).apply {
-
-                text = "VOLTAR"
-                textSize = 15f
+                setPadding(
+                    0,
+                    0,
+                    0,
+                    20
+                )
 
                 setOnClickListener {
                     finish()
                 }
             }
 
-        val parametrosVoltar =
+        layout.addView(
+            voltar
+        )
+
+        for (evento in F2Calendar.eventos) {
+
+            adicionarEtapa(
+                layout,
+                evento
+            )
+        }
+
+        val scroll =
+            ScrollView(this).apply {
+                addView(layout)
+            }
+
+        setContentView(scroll)
+    }
+
+    private fun adicionarEtapa(
+        layout: LinearLayout,
+        evento: F2Event
+    ) {
+
+        val card =
+            TextView(this).apply {
+
+                text =
+                    "🏁 ETAPA ${evento.etapa}\n\n" +
+                    evento.circuito + "\n" +
+                    "📍 ${evento.pais}\n\n" +
+                    "📅 ${evento.inicio} — ${evento.fim}"
+
+                textSize = 17f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.rgb(
+                        36,
+                        36,
+                        43
+                    )
+                )
+
+                isClickable = true
+
+                setOnClickListener {
+
+                    abrirEtapa(
+                        evento
+                    )
+                }
+            }
+
+        val parametros =
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-        parametrosVoltar.setMargins(
+        parametros.setMargins(
             0,
-            24,
+            6,
             0,
-            20
+            6
         )
 
         layout.addView(
-            voltar,
-            parametrosVoltar
+            card,
+            parametros
+        )
+    }
+
+    private fun abrirEtapa(
+        evento: F2Event
+    ) {
+
+        val intent =
+            Intent(
+                this,
+                F2Activity::class.java
+            )
+
+        intent.putExtra(
+            "ETAPA",
+            evento.etapa
         )
 
-        val scrollView =
-            ScrollView(this).apply {
-                addView(layout)
-            }
+        startActivity(
+            intent
+        )
 
-        setContentView(scrollView)
+        overridePendingTransition(
+            R.anim.fade_in,
+            0
+        )
     }
 }
