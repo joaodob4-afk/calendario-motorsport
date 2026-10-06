@@ -1,6 +1,7 @@
 package com.motorsport.calendario
 
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -34,7 +35,7 @@ class F2Activity : AppCompatActivity() {
             text = "🏎️ FÓRMULA 2\n\nETAPA ${evento.etapa}"
             textSize = 26f
             setTextColor(Color.WHITE)
-            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER
         }
 
@@ -62,10 +63,22 @@ class F2Activity : AppCompatActivity() {
 
         for (sessao in evento.sessoes) {
 
+            val emoji = when {
+                sessao.nome.contains("Treino") -> "🟢"
+                sessao.nome.contains("Classificação") -> "🔵"
+                sessao.nome.contains("Sprint") -> "🟡"
+                sessao.nome.contains("Feature") -> "🔴"
+                else -> "⚪"
+            }
+
             val sessaoView = TextView(this).apply {
-                text = "${sessao.nome}\n\n📅 ${sessao.data}\n🕐 ${sessao.horario}"
+                text = "$emoji ${sessao.nome}\n\n" +
+                        "📅 ${sessao.data}\n" +
+                        "🕐 ${sessao.horario}"
+
                 textSize = 18f
                 setTextColor(Color.WHITE)
+                setTypeface(null, Typeface.BOLD)
                 setPadding(20, 20, 20, 20)
                 setBackgroundColor(Color.DKGRAY)
             }
