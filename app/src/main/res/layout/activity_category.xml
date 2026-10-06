@@ -3,7 +3,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0B0B0F"
+    android:background="#071A2D"
     android:fillViewport="true">
 
     <LinearLayout
@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="‹  VOLTAR"
-            android:textColor="#8A8A94"
+            android:textColor="#8FA6BA"
             android:textSize="15sp"
             android:textStyle="bold"
             android:paddingTop="6dp"
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="PRÓXIMO EVENTO"
-            android:textColor="#77777F"
+            android:textColor="#8FA6BA"
             android:textSize="12sp"
             android:textStyle="bold"
             android:letterSpacing="0.10"
@@ -58,7 +58,7 @@
             android:textStyle="bold"
             android:gravity="center_vertical"
             android:padding="22dp"
-            android:background="#24242B"
+            android:background="@drawable/rounded_card"
             android:clickable="true"
             android:focusable="true" />
 
@@ -73,7 +73,7 @@
             android:textStyle="bold"
             android:gravity="center"
             android:letterSpacing="0.04"
-            android:background="#303038"
+            android:background="@drawable/rounded_card"
             android:clickable="true"
             android:focusable="true" />
 
@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textColor="#B0B0B8"
+            android:textColor="#B0C0CE"
             android:textSize="15sp"
             android:lineSpacingExtra="5dp"
             android:paddingTop="24dp"
