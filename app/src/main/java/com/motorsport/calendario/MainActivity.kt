@@ -80,6 +80,10 @@ class MainActivity : AppCompatActivity() {
             mostrarMenu()
         }
 
+        /*
+         * O próximo evento da F1 abre
+         * sua programação completa.
+         */
         if (categoria == "F1") {
 
             evento.setOnClickListener {
@@ -88,6 +92,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        /*
+         * O próximo evento da F2 abre
+         * a etapa correspondente.
+         */
+        if (categoria == "F2") {
+
+            evento.setOnClickListener {
+
+                abrirEventoF2()
+            }
+        }
+
+        /*
+         * Programação completa.
+         */
         calendario.setOnClickListener {
 
             when (categoriaAtual) {
@@ -343,7 +362,51 @@ class MainActivity : AppCompatActivity() {
             "🏁 Etapa ${proximo.etapa}\n\n" +
             "${proximo.circuito}\n" +
             "🇺🇳 ${proximo.pais}\n\n" +
-            "📅 ${proximo.inicio} até ${proximo.fim}"
+            "📅 ${proximo.inicio} até ${proximo.fim}\n\n" +
+            "👆 TOQUE PARA VER OS DETALHES"
+    }
+
+    private fun abrirEventoF2() {
+
+        val hoje =
+            java.time.LocalDate.now()
+
+        var proximo: F2Event? =
+            null
+
+        for (item in F2Calendar.eventos) {
+
+            val inicio =
+                java.time.LocalDate.parse(
+                    item.inicio,
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy"
+                    )
+                )
+
+            if (!inicio.isBefore(hoje)) {
+
+                proximo = item
+                break
+            }
+        }
+
+        if (proximo == null) {
+            return
+        }
+
+        val intent =
+            Intent(
+                this,
+                F2Activity::class.java
+            )
+
+        intent.putExtra(
+            "ETAPA",
+            proximo.etapa
+        )
+
+        startActivity(intent)
     }
 
     private fun buscarCorridasF1():
