@@ -290,10 +290,7 @@ class MainActivity : AppCompatActivity() {
             "📅 ${proximo.inicio} até " +
             proximo.fim
 
-        sessao.text =
-            "🏎️ FÓRMULA 2\n\n" +
-            "Programação da etapa disponível em " +
-            "\"VER PROGRAMAÇÃO COMPLETA\"."
+        sessao.text = ""
     }
 
     private fun carregarCalendarioF2(
