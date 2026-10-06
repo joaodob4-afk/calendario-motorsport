@@ -8,6 +8,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class F2Activity : AppCompatActivity() {
 
@@ -61,6 +64,8 @@ class F2Activity : AppCompatActivity() {
 
         conteudo.addView(periodo)
 
+        adicionarProximaSessao(conteudo, evento)
+
         for (sessao in evento.sessoes) {
 
             val emoji = when {
@@ -98,5 +103,71 @@ class F2Activity : AppCompatActivity() {
         }
 
         setContentView(scrollView)
+    }
+
+    private fun adicionarProximaSessao(
+        layout: LinearLayout,
+        evento: F2Event
+    ) {
+        val agora = java.time.LocalDateTime.now()
+
+        var proxima: F2Session? = null
+
+        for (sessao in evento.sessoes) {
+
+            if (sessao.horario == "A confirmar") {
+                continue
+            }
+
+            try {
+                val data = LocalDate.parse(
+                    sessao.data,
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                )
+
+                val hora = LocalTime.parse(
+                    sessao.horario,
+                    DateTimeFormatter.ofPattern("HH:mm")
+                )
+
+                val dataHora = data.atTime(hora)
+
+                if (dataHora.isAfter(agora)) {
+                    proxima = sessao
+                    break
+                }
+
+            } catch (_: Exception) {
+            }
+        }
+
+        val texto = if (proxima != null) {
+            "⏱️ PRÓXIMA SESSÃO\n\n" +
+                    "${proxima.nome}\n" +
+                    "📅 ${proxima.data}\n" +
+                    "🕐 ${proxima.horario}"
+        } else {
+            "⏱️ PRÓXIMA SESSÃO\n\n" +
+                    "Nenhuma sessão futura encontrada."
+        }
+
+        val destaque = TextView(this).apply {
+            text = texto
+            textSize = 19f
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+            gravity = Gravity.CENTER
+            setPadding(20, 24, 20, 24)
+            setBackgroundColor(Color.DKGRAY)
+        }
+
+        val parametros = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        parametros.setMargins(0, 0, 0, 20)
+
+        layout.addView(destaque, parametros)
     }
 }
