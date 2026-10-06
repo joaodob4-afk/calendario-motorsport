@@ -9,10 +9,6 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 class F2Activity : AppCompatActivity() {
 
@@ -54,17 +50,21 @@ class F2Activity : AppCompatActivity() {
 
                 text =
                     "🏎️ FÓRMULA 2\n\n" +
-                    "ETAPA ${evento.etapa}"
+                    "PROGRAMAÇÃO DA ETAPA"
 
                 textSize = 26f
-                setTextColor(Color.WHITE)
+
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
-                gravity = Gravity.CENTER
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     0,
@@ -76,17 +76,27 @@ class F2Activity : AppCompatActivity() {
 
         conteudo.addView(titulo)
 
-        val circuito =
+        val etapa =
             TextView(this).apply {
 
                 text =
+                    "ETAPA ${evento.etapa}\n\n" +
                     "${evento.circuito}\n" +
                     "🇺🇳 ${evento.pais}"
 
                 textSize = 21f
-                setTextColor(Color.LTGRAY)
 
-                gravity = Gravity.CENTER
+                setTextColor(
+                    Color.LTGRAY
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     0,
@@ -96,7 +106,7 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(circuito)
+        conteudo.addView(etapa)
 
         val periodo =
             TextView(this).apply {
@@ -105,9 +115,13 @@ class F2Activity : AppCompatActivity() {
                     "📅 ${evento.inicio} → ${evento.fim}"
 
                 textSize = 16f
-                setTextColor(Color.GRAY)
 
-                gravity = Gravity.CENTER
+                setTextColor(
+                    Color.GRAY
+                )
+
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     0,
@@ -119,36 +133,58 @@ class F2Activity : AppCompatActivity() {
 
         conteudo.addView(periodo)
 
-        for (sessao in evento.sessoes) {
+        val separador =
+            TextView(this).apply {
 
-            if (sessao.horario == "A confirmar") {
+                text = "PROGRAMAÇÃO"
 
-                adicionarSessao(
-                    conteudo,
-                    sessao,
-                    "⚪"
+                textSize = 15f
+
+                setTextColor(
+                    Color.WHITE
                 )
 
-                continue
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                setPadding(
+                    0,
+                    8,
+                    0,
+                    8
+                )
             }
+
+        conteudo.addView(separador)
+
+        for (sessao in evento.sessoes) {
 
             val emoji =
                 when {
 
+                    sessao.horario ==
+                            "A confirmar" -> "⚪"
+
                     sessao.nome.contains(
-                        "Treino"
+                        "Treino",
+                        ignoreCase = true
                     ) -> "🟢"
 
                     sessao.nome.contains(
-                        "Classificação"
+                        "Classificação",
+                        ignoreCase = true
                     ) -> "🔵"
 
                     sessao.nome.contains(
-                        "Sprint"
+                        "Sprint",
+                        ignoreCase = true
                     ) -> "🟡"
 
                     sessao.nome.contains(
-                        "Feature"
+                        "Feature",
+                        ignoreCase = true
                     ) -> "🔴"
 
                     else -> "⚪"
@@ -165,6 +201,7 @@ class F2Activity : AppCompatActivity() {
             Button(this).apply {
 
                 text = "VOLTAR"
+
                 textSize = 16f
 
                 setOnClickListener {
@@ -213,7 +250,10 @@ class F2Activity : AppCompatActivity() {
                     "🕐 ${sessao.horario}"
 
                 textSize = 18f
-                setTextColor(Color.WHITE)
+
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
