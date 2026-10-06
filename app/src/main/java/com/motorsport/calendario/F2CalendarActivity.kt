@@ -106,9 +106,7 @@ class F2CalendarActivity : AppCompatActivity() {
                 }
             }
 
-        layout.addView(
-            voltar
-        )
+        layout.addView(voltar)
 
         for (evento in F2Calendar.eventos) {
 
@@ -136,7 +134,7 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 text =
                     "🏁 ETAPA ${evento.etapa}\n\n" +
-                    evento.circuito + "\n" +
+                    "${evento.circuito}\n" +
                     "📍 ${evento.pais}\n\n" +
                     "📅 ${evento.inicio} — ${evento.fim}"
 
@@ -167,6 +165,7 @@ class F2CalendarActivity : AppCompatActivity() {
                 )
 
                 isClickable = true
+                isFocusable = true
 
                 setOnClickListener {
 
