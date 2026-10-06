@@ -25,6 +25,11 @@ class F1Activity : AppCompatActivity() {
     private val handler =
         Handler(Looper.getMainLooper())
 
+    private var contadorView: TextView? = null
+
+    private var proximoHorario:
+            ZonedDateTime? = null
+
     private val atualizarContador =
         object : Runnable {
 
@@ -39,49 +44,45 @@ class F1Activity : AppCompatActivity() {
             }
         }
 
-    private var contadorView: TextView? = null
-
-    private var proximoHorario:
-            ZonedDateTime? = null
-
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
         super.onCreate(savedInstanceState)
 
+        val selecionada =
+            intent.getStringExtra("RACE") != null
+
         val conteudo =
             LinearLayout(this).apply {
+
                 orientation =
                     LinearLayout.VERTICAL
 
                 setPadding(
-                    24,
-                    24,
-                    24,
-                    24
+                    20,
+                    20,
+                    20,
+                    20
                 )
 
                 setBackgroundColor(
-                    Color.BLACK
+                    Color.rgb(11, 11, 15)
                 )
             }
-
-        val selecionada =
-            intent.getStringExtra("RACE") != null
 
         val titulo =
             TextView(this).apply {
 
                 text =
                     if (selecionada) {
-                        "🏎️ FÓRMULA 1\n\n" +
+                        "FÓRMULA 1\n\n" +
                         "PROGRAMAÇÃO DA ETAPA"
                     } else {
-                        "🏎️ FÓRMULA 1\n\n" +
+                        "FÓRMULA 1\n\n" +
                         "PRÓXIMO EVENTO"
                     }
 
-                textSize = 26f
+                textSize = 27f
 
                 setTextColor(
                     Color.WHITE
@@ -95,11 +96,13 @@ class F1Activity : AppCompatActivity() {
                 gravity =
                     Gravity.CENTER
 
+                letterSpacing = 0.04f
+
                 setPadding(
                     0,
+                    10,
                     0,
-                    0,
-                    24
+                    28
                 )
             }
 
@@ -111,7 +114,7 @@ class F1Activity : AppCompatActivity() {
                 text =
                     "Carregando programação..."
 
-                textSize = 18f
+                textSize = 17f
 
                 setTextColor(
                     Color.LTGRAY
@@ -134,7 +137,7 @@ class F1Activity : AppCompatActivity() {
             Button(this).apply {
 
                 text = "VOLTAR"
-                textSize = 16f
+                textSize = 15f
 
                 setOnClickListener {
                     finish()
@@ -151,7 +154,7 @@ class F1Activity : AppCompatActivity() {
             0,
             24,
             0,
-            24
+            20
         )
 
         conteudo.addView(
@@ -335,10 +338,10 @@ class F1Activity : AppCompatActivity() {
 
                 text =
                     "🏁 $nome\n\n" +
-                    "🏟️ $circuito\n" +
-                    "📍 $cidade - $pais"
+                    circuito + "\n" +
+                    "$cidade • $pais"
 
-                textSize = 22f
+                textSize = 21f
 
                 setTextColor(
                     Color.WHITE
@@ -353,22 +356,40 @@ class F1Activity : AppCompatActivity() {
                     Gravity.CENTER
 
                 setPadding(
-                    10,
-                    20,
-                    10,
-                    24
+                    16,
+                    22,
+                    16,
+                    26
+                )
+
+                setBackgroundColor(
+                    Color.rgb(36, 36, 43)
                 )
             }
 
+        val parametrosCabecalho =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosCabecalho.setMargins(
+            0,
+            0,
+            0,
+            20
+        )
+
         layout.addView(
-            cabecalho
+            cabecalho,
+            parametrosCabecalho
         )
 
         adicionarSessao(
             layout,
             race,
             "FirstPractice",
-            "🟢 TREINO LIVRE 1",
+            "🟢  TREINO LIVRE 1",
             brasilia,
             formato
         )
@@ -377,7 +398,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "SecondPractice",
-            "🟢 TREINO LIVRE 2",
+            "🟢  TREINO LIVRE 2",
             brasilia,
             formato
         )
@@ -386,7 +407,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "ThirdPractice",
-            "🟢 TREINO LIVRE 3",
+            "🟢  TREINO LIVRE 3",
             brasilia,
             formato
         )
@@ -395,7 +416,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "SprintQualifying",
-            "🟡 CLASSIFICAÇÃO SPRINT",
+            "🟡  CLASSIFICAÇÃO SPRINT",
             brasilia,
             formato
         )
@@ -404,7 +425,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "Sprint",
-            "🟡 SPRINT",
+            "🟡  SPRINT",
             brasilia,
             formato
         )
@@ -413,7 +434,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "Qualifying",
-            "🔵 CLASSIFICAÇÃO",
+            "🔵  CLASSIFICAÇÃO",
             brasilia,
             formato
         )
@@ -422,7 +443,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "date",
-            "🔴 CORRIDA",
+            "🔴  CORRIDA",
             brasilia,
             formato
         )
@@ -493,13 +514,12 @@ class F1Activity : AppCompatActivity() {
 
                     text =
                         "$nome\n\n" +
-                        "📅 ${
-                            horarioBrasilia.format(
-                                formato
-                            )
-                        }"
+                        "📅 " +
+                        horarioBrasilia.format(
+                            formato
+                        )
 
-                    textSize = 18f
+                    textSize = 17f
 
                     setTextColor(
                         Color.WHITE
@@ -518,7 +538,7 @@ class F1Activity : AppCompatActivity() {
                     )
 
                     setBackgroundColor(
-                        Color.DKGRAY
+                        Color.rgb(36, 36, 43)
                     )
                 }
 
@@ -530,9 +550,9 @@ class F1Activity : AppCompatActivity() {
 
             parametros.setMargins(
                 0,
-                8,
+                6,
                 0,
-                8
+                6
             )
 
             layout.addView(
@@ -573,16 +593,41 @@ class F1Activity : AppCompatActivity() {
                                 Typeface.BOLD
                             )
 
+                            gravity =
+                                Gravity.CENTER
+
                             setPadding(
-                                20,
-                                0,
-                                20,
-                                20
+                                16,
+                                10,
+                                16,
+                                16
+                            )
+
+                            setBackgroundColor(
+                                Color.rgb(
+                                    48,
+                                    48,
+                                    56
+                                )
                             )
                         }
 
+                    val parametrosContador =
+                        LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+
+                    parametrosContador.setMargins(
+                        0,
+                        0,
+                        0,
+                        6
+                    )
+
                     layout.addView(
-                        contadorView
+                        contadorView,
+                        parametrosContador
                     )
                 }
             }
@@ -639,20 +684,17 @@ class F1Activity : AppCompatActivity() {
         view.text =
             if (dias > 0) {
 
-                "⏳ Próxima sessão começa em " +
-                "${dias}d " +
-                "${horas}h " +
-                "${minutos}min"
+                "⏳  PRÓXIMA SESSÃO EM  " +
+                "${dias}d ${horas}h ${minutos}min"
 
             } else if (horas > 0) {
 
-                "⏳ Próxima sessão começa em " +
-                "${horas}h " +
-                "${minutos}min"
+                "⏳  PRÓXIMA SESSÃO EM  " +
+                "${horas}h ${minutos}min"
 
             } else {
 
-                "⏳ Próxima sessão começa em " +
+                "⏳  PRÓXIMA SESSÃO EM  " +
                 "${minutos}min"
             }
     }
