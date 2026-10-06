@@ -19,180 +19,234 @@ class F2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val etapaNumero = intent.getIntExtra("ETAPA", 1)
+        val etapaNumero =
+            intent.getIntExtra("ETAPA", 1)
 
-        val evento = F2Calendar.eventos.find {
-            it.etapa == etapaNumero
-        }
+        val evento =
+            F2Calendar.eventos.find {
+                it.etapa == etapaNumero
+            }
 
         if (evento == null) {
             finish()
             return
         }
 
-        val conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            setBackgroundColor(Color.BLACK)
-        }
+        val conteudo =
+            LinearLayout(this).apply {
+                orientation =
+                    LinearLayout.VERTICAL
 
-        val titulo = TextView(this).apply {
-            text = "🏎️ FÓRMULA 2\n\nETAPA ${evento.etapa}"
-            textSize = 26f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-        }
+                setPadding(
+                    24,
+                    24,
+                    24,
+                    24
+                )
+
+                setBackgroundColor(
+                    Color.BLACK
+                )
+            }
+
+        val titulo =
+            TextView(this).apply {
+
+                text =
+                    "🏎️ FÓRMULA 2\n\n" +
+                    "ETAPA ${evento.etapa}"
+
+                textSize = 26f
+                setTextColor(Color.WHITE)
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity = Gravity.CENTER
+
+                setPadding(
+                    0,
+                    0,
+                    0,
+                    24
+                )
+            }
 
         conteudo.addView(titulo)
 
-        val circuito = TextView(this).apply {
-            text = "${evento.circuito}\n🇺🇳 ${evento.pais}"
-            textSize = 21f
-            setTextColor(Color.LTGRAY)
-            gravity = Gravity.CENTER
-            setPadding(0, 20, 0, 10)
-        }
+        val circuito =
+            TextView(this).apply {
+
+                text =
+                    "${evento.circuito}\n" +
+                    "🇺🇳 ${evento.pais}"
+
+                textSize = 21f
+                setTextColor(Color.LTGRAY)
+
+                gravity = Gravity.CENTER
+
+                setPadding(
+                    0,
+                    10,
+                    0,
+                    10
+                )
+            }
 
         conteudo.addView(circuito)
 
-        val periodo = TextView(this).apply {
-            text = "📅 ${evento.inicio} → ${evento.fim}"
-            textSize = 16f
-            setTextColor(Color.GRAY)
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 24)
-        }
+        val periodo =
+            TextView(this).apply {
+
+                text =
+                    "📅 ${evento.inicio} → ${evento.fim}"
+
+                textSize = 16f
+                setTextColor(Color.GRAY)
+
+                gravity = Gravity.CENTER
+
+                setPadding(
+                    0,
+                    0,
+                    0,
+                    24
+                )
+            }
 
         conteudo.addView(periodo)
 
-        adicionarProximaSessao(conteudo, evento)
-
         for (sessao in evento.sessoes) {
 
-            val emoji = when {
-                sessao.nome.contains("Treino") -> "🟢"
-                sessao.nome.contains("Classificação") -> "🔵"
-                sessao.nome.contains("Sprint") -> "🟡"
-                sessao.nome.contains("Feature") -> "🔴"
-                else -> "⚪"
+            if (sessao.horario == "A confirmar") {
+
+                adicionarSessao(
+                    conteudo,
+                    sessao,
+                    "⚪"
+                )
+
+                continue
             }
 
-            val sessaoView = TextView(this).apply {
-                text = "$emoji ${sessao.nome}\n\n" +
-                        "📅 ${sessao.data}\n" +
-                        "🕐 ${sessao.horario}"
+            val emoji =
+                when {
 
-                textSize = 18f
-                setTextColor(Color.WHITE)
-                setTypeface(null, Typeface.BOLD)
-                setPadding(20, 20, 20, 20)
-                setBackgroundColor(Color.DKGRAY)
+                    sessao.nome.contains(
+                        "Treino"
+                    ) -> "🟢"
+
+                    sessao.nome.contains(
+                        "Classificação"
+                    ) -> "🔵"
+
+                    sessao.nome.contains(
+                        "Sprint"
+                    ) -> "🟡"
+
+                    sessao.nome.contains(
+                        "Feature"
+                    ) -> "🔴"
+
+                    else -> "⚪"
+                }
+
+            adicionarSessao(
+                conteudo,
+                sessao,
+                emoji
+            )
+        }
+
+        val voltar =
+            Button(this).apply {
+
+                text = "VOLTAR"
+                textSize = 16f
+
+                setOnClickListener {
+                    finish()
+                }
             }
 
-            val parametros = LinearLayout.LayoutParams(
+        val parametrosVoltar =
+            LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-            parametros.setMargins(0, 8, 0, 8)
-
-            conteudo.addView(sessaoView, parametros)
-        }
-
-        val voltar = Button(this).apply {
-            text = "VOLTAR"
-            textSize = 16f
-
-            setOnClickListener {
-                finish()
-            }
-        }
-
-        val parametrosVoltar = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+        parametrosVoltar.setMargins(
+            0,
+            24,
+            0,
+            24
         )
-
-        parametrosVoltar.setMargins(0, 24, 0, 24)
 
         conteudo.addView(
             voltar,
             parametrosVoltar
         )
 
-        val scrollView = ScrollView(this).apply {
-            addView(conteudo)
-        }
+        val scrollView =
+            ScrollView(this).apply {
+                addView(conteudo)
+            }
 
         setContentView(scrollView)
     }
 
-    private fun adicionarProximaSessao(
+    private fun adicionarSessao(
         layout: LinearLayout,
-        evento: F2Event
+        sessao: F2Session,
+        emoji: String
     ) {
-        val agora = LocalDateTime.now()
 
-        var proxima: F2Session? = null
+        val sessaoView =
+            TextView(this).apply {
 
-        for (sessao in evento.sessoes) {
+                text =
+                    "$emoji ${sessao.nome}\n\n" +
+                    "📅 ${sessao.data}\n" +
+                    "🕐 ${sessao.horario}"
 
-            if (sessao.horario == "A confirmar") {
-                continue
-            }
+                textSize = 18f
+                setTextColor(Color.WHITE)
 
-            try {
-                val data = LocalDate.parse(
-                    sessao.data,
-                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                setTypeface(
+                    null,
+                    Typeface.BOLD
                 )
 
-                val hora = LocalTime.parse(
-                    sessao.horario,
-                    DateTimeFormatter.ofPattern("HH:mm")
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
                 )
 
-                val dataHora = data.atTime(hora)
-
-                if (dataHora.isAfter(agora)) {
-                    proxima = sessao
-                    break
-                }
-
-            } catch (_: Exception) {
+                setBackgroundColor(
+                    Color.DKGRAY
+                )
             }
-        }
 
-        val texto = if (proxima != null) {
-            "⏱️ PRÓXIMA SESSÃO\n\n" +
-                    "${proxima.nome}\n" +
-                    "📅 ${proxima.data}\n" +
-                    "🕐 ${proxima.horario}"
-        } else {
-            "⏱️ PRÓXIMA SESSÃO\n\n" +
-                    "Nenhuma sessão futura encontrada."
-        }
+        val parametros =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
 
-        val destaque = TextView(this).apply {
-            text = texto
-            textSize = 19f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-            setPadding(20, 24, 20, 24)
-            setBackgroundColor(Color.DKGRAY)
-        }
-
-        val parametros = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
+        parametros.setMargins(
+            0,
+            8,
+            0,
+            8
         )
 
-        parametros.setMargins(0, 0, 0, 20)
-
         layout.addView(
-            destaque,
+            sessaoView,
             parametros
         )
     }
