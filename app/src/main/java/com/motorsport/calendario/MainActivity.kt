@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
                 0.0f,
                 1.0f
             ).apply {
-
                 duration = 220
             }
 
@@ -132,7 +131,13 @@ class MainActivity : AppCompatActivity() {
             }
 
         voltar.setOnClickListener {
+
             mostrarMenu()
+
+            overridePendingTransition(
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+            )
         }
 
         if (categoria == "F1") {
@@ -164,8 +169,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        R.anim.fade_in,
-                        0
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
                     )
                 }
 
@@ -180,8 +185,8 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
 
                     overridePendingTransition(
-                        R.anim.fade_in,
-                        0
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
                     )
                 }
 
@@ -390,8 +395,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
         )
     }
 
@@ -493,8 +498,8 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
 
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
         )
     }
 
