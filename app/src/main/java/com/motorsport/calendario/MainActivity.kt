@@ -2,6 +2,7 @@ package com.motorsport.calendario
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
@@ -20,93 +21,133 @@ class MainActivity : AppCompatActivity() {
         mostrarMenu()
     }
 
+    private fun animarEntrada() {
+
+        val tela =
+            findViewById<android.view.View>(
+                android.R.id.content
+            )
+
+        val animacao =
+            AlphaAnimation(
+                0.0f,
+                1.0f
+            ).apply {
+
+                duration = 220
+            }
+
+        tela.startAnimation(animacao)
+    }
+
     private fun mostrarMenu() {
 
-        setContentView(R.layout.activity_main)
+        setContentView(
+            R.layout.activity_main
+        )
 
-        findViewById<TextView>(R.id.btnF1).setOnClickListener {
+        animarEntrada()
+
+        findViewById<TextView>(
+            R.id.btnF1
+        ).setOnClickListener {
             abrirCategoria("F1")
         }
 
-        findViewById<TextView>(R.id.btnF2).setOnClickListener {
+        findViewById<TextView>(
+            R.id.btnF2
+        ).setOnClickListener {
             abrirCategoria("F2")
         }
 
-        findViewById<TextView>(R.id.btnF3).setOnClickListener {
+        findViewById<TextView>(
+            R.id.btnF3
+        ).setOnClickListener {
             abrirCategoria("F3")
         }
 
-        findViewById<TextView>(R.id.btnIndyCar).setOnClickListener {
+        findViewById<TextView>(
+            R.id.btnIndyCar
+        ).setOnClickListener {
             abrirCategoria("IndyCar")
         }
 
-        findViewById<TextView>(R.id.btnFormulaE).setOnClickListener {
+        findViewById<TextView>(
+            R.id.btnFormulaE
+        ).setOnClickListener {
             abrirCategoria("Formula E")
         }
     }
 
-    private fun abrirCategoria(categoria: String) {
+    private fun abrirCategoria(
+        categoria: String
+    ) {
 
         categoriaAtual = categoria
 
-        setContentView(R.layout.activity_category)
+        setContentView(
+            R.layout.activity_category
+        )
+
+        animarEntrada()
 
         val titulo =
-            findViewById<TextView>(R.id.categoryTitle)
+            findViewById<TextView>(
+                R.id.categoryTitle
+            )
 
         val evento =
-            findViewById<TextView>(R.id.nextEvent)
+            findViewById<TextView>(
+                R.id.nextEvent
+            )
 
         val calendario =
-            findViewById<TextView>(R.id.fullCalendarButton)
+            findViewById<TextView>(
+                R.id.fullCalendarButton
+            )
 
         val voltar =
-            findViewById<TextView>(R.id.backButton)
+            findViewById<TextView>(
+                R.id.backButton
+            )
 
-        titulo.text = when (categoria) {
+        titulo.text =
+            when (categoria) {
 
-            "F1" -> "🏎️ FÓRMULA 1"
+                "F1" ->
+                    "FÓRMULA 1"
 
-            "F2" -> "🏎️ FÓRMULA 2"
+                "F2" ->
+                    "FÓRMULA 2"
 
-            "F3" -> "🏎️ FÓRMULA 3"
+                "F3" ->
+                    "FÓRMULA 3"
 
-            "IndyCar" -> "🏁 INDYCAR"
+                "IndyCar" ->
+                    "INDYCAR"
 
-            else -> "⚡ FÓRMULA E"
-        }
+                else ->
+                    "FÓRMULA E"
+            }
 
         voltar.setOnClickListener {
             mostrarMenu()
         }
 
-        /*
-         * O próximo evento da F1 abre
-         * sua programação completa.
-         */
         if (categoria == "F1") {
 
             evento.setOnClickListener {
-
                 abrirEventoF1()
             }
         }
 
-        /*
-         * O próximo evento da F2 abre
-         * a etapa correspondente.
-         */
         if (categoria == "F2") {
 
             evento.setOnClickListener {
-
                 abrirEventoF2()
             }
         }
 
-        /*
-         * Programação completa.
-         */
         calendario.setOnClickListener {
 
             when (categoriaAtual) {
@@ -120,6 +161,11 @@ class MainActivity : AppCompatActivity() {
                         )
 
                     startActivity(intent)
+
+                    overridePendingTransition(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
                 }
 
                 "F2" -> {
@@ -131,6 +177,11 @@ class MainActivity : AppCompatActivity() {
                         )
 
                     startActivity(intent)
+
+                    overridePendingTransition(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                    )
                 }
 
                 else -> {
@@ -143,9 +194,11 @@ class MainActivity : AppCompatActivity() {
 
         when (categoria) {
 
-            "F1" -> carregarF1(evento)
+            "F1" ->
+                carregarF1(evento)
 
-            "F2" -> carregarF2(evento)
+            "F2" ->
+                carregarF2(evento)
 
             else -> {
 
@@ -174,19 +227,23 @@ class MainActivity : AppCompatActivity() {
                 val agora =
                     java.time.Instant.now()
 
-                var proximaCorrida: JSONObject? =
-                    null
+                var proximaCorrida:
+                        JSONObject? = null
 
-                var proximaData: OffsetDateTime? =
-                    null
+                var proximaData:
+                        OffsetDateTime? = null
 
-                for (i in 0 until races.length()) {
+                for (
+                    i in 0 until races.length()
+                ) {
 
                     val race =
                         races.getJSONObject(i)
 
                     val data =
-                        race.getString("date")
+                        race.getString(
+                            "date"
+                        )
 
                     val hora =
                         race.optString(
@@ -204,14 +261,19 @@ class MainActivity : AppCompatActivity() {
                             .isAfter(agora)
                     ) {
 
-                        proximaCorrida = race
-                        proximaData = horario
+                        proximaCorrida =
+                            race
+
+                        proximaData =
+                            horario
 
                         break
                     }
                 }
 
-                if (proximaCorrida == null) {
+                if (
+                    proximaCorrida == null
+                ) {
 
                     runOnUiThread {
 
@@ -223,7 +285,9 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val brasilia =
-                    ZoneId.of("America/Sao_Paulo")
+                    ZoneId.of(
+                        "America/Sao_Paulo"
+                    )
 
                 val formato =
                     DateTimeFormatter.ofPattern(
@@ -256,7 +320,9 @@ class MainActivity : AppCompatActivity() {
                 var textoQualificacao =
                     ""
 
-                if (qualificacao != null) {
+                if (
+                    qualificacao != null
+                ) {
 
                     val dataQualificacao =
                         qualificacao.getString(
@@ -321,6 +387,11 @@ class MainActivity : AppCompatActivity() {
             )
 
         startActivity(intent)
+
+        overridePendingTransition(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
     }
 
     private fun carregarF2(
@@ -330,10 +401,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F2Event? =
-            null
+        var proximo:
+                F2Event? = null
 
-        for (item in F2Calendar.eventos) {
+        for (
+            item in F2Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -343,9 +416,13 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (
+                !inicio.isBefore(hoje)
+            ) {
 
-                proximo = item
+                proximo =
+                    item
+
                 break
             }
         }
@@ -371,10 +448,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F2Event? =
-            null
+        var proximo:
+                F2Event? = null
 
-        for (item in F2Calendar.eventos) {
+        for (
+            item in F2Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -384,9 +463,13 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (
+                !inicio.isBefore(hoje)
+            ) {
 
-                proximo = item
+                proximo =
+                    item
+
                 break
             }
         }
@@ -407,6 +490,11 @@ class MainActivity : AppCompatActivity() {
         )
 
         startActivity(intent)
+
+        overridePendingTransition(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
     }
 
     private fun buscarCorridasF1():
