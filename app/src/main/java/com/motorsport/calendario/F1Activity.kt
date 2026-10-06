@@ -3,6 +3,8 @@ package com.motorsport.calendario
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -15,11 +17,36 @@ import java.net.URL
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class F1Activity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val handler =
+        Handler(Looper.getMainLooper())
+
+    private val atualizarContador =
+        object : Runnable {
+
+            override fun run() {
+
+                atualizarContadorTela()
+
+                handler.postDelayed(
+                    this,
+                    60_000
+                )
+            }
+        }
+
+    private var contadorView: TextView? = null
+
+    private var proximoHorario:
+            ZonedDateTime? = null
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         val conteudo =
@@ -107,7 +134,6 @@ class F1Activity : AppCompatActivity() {
             Button(this).apply {
 
                 text = "VOLTAR"
-
                 textSize = 16f
 
                 setOnClickListener {
@@ -233,6 +259,10 @@ class F1Activity : AppCompatActivity() {
                     mostrarEvento(
                         layout,
                         evento
+                    )
+
+                    handler.post(
+                        atualizarContador
                     )
                 }
 
@@ -454,70 +484,20 @@ class F1Activity : AppCompatActivity() {
                 )
 
             val agora =
-                java.time.ZonedDateTime.now(
+                ZonedDateTime.now(
                     brasilia
                 )
-
-            var texto =
-                "$nome\n\n" +
-                "📅 ${
-                    horarioBrasilia.format(
-                        formato
-                    )
-                }"
-
-            if (
-                horarioBrasilia.isAfter(
-                    agora
-                )
-            ) {
-
-                val duracao =
-                    Duration.between(
-                        agora,
-                        horarioBrasilia
-                    )
-
-                val totalMinutos =
-                    duracao.toMinutes()
-
-                val dias =
-                    totalMinutos / 1440
-
-                val horas =
-                    (totalMinutos % 1440) / 60
-
-                val minutos =
-                    totalMinutos % 60
-
-                val contagem =
-                    if (dias > 0) {
-
-                        "⏳ Começa em " +
-                        "${dias}d " +
-                        "${horas}h " +
-                        "${minutos}min"
-
-                    } else if (horas > 0) {
-
-                        "⏳ Começa em " +
-                        "${horas}h " +
-                        "${minutos}min"
-
-                    } else {
-
-                        "⏳ Começa em " +
-                        "${minutos}min"
-                    }
-
-                texto +=
-                    "\n\n$contagem"
-            }
 
             val card =
                 TextView(this).apply {
 
-                    text = texto
+                    text =
+                        "$nome\n\n" +
+                        "📅 ${
+                            horarioBrasilia.format(
+                                formato
+                            )
+                        }"
 
                     textSize = 18f
 
@@ -560,9 +540,130 @@ class F1Activity : AppCompatActivity() {
                 parametros
             )
 
+            if (
+                proximoHorario == null ||
+                (
+                    horarioBrasilia.isAfter(agora) &&
+                    horarioBrasilia.isBefore(
+                        proximoHorario
+                    )
+                )
+            ) {
+
+                if (
+                    horarioBrasilia.isAfter(
+                        agora
+                    )
+                ) {
+
+                    proximoHorario =
+                        horarioBrasilia
+
+                    contadorView =
+                        TextView(this).apply {
+
+                            textSize = 16f
+
+                            setTextColor(
+                                Color.WHITE
+                            )
+
+                            setTypeface(
+                                null,
+                                Typeface.BOLD
+                            )
+
+                            setPadding(
+                                20,
+                                0,
+                                20,
+                                20
+                            )
+                        }
+
+                    layout.addView(
+                        contadorView
+                    )
+                }
+            }
+
         } catch (_: Exception) {
             // Sessão inexistente não será exibida.
         }
+    }
+
+    private fun atualizarContadorTela() {
+
+        val view =
+            contadorView ?: return
+
+        val horario =
+            proximoHorario ?: return
+
+        val agora =
+            ZonedDateTime.now(
+                ZoneId.of(
+                    "America/Sao_Paulo"
+                )
+            )
+
+        val duracao =
+            Duration.between(
+                agora,
+                horario
+            )
+
+        if (
+            duracao.isZero ||
+            duracao.isNegative
+        ) {
+
+            view.text =
+                "🏁 A próxima sessão está começando!"
+
+            return
+        }
+
+        val totalMinutos =
+            duracao.toMinutes()
+
+        val dias =
+            totalMinutos / 1440
+
+        val horas =
+            (totalMinutos % 1440) / 60
+
+        val minutos =
+            totalMinutos % 60
+
+        view.text =
+            if (dias > 0) {
+
+                "⏳ Próxima sessão começa em " +
+                "${dias}d " +
+                "${horas}h " +
+                "${minutos}min"
+
+            } else if (horas > 0) {
+
+                "⏳ Próxima sessão começa em " +
+                "${horas}h " +
+                "${minutos}min"
+
+            } else {
+
+                "⏳ Próxima sessão começa em " +
+                "${minutos}min"
+            }
+    }
+
+    override fun onDestroy() {
+
+        handler.removeCallbacks(
+            atualizarContador
+        )
+
+        super.onDestroy()
     }
 
     private fun buscarCorridasF1():
