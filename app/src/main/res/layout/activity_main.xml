@@ -30,8 +30,6 @@
             android:gravity="center"
             android:paddingBottom="24dp" />
 
-        <!-- F1 -->
-
         <TextView
             android:id="@+id/btnF1"
             android:layout_width="match_parent"
@@ -43,8 +41,6 @@
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
-
-        <!-- F2 -->
 
         <TextView
             android:id="@+id/btnF2"
@@ -58,8 +54,6 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- F3 -->
-
         <TextView
             android:id="@+id/btnF3"
             android:layout_width="match_parent"
@@ -71,8 +65,6 @@
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
-
-        <!-- IndyCar -->
 
         <TextView
             android:id="@+id/btnIndyCar"
@@ -86,8 +78,6 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- Fórmula E -->
-
         <TextView
             android:id="@+id/btnFormulaE"
             android:layout_width="match_parent"
@@ -99,6 +89,15 @@
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/raceInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:padding="8dp" />
 
     </LinearLayout>
 
