@@ -1,0 +1,84 @@
+package com.motorsport.calendario
+
+import android.graphics.Color
+import android.os.Bundle
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+class F2Activity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val etapaNumero = intent.getIntExtra("ETAPA", 1)
+
+        val evento = F2Calendar.eventos.find {
+            it.etapa == etapaNumero
+        }
+
+        if (evento == null) {
+            finish()
+            return
+        }
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 24, 24, 24)
+            setBackgroundColor(Color.BLACK)
+        }
+
+        val titulo = TextView(this).apply {
+            text = "F2 — Etapa ${evento.etapa}"
+            textSize = 26f
+            setTextColor(Color.WHITE)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            gravity = Gravity.CENTER
+        }
+
+        layout.addView(titulo)
+
+        val circuito = TextView(this).apply {
+            text = "${evento.circuito} — ${evento.pais}"
+            textSize = 20f
+            setTextColor(Color.LTGRAY)
+            gravity = Gravity.CENTER
+            setPadding(0, 16, 0, 8)
+        }
+
+        layout.addView(circuito)
+
+        val periodo = TextView(this).apply {
+            text = "${evento.inicio} → ${evento.fim}"
+            textSize = 16f
+            setTextColor(Color.GRAY)
+            gravity = Gravity.CENTER
+            setPadding(0, 0, 0, 24)
+        }
+
+        layout.addView(periodo)
+
+        for (sessao in evento.sessoes) {
+
+            val sessaoView = TextView(this).apply {
+                text = "${sessao.nome}\n${sessao.data} • ${sessao.horario}"
+                textSize = 18f
+                setTextColor(Color.WHITE)
+                setPadding(20, 20, 20, 20)
+                setBackgroundColor(Color.DKGRAY)
+            }
+
+            val parametros = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+            parametros.setMargins(0, 8, 0, 8)
+
+            layout.addView(sessaoView, parametros)
+        }
+
+        setContentView(layout)
+    }
+}
