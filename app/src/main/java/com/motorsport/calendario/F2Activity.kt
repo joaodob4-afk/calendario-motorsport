@@ -74,7 +74,11 @@ class F2Activity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.rgb(11, 11, 15)
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
                 )
             }
 
@@ -113,7 +117,9 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(titulo)
+        conteudo.addView(
+            titulo
+        )
 
         if (evento == null) {
 
@@ -162,9 +168,9 @@ class F2Activity : AppCompatActivity() {
 
                 setTextColor(
                     Color.rgb(
-                        138,
-                        138,
-                        148
+                        143,
+                        166,
+                        186
                     )
                 )
 
@@ -240,13 +246,10 @@ class F2Activity : AppCompatActivity() {
                     26
                 )
 
-                setBackgroundColor(
-                    Color.rgb(
-                        36,
-                        36,
-                        43
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
                     )
-                )
             }
 
         val parametrosCabecalho =
@@ -345,13 +348,10 @@ class F2Activity : AppCompatActivity() {
                     20
                 )
 
-                setBackgroundColor(
-                    Color.rgb(
-                        36,
-                        36,
-                        43
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
                     )
-                )
             }
 
         val parametros =
@@ -407,18 +407,15 @@ class F2Activity : AppCompatActivity() {
 
                     setPadding(
                         16,
-                        10,
+                        12,
                         16,
                         16
                     )
 
-                    setBackgroundColor(
-                        Color.rgb(
-                            48,
-                            48,
-                            56
+                    background =
+                        getDrawable(
+                            R.drawable.rounded_card
                         )
-                    )
                 }
 
             val parametrosContador =
