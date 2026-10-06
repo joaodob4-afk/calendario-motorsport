@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -71,7 +70,11 @@ class F1Activity : AppCompatActivity() {
                 )
 
                 setBackgroundColor(
-                    Color.rgb(11, 11, 15)
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
                 )
             }
 
@@ -111,7 +114,9 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(titulo)
+        conteudo.addView(
+            titulo
+        )
 
         val carregando =
             TextView(this).apply {
@@ -136,35 +141,45 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(carregando)
+        conteudo.addView(
+            carregando
+        )
 
         val voltar =
-            Button(this).apply {
+            TextView(this).apply {
 
-                text = "VOLTAR"
+                text =
+                    "‹  VOLTAR"
+
                 textSize = 15f
+
+                setTextColor(
+                    Color.rgb(
+                        143,
+                        166,
+                        186
+                    )
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                setPadding(
+                    0,
+                    24,
+                    0,
+                    20
+                )
 
                 setOnClickListener {
                     finish()
                 }
             }
 
-        val parametrosVoltar =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltar.setMargins(
-            0,
-            24,
-            0,
-            20
-        )
-
         conteudo.addView(
-            voltar,
-            parametrosVoltar
+            voltar
         )
 
         val scrollView =
@@ -172,7 +187,9 @@ class F1Activity : AppCompatActivity() {
                 addView(conteudo)
             }
 
-        setContentView(scrollView)
+        setContentView(
+            scrollView
+        )
 
         carregarEvento(
             conteudo,
@@ -218,7 +235,9 @@ class F1Activity : AppCompatActivity() {
                             races.getJSONObject(i)
 
                         val data =
-                            race.getString("date")
+                            race.getString(
+                                "date"
+                            )
 
                         val hora =
                             race.optString(
@@ -346,7 +365,7 @@ class F1Activity : AppCompatActivity() {
                     circuito + "\n" +
                     "$cidade • $pais"
 
-                textSize = 21f
+                textSize = 20f
 
                 setTextColor(
                     Color.WHITE
@@ -361,15 +380,16 @@ class F1Activity : AppCompatActivity() {
                     Gravity.CENTER
 
                 setPadding(
-                    16,
+                    20,
                     22,
-                    16,
+                    20,
                     26
                 )
 
-                setBackgroundColor(
-                    Color.rgb(36, 36, 43)
-                )
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
+                    )
             }
 
         val parametrosCabecalho =
@@ -542,9 +562,10 @@ class F1Activity : AppCompatActivity() {
                         20
                     )
 
-                    setBackgroundColor(
-                        Color.rgb(36, 36, 43)
-                    )
+                    background =
+                        getDrawable(
+                            R.drawable.rounded_card
+                        )
                 }
 
             val parametros =
@@ -603,18 +624,15 @@ class F1Activity : AppCompatActivity() {
 
                             setPadding(
                                 16,
-                                10,
+                                12,
                                 16,
                                 16
                             )
 
-                            setBackgroundColor(
-                                Color.rgb(
-                                    48,
-                                    48,
-                                    56
+                            background =
+                                getDrawable(
+                                    R.drawable.rounded_card
                                 )
-                            )
                         }
 
                     val parametrosContador =
