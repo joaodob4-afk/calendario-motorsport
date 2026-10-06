@@ -16,63 +16,116 @@ class F2CalendarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            setBackgroundColor(Color.BLACK)
-        }
+        val layout =
+            LinearLayout(this).apply {
 
-        val titulo = TextView(this).apply {
-            text = "🏎️ FÓRMULA 2\n\nCALENDÁRIO 2026"
-            textSize = 26f
-            setTextColor(Color.WHITE)
-            setTypeface(null, Typeface.BOLD)
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 24)
-        }
+                orientation =
+                    LinearLayout.VERTICAL
 
-        layout.addView(titulo)
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
 
-        for (evento in F2Calendar.eventos) {
+                setBackgroundColor(
+                    Color.rgb(11, 11, 15)
+                )
+            }
 
-            val botao = Button(this).apply {
+        val titulo =
+            TextView(this).apply {
 
                 text =
-                    "🏁 ETAPA ${evento.etapa}\n" +
-                    "${evento.circuito}\n" +
-                    "🇺🇳 ${evento.pais}"
+                    "FÓRMULA 2\n\n" +
+                    "CALENDÁRIO 2026"
 
-                textSize = 17f
-                setTextColor(Color.WHITE)
+                textSize = 27f
+
+                setTextColor(
+                    Color.WHITE
+                )
 
                 setTypeface(
                     null,
                     Typeface.BOLD
                 )
 
+                gravity =
+                    Gravity.CENTER
+
+                letterSpacing = 0.04f
+
                 setPadding(
-                    16,
-                    16,
-                    16,
-                    16
+                    0,
+                    10,
+                    0,
+                    28
                 )
+            }
 
-                setOnClickListener {
+        layout.addView(titulo)
 
-                    val intent =
-                        Intent(
-                            this@F2CalendarActivity,
-                            F2Activity::class.java
-                        )
+        for (
+            evento in F2Calendar.eventos
+        ) {
 
-                    intent.putExtra(
-                        "ETAPA",
-                        evento.etapa
+            val botao =
+                TextView(this).apply {
+
+                    text =
+                        "🏁  ETAPA ${evento.etapa}\n\n" +
+                        "${evento.circuito}\n" +
+                        "🇺🇳 ${evento.pais}\n\n" +
+                        "📅 ${evento.inicio} → ${evento.fim}"
+
+                    textSize = 17f
+
+                    setTextColor(
+                        Color.WHITE
                     )
 
-                    startActivity(intent)
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    gravity =
+                        Gravity.CENTER_VERTICAL
+
+                    setPadding(
+                        20,
+                        20,
+                        20,
+                        20
+                    )
+
+                    setBackgroundColor(
+                        Color.rgb(36, 36, 43)
+                    )
+
+                    isClickable = true
+                    isFocusable = true
+
+                    setOnClickListener {
+
+                        val intent =
+                            Intent(
+                                this@F2CalendarActivity,
+                                F2Activity::class.java
+                            )
+
+                        intent.putExtra(
+                            "ETAPA",
+                            evento.etapa
+                        )
+
+                        startActivity(
+                            intent
+                        )
+                    }
                 }
-            }
 
             val parametros =
                 LinearLayout.LayoutParams(
@@ -93,15 +146,16 @@ class F2CalendarActivity : AppCompatActivity() {
             )
         }
 
-        val voltar = Button(this).apply {
+        val voltar =
+            Button(this).apply {
 
-            text = "VOLTAR"
-            textSize = 16f
+                text = "VOLTAR"
+                textSize = 15f
 
-            setOnClickListener {
-                finish()
+                setOnClickListener {
+                    finish()
+                }
             }
-        }
 
         val parametrosVoltar =
             LinearLayout.LayoutParams(
@@ -113,7 +167,7 @@ class F2CalendarActivity : AppCompatActivity() {
             0,
             24,
             0,
-            24
+            20
         )
 
         layout.addView(
