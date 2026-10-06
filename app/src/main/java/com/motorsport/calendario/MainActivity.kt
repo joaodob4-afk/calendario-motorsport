@@ -81,8 +81,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         /*
-         * Agora o quadrante do próximo evento da F1
-         * é clicável e abre os detalhes completos.
+         * O próximo evento da F1 abre
+         * a programação detalhada do evento.
          */
         if (categoria == "F1") {
 
@@ -90,25 +90,36 @@ class MainActivity : AppCompatActivity() {
 
                 abrirEventoF1()
             }
+        }
 
-            calendario.setOnClickListener {
+        /*
+         * O botão de programação completa
+         * agora abre a lista de todas as etapas da F1.
+         */
+        calendario.setOnClickListener {
 
-                abrirEventoF1()
-            }
+            when (categoriaAtual) {
 
-        } else {
+                "F1" -> {
 
-            calendario.setOnClickListener {
+                    val intent =
+                        Intent(
+                            this,
+                            F1CalendarActivity::class.java
+                        )
 
-                when (categoriaAtual) {
+                    startActivity(intent)
+                }
 
-                    "F2" -> abrirDetalhesF2()
+                "F2" -> {
 
-                    else -> {
+                    abrirDetalhesF2()
+                }
 
-                        evento.text =
-                            "Programação completa"
-                    }
+                else -> {
+
+                    evento.text =
+                        "Programação completa"
                 }
             }
         }
