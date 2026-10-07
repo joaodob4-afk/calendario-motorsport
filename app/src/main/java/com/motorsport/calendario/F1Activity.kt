@@ -22,15 +22,19 @@ import java.time.format.DateTimeFormatter
 
 class F1Activity : AppCompatActivity() {
 
-    private val handler = Handler(Looper.getMainLooper())
+    private val handler =
+        Handler(Looper.getMainLooper())
 
     private var contadorView: TextView? = null
 
-    private var proximoHorario: ZonedDateTime? = null
+    private var proximoHorario:
+            ZonedDateTime? = null
 
     private val atualizarContador =
         object : Runnable {
+
             override fun run() {
+
                 atualizarContadorTela()
 
                 handler.postDelayed(
@@ -53,7 +57,9 @@ class F1Activity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
+
                 override fun handleOnBackPressed() {
+
                     voltarParaTelaAnterior()
                 }
             }
@@ -64,7 +70,9 @@ class F1Activity : AppCompatActivity() {
 
         val conteudo =
             LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
+
+                orientation =
+                    LinearLayout.VERTICAL
 
                 setPadding(
                     20,
@@ -173,24 +181,9 @@ class F1Activity : AppCompatActivity() {
             ScrollView(this).apply {
 
                 isVerticalScrollBarEnabled = false
-                isHorizontalScrollBarEnabled = false
-                scrollBarSize = 0
-                isScrollbarFadingEnabled = false
 
-                setVerticalFadingEdgeEnabled(false)
-                setHorizontalFadingEdgeEnabled(false)
-
-                overScrollMode =
-                    android.view.View.OVER_SCROLL_NEVER
+                addView(conteudo)
             }
-
-        scrollView.addView(
-            conteudo,
-            ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.WRAP_CONTENT
-            )
-        )
 
         setContentView(scrollView)
 
@@ -204,7 +197,8 @@ class F1Activity : AppCompatActivity() {
 
         return TextView(this).apply {
 
-            text = "‹  VOLTAR"
+            text =
+                "‹  VOLTAR"
 
             textSize = 15f
 
@@ -221,7 +215,8 @@ class F1Activity : AppCompatActivity() {
                 Typeface.BOLD
             )
 
-            gravity = Gravity.START
+            gravity =
+                Gravity.START
 
             setPadding(
                 0,
@@ -234,6 +229,7 @@ class F1Activity : AppCompatActivity() {
             isFocusable = true
 
             setOnClickListener {
+
                 voltarParaTelaAnterior()
             }
         }
@@ -287,7 +283,9 @@ class F1Activity : AppCompatActivity() {
                             races.getJSONObject(i)
 
                         val data =
-                            race.getString("date")
+                            race.getString(
+                                "date"
+                            )
 
                         val hora =
                             race.optString(
@@ -305,7 +303,8 @@ class F1Activity : AppCompatActivity() {
                                 .isAfter(agora)
                         ) {
 
-                            proximo = race
+                            proximo =
+                                race
 
                             break
                         }
@@ -326,7 +325,8 @@ class F1Activity : AppCompatActivity() {
                         return@Thread
                     }
 
-                    evento = proximo
+                    evento =
+                        proximo
                 }
 
                 runOnUiThread {
@@ -435,7 +435,8 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
-                gravity = Gravity.CENTER
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     20,
@@ -549,7 +550,9 @@ class F1Activity : AppCompatActivity() {
             if (campo == "date") {
 
                 data =
-                    race.getString("date")
+                    race.getString(
+                        "date"
+                    )
 
                 hora =
                     race.optString(
@@ -560,13 +563,19 @@ class F1Activity : AppCompatActivity() {
             } else {
 
                 val sessao =
-                    race.getJSONObject(campo)
+                    race.getJSONObject(
+                        campo
+                    )
 
                 data =
-                    sessao.getString("date")
+                    sessao.getString(
+                        "date"
+                    )
 
                 hora =
-                    sessao.getString("time")
+                    sessao.getString(
+                        "time"
+                    )
             }
 
             val horarioUtc =
@@ -605,7 +614,8 @@ class F1Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
-                    gravity = Gravity.CENTER
+                    gravity =
+                        Gravity.CENTER
 
                     setPadding(
                         20,
@@ -808,37 +818,74 @@ class F1Activity : AppCompatActivity() {
 
         return when (pais.lowercase()) {
 
-            "australia" -> "🇦🇺"
-            "bahrain" -> "🇧🇭"
-            "saudi arabia" -> "🇸🇦"
-            "japan" -> "🇯🇵"
-            "china" -> "🇨🇳"
+            "australia" ->
+                "🇦🇺"
+
+            "bahrain" ->
+                "🇧🇭"
+
+            "saudi arabia" ->
+                "🇸🇦"
+
+            "japan" ->
+                "🇯🇵"
+
+            "china" ->
+                "🇨🇳"
 
             "usa",
-            "united states" -> "🇺🇸"
+            "united states" ->
+                "🇺🇸"
 
-            "italy" -> "🇮🇹"
-            "monaco" -> "🇲🇨"
-            "spain" -> "🇪🇸"
-            "canada" -> "🇨🇦"
-            "austria" -> "🇦🇹"
+            "italy" ->
+                "🇮🇹"
+
+            "monaco" ->
+                "🇲🇨"
+
+            "spain" ->
+                "🇪🇸"
+
+            "canada" ->
+                "🇨🇦"
+
+            "austria" ->
+                "🇦🇹"
 
             "united kingdom",
-            "uk" -> "🇬🇧"
+            "uk" ->
+                "🇬🇧"
 
-            "belgium" -> "🇧🇪"
-            "hungary" -> "🇭🇺"
-            "netherlands" -> "🇳🇱"
-            "azerbaijan" -> "🇦🇿"
-            "singapore" -> "🇸🇬"
-            "mexico" -> "🇲🇽"
-            "brazil" -> "🇧🇷"
-            "qatar" -> "🇶🇦"
+            "belgium" ->
+                "🇧🇪"
+
+            "hungary" ->
+                "🇭🇺"
+
+            "netherlands" ->
+                "🇳🇱"
+
+            "azerbaijan" ->
+                "🇦🇿"
+
+            "singapore" ->
+                "🇸🇬"
+
+            "mexico" ->
+                "🇲🇽"
+
+            "brazil" ->
+                "🇧🇷"
+
+            "qatar" ->
+                "🇶🇦"
 
             "uae",
-            "united arab emirates" -> "🇦🇪"
+            "united arab emirates" ->
+                "🇦🇪"
 
-            else -> "🌐"
+            else ->
+                "🌐"
         }
     }
 
