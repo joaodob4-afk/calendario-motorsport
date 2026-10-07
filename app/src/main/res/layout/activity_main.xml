@@ -32,43 +32,22 @@
             android:orientation="vertical">
 
             <!-- ================================================= -->
-            <!-- BANNER SUPERIOR — PONTA A PONTA -->
+            <!-- BANNER SUPERIOR -->
             <!-- ================================================= -->
 
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="92dp"
-                android:orientation="vertical"
-                android:gravity="center_vertical"
-                android:background="#CC102B44"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp">
+                android:background="#CC102B44">
 
-                <TextView
+                <ImageView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="CALENDÁRIO"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:gravity="start"
-                    android:letterSpacing="0.04"
-                    android:maxLines="1"
-                    android:includeFontPadding="false" />
+                    android:layout_height="match_parent"
+                    android:src="@drawable/topo_telainicial2"
+                    android:scaleType="centerInside"
+                    android:contentDescription="Calendário Motorsport" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="MOTORSPORT"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:gravity="start"
-                    android:letterSpacing="0.04"
-                    android:maxLines="1"
-                    android:includeFontPadding="false" />
-
-            </LinearLayout>
+            </FrameLayout>
 
             <!-- ESPAÇO ENTRE BANNER E CARDS -->
             <Space
