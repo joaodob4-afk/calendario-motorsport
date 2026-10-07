@@ -49,13 +49,11 @@ class F1Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
-        // Animação ao entrar na tela
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
         )
 
-        // Animação ao usar o botão/gesto voltar do Android
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -133,9 +131,7 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(
-            titulo
-        )
+        conteudo.addView(titulo)
 
         val carregando =
             TextView(this).apply {
@@ -160,9 +156,7 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(
-            carregando
-        )
+        conteudo.addView(carregando)
 
         val voltar =
             TextView(this).apply {
@@ -185,6 +179,9 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
+                gravity =
+                    Gravity.CENTER
+
                 setPadding(
                     0,
                     24,
@@ -203,18 +200,14 @@ class F1Activity : AppCompatActivity() {
                 }
             }
 
-        conteudo.addView(
-            voltar
-        )
+        conteudo.addView(voltar)
 
         val scrollView =
             ScrollView(this).apply {
                 addView(conteudo)
             }
 
-        setContentView(
-            scrollView
-        )
+        setContentView(scrollView)
 
         carregarEvento(
             conteudo,
@@ -382,13 +375,16 @@ class F1Activity : AppCompatActivity() {
                 )
                 ?: ""
 
+        val bandeira =
+            obterBandeira(pais)
+
         val cabecalho =
             TextView(this).apply {
 
                 text =
                     "🏁 $nome\n\n" +
                     circuito + "\n" +
-                    "$cidade • $pais"
+                    "$bandeira $cidade • $pais"
 
                 textSize = 20f
 
@@ -580,6 +576,9 @@ class F1Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
+                    gravity =
+                        Gravity.CENTER
+
                     setPadding(
                         20,
                         20,
@@ -744,6 +743,83 @@ class F1Activity : AppCompatActivity() {
                 "⏳  PRÓXIMA SESSÃO EM  " +
                 "${minutos}min"
             }
+    }
+
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
+        return when (pais.lowercase()) {
+
+            "australia" ->
+                "🇦🇺"
+
+            "bahrain" ->
+                "🇧🇭"
+
+            "saudi arabia" ->
+                "🇸🇦"
+
+            "japan" ->
+                "🇯🇵"
+
+            "china" ->
+                "🇨🇳"
+
+            "usa",
+            "united states" ->
+                "🇺🇸"
+
+            "italy" ->
+                "🇮🇹"
+
+            "monaco" ->
+                "🇲🇨"
+
+            "spain" ->
+                "🇪🇸"
+
+            "canada" ->
+                "🇨🇦"
+
+            "austria" ->
+                "🇦🇹"
+
+            "united kingdom",
+            "uk" ->
+                "🇬🇧"
+
+            "belgium" ->
+                "🇧🇪"
+
+            "hungary" ->
+                "🇭🇺"
+
+            "netherlands" ->
+                "🇳🇱"
+
+            "azerbaijan" ->
+                "🇦🇿"
+
+            "singapore" ->
+                "🇸🇬"
+
+            "mexico" ->
+                "🇲🇽"
+
+            "brazil" ->
+                "🇧🇷"
+
+            "qatar" ->
+                "🇶🇦"
+
+            "uae",
+            "united arab emirates" ->
+                "🇦🇪"
+
+            else ->
+                "🌐"
+        }
     }
 
     override fun onDestroy() {
