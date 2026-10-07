@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun animarEntrada() {
+
         val tela =
             findViewById<android.view.View>(
                 android.R.id.content
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarMenu() {
+
         setContentView(R.layout.activity_main)
 
         animarEntrada()
@@ -77,15 +79,15 @@ class MainActivity : AppCompatActivity() {
             abrirCategoria("F2")
         }
 
-        findViewById<TextView>(R.id.btnF3).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnF3).setOnClickListener {
             abrirCategoria("F3")
         }
 
-        findViewById<TextView>(R.id.btnIndyCar).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnIndyCar).setOnClickListener {
             abrirCategoria("IndyCar")
         }
 
-        findViewById<TextView>(R.id.btnFormulaE).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnFormulaE).setOnClickListener {
             abrirCategoria("Formula E")
         }
     }
