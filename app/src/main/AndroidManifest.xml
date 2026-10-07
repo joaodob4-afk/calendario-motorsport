@@ -29,6 +29,9 @@
         <activity
             android:name=".F3Activity"
             android:exported="false">
+<activity
+    android:name=".F3CalendarActivity"
+    android:exported="false" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
