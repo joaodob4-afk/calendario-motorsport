@@ -35,13 +35,7 @@ class F1CalendarActivity : AppCompatActivity() {
             object : OnBackPressedCallback(true) {
 
                 override fun handleOnBackPressed() {
-
-                    finish()
-
-                    overridePendingTransition(
-                        R.anim.slide_in_left,
-                        R.anim.slide_out_right
-                    )
+                    voltarParaTelaAnterior()
                 }
             }
         )
@@ -67,6 +61,34 @@ class F1CalendarActivity : AppCompatActivity() {
                     )
                 )
             }
+
+        // ==========================
+        // VOLTAR - TOPO ESQUERDO
+        // ==========================
+
+        val voltarTopo =
+            criarBotaoVoltar()
+
+        val parametrosTopo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosTopo.gravity =
+            Gravity.LEFT
+
+        parametrosTopo.setMargins(
+            0,
+            0,
+            0,
+            10
+        )
+
+        layout.addView(
+            voltarTopo,
+            parametrosTopo
+        )
 
         val titulo =
             TextView(this).apply {
@@ -99,7 +121,9 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(titulo)
+        layout.addView(
+            titulo
+        )
 
         val carregando =
             TextView(this).apply {
@@ -124,63 +148,73 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(carregando)
-
-        val voltar =
-            TextView(this).apply {
-
-                text =
-                    "‹  VOLTAR"
-
-                textSize = 15f
-
-                setTextColor(
-                    Color.rgb(
-                        143,
-                        166,
-                        186
-                    )
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                setGravity(
-                    Gravity.CENTER
-                )
-
-                setPadding(
-                    0,
-                    0,
-                    0,
-                    20
-                )
-
-                setOnClickListener {
-
-                    finish()
-
-                    overridePendingTransition(
-                        R.anim.slide_in_left,
-                        R.anim.slide_out_right
-                    )
-                }
-            }
-
-        layout.addView(voltar)
+        layout.addView(
+            carregando
+        )
 
         val scroll =
             ScrollView(this).apply {
                 addView(layout)
             }
 
-        setContentView(scroll)
+        setContentView(
+            scroll
+        )
 
         carregarCalendario(
             layout,
             carregando
+        )
+    }
+
+    private fun criarBotaoVoltar(): TextView {
+
+        return TextView(this).apply {
+
+            text =
+                "‹  VOLTAR"
+
+            textSize = 15f
+
+            setTextColor(
+                Color.rgb(
+                    143,
+                    166,
+                    186
+                )
+            )
+
+            setTypeface(
+                null,
+                Typeface.BOLD
+            )
+
+            gravity =
+                Gravity.LEFT
+
+            setPadding(
+                0,
+                8,
+                0,
+                8
+            )
+
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+                voltarParaTelaAnterior()
+            }
+        }
+    }
+
+    private fun voltarParaTelaAnterior() {
+
+        finish()
+
+        overridePendingTransition(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
         )
     }
 
@@ -216,6 +250,34 @@ class F1CalendarActivity : AppCompatActivity() {
                             race
                         )
                     }
+
+                    // ==========================
+                    // VOLTAR - FUNDO ESQUERDO
+                    // ==========================
+
+                    val voltarFundo =
+                        criarBotaoVoltar()
+
+                    val parametrosFundo =
+                        LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+
+                    parametrosFundo.gravity =
+                        Gravity.LEFT
+
+                    parametrosFundo.setMargins(
+                        0,
+                        24,
+                        0,
+                        20
+                    )
+
+                    layout.addView(
+                        voltarFundo,
+                        parametrosFundo
+                    )
                 }
 
             } catch (e: Exception) {
@@ -226,6 +288,33 @@ class F1CalendarActivity : AppCompatActivity() {
                         "Erro ao carregar calendário.\n\n" +
                         "Erro: " +
                         e.javaClass.simpleName
+
+                    // Mesmo em caso de erro,
+                    // mantém o botão no fundo.
+
+                    val voltarFundo =
+                        criarBotaoVoltar()
+
+                    val parametrosFundo =
+                        LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+
+                    parametrosFundo.gravity =
+                        Gravity.LEFT
+
+                    parametrosFundo.setMargins(
+                        0,
+                        24,
+                        0,
+                        20
+                    )
+
+                    layout.addView(
+                        voltarFundo,
+                        parametrosFundo
+                    )
                 }
             }
 
