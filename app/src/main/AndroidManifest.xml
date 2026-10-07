@@ -29,7 +29,8 @@
         <activity
             android:name=".F3Activity"
             android:exported="false">
-<activity
+
+        <activity
     android:name=".F3CalendarActivity"
     android:exported="false" />
 
