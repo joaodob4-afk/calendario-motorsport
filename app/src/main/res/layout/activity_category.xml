@@ -20,7 +20,7 @@
             android:textColor="#8FA6BA"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:gravity="center"
+            android:gravity="start"
             android:paddingTop="6dp"
             android:paddingBottom="18dp"
             android:clickable="true"
