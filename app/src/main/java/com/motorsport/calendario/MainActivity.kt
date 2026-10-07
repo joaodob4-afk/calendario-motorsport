@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -18,6 +19,32 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    if (categoriaAtual.isNotEmpty()) {
+
+                        categoriaAtual = ""
+
+                        mostrarMenu()
+
+                        overridePendingTransition(
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                        )
+
+                    } else {
+
+                        finish()
+                    }
+                }
+            }
+        )
+
         mostrarMenu()
     }
 
@@ -130,6 +157,8 @@ class MainActivity : AppCompatActivity() {
             }
 
         voltar.setOnClickListener {
+
+            categoriaAtual = ""
 
             mostrarMenu()
 
