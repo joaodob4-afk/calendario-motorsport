@@ -58,7 +58,7 @@
 
                 <ImageView
                     android:layout_width="match_parent"
-                    android:layout_height="80dp"
+                    android:layout_height="60dp"
                     android:src="@drawable/logo_f1"
                     android:scaleType="fitCenter"
                     android:contentDescription="Fórmula 1" />
@@ -202,7 +202,7 @@
 
                 <ImageView
                     android:layout_width="match_parent"
-                    android:layout_height="80dp"
+                    android:layout_height="110dp"
                     android:src="@drawable/logo_formulae"
                     android:scaleType="fitCenter"
                     android:contentDescription="Fórmula E" />
