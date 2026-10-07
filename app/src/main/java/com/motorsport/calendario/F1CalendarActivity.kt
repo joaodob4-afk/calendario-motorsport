@@ -8,6 +8,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONArray
 import org.json.JSONObject
@@ -21,9 +22,28 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        // Entrada: direita → esquerda
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+
+        // Botão/gesto Voltar do Android
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    finish()
+
+                    // Saída: esquerda → direita
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
+                }
+            }
         )
 
         val layout =
@@ -139,7 +159,14 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
 
                 setOnClickListener {
+
                     finish()
+
+                    // Saída: esquerda → direita
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
                 }
             }
 
@@ -338,9 +365,10 @@ class F1CalendarActivity : AppCompatActivity() {
             intent
         )
 
+        // Entrada nos detalhes: direita → esquerda
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
         )
     }
 
