@@ -95,6 +95,10 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
+        // ==========================
+        // BOTÃO VOLTAR - TOPO
+        // ==========================
+
         val voltarTopo =
             criarBotaoVoltar()
 
@@ -195,14 +199,16 @@ class F2Activity : AppCompatActivity() {
             )
         }
 
+        // ==========================
+        // BOTÃO VOLTAR - FUNDO
+        // ==========================
+
         adicionarBotaoVoltarFundo(
             conteudo
         )
 
         val scrollView =
             ScrollView(this).apply {
-
-                fillViewport = true
 
                 addView(
                     conteudo,
