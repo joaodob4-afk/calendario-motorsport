@@ -718,7 +718,3 @@ class F3Activity : AppCompatActivity() {
         super.onDestroy()
     }
 }
-
-Salve. Quando ficar verde, me diga “verde”.
-
-Depois fazemos o segundo arquivo, "F3CalendarActivity.kt", para deixar a programação completa no mesmo esquema do F2.
