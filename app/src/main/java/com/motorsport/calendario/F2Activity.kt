@@ -45,13 +45,11 @@ class F2Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
-        // Entrada: direita → esquerda
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
         )
 
-        // Botão/gesto Voltar do Android
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -60,7 +58,6 @@ class F2Activity : AppCompatActivity() {
 
                     finish()
 
-                    // Saída: esquerda → direita
                     overridePendingTransition(
                         R.anim.slide_in_left,
                         R.anim.slide_out_right
@@ -199,6 +196,9 @@ class F2Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
+                gravity =
+                    Gravity.CENTER
+
                 setPadding(
                     0,
                     24,
@@ -210,7 +210,6 @@ class F2Activity : AppCompatActivity() {
 
                     finish()
 
-                    // Saída: esquerda → direita
                     overridePendingTransition(
                         R.anim.slide_in_left,
                         R.anim.slide_out_right
@@ -244,12 +243,17 @@ class F2Activity : AppCompatActivity() {
         evento: F2Event
     ) {
 
+        val bandeira =
+            obterBandeira(
+                evento.pais
+            )
+
         val cabecalho =
             TextView(this).apply {
 
                 text =
                     "🏁 ${evento.circuito}\n\n" +
-                    "📍 ${evento.pais}\n\n" +
+                    "$bandeira ${evento.pais}\n\n" +
                     "📅 ${evento.inicio} — ${evento.fim}"
 
                 textSize = 19f
@@ -337,13 +341,18 @@ class F2Activity : AppCompatActivity() {
                 }
             }
 
+        val nomeSessao =
+            obterNomeSessao(
+                sessao.nome
+            )
+
         val card =
             TextView(this).apply {
 
                 text =
                     if (dataHora != null) {
 
-                        "${sessao.nome}\n\n" +
+                        "$nomeSessao\n\n" +
                         "📅 " +
                         dataHora.format(
                             DateTimeFormatter.ofPattern(
@@ -353,7 +362,7 @@ class F2Activity : AppCompatActivity() {
 
                     } else {
 
-                        "${sessao.nome}\n\n" +
+                        "$nomeSessao\n\n" +
                         "📅 A confirmar"
                     }
 
@@ -367,6 +376,9 @@ class F2Activity : AppCompatActivity() {
                     null,
                     Typeface.BOLD
                 )
+
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     20,
@@ -402,7 +414,11 @@ class F2Activity : AppCompatActivity() {
         if (
             dataHora != null &&
             dataHora.isAfter(
-                LocalDateTime.now()
+                LocalDateTime.now(
+                    ZoneId.of(
+                        "America/Sao_Paulo"
+                    )
+                )
             ) &&
             (
                 proximoHorario == null ||
@@ -462,6 +478,128 @@ class F2Activity : AppCompatActivity() {
                 contadorView,
                 parametrosContador
             )
+        }
+    }
+
+    private fun obterNomeSessao(
+        nomeOriginal: String
+    ): String {
+
+        val nome =
+            nomeOriginal.lowercase()
+
+        return when {
+
+            nome.contains("treino") ||
+            nome.contains("practice") -> {
+
+                "🟢  $nomeOriginal"
+            }
+
+            nome.contains("classificação") ||
+            nome.contains("qualifying") ||
+            nome.contains("qualificacao") -> {
+
+                "🔵  $nomeOriginal"
+            }
+
+            nome.contains("sprint") -> {
+
+                "🟡  $nomeOriginal"
+            }
+
+            nome.contains("corrida") ||
+            nome.contains("race") -> {
+
+                "🔴  $nomeOriginal"
+            }
+
+            else -> {
+
+                nomeOriginal
+            }
+        }
+    }
+
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
+        return when (
+            pais.lowercase()
+                .trim()
+        ) {
+
+            "austrália",
+            "australia" -> "🇦🇺"
+
+            "mônaco",
+            "monaco" -> "🇲🇨"
+
+            "reino unido",
+            "united kingdom",
+            "uk" -> "🇬🇧"
+
+            "hungria",
+            "hungría",
+            "hungary" -> "🇭🇺"
+
+            "bélgica",
+            "belgica",
+            "belgium" -> "🇧🇪"
+
+            "itália",
+            "italia",
+            "italy" -> "🇮🇹"
+
+            "áustria",
+            "austria" -> "🇦🇹"
+
+            "países baixos",
+            "paises baixos",
+            "netherlands" -> "🇳🇱"
+
+            "azerbaijão",
+            "azerbaijan" -> "🇦🇿"
+
+            "catar",
+            "qatar" -> "🇶🇦"
+
+            "emirados árabes unidos",
+            "united arab emirates",
+            "uae" -> "🇦🇪"
+
+            "bahrein",
+            "bahrain" -> "🇧🇭"
+
+            "arábia saudita",
+            "arabia saudita",
+            "saudi arabia" -> "🇸🇦"
+
+            "japão",
+            "japao",
+            "japan" -> "🇯🇵"
+
+            "espanha",
+            "spain" -> "🇪🇸"
+
+            "canadá",
+            "canada" -> "🇨🇦"
+
+            "estados unidos",
+            "united states",
+            "usa" -> "🇺🇸"
+
+            "singapura",
+            "singapore" -> "🇸🇬"
+
+            "méxico",
+            "mexico" -> "🇲🇽"
+
+            "brasil",
+            "brazil" -> "🇧🇷"
+
+            else -> "🏳️"
         }
     }
 
