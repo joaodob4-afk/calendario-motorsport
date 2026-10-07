@@ -117,18 +117,35 @@
 
             <!-- FÓRMULA 3 -->
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/btnF3"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="FÓRMULA 3"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
-                android:textStyle="bold"
+                android:layout_height="150dp"
+                android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/rounded_card"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:src="@drawable/logo_f3"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Fórmula 3" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="FÓRMULA 3"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+            </LinearLayout>
 
             <Space
                 android:layout_width="match_parent"
@@ -136,18 +153,35 @@
 
             <!-- INDYCAR -->
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/btnIndyCar"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="INDYCAR"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
-                android:textStyle="bold"
+                android:layout_height="150dp"
+                android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/rounded_card"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:src="@drawable/logo_indycar"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="IndyCar" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="INDYCAR"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+            </LinearLayout>
 
             <Space
                 android:layout_width="match_parent"
@@ -155,18 +189,35 @@
 
             <!-- FORMULA E -->
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/btnFormulaE"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="FORMULA E"
-                android:textColor="#FFFFFF"
-                android:textSize="17sp"
-                android:textStyle="bold"
+                android:layout_height="150dp"
+                android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/rounded_card"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:src="@drawable/logo_formula_e"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Fórmula E" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="FORMULA E"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
