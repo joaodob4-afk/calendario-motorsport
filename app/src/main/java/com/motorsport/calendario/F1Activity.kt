@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -48,9 +49,27 @@ class F1Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        // Animação ao entrar na tela
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
+        )
+
+        // Animação ao usar o botão/gesto voltar do Android
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    finish()
+
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
+                }
+            }
         )
 
         val selecionada =
@@ -174,7 +193,13 @@ class F1Activity : AppCompatActivity() {
                 )
 
                 setOnClickListener {
+
                     finish()
+
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
                 }
             }
 
