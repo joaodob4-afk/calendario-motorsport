@@ -120,6 +120,9 @@ class F2CalendarActivity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
+                gravity =
+                    Gravity.CENTER
+
                 setPadding(
                     0,
                     0,
@@ -131,7 +134,6 @@ class F2CalendarActivity : AppCompatActivity() {
 
                     finish()
 
-                    // Saída: esquerda → direita
                     overridePendingTransition(
                         R.anim.slide_in_left,
                         R.anim.slide_out_right
@@ -168,13 +170,18 @@ class F2CalendarActivity : AppCompatActivity() {
         evento: F2Event
     ) {
 
+        val bandeira =
+            obterBandeira(
+                evento.pais
+            )
+
         val card =
             TextView(this).apply {
 
                 text =
                     "🏁 ETAPA ${evento.etapa}\n\n" +
                     evento.circuito + "\n" +
-                    "📍 ${evento.pais}\n\n" +
+                    "$bandeira ${evento.pais}\n\n" +
                     "📅 ${evento.inicio} — ${evento.fim}"
 
                 textSize = 17f
@@ -187,6 +194,9 @@ class F2CalendarActivity : AppCompatActivity() {
                     null,
                     Typeface.BOLD
                 )
+
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     20,
@@ -228,6 +238,114 @@ class F2CalendarActivity : AppCompatActivity() {
             card,
             parametros
         )
+    }
+
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
+        return when (
+            pais
+                .lowercase()
+                .trim()
+        ) {
+
+            "austrália",
+            "australia" ->
+                "🇦🇺"
+
+            "bahrein",
+            "bahrain" ->
+                "🇧🇭"
+
+            "arábia saudita",
+            "arabia saudita",
+            "saudi arabia" ->
+                "🇸🇦"
+
+            "japão",
+            "japan" ->
+                "🇯🇵"
+
+            "china" ->
+                "🇨🇳"
+
+            "emirados árabes unidos",
+            "emirados arabes unidos",
+            "uae",
+            "united arab emirates" ->
+                "🇦🇪"
+
+            "itália",
+            "italia",
+            "italy" ->
+                "🇮🇹"
+
+            "mônaco",
+            "monaco" ->
+                "🇲🇨"
+
+            "espanha",
+            "spain" ->
+                "🇪🇸"
+
+            "canadá",
+            "canada" ->
+                "🇨🇦"
+
+            "áustria",
+            "austria" ->
+                "🇦🇹"
+
+            "reino unido",
+            "united kingdom",
+            "uk" ->
+                "🇬🇧"
+
+            "bélgica",
+            "belgica",
+            "belgium" ->
+                "🇧🇪"
+
+            "hungria",
+            "hungría",
+            "hungary" ->
+                "🇭🇺"
+
+            "países baixos",
+            "paises baixos",
+            "netherlands" ->
+                "🇳🇱"
+
+            "azerbaijão",
+            "azerbaijao",
+            "azerbaijan" ->
+                "🇦🇿"
+
+            "singapura",
+            "singapore" ->
+                "🇸🇬"
+
+            "méxico",
+            "mexico" ->
+                "🇲🇽"
+
+            "brasil",
+            "brazil" ->
+                "🇧🇷"
+
+            "catar",
+            "qatar" ->
+                "🇶🇦"
+
+            "estados unidos",
+            "usa",
+            "united states" ->
+                "🇺🇸"
+
+            else ->
+                "🌐"
+        }
     }
 
     private fun abrirEtapa(
