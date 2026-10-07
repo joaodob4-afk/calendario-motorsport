@@ -203,19 +203,12 @@ class F2Activity : AppCompatActivity() {
             ScrollView(this).apply {
 
                 isVerticalScrollBarEnabled = false
-                isHorizontalScrollBarEnabled = false
-                scrollBarSize = 0
-                isScrollbarFadingEnabled = false
-                setVerticalFadingEdgeEnabled(false)
-                setHorizontalFadingEdgeEnabled(false)
-                overScrollMode =
-                    android.view.View.OVER_SCROLL_NEVER
 
                 addView(
                     conteudo,
-                    ScrollView.LayoutParams(
-                        ScrollView.LayoutParams.MATCH_PARENT,
-                        ScrollView.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
                     )
                 )
             }
