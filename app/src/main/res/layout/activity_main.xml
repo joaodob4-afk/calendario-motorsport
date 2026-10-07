@@ -25,17 +25,23 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- TÍTULO -->
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="CALENDÁRIO\nMOTORSPORT"
                 android:textColor="#FFFFFF"
-                android:textSize="30sp"
+                android:textSize="32sp"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:letterSpacing="0.04"
-                android:paddingTop="20dp"
-                android:paddingBottom="30dp" />
+                android:letterSpacing="0.06"
+                android:shadowColor="#000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="6"
+                android:paddingTop="24dp"
+                android:paddingBottom="32dp" />
 
             <!-- FÓRMULA 1 -->
 
