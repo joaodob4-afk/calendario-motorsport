@@ -14,6 +14,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class F1CalendarActivity : AppCompatActivity() {
 
@@ -22,13 +25,11 @@ class F1CalendarActivity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
-        // Entrada: direita → esquerda
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
         )
 
-        // Botão/gesto Voltar do Android
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -37,7 +38,6 @@ class F1CalendarActivity : AppCompatActivity() {
 
                     finish()
 
-                    // Saída: esquerda → direita
                     overridePendingTransition(
                         R.anim.slide_in_left,
                         R.anim.slide_out_right
@@ -99,9 +99,7 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(
-            titulo
-        )
+        layout.addView(titulo)
 
         val carregando =
             TextView(this).apply {
@@ -126,9 +124,7 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
             }
 
-        layout.addView(
-            carregando
-        )
+        layout.addView(carregando)
 
         val voltar =
             TextView(this).apply {
@@ -151,6 +147,10 @@ class F1CalendarActivity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
+                setGravity(
+                    Gravity.CENTER
+                )
+
                 setPadding(
                     0,
                     0,
@@ -162,7 +162,6 @@ class F1CalendarActivity : AppCompatActivity() {
 
                     finish()
 
-                    // Saída: esquerda → direita
                     overridePendingTransition(
                         R.anim.slide_in_left,
                         R.anim.slide_out_right
@@ -170,18 +169,14 @@ class F1CalendarActivity : AppCompatActivity() {
                 }
             }
 
-        layout.addView(
-            voltar
-        )
+        layout.addView(voltar)
 
         val scroll =
             ScrollView(this).apply {
                 addView(layout)
             }
 
-        setContentView(
-            scroll
-        )
+        setContentView(scroll)
 
         carregarCalendario(
             layout,
@@ -278,10 +273,25 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
                 ?: ""
 
+        val bandeira =
+            obterBandeira(pais)
+
         val data =
             race.optString(
                 "date",
                 ""
+            )
+
+        val hora =
+            race.optString(
+                "time",
+                ""
+            )
+
+        val dataHoraBrasil =
+            converterParaBrasilia(
+                data,
+                hora
             )
 
         val card =
@@ -290,8 +300,8 @@ class F1CalendarActivity : AppCompatActivity() {
                 text =
                     "🏁 $nome\n\n" +
                     "📍 $circuito\n" +
-                    "$cidade • $pais\n\n" +
-                    "📅 $data"
+                    "$bandeira $cidade • $pais\n\n" +
+                    "📅 $dataHoraBrasil"
 
                 textSize = 17f
 
@@ -303,6 +313,9 @@ class F1CalendarActivity : AppCompatActivity() {
                     null,
                     Typeface.BOLD
                 )
+
+                gravity =
+                    Gravity.CENTER
 
                 setPadding(
                     20,
@@ -346,6 +359,124 @@ class F1CalendarActivity : AppCompatActivity() {
         )
     }
 
+    private fun converterParaBrasilia(
+        data: String,
+        hora: String
+    ): String {
+
+        return try {
+
+            val horarioUtc =
+                OffsetDateTime.parse(
+                    "${data}T$hora"
+                )
+
+            val brasilia =
+                ZoneId.of(
+                    "America/Sao_Paulo"
+                )
+
+            val horarioBrasil =
+                horarioUtc.atZoneSameInstant(
+                    brasilia
+                )
+
+            val formato =
+                DateTimeFormatter.ofPattern(
+                    "dd/MM/yyyy - HH:mm"
+                )
+
+            horarioBrasil.format(
+                formato
+            )
+
+        } catch (_: Exception) {
+
+            if (data.isNotEmpty()) {
+
+                try {
+
+                    val dataFormatada =
+                        java.time.LocalDate
+                            .parse(data)
+                            .format(
+                                DateTimeFormatter.ofPattern(
+                                    "dd/MM/yyyy"
+                                )
+                            )
+
+                    dataFormatada
+
+                } catch (_: Exception) {
+
+                    data
+                }
+
+            } else {
+
+                "Data não informada"
+            }
+        }
+    }
+
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
+        return when (
+            pais.lowercase()
+        ) {
+
+            "australia" -> "🇦🇺"
+
+            "japan" -> "🇯🇵"
+
+            "bahrain" -> "🇧🇭"
+
+            "saudi arabia" -> "🇸🇦"
+
+            "usa" -> "🇺🇸"
+
+            "united states" -> "🇺🇸"
+
+            "italy" -> "🇮🇹"
+
+            "monaco" -> "🇲🇨"
+
+            "spain" -> "🇪🇸"
+
+            "canada" -> "🇨🇦"
+
+            "austria" -> "🇦🇹"
+
+            "uk" -> "🇬🇧"
+
+            "united kingdom" -> "🇬🇧"
+
+            "belgium" -> "🇧🇪"
+
+            "hungary" -> "🇭🇺"
+
+            "netherlands" -> "🇳🇱"
+
+            "azerbaijan" -> "🇦🇿"
+
+            "singapore" -> "🇸🇬"
+
+            "mexico" -> "🇲🇽"
+
+            "brazil" -> "🇧🇷"
+
+            "qatar" -> "🇶🇦"
+
+            "uae" -> "🇦🇪"
+
+            "united arab emirates" -> "🇦🇪"
+
+            else -> "🏳️"
+        }
+    }
+
     private fun abrirEtapa(
         race: JSONObject
     ) {
@@ -365,7 +496,6 @@ class F1CalendarActivity : AppCompatActivity() {
             intent
         )
 
-        // Entrada nos detalhes: direita → esquerda
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
