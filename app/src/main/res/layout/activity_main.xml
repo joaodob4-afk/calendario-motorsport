@@ -25,23 +25,16 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- TÍTULO -->
+            <!-- TOPO CALENDÁRIO MOTORSPORT -->
 
-            <TextView
+            <ImageView
+                android:id="@+id/topoTelaInicial"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="CALENDÁRIO\nMOTORSPORT"
-                android:textColor="#FFFFFF"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:letterSpacing="0.06"
-                android:shadowColor="#000000"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="6"
-                android:paddingTop="24dp"
-                android:paddingBottom="32dp" />
+                android:layout_height="80dp"
+                android:layout_marginBottom="20dp"
+                android:src="@drawable/topo_telainicial"
+                android:scaleType="fitCenter"
+                android:contentDescription="Calendário Motorsport" />
 
             <!-- FÓRMULA 1 -->
 
