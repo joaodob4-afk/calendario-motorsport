@@ -124,6 +124,24 @@ class MainActivity : AppCompatActivity() {
                 )
             }
 
+            "F3" -> {
+                logo.setImageResource(
+                    R.drawable.logo_f3
+                )
+            }
+
+            "IndyCar" -> {
+                logo.setImageResource(
+                    R.drawable.logo_indycar
+                )
+            }
+
+            "Formula E" -> {
+                logo.setImageResource(
+                    R.drawable.logo_formulae
+                )
+            }
+
             else -> {
                 logo.setImageDrawable(null)
             }
