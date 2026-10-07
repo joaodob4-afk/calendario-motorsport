@@ -95,10 +95,6 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
-        // ==========================
-        // BOTÃO VOLTAR - TOPO
-        // ==========================
-
         val voltarTopo =
             criarBotaoVoltar()
 
@@ -198,9 +194,6 @@ class F2Activity : AppCompatActivity() {
                 evento
             )
         }
-
-        // O BOTÃO INFERIOR É ADICIONADO
-        // SOMENTE DEPOIS DE TODO O CONTEÚDO
 
         adicionarBotaoVoltarFundo(
             conteudo
@@ -530,14 +523,6 @@ class F2Activity : AppCompatActivity() {
     private fun adicionarBotaoVoltarFundo(
         layout: LinearLayout
     ) {
-
-        // Espaço flexível:
-        // se o conteúdo for pequeno, empurra o botão
-        // para o fundo da tela.
-        //
-        // Se o conteúdo for maior que a tela,
-        // o espaço fica praticamente zerado e
-        // o botão continua depois da última sessão.
 
         val espaco =
             Space(this)
