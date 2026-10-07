@@ -1,136 +1,370 @@
 package com.motorsport.calendario
 
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 
 class F3CalendarActivity : AppCompatActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this)
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
 
-        layout.orientation =
-            LinearLayout.VERTICAL
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
 
-        layout.setPadding(
-            20,
-            20,
-            20,
+                override fun handleOnBackPressed() {
+                    voltarParaTelaAnterior()
+                }
+            }
+        )
+
+        val layout =
+            LinearLayout(this).apply {
+
+                orientation =
+                    LinearLayout.VERTICAL
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
+                )
+            }
+
+        // ==========================
+        // VOLTAR - TOPO ESQUERDO
+        // ==========================
+
+        val voltarTopo =
+            criarBotaoVoltar()
+
+        val parametrosTopo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosTopo.gravity =
+            Gravity.LEFT
+
+        parametrosTopo.setMargins(
+            0,
+            0,
+            0,
+            10
+        )
+
+        layout.addView(
+            voltarTopo,
+            parametrosTopo
+        )
+
+        val titulo =
+            TextView(this).apply {
+
+                text =
+                    "FÓRMULA 3\n\n" +
+                    "CALENDÁRIO 2026"
+
+                textSize = 27f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                letterSpacing = 0.04f
+
+                setPadding(
+                    0,
+                    10,
+                    0,
+                    28
+                )
+            }
+
+        layout.addView(
+            titulo
+        )
+
+        for (
+            evento in F3Calendar.eventos
+        ) {
+
+            adicionarEtapa(
+                layout,
+                evento
+            )
+        }
+
+        // ==========================
+        // VOLTAR - FUNDO ESQUERDO
+        // ==========================
+
+        val voltarFundo =
+            criarBotaoVoltar()
+
+        val parametrosFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosFundo.gravity =
+            Gravity.LEFT
+
+        parametrosFundo.setMargins(
+            0,
+            24,
+            0,
             20
         )
 
-        layout.setBackgroundColor(
-            android.graphics.Color.rgb(
-                7,
-                26,
-                45
+        layout.addView(
+            voltarFundo,
+            parametrosFundo
+        )
+
+        val scroll =
+            ScrollView(this).apply {
+                addView(layout)
+            }
+
+        setContentView(
+            scroll
+        )
+    }
+
+    private fun criarBotaoVoltar(): TextView {
+
+        return TextView(this).apply {
+
+            text =
+                "‹  VOLTAR"
+
+            textSize = 15f
+
+            setTextColor(
+                Color.rgb(
+                    143,
+                    166,
+                    186
+                )
             )
-        )
 
-        val voltar = TextView(this)
-
-        voltar.text = "‹  VOLTAR"
-
-        voltar.setTextColor(
-            android.graphics.Color.rgb(
-                143,
-                166,
-                186
+            setTypeface(
+                null,
+                Typeface.BOLD
             )
-        )
 
-        voltar.textSize = 15f
+            gravity =
+                Gravity.LEFT
 
-        voltar.setPadding(
-            0,
-            10,
-            0,
-            25
-        )
+            setPadding(
+                0,
+                8,
+                0,
+                8
+            )
 
-        voltar.setOnClickListener {
-            finish()
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+                voltarParaTelaAnterior()
+            }
         }
+    }
 
-        layout.addView(voltar)
+    private fun voltarParaTelaAnterior() {
 
-        val titulo = TextView(this)
+        finish()
 
-        titulo.text = "CALENDÁRIO FÓRMULA 3"
-
-        titulo.setTextColor(
-            android.graphics.Color.WHITE
+        overridePendingTransition(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
         )
+    }
 
-        titulo.textSize = 26f
+    private fun adicionarEtapa(
+        layout: LinearLayout,
+        evento: F3Event
+    ) {
 
-        titulo.setTypeface(
-            null,
-            android.graphics.Typeface.BOLD
-        )
-
-        titulo.gravity =
-            android.view.Gravity.CENTER
-
-        titulo.setPadding(
-            0,
-            0,
-            0,
-            25
-        )
-
-        layout.addView(titulo)
-
-        for (evento in F3Calendar.eventos) {
-
-            val card = TextView(this)
-
-            card.text =
-                "ETAPA ${evento.etapa}\n\n" +
-                "${evento.circuito}\n" +
-                "${evento.pais}\n\n" +
-                "📅 ${evento.inicio} até ${evento.fim}\n\n" +
-                "🏁 Sessões: ${evento.sessoes.size}"
-
-            card.setTextColor(
-                android.graphics.Color.WHITE
+        val bandeira =
+            obterBandeira(
+                evento.pais
             )
 
-            card.textSize = 16f
+        val card =
+            TextView(this).apply {
 
-            card.setPadding(
-                20,
-                20,
-                20,
-                20
-            )
+                text =
+                    "🏁 ETAPA ${evento.etapa}\n\n" +
+                    evento.circuito + "\n" +
+                    "$bandeira ${evento.pais}\n\n" +
+                    "📅 ${evento.inicio} — ${evento.fim}"
 
-            card.setBackgroundResource(
-                R.drawable.rounded_card
-            )
+                textSize = 17f
 
-            val parametros =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+                setTextColor(
+                    Color.WHITE
                 )
 
-            parametros.setMargins(
-                0,
-                0,
-                0,
-                16
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
+                    )
+
+                isClickable = true
+                isFocusable = true
+
+                setOnClickListener {
+
+                    abrirEtapa(
+                        evento
+                    )
+                }
+            }
+
+        val parametros =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-            layout.addView(
-                card,
-                parametros
+        parametros.setMargins(
+            0,
+            6,
+            0,
+            6
+        )
+
+        layout.addView(
+            card,
+            parametros
+        )
+    }
+
+    private fun abrirEtapa(
+        evento: F3Event
+    ) {
+
+        val intent =
+            Intent(
+                this,
+                F3Activity::class.java
             )
+
+        intent.putExtra(
+            "ETAPA",
+            evento.etapa
+        )
+
+        startActivity(
+            intent
+        )
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
+
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
+        return when (
+            pais
+                .lowercase()
+                .trim()
+        ) {
+
+            "austrália",
+            "australia" ->
+                "🇦🇺"
+
+            "mônaco",
+            "monaco" ->
+                "🇲🇨"
+
+            "espanha",
+            "spain" ->
+                "🇪🇸"
+
+            "áustria",
+            "austria" ->
+                "🇦🇹"
+
+            "reino unido",
+            "united kingdom",
+            "uk" ->
+                "🇬🇧"
+
+            "bélgica",
+            "belgica",
+            "belgium" ->
+                "🇧🇪"
+
+            "hungria",
+            "hungría",
+            "hungary" ->
+                "🇭🇺"
+
+            "itália",
+            "italia",
+            "italy" ->
+                "🇮🇹"
+
+            else ->
+                "🌐"
         }
-
-        setContentView(layout)
     }
 }
