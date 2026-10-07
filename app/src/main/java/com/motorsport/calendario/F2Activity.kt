@@ -202,6 +202,8 @@ class F2Activity : AppCompatActivity() {
         val scrollView =
             ScrollView(this).apply {
 
+                isVerticalScrollBarEnabled = false
+
                 addView(
                     conteudo,
                     LinearLayout.LayoutParams(
