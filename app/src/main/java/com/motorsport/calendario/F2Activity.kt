@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import java.time.Duration
 import java.time.LocalDateTime
@@ -44,9 +45,28 @@ class F2Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        // Entrada: direita → esquerda
         overridePendingTransition(
-            R.anim.fade_in,
-            0
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+
+        // Botão/gesto Voltar do Android
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+
+                override fun handleOnBackPressed() {
+
+                    finish()
+
+                    // Saída: esquerda → direita
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
+                }
+            }
         )
 
         val etapa =
@@ -187,7 +207,14 @@ class F2Activity : AppCompatActivity() {
                 )
 
                 setOnClickListener {
+
                     finish()
+
+                    // Saída: esquerda → direita
+                    overridePendingTransition(
+                        R.anim.slide_in_left,
+                        R.anim.slide_out_right
+                    )
                 }
             }
 
