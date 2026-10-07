@@ -9,7 +9,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.Space
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -156,9 +155,7 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(
-            titulo
-        )
+        conteudo.addView(titulo)
 
         val carregando =
             TextView(this).apply {
@@ -183,31 +180,47 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
+        conteudo.addView(carregando)
+
+        // ==========================
+        // BOTÃO VOLTAR - FUNDO
+        // ==========================
+
+        val voltarFundo =
+            criarBotaoVoltar()
+
+        val parametrosVoltarFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltarFundo.gravity =
+            Gravity.LEFT
+
+        parametrosVoltarFundo.setMargins(
+            0,
+            20,
+            0,
+            10
+        )
+
         conteudo.addView(
-            carregando
+            voltarFundo,
+            parametrosVoltarFundo
         )
 
         val scrollView =
             ScrollView(this).apply {
-
-                fillViewport = true
-
-                addView(
-                    conteudo,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT
-                    )
-                )
+                addView(conteudo)
             }
 
-        setContentView(
-            scrollView
-        )
+        setContentView(scrollView)
 
         carregarEvento(
             conteudo,
-            carregando
+            carregando,
+            voltarFundo
         )
     }
 
@@ -265,7 +278,8 @@ class F1Activity : AppCompatActivity() {
 
     private fun carregarEvento(
         layout: LinearLayout,
-        carregando: TextView
+        carregando: TextView,
+        voltarFundo: TextView
     ) {
 
         Thread {
@@ -332,40 +346,8 @@ class F1Activity : AppCompatActivity() {
 
                         runOnUiThread {
 
-                            layout.removeView(
-                                carregando
-                            )
-
-                            val mensagem =
-                                TextView(this).apply {
-
-                                    text =
-                                        "Nenhum evento futuro encontrado."
-
-                                    textSize = 17f
-
-                                    setTextColor(
-                                        Color.LTGRAY
-                                    )
-
-                                    gravity =
-                                        Gravity.CENTER
-
-                                    setPadding(
-                                        0,
-                                        30,
-                                        0,
-                                        30
-                                    )
-                                }
-
-                            layout.addView(
-                                mensagem
-                            )
-
-                            adicionarBotaoVoltarFundo(
-                                layout
-                            )
+                            carregando.text =
+                                "Nenhum evento futuro encontrado."
                         }
 
                         return@Thread
@@ -389,55 +371,16 @@ class F1Activity : AppCompatActivity() {
                     handler.post(
                         atualizarContador
                     )
-
-                    // BOTÃO VOLTAR É ADICIONADO
-                    // SOMENTE DEPOIS DE TODAS AS SESSÕES
-
-                    adicionarBotaoVoltarFundo(
-                        layout
-                    )
                 }
 
             } catch (e: Exception) {
 
                 runOnUiThread {
 
-                    layout.removeView(
-                        carregando
-                    )
-
-                    val erro =
-                        TextView(this).apply {
-
-                            text =
-                                "Erro ao carregar evento.\n\n" +
-                                "Erro: " +
-                                e.javaClass.simpleName
-
-                            textSize = 17f
-
-                            setTextColor(
-                                Color.LTGRAY
-                            )
-
-                            gravity =
-                                Gravity.CENTER
-
-                            setPadding(
-                                0,
-                                30,
-                                0,
-                                30
-                            )
-                        }
-
-                    layout.addView(
-                        erro
-                    )
-
-                    adicionarBotaoVoltarFundo(
-                        layout
-                    )
+                    carregando.text =
+                        "Erro ao carregar evento.\n\n" +
+                        "Erro: " +
+                        e.javaClass.simpleName
                 }
             }
 
@@ -802,62 +745,6 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
-    // =========================================================
-    // BOTÃO INFERIOR
-    // =========================================================
-
-    private fun adicionarBotaoVoltarFundo(
-        layout: LinearLayout
-    ) {
-
-        // Espaço flexível.
-        // Se houver pouco conteúdo, empurra o botão
-        // para o fundo da tela.
-        //
-        // Se houver muito conteúdo, o espaço fica com
-        // tamanho zero e o botão fica depois da última sessão.
-
-        val espaco =
-            Space(this)
-
-        val parametrosEspaco =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0
-            )
-
-        parametrosEspaco.weight = 1f
-
-        layout.addView(
-            espaco,
-            parametrosEspaco
-        )
-
-        val voltarFundo =
-            criarBotaoVoltar()
-
-        val parametrosBotao =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosBotao.gravity =
-            Gravity.LEFT
-
-        parametrosBotao.setMargins(
-            0,
-            20,
-            0,
-            10
-        )
-
-        layout.addView(
-            voltarFundo,
-            parametrosBotao
-        )
-    }
-
     private fun atualizarContadorTela() {
 
         val view =
@@ -1047,14 +934,3 @@ class F1Activity : AppCompatActivity() {
             .getJSONArray("Races")
     }
 }
-
-Agora não mexa em mais nenhum arquivo. Faça o build.
-
-O comportamento esperado é:
-
-- "‹ VOLTAR" no canto superior esquerdo.
-- Conteúdo da etapa.
-- Todas as sessões.
-- "‹ VOLTAR" no canto inferior esquerdo, depois da última sessão.
-- Se o conteúdo não preencher a tela, o botão desce até o fundo da tela.
-- Se o conteúdo ultrapassar a tela, o botão fica no final do conteúdo.
