@@ -90,10 +90,6 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        // ==========================
-        // BOTÃO VOLTAR - TOPO
-        // ==========================
-
         val voltarTopo =
             criarBotaoVoltar()
 
@@ -104,7 +100,7 @@ class F1Activity : AppCompatActivity() {
             )
 
         parametrosVoltarTopo.gravity =
-            Gravity.LEFT
+            Gravity.START
 
         parametrosVoltarTopo.setMargins(
             0,
@@ -217,7 +213,7 @@ class F1Activity : AppCompatActivity() {
             )
 
             gravity =
-                Gravity.LEFT
+                Gravity.START
 
             setPadding(
                 0,
@@ -344,9 +340,6 @@ class F1Activity : AppCompatActivity() {
                     handler.post(
                         atualizarContador
                     )
-
-                    // BOTÃO VOLTAR FICA DEPOIS
-                    // DA ÚLTIMA SESSÃO
 
                     adicionarBotaoVoltarFundo(
                         layout
@@ -725,10 +718,6 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
-    // ==========================
-    // BOTÃO VOLTAR - FUNDO
-    // ==========================
-
     private fun adicionarBotaoVoltarFundo(
         layout: LinearLayout
     ) {
@@ -743,7 +732,7 @@ class F1Activity : AppCompatActivity() {
             )
 
         parametrosVoltarFundo.gravity =
-            Gravity.LEFT
+            Gravity.START
 
         parametrosVoltarFundo.setMargins(
             0,
