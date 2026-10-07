@@ -2,6 +2,7 @@ package com.motorsport.calendario
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
@@ -93,6 +94,33 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(
                 R.id.categoryTitle
             )
+
+        val logo =
+            findViewById<ImageView>(
+                R.id.categoryLogo
+            )
+
+        when (categoria) {
+
+            "F1" -> {
+
+                logo.setImageResource(
+                    R.drawable.logo_f1
+                )
+            }
+
+            "F2" -> {
+
+                logo.setImageResource(
+                    R.drawable.logo_f2
+                )
+            }
+
+            else -> {
+
+                logo.setImageDrawable(null)
+            }
+        }
 
         val evento =
             findViewById<TextView>(
