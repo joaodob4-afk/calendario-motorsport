@@ -95,10 +95,6 @@ class F2Activity : AppCompatActivity() {
                 )
             }
 
-        // ==========================
-        // BOTÃO VOLTAR - TOPO
-        // ==========================
-
         val voltarTopo =
             criarBotaoVoltar()
 
@@ -109,7 +105,7 @@ class F2Activity : AppCompatActivity() {
             )
 
         parametrosVoltarTopo.gravity =
-            Gravity.LEFT
+            Gravity.START
 
         parametrosVoltarTopo.setMargins(
             0,
@@ -199,10 +195,6 @@ class F2Activity : AppCompatActivity() {
             )
         }
 
-        // ==========================
-        // BOTÃO VOLTAR - FUNDO
-        // ==========================
-
         adicionarBotaoVoltarFundo(
             conteudo
         )
@@ -254,7 +246,7 @@ class F2Activity : AppCompatActivity() {
             )
 
             gravity =
-                Gravity.LEFT
+                Gravity.START
 
             setPadding(
                 0,
@@ -557,7 +549,7 @@ class F2Activity : AppCompatActivity() {
             )
 
         parametrosVoltarFundo.gravity =
-            Gravity.LEFT
+            Gravity.START
 
         parametrosVoltarFundo.setMargins(
             0,
