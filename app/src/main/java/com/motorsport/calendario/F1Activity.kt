@@ -190,10 +190,12 @@ class F1Activity : AppCompatActivity() {
                     android.view.View.OVER_SCROLL_NEVER
 
                 addView(
-                    conteudo,
-                    ScrollView.LayoutParams(
-                        ScrollView.LayoutParams.MATCH_PARENT,
-                        ScrollView.LayoutParams.WRAP_CONTENT
+    conteudo,
+    ScrollView.LayoutParams(
+        ScrollView.LayoutParams.MATCH_PARENT,
+        ScrollView.LayoutParams.WRAP_CONTENT
+    )
+)
                     )
                 )
             }
