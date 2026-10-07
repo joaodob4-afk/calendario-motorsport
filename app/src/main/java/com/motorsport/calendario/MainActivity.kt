@@ -245,6 +245,22 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
+                "F3" -> {
+
+                    val intent =
+                        Intent(
+                            this,
+                            F3CalendarActivity::class.java
+                        )
+
+                    startActivity(intent)
+
+                    overridePendingTransition(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                    )
+                }
+
                 else -> {
 
                     evento.text =
