@@ -349,7 +349,7 @@ class MainActivity : AppCompatActivity() {
                         "📅 $dataCorrida\n\n" +
                         textoQualificacao +
                         "\n\n" +
-                        "👆 TOQUE PARA VER OS DETALHES"
+                        "TOQUE PARA VER OS DETALHES"
                 }
 
             } catch (e: Exception) {
@@ -421,7 +421,7 @@ class MainActivity : AppCompatActivity() {
             "${proximo.circuito}\n" +
             "🇺🇳 ${proximo.pais}\n\n" +
             "📅 ${proximo.inicio} até ${proximo.fim}\n\n" +
-            "👆 TOQUE PARA VER OS DETALHES"
+            "TOQUE PARA VER OS DETALHES"
     }
 
     private fun abrirEventoF2() {
