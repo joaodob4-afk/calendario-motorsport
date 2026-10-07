@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
-import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -182,34 +181,6 @@ class F1Activity : AppCompatActivity() {
 
         conteudo.addView(carregando)
 
-        // ==========================
-        // BOTÃO VOLTAR - FUNDO
-        // ==========================
-
-        val voltarFundo =
-            criarBotaoVoltar()
-
-        val parametrosVoltarFundo =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltarFundo.gravity =
-            Gravity.LEFT
-
-        parametrosVoltarFundo.setMargins(
-            0,
-            20,
-            0,
-            10
-        )
-
-        conteudo.addView(
-            voltarFundo,
-            parametrosVoltarFundo
-        )
-
         val scrollView =
             ScrollView(this).apply {
                 addView(conteudo)
@@ -219,8 +190,7 @@ class F1Activity : AppCompatActivity() {
 
         carregarEvento(
             conteudo,
-            carregando,
-            voltarFundo
+            carregando
         )
     }
 
@@ -278,8 +248,7 @@ class F1Activity : AppCompatActivity() {
 
     private fun carregarEvento(
         layout: LinearLayout,
-        carregando: TextView,
-        voltarFundo: TextView
+        carregando: TextView
     ) {
 
         Thread {
@@ -348,6 +317,10 @@ class F1Activity : AppCompatActivity() {
 
                             carregando.text =
                                 "Nenhum evento futuro encontrado."
+
+                            adicionarBotaoVoltarFundo(
+                                layout
+                            )
                         }
 
                         return@Thread
@@ -370,6 +343,13 @@ class F1Activity : AppCompatActivity() {
 
                     handler.post(
                         atualizarContador
+                    )
+
+                    // BOTÃO VOLTAR FICA DEPOIS
+                    // DA ÚLTIMA SESSÃO
+
+                    adicionarBotaoVoltarFundo(
+                        layout
                     )
                 }
 
@@ -743,6 +723,39 @@ class F1Activity : AppCompatActivity() {
 
         } catch (_: Exception) {
         }
+    }
+
+    // ==========================
+    // BOTÃO VOLTAR - FUNDO
+    // ==========================
+
+    private fun adicionarBotaoVoltarFundo(
+        layout: LinearLayout
+    ) {
+
+        val voltarFundo =
+            criarBotaoVoltar()
+
+        val parametrosVoltarFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltarFundo.gravity =
+            Gravity.LEFT
+
+        parametrosVoltarFundo.setMargins(
+            0,
+            20,
+            0,
+            10
+        )
+
+        layout.addView(
+            voltarFundo,
+            parametrosVoltarFundo
+        )
     }
 
     private fun atualizarContadorTela() {
