@@ -179,6 +179,9 @@ class F1Activity : AppCompatActivity() {
 
         val scrollView =
             ScrollView(this).apply {
+
+                isVerticalScrollBarEnabled = false
+
                 addView(conteudo)
             }
 
