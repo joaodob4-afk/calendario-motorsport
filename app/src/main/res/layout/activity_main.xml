@@ -203,7 +203,7 @@
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="80dp"
-                    android:src="@drawable/logo_formula_e"
+                    android:src="@drawable/logo_formulae"
                     android:scaleType="fitCenter"
                     android:contentDescription="Fórmula E" />
 
