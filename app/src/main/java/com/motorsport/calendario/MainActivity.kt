@@ -18,12 +18,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         mostrarMenu()
     }
 
     private fun animarEntrada() {
-
         val tela =
             findViewById<android.view.View>(
                 android.R.id.content
@@ -40,53 +38,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarMenu() {
-
-        setContentView(
-            R.layout.activity_main
-        )
+        setContentView(R.layout.activity_main)
 
         animarEntrada()
 
-        findViewById<TextView>(
-            R.id.btnF1
-        ).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnF1).setOnClickListener {
             abrirCategoria("F1")
         }
 
-        findViewById<TextView>(
-            R.id.btnF2
-        ).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnF2).setOnClickListener {
             abrirCategoria("F2")
         }
 
-        findViewById<TextView>(
-            R.id.btnF3
-        ).setOnClickListener {
+        findViewById<TextView>(R.id.btnF3).setOnClickListener {
             abrirCategoria("F3")
         }
 
-        findViewById<TextView>(
-            R.id.btnIndyCar
-        ).setOnClickListener {
+        findViewById<TextView>(R.id.btnIndyCar).setOnClickListener {
             abrirCategoria("IndyCar")
         }
 
-        findViewById<TextView>(
-            R.id.btnFormulaE
-        ).setOnClickListener {
+        findViewById<TextView>(R.id.btnFormulaE).setOnClickListener {
             abrirCategoria("Formula E")
         }
     }
 
-    private fun abrirCategoria(
-        categoria: String
-    ) {
+    private fun abrirCategoria(categoria: String) {
 
         categoriaAtual = categoria
 
-        setContentView(
-            R.layout.activity_category
-        )
+        setContentView(R.layout.activity_category)
 
         animarEntrada()
 
@@ -103,21 +84,18 @@ class MainActivity : AppCompatActivity() {
         when (categoria) {
 
             "F1" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_f1
                 )
             }
 
             "F2" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_f2
                 )
             }
 
             else -> {
-
                 logo.setImageDrawable(null)
             }
         }
@@ -140,20 +118,15 @@ class MainActivity : AppCompatActivity() {
         titulo.text =
             when (categoria) {
 
-                "F1" ->
-                    "FÓRMULA 1"
+                "F1" -> "FÓRMULA 1"
 
-                "F2" ->
-                    "FÓRMULA 2"
+                "F2" -> "FÓRMULA 2"
 
-                "F3" ->
-                    "FÓRMULA 3"
+                "F3" -> "FÓRMULA 3"
 
-                "IndyCar" ->
-                    "INDYCAR"
+                "IndyCar" -> "INDYCAR"
 
-                else ->
-                    "FÓRMULA E"
+                else -> "FÓRMULA E"
             }
 
         voltar.setOnClickListener {
@@ -226,11 +199,9 @@ class MainActivity : AppCompatActivity() {
 
         when (categoria) {
 
-            "F1" ->
-                carregarF1(evento)
+            "F1" -> carregarF1(evento)
 
-            "F2" ->
-                carregarF2(evento)
+            "F2" -> carregarF2(evento)
 
             else -> {
 
@@ -245,9 +216,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun carregarF1(
-        evento: TextView
-    ) {
+    private fun carregarF1(evento: TextView) {
 
         Thread {
 
@@ -259,23 +228,19 @@ class MainActivity : AppCompatActivity() {
                 val agora =
                     java.time.Instant.now()
 
-                var proximaCorrida:
-                        JSONObject? = null
+                var proximaCorrida: JSONObject? =
+                    null
 
-                var proximaData:
-                        OffsetDateTime? = null
+                var proximaData: OffsetDateTime? =
+                    null
 
-                for (
-                    i in 0 until races.length()
-                ) {
+                for (i in 0 until races.length()) {
 
                     val race =
                         races.getJSONObject(i)
 
                     val data =
-                        race.getString(
-                            "date"
-                        )
+                        race.getString("date")
 
                     val hora =
                         race.optString(
@@ -293,19 +258,14 @@ class MainActivity : AppCompatActivity() {
                             .isAfter(agora)
                     ) {
 
-                        proximaCorrida =
-                            race
-
-                        proximaData =
-                            horario
+                        proximaCorrida = race
+                        proximaData = horario
 
                         break
                     }
                 }
 
-                if (
-                    proximaCorrida == null
-                ) {
+                if (proximaCorrida == null) {
 
                     runOnUiThread {
 
@@ -327,16 +287,13 @@ class MainActivity : AppCompatActivity() {
                     )
 
                 val horarioBrasilia =
-                    proximaData!!
-                        .atZoneSameInstant(
-                            brasilia
-                        )
+                    proximaData!!.atZoneSameInstant(
+                        brasilia
+                    )
 
                 val nome =
                     proximaCorrida!!
-                        .getString(
-                            "raceName"
-                        )
+                        .getString("raceName")
 
                 val dataCorrida =
                     horarioBrasilia.format(
@@ -352,9 +309,7 @@ class MainActivity : AppCompatActivity() {
                 var textoQualificacao =
                     ""
 
-                if (
-                    qualificacao != null
-                ) {
+                if (qualificacao != null) {
 
                     val dataQualificacao =
                         qualificacao.getString(
@@ -380,8 +335,9 @@ class MainActivity : AppCompatActivity() {
                     textoQualificacao =
                         "🔵 Classificação\n" +
                         "📅 ${
-                            horarioBrasiliaQualificacao
-                                .format(formato)
+                            horarioBrasiliaQualificacao.format(
+                                formato
+                            )
                         }"
                 }
 
@@ -426,19 +382,15 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun carregarF2(
-        evento: TextView
-    ) {
+    private fun carregarF2(evento: TextView) {
 
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo:
-                F2Event? = null
+        var proximo: F2Event? =
+            null
 
-        for (
-            item in F2Calendar.eventos
-        ) {
+        for (item in F2Calendar.eventos) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -448,12 +400,9 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-            if (
-                !inicio.isBefore(hoje)
-            ) {
+            if (!inicio.isBefore(hoje)) {
 
-                proximo =
-                    item
+                proximo = item
 
                 break
             }
@@ -480,12 +429,10 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo:
-                F2Event? = null
+        var proximo: F2Event? =
+            null
 
-        for (
-            item in F2Calendar.eventos
-        ) {
+        for (item in F2Calendar.eventos) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -495,20 +442,15 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-            if (
-                !inicio.isBefore(hoje)
-            ) {
+            if (!inicio.isBefore(hoje)) {
 
-                proximo =
-                    item
+                proximo = item
 
                 break
             }
         }
 
-        if (proximo == null) {
-            return
-        }
+        if (proximo == null) return
 
         val intent =
             Intent(
@@ -529,8 +471,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun buscarCorridasF1():
-        org.json.JSONArray {
+    private fun buscarCorridasF1(): org.json.JSONArray {
 
         val url =
             URL(
