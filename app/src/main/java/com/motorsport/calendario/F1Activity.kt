@@ -13,6 +13,8 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -21,13 +23,31 @@ import java.time.format.DateTimeFormatter
 
 class F1Activity : AppCompatActivity() {
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var proximoHorario: ZonedDateTime? = null
+    private val handler =
+        Handler(Looper.getMainLooper())
 
-    private val formatoData =
-        DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm")
+    private var contadorView: TextView? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private var proximoHorario:
+            ZonedDateTime? = null
+
+    private val atualizarContador =
+        object : Runnable {
+
+            override fun run() {
+
+                atualizarContadorTela()
+
+                handler.postDelayed(
+                    this,
+                    60_000
+                )
+            }
+        }
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         overridePendingTransition(
@@ -38,98 +58,188 @@ class F1Activity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
+
                 override fun handleOnBackPressed() {
+
                     voltarParaTelaAnterior()
                 }
             }
         )
 
-        val layoutPrincipal = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.rgb(7, 26, 45))
-            setPadding(20, 20, 20, 20)
-        }
+        val selecionada =
+            intent.getStringExtra("RACE") != null
 
-        layoutPrincipal.addView(criarBotaoVoltar())
+        val conteudo =
+            LinearLayout(this).apply {
 
-        val titulo = TextView(this).apply {
-            text = "FÓRMULA 1"
-            setTextColor(Color.WHITE)
-            textSize = 30f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setPadding(0, 10, 0, 28)
-        }
+                orientation =
+                    LinearLayout.VERTICAL
 
-        layoutPrincipal.addView(
-            titulo,
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                setBackgroundColor(
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
+                )
+            }
+
+        val voltarTopo =
+            criarBotaoVoltar()
+
+        val parametrosVoltarTopo =
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+
+        parametrosVoltarTopo.gravity =
+            Gravity.START
+
+        parametrosVoltarTopo.setMargins(
+            0,
+            0,
+            0,
+            10
         )
 
-        val scrollView = ScrollView(this).apply {
-            isVerticalScrollBarEnabled = false
-            isHorizontalScrollBarEnabled = false
-            overScrollMode = View.OVER_SCROLL_NEVER
-        }
-
-        val conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-
-        scrollView.addView(
-            conteudo,
-            ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.WRAP_CONTENT
-            )
+        conteudo.addView(
+            voltarTopo,
+            parametrosVoltarTopo
         )
 
-        layoutPrincipal.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
+        val titulo =
+            TextView(this).apply {
 
-        setContentView(layoutPrincipal)
+                text =
+                    if (selecionada) {
+                        "FÓRMULA 1\n\n" +
+                        "PROGRAMAÇÃO DA ETAPA"
+                    } else {
+                        "FÓRMULA 1\n\n" +
+                        "PRÓXIMO EVENTO"
+                    }
 
-        val carregando = TextView(this).apply {
-            text = "Carregando..."
-            setTextColor(Color.WHITE)
-            textSize = 17f
-            gravity = Gravity.CENTER
-            setPadding(0, 30, 0, 30)
-        }
+                textSize = 27f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                letterSpacing = 0.04f
+
+                setPadding(
+                    0,
+                    10,
+                    0,
+                    28
+                )
+            }
+
+        conteudo.addView(titulo)
+
+        val carregando =
+            TextView(this).apply {
+
+                text =
+                    "Carregando programação..."
+
+                textSize = 17f
+
+                setTextColor(
+                    Color.LTGRAY
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    0,
+                    20,
+                    0,
+                    20
+                )
+            }
 
         conteudo.addView(carregando)
 
-        carregarEvento(conteudo, carregando)
+        val scrollView =
+            ScrollView(this).apply {
+
+                isVerticalScrollBarEnabled = false
+                isHorizontalScrollBarEnabled = false
+                overScrollMode = View.OVER_SCROLL_NEVER
+
+                addView(conteudo)
+            }
+
+        setContentView(scrollView)
+
+        carregarEvento(
+            conteudo,
+            carregando
+        )
     }
 
     private fun criarBotaoVoltar(): TextView {
+
         return TextView(this).apply {
-            text = "‹  VOLTAR"
-            setTextColor(Color.rgb(143, 166, 186))
+
+            text =
+                "‹  VOLTAR"
+
             textSize = 15f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.START
-            setPadding(0, 0, 0, 18)
+
+            setTextColor(
+                Color.rgb(
+                    143,
+                    166,
+                    186
+                )
+            )
+
+            setTypeface(
+                null,
+                Typeface.BOLD
+            )
+
+            gravity =
+                Gravity.START
+
+            setPadding(
+                0,
+                8,
+                0,
+                8
+            )
 
             isClickable = true
             isFocusable = true
 
             setOnClickListener {
+
                 voltarParaTelaAnterior()
             }
         }
     }
 
     private fun voltarParaTelaAnterior() {
+
         finish()
 
         overridePendingTransition(
@@ -142,314 +252,656 @@ class F1Activity : AppCompatActivity() {
         layout: LinearLayout,
         carregando: TextView
     ) {
-        try {
-            val raceJson = intent.getStringExtra("RACE")
 
-            if (!raceJson.isNullOrEmpty()) {
-                val evento = JSONObject(raceJson)
+        Thread {
 
-                layout.removeView(carregando)
-                mostrarEvento(layout, evento)
+            try {
 
-                atualizarContadorTela()
-                return
-            }
+                val raceExtra =
+                    intent.getStringExtra("RACE")
 
-            Thread {
-                try {
-                    val url =
-                        java.net.URL("https://api.jolpi.ca/ergast/f1/current/races/")
+                val evento: JSONObject
 
-                    val conexao =
-                        url.openConnection() as java.net.HttpURLConnection
+                if (raceExtra != null) {
 
-                    conexao.requestMethod = "GET"
-                    conexao.connectTimeout = 10000
-                    conexao.readTimeout = 10000
+                    evento =
+                        JSONObject(raceExtra)
 
-                    val resposta =
-                        conexao.inputStream.bufferedReader().use {
-                            it.readText()
-                        }
+                } else {
 
-                    conexao.disconnect()
+                    val races =
+                        buscarCorridasF1()
 
-                    val raiz = JSONObject(resposta)
-                    val races = raiz
-                        .getJSONObject("MRData")
-                        .getJSONObject("RaceTable")
-                        .getJSONArray("Races")
+                    val agora =
+                        java.time.Instant.now()
 
-                    val agora = ZonedDateTime.now(ZoneId.of("America/Sao_Paulo"))
+                    var proximo:
+                            JSONObject? = null
 
-                    var proximaCorrida: JSONObject? = null
-                    var horarioMaisProximo: ZonedDateTime? = null
+                    for (
+                        i in 0 until races.length()
+                    ) {
 
-                    for (i in 0 until races.length()) {
-                        val race = races.getJSONObject(i)
-                        val date = race.getString("date")
-                        val time = race.optString("time", "00:00:00Z")
+                        val race =
+                            races.getJSONObject(i)
+
+                        val data =
+                            race.getString(
+                                "date"
+                            )
+
+                        val hora =
+                            race.optString(
+                                "time",
+                                "00:00:00Z"
+                            )
 
                         val horario =
-                            OffsetDateTime.parse("${date}T${time}")
-                                .atZoneSameInstant(
-                                    ZoneId.of("America/Sao_Paulo")
-                                )
+                            OffsetDateTime.parse(
+                                "${data}T${hora}"
+                            )
 
-                        if (horario.isAfter(agora)) {
-                            proximaCorrida = race
-                            horarioMaisProximo = horario
+                        if (
+                            horario.toInstant()
+                                .isAfter(agora)
+                        ) {
+
+                            proximo =
+                                race
+
                             break
                         }
                     }
 
-                    runOnUiThread {
-                        if (proximaCorrida != null) {
-                            proximoHorario = horarioMaisProximo
+                    if (proximo == null) {
 
-                            layout.removeView(carregando)
-                            mostrarEvento(layout, proximaCorrida!!)
+                        runOnUiThread {
 
-                            atualizarContadorTela()
-                        } else {
                             carregando.text =
-                                "Nenhuma corrida futura encontrada."
+                                "Nenhum evento futuro encontrado."
                         }
+
+                        return@Thread
                     }
 
-                } catch (e: Exception) {
-                    runOnUiThread {
-                        carregando.text =
-                            "Não foi possível carregar o evento."
-                    }
+                    evento =
+                        proximo
                 }
-            }.start()
 
-        } catch (e: Exception) {
-            carregando.text =
-                "Não foi possível carregar o evento."
-        }
+                runOnUiThread {
+
+                    layout.removeView(
+                        carregando
+                    )
+
+                    mostrarEvento(
+                        layout,
+                        evento
+                    )
+
+                    handler.post(
+                        atualizarContador
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                runOnUiThread {
+
+                    carregando.text =
+                        "Erro ao carregar evento.\n\n" +
+                        "Erro: " +
+                        e.javaClass.simpleName
+                }
+            }
+
+        }.start()
     }
 
     private fun mostrarEvento(
         layout: LinearLayout,
-        evento: JSONObject
+        race: JSONObject
     ) {
+
+        val brasilia =
+            ZoneId.of(
+                "America/Sao_Paulo"
+            )
+
+        val formato =
+            DateTimeFormatter.ofPattern(
+                "dd/MM/yyyy - HH:mm"
+            )
+
         val nome =
-            evento.optString("raceName", "Grande Prêmio")
+            race.getString(
+                "raceName"
+            )
 
         val circuito =
-            evento.optJSONObject("Circuit")
-                ?.optString("circuitName", "")
-                ?: ""
+            race
+                .optJSONObject("Circuit")
+                ?.optString(
+                    "circuitName",
+                    "Circuito não informado"
+                )
+                ?: "Circuito não informado"
 
         val localizacao =
-            evento.optJSONObject("Circuit")
+            race
+                .optJSONObject("Circuit")
                 ?.optJSONObject("Location")
 
+        val cidade =
+            localizacao
+                ?.optString(
+                    "local",
+                    ""
+                )
+                ?: ""
+
         val pais =
-            localizacao?.optString("country", "") ?: ""
+            localizacao
+                ?.optString(
+                    "country",
+                    ""
+                )
+                ?: ""
 
-        val bandeira = obterBandeira(pais)
+        val bandeira =
+            obterBandeira(pais)
 
-        val cabecalho = TextView(this).apply {
-            text =
-                "🏁 $nome\n\n" +
-                "📍 $circuito\n" +
-                "$bandeira $pais"
+        val cabecalho =
+            TextView(this).apply {
 
-            setTextColor(Color.WHITE)
-            textSize = 18f
-            typeface = Typeface.DEFAULT_BOLD
-            gravity = Gravity.CENTER
-            setPadding(20, 22, 20, 22)
-            setBackgroundResource(R.drawable.rounded_card)
-        }
+                text =
+                    "🏁 $nome\n\n" +
+                    circuito + "\n" +
+                    "$bandeira $cidade • $pais"
 
-        layout.addView(
-            cabecalho,
+                textSize = 20f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    20,
+                    22,
+                    20,
+                    26
+                )
+
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
+                    )
+            }
+
+        val parametrosCabecalho =
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = 16
-            }
+            )
+
+        parametrosCabecalho.setMargins(
+            0,
+            0,
+            0,
+            20
+        )
+
+        layout.addView(
+            cabecalho,
+            parametrosCabecalho
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "FirstPractice",
-            "🟢 TREINO LIVRE 1"
+            "🟢  TREINO LIVRE 1",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "SecondPractice",
-            "🟢 TREINO LIVRE 2"
+            "🟢  TREINO LIVRE 2",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "ThirdPractice",
-            "🟢 TREINO LIVRE 3"
+            "🟢  TREINO LIVRE 3",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "SprintQualifying",
-            "🟡 CLASSIFICAÇÃO SPRINT"
+            "🟡  CLASSIFICAÇÃO SPRINT",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "Sprint",
-            "🟡 SPRINT"
+            "🟡  SPRINT",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "Qualifying",
-            "🔵 CLASSIFICAÇÃO"
+            "🔵  CLASSIFICAÇÃO",
+            brasilia,
+            formato
         )
 
         adicionarSessao(
             layout,
-            evento,
+            race,
             "date",
-            "🔴 CORRIDA"
+            "🔴  CORRIDA",
+            brasilia,
+            formato
         )
     }
 
     private fun adicionarSessao(
         layout: LinearLayout,
-        evento: JSONObject,
-        chave: String,
-        titulo: String
+        race: JSONObject,
+        campo: String,
+        nome: String,
+        brasilia: ZoneId,
+        formato: DateTimeFormatter
     ) {
+
         try {
+
             val data: String
             val hora: String
 
-            if (chave == "date") {
-                data = evento.optString("date", "")
-                hora = evento.optString("time", "00:00:00Z")
+            if (campo == "date") {
+
+                data =
+                    race.getString(
+                        "date"
+                    )
+
+                hora =
+                    race.optString(
+                        "time",
+                        "00:00:00Z"
+                    )
+
             } else {
-                val sessao = evento.optJSONObject(chave) ?: return
-                data = sessao.optString("date", "")
-                hora = sessao.optString("time", "00:00:00Z")
-            }
 
-            if (data.isEmpty()) return
-
-            val horario =
-                OffsetDateTime.parse("${data}T${hora}")
-                    .atZoneSameInstant(
-                        ZoneId.of("America/Sao_Paulo")
+                val sessao =
+                    race.getJSONObject(
+                        campo
                     )
 
-            if (proximoHorario == null ||
-                horario.isBefore(proximoHorario)
-            ) {
-                if (horario.isAfter(
-                        ZonedDateTime.now(
-                            ZoneId.of("America/Sao_Paulo")
+                data =
+                    sessao.getString(
+                        "date"
+                    )
+
+                hora =
+                    sessao.getString(
+                        "time"
+                    )
+            }
+
+            val horarioUtc =
+                OffsetDateTime.parse(
+                    "${data}T${hora}"
+                )
+
+            val horarioBrasilia =
+                horarioUtc.atZoneSameInstant(
+                    brasilia
+                )
+
+            val agora =
+                ZonedDateTime.now(
+                    brasilia
+                )
+
+            val card =
+                TextView(this).apply {
+
+                    text =
+                        "$nome\n\n" +
+                        "📅 " +
+                        horarioBrasilia.format(
+                            formato
                         )
+
+                    textSize = 17f
+
+                    setTextColor(
+                        Color.WHITE
                     )
-                ) {
-                    proximoHorario = horario
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    gravity =
+                        Gravity.CENTER
+
+                    setPadding(
+                        20,
+                        20,
+                        20,
+                        20
+                    )
+
+                    background =
+                        getDrawable(
+                            R.drawable.rounded_card
+                        )
                 }
-            }
 
-            val card = TextView(this).apply {
-                text =
-                    "$titulo\n\n${horario.format(formatoData)}"
-
-                setTextColor(Color.WHITE)
-                textSize = 16f
-                typeface = Typeface.DEFAULT_BOLD
-                gravity = Gravity.CENTER
-                setPadding(20, 20, 20, 20)
-                setBackgroundResource(R.drawable.rounded_card)
-            }
-
-            layout.addView(
-                card,
+            val parametros =
                 LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    bottomMargin = 12
-                }
+                )
+
+            parametros.setMargins(
+                0,
+                6,
+                0,
+                6
             )
+
+            layout.addView(
+                card,
+                parametros
+            )
+
+            if (
+                proximoHorario == null ||
+                (
+                    horarioBrasilia.isAfter(agora) &&
+                    horarioBrasilia.isBefore(
+                        proximoHorario
+                    )
+                )
+            ) {
+
+                if (
+                    horarioBrasilia.isAfter(
+                        agora
+                    )
+                ) {
+
+                    proximoHorario =
+                        horarioBrasilia
+
+                    contadorView =
+                        TextView(this).apply {
+
+                            textSize = 16f
+
+                            setTextColor(
+                                Color.WHITE
+                            )
+
+                            setTypeface(
+                                null,
+                                Typeface.BOLD
+                            )
+
+                            gravity =
+                                Gravity.CENTER
+
+                            setPadding(
+                                16,
+                                12,
+                                16,
+                                16
+                            )
+
+                            background =
+                                getDrawable(
+                                    R.drawable.rounded_card
+                                )
+                        }
+
+                    val parametrosContador =
+                        LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+
+                    parametrosContador.setMargins(
+                        0,
+                        0,
+                        0,
+                        6
+                    )
+
+                    layout.addView(
+                        contadorView,
+                        parametrosContador
+                    )
+                }
+            }
 
         } catch (_: Exception) {
         }
     }
 
     private fun atualizarContadorTela() {
-        val horario = proximoHorario ?: return
+
+        val view =
+            contadorView ?: return
+
+        val horario =
+            proximoHorario ?: return
 
         val agora =
-            ZonedDateTime.now(ZoneId.of("America/Sao_Paulo"))
-
-        val duracao = Duration.between(agora, horario)
-
-        if (duracao.isNegative || duracao.isZero) {
-            handler.postDelayed(
-                { atualizarContadorTela() },
-                60000
+            ZonedDateTime.now(
+                ZoneId.of(
+                    "America/Sao_Paulo"
+                )
             )
+
+        val duracao =
+            Duration.between(
+                agora,
+                horario
+            )
+
+        if (
+            duracao.isZero ||
+            duracao.isNegative
+        ) {
+
+            view.text =
+                "🏁 A próxima sessão está começando!"
+
             return
         }
 
-        handler.postDelayed(
-            { atualizarContadorTela() },
-            60000
-        )
+        val totalMinutos =
+            duracao.toMinutes()
+
+        val dias =
+            totalMinutos / 1440
+
+        val horas =
+            (totalMinutos % 1440) / 60
+
+        val minutos =
+            totalMinutos % 60
+
+        view.text =
+            if (dias > 0) {
+
+                "⏳  PRÓXIMA SESSÃO EM  " +
+                "${dias}d ${horas}h ${minutos}min"
+
+            } else if (horas > 0) {
+
+                "⏳  PRÓXIMA SESSÃO EM  " +
+                "${horas}h ${minutos}min"
+
+            } else {
+
+                "⏳  PRÓXIMA SESSÃO EM  " +
+                "${minutos}min"
+            }
     }
 
-    private fun obterBandeira(pais: String): String {
+    private fun obterBandeira(
+        pais: String
+    ): String {
+
         return when (pais.lowercase()) {
-            "bahrain" -> "🇧🇭"
-            "saudi arabia" -> "🇸🇦"
-            "australia" -> "🇦🇺"
-            "japan" -> "🇯🇵"
-            "china" -> "🇨🇳"
-            "usa" -> "🇺🇸"
-            "united states" -> "🇺🇸"
-            "italy" -> "🇮🇹"
-            "monaco" -> "🇲🇨"
-            "spain" -> "🇪🇸"
-            "canada" -> "🇨🇦"
-            "austria" -> "🇦🇹"
-            "uk" -> "🇬🇧"
-            "united kingdom" -> "🇬🇧"
-            "hungary" -> "🇭🇺"
-            "belgium" -> "🇧🇪"
-            "netherlands" -> "🇳🇱"
-            "azerbaijan" -> "🇦🇿"
-            "singapore" -> "🇸🇬"
-            "mexico" -> "🇲🇽"
-            "brazil" -> "🇧🇷"
-            "qatar" -> "🇶🇦"
-            "uae" -> "🇦🇪"
-            "united arab emirates" -> "🇦🇪"
-            else -> "🌎"
+
+            "australia" ->
+                "🇦🇺"
+
+            "bahrain" ->
+                "🇧🇭"
+
+            "saudi arabia" ->
+                "🇸🇦"
+
+            "japan" ->
+                "🇯🇵"
+
+            "china" ->
+                "🇨🇳"
+
+            "usa",
+            "united states" ->
+                "🇺🇸"
+
+            "italy" ->
+                "🇮🇹"
+
+            "monaco" ->
+                "🇲🇨"
+
+            "spain" ->
+                "🇪🇸"
+
+            "canada" ->
+                "🇨🇦"
+
+            "austria" ->
+                "🇦🇹"
+
+            "united kingdom",
+            "uk" ->
+                "🇬🇧"
+
+            "belgium" ->
+                "🇧🇪"
+
+            "hungary" ->
+                "🇭🇺"
+
+            "netherlands" ->
+                "🇳🇱"
+
+            "azerbaijan" ->
+                "🇦🇿"
+
+            "singapore" ->
+                "🇸🇬"
+
+            "mexico" ->
+                "🇲🇽"
+
+            "brazil" ->
+                "🇧🇷"
+
+            "qatar" ->
+                "🇶🇦"
+
+            "uae",
+            "united arab emirates" ->
+                "🇦🇪"
+
+            else ->
+                "🌐"
         }
     }
 
-    private fun buscarCorridasF1(): String {
-        return ""
+    override fun onDestroy() {
+
+        handler.removeCallbacks(
+            atualizarContador
+        )
+
+        super.onDestroy()
     }
 
-    override fun onDestroy() {
-        handler.removeCallbacksAndMessages(null)
-        super.onDestroy()
+    private fun buscarCorridasF1():
+        org.json.JSONArray {
+
+        val url =
+            URL(
+                "https://api.jolpi.ca/ergast/f1/current/races/"
+            )
+
+        val connection =
+            url.openConnection()
+                    as HttpURLConnection
+
+        connection.requestMethod =
+            "GET"
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
+
+        connection.setRequestProperty(
+            "User-Agent",
+            "CalendarioMotorsport/1.0"
+        )
+
+        val resposta =
+            connection.inputStream
+                .bufferedReader()
+                .use {
+                    it.readText()
+                }
+
+        connection.disconnect()
+
+        return JSONObject(resposta)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
     }
 }
