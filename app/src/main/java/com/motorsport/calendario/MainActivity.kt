@@ -202,6 +202,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (categoria == "F3") {
+
+            evento.setOnClickListener {
+                abrirEventoF3()
+            }
+        }
+
         calendario.setOnClickListener {
 
             when (categoriaAtual) {
@@ -251,6 +258,8 @@ class MainActivity : AppCompatActivity() {
             "F1" -> carregarF1(evento)
 
             "F2" -> carregarF2(evento)
+
+            "F3" -> carregarF3(evento)
 
             else -> {
 
@@ -511,6 +520,64 @@ class MainActivity : AppCompatActivity() {
             "ETAPA",
             proximo.etapa
         )
+
+        startActivity(intent)
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
+
+    private fun carregarF3(evento: TextView) {
+
+        val hoje =
+            java.time.LocalDate.now()
+
+        var proximo: F3Event? =
+            null
+
+        for (item in F3Calendar.eventos) {
+
+            val inicio =
+                java.time.LocalDate.parse(
+                    item.inicio,
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy"
+                    )
+                )
+
+            if (!inicio.isBefore(hoje)) {
+
+                proximo = item
+
+                break
+            }
+        }
+
+        if (proximo == null) {
+
+            evento.text =
+                "Temporada 2026 encerrada"
+
+            return
+        }
+
+        evento.text =
+            "🏁 Etapa ${proximo.etapa}\n\n" +
+            "${proximo.circuito}\n" +
+            "🇺🇳 ${proximo.pais}\n\n" +
+            "📅 ${proximo.inicio} até ${proximo.fim}\n\n" +
+            "TOQUE PARA VER OS DETALHES"
+    }
+
+    private fun abrirEventoF3() {
+
+        val intent =
+            Intent(
+                this,
+                F3Activity::class.java
+            )
 
         startActivity(intent)
 
