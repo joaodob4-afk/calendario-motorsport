@@ -2,7 +2,6 @@ package com.motorsport.calendario
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
@@ -29,16 +28,14 @@ class MainActivity : AppCompatActivity() {
                 android.R.id.content
             )
 
-        val animacao =
-            AlphaAnimation(
-                0.0f,
-                1.0f
-            ).apply {
+        tela.translationX = 80f
+        tela.alpha = 0f
 
-                duration = 220
-            }
-
-        tela.startAnimation(animacao)
+        tela.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .setDuration(280)
+            .start()
     }
 
     private fun mostrarMenu() {
