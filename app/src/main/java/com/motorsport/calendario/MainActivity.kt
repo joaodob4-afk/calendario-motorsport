@@ -132,7 +132,13 @@ class MainActivity : AppCompatActivity() {
             }
 
         voltar.setOnClickListener {
+
             mostrarMenu()
+
+            overridePendingTransition(
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+            )
         }
 
         if (categoria == "F1") {
