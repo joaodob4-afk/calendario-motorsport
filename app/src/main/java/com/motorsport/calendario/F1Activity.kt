@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -60,12 +61,7 @@ class F1Activity : AppCompatActivity() {
 
                 override fun handleOnBackPressed() {
 
-                    finish()
-
-                    overridePendingTransition(
-                        R.anim.slide_in_left,
-                        R.anim.slide_out_right
-                    )
+                    voltarParaTelaAnterior()
                 }
             }
         )
@@ -94,6 +90,34 @@ class F1Activity : AppCompatActivity() {
                     )
                 )
             }
+
+        // ==========================
+        // BOTÃO VOLTAR - TOPO
+        // ==========================
+
+        val voltarTopo =
+            criarBotaoVoltar()
+
+        val parametrosVoltarTopo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltarTopo.gravity =
+            Gravity.LEFT
+
+        parametrosVoltarTopo.setMargins(
+            0,
+            0,
+            0,
+            10
+        )
+
+        conteudo.addView(
+            voltarTopo,
+            parametrosVoltarTopo
+        )
 
         val titulo =
             TextView(this).apply {
@@ -158,49 +182,33 @@ class F1Activity : AppCompatActivity() {
 
         conteudo.addView(carregando)
 
-        val voltar =
-            TextView(this).apply {
+        // ==========================
+        // BOTÃO VOLTAR - FUNDO
+        // ==========================
 
-                text =
-                    "‹  VOLTAR"
+        val voltarFundo =
+            criarBotaoVoltar()
 
-                textSize = 15f
+        val parametrosVoltarFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
 
-                setTextColor(
-                    Color.rgb(
-                        143,
-                        166,
-                        186
-                    )
-                )
+        parametrosVoltarFundo.gravity =
+            Gravity.LEFT
 
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
+        parametrosVoltarFundo.setMargins(
+            0,
+            20,
+            0,
+            10
+        )
 
-                gravity =
-                    Gravity.CENTER
-
-                setPadding(
-                    0,
-                    24,
-                    0,
-                    20
-                )
-
-                setOnClickListener {
-
-                    finish()
-
-                    overridePendingTransition(
-                        R.anim.slide_in_left,
-                        R.anim.slide_out_right
-                    )
-                }
-            }
-
-        conteudo.addView(voltar)
+        conteudo.addView(
+            voltarFundo,
+            parametrosVoltarFundo
+        )
 
         val scrollView =
             ScrollView(this).apply {
@@ -211,13 +219,67 @@ class F1Activity : AppCompatActivity() {
 
         carregarEvento(
             conteudo,
-            carregando
+            carregando,
+            voltarFundo
+        )
+    }
+
+    private fun criarBotaoVoltar(): TextView {
+
+        return TextView(this).apply {
+
+            text =
+                "‹  VOLTAR"
+
+            textSize = 15f
+
+            setTextColor(
+                Color.rgb(
+                    143,
+                    166,
+                    186
+                )
+            )
+
+            setTypeface(
+                null,
+                Typeface.BOLD
+            )
+
+            gravity =
+                Gravity.LEFT
+
+            setPadding(
+                0,
+                8,
+                0,
+                8
+            )
+
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+
+                voltarParaTelaAnterior()
+            }
+        }
+    }
+
+    private fun voltarParaTelaAnterior() {
+
+        finish()
+
+        overridePendingTransition(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
         )
     }
 
     private fun carregarEvento(
         layout: LinearLayout,
-        carregando: TextView
+        carregando: TextView,
+        voltarFundo: TextView
     ) {
 
         Thread {
