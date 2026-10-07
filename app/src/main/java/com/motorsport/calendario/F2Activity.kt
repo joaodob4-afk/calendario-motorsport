@@ -8,6 +8,7 @@ import android.os.Looper
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.Space
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -198,37 +199,25 @@ class F2Activity : AppCompatActivity() {
             )
         }
 
-        // ==========================
-        // BOTÃO VOLTAR - FUNDO
-        // ==========================
+        // O BOTÃO INFERIOR É ADICIONADO
+        // SOMENTE DEPOIS DE TODO O CONTEÚDO
 
-        val voltarFundo =
-            criarBotaoVoltar()
-
-        val parametrosVoltarFundo =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltarFundo.gravity =
-            Gravity.LEFT
-
-        parametrosVoltarFundo.setMargins(
-            0,
-            20,
-            0,
-            10
-        )
-
-        conteudo.addView(
-            voltarFundo,
-            parametrosVoltarFundo
+        adicionarBotaoVoltarFundo(
+            conteudo
         )
 
         val scrollView =
             ScrollView(this).apply {
-                addView(conteudo)
+
+                fillViewport = true
+
+                addView(
+                    conteudo,
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
+                )
             }
 
         setContentView(
@@ -536,6 +525,60 @@ class F2Activity : AppCompatActivity() {
                 parametrosContador
             )
         }
+    }
+
+    private fun adicionarBotaoVoltarFundo(
+        layout: LinearLayout
+    ) {
+
+        // Espaço flexível:
+        // se o conteúdo for pequeno, empurra o botão
+        // para o fundo da tela.
+        //
+        // Se o conteúdo for maior que a tela,
+        // o espaço fica praticamente zerado e
+        // o botão continua depois da última sessão.
+
+        val espaco =
+            Space(this)
+
+        val parametrosEspaco =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0
+            )
+
+        parametrosEspaco.weight =
+            1f
+
+        layout.addView(
+            espaco,
+            parametrosEspaco
+        )
+
+        val voltarFundo =
+            criarBotaoVoltar()
+
+        val parametrosVoltarFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosVoltarFundo.gravity =
+            Gravity.LEFT
+
+        parametrosVoltarFundo.setMargins(
+            0,
+            20,
+            0,
+            10
+        )
+
+        layout.addView(
+            voltarFundo,
+            parametrosVoltarFundo
+        )
     }
 
     private fun obterNomeSessao(
