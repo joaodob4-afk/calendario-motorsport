@@ -1,251 +1,355 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#101820">
 
-    <!-- CATEGORIAS -->
-
-    <LinearLayout
+    <!-- Círculos das categorias -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingLeft="8dp"
-        android:paddingTop="12dp"
-        android:paddingRight="8dp"
-        android:paddingBottom="8dp">
-
-        <!-- F1 -->
+        android:scrollbars="none"
+        android:fillViewport="false"
+        android:paddingTop="18dp"
+        android:paddingBottom="12dp">
 
         <LinearLayout
-            android:id="@+id/btnF1"
-            android:layout_width="0dp"
-            android:layout_height="82dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp">
 
-            <ImageView
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:src="@drawable/logo_f1"
-                android:background="@drawable/category_circle"
-                android:padding="10dp"
-                android:scaleType="centerInside" />
+            <!-- F1 -->
+            <LinearLayout
+                android:id="@+id/btnF1"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="14dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:background="@drawable/category_circle">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/logo_f1"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Fórmula 1" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="F1"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- F2 -->
+            <LinearLayout
+                android:id="@+id/btnF2"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="14dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:background="@drawable/category_circle">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/logo_f2"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Fórmula 2" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="F2"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- F3 -->
+            <LinearLayout
+                android:id="@+id/btnF3"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="14dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:background="@drawable/category_circle">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/logo_f3"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Fórmula 3" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="F3"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- IndyCar -->
+            <LinearLayout
+                android:id="@+id/btnIndyCar"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="14dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:background="@drawable/category_circle">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/logo_indycar"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="IndyCar" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="INDY"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- Formula E -->
+            <LinearLayout
+                android:id="@+id/btnFormulaE"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="62dp"
+                    android:layout_height="62dp"
+                    android:background="@drawable/category_circle"
+                    android:padding="2dp">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/logo_formulaeinicio"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Formula E" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="9dp"
+                    android:text="FE"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:gravity="center" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- F2 -->
+    </HorizontalScrollView>
 
-        <LinearLayout
-            android:id="@+id/btnF2"
-            android:layout_width="0dp"
-            android:layout_height="82dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:src="@drawable/logo_f2"
-                android:background="@drawable/category_circle"
-                android:padding="10dp"
-                android:scaleType="centerInside" />
-
-        </LinearLayout>
-
-        <!-- F3 -->
-
-        <LinearLayout
-            android:id="@+id/btnF3"
-            android:layout_width="0dp"
-            android:layout_height="82dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:src="@drawable/logo_f3"
-                android:background="@drawable/category_circle"
-                android:padding="10dp"
-                android:scaleType="centerInside" />
-
-        </LinearLayout>
-
-        <!-- IndyCar -->
-
-        <LinearLayout
-            android:id="@+id/btnIndyCar"
-            android:layout_width="0dp"
-            android:layout_height="82dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:src="@drawable/logo_indycar"
-                android:background="@drawable/category_circle"
-                android:padding="10dp"
-                android:scaleType="centerInside" />
-
-        </LinearLayout>
-
-        <!-- Formula E -->
-
-        <LinearLayout
-            android:id="@+id/btnFormulaE"
-            android:layout_width="0dp"
-            android:layout_height="82dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:src="@drawable/logo_formulae"
-                android:background="@drawable/category_circle"
-                android:padding="10dp"
-                android:scaleType="centerInside" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- PRÓXIMA ETAPA -->
-
-    <LinearLayout
-        android:id="@+id/painelProximaEtapa"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="14dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginRight="14dp"
-        android:layout_marginBottom="10dp"
-        android:orientation="vertical"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="@drawable/next_event_card">
-
-        <TextView
-            android:id="@+id/tituloProximaEtapa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="PRÓXIMA ETAPA • F1"
-            android:textColor="#8FA6BA"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="0.08" />
-
-        <TextView
-            android:id="@+id/nomeProximaEtapa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
-            android:text="🇸🇬 Singapura"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed" />
-
-        <TextView
-            android:id="@+id/circuitoProximaEtapa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Marina Bay"
-            android:textColor="#B0C0CE"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif-condensed" />
-
-        <TextView
-            android:id="@+id/dataProximaEtapa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="09–11 OUT"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed" />
-
-        <TextView
-            android:id="@+id/contadorProximaEtapa"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:text="FALTAM 2 DIAS"
-            android:textColor="#19B76B"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="0.04" />
-
-    </LinearLayout>
-
-    <!-- CONTEÚDO -->
-
+    <!-- Conteúdo -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true"
-        android:clipToPadding="false">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingLeft="14dp"
-            android:paddingTop="4dp"
-            android:paddingRight="14dp"
+            android:paddingTop="10dp"
             android:paddingBottom="20dp">
 
-            <!-- BUSCA -->
-
-            <EditText
-                android:id="@+id/searchEtapa"
+            <!-- Próxima etapa -->
+            <LinearLayout
+                android:id="@+id/painelProximaEtapa"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/rounded_card"
-                android:hint="Pesquisar etapa..."
-                android:hintTextColor="#71869A"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#71869A"
-                android:textSize="14sp"
-                android:singleLine="true"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
-                android:fontFamily="sans-serif-condensed" />
+                android:layout_height="wrap_content"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
+                android:orientation="vertical"
+                android:padding="18dp"
+                android:background="@drawable/next_event_card">
 
-            <!-- LISTA DE ETAPAS -->
+                <TextView
+                    android:id="@+id/tituloProximaEtapa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="PRÓXIMA ETAPA"
+                    android:textColor="#8FA6BA"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed"
+                    android:letterSpacing="0.08" />
 
+                <TextView
+                    android:id="@+id/nomeProximaEtapa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="F1 — GP de Singapura"
+                    android:textColor="#FFFFFF"
+                    android:textSize="21sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed" />
+
+                <TextView
+                    android:id="@+id/circuitoProximaEtapa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Marina Bay"
+                    android:textColor="#B0C0CE"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-condensed" />
+
+                <TextView
+                    android:id="@+id/dataProximaEtapa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="09–11 OUT"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed" />
+
+                <TextView
+                    android:id="@+id/contadorProximaEtapa"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="Faltam poucos dias"
+                    android:textColor="#19965F"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-condensed" />
+
+            </LinearLayout>
+
+            <!-- Espaço -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="18dp" />
+
+            <!-- Barra de pesquisa -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:background="@drawable/search_bar">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_search"
+                    android:contentDescription="Pesquisar" />
+
+                <EditText
+                    android:id="@+id/searchEtapa"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:background="@android:color/transparent"
+                    android:hint="Pesquisar etapa..."
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#8FA6BA"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    android:inputType="text"
+                    android:fontFamily="sans-serif-condensed" />
+
+            </LinearLayout>
+
+            <!-- Lista de etapas -->
             <LinearLayout
                 android:id="@+id/listaEtapas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginStart="18dp"
+                android:layout_marginEnd="18dp"
                 android:orientation="vertical" />
 
         </LinearLayout>
