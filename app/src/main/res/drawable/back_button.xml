@@ -6,24 +6,27 @@
     android:viewportWidth="32"
     android:viewportHeight="32">
 
+    <!-- Curva de retorno -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M25,8
-                          C16,8 9,11 9,19" />
+        android:pathData="M25,9
+                          C18,9 12,10 9,14
+                          C7,16 7,19 9,21" />
 
+    <!-- Ponta da seta -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M9,19
-                          L14,14
-                          M9,19
-                          L14,24" />
+        android:pathData="M9,21
+                          L14,16
+                          M9,21
+                          L14,26" />
 
 </vector>
