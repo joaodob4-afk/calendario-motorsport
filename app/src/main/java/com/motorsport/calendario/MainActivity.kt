@@ -2,6 +2,8 @@ package com.motorsport.calendario
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -30,6 +32,12 @@ class MainActivity : AppCompatActivity() {
     )
 
     private lateinit var listaEtapas: LinearLayout
+
+    private val handlerPesquisa =
+        Handler(Looper.getMainLooper())
+
+    private var pesquisaRunnable:
+            Runnable? = null
 
     private val todasEtapas = listOf(
 
@@ -113,6 +121,15 @@ class MainActivity : AppCompatActivity() {
         )
 
         mostrarMenu()
+    }
+
+    override fun onDestroy() {
+
+        pesquisaRunnable?.let {
+            handlerPesquisa.removeCallbacks(it)
+        }
+
+        super.onDestroy()
     }
 
     private fun animarEntrada() {
@@ -212,45 +229,68 @@ class MainActivity : AppCompatActivity() {
                     count: Int
                 ) {
 
+                    pesquisaRunnable?.let {
+                        handlerPesquisa.removeCallbacks(
+                            it
+                        )
+                    }
+
                     val texto =
                         s?.toString()
                             ?.trim()
                             ?.lowercase()
                             ?: ""
 
-                    if (
-                        texto.isEmpty()
-                    ) {
+                    pesquisaRunnable =
+                        Runnable {
 
-                        mostrarEtapas(
-                            todasEtapas
-                        )
+                            if (
+                                texto.isEmpty()
+                            ) {
 
-                        return
-                    }
+                                mostrarEtapas(
+                                    todasEtapas
+                                )
 
-                    val filtradas =
-                        todasEtapas.filter {
+                                return@Runnable
+                            }
 
-                            it.categoria
-                                .lowercase()
-                                .contains(texto) ||
+                            val filtradas =
+                                todasEtapas.filter {
 
-                            it.pais
-                                .lowercase()
-                                .contains(texto) ||
+                                    it.categoria
+                                        .lowercase()
+                                        .contains(
+                                            texto
+                                        ) ||
 
-                            it.circuito
-                                .lowercase()
-                                .contains(texto) ||
+                                    it.pais
+                                        .lowercase()
+                                        .contains(
+                                            texto
+                                        ) ||
 
-                            it.data
-                                .lowercase()
-                                .contains(texto)
+                                    it.circuito
+                                        .lowercase()
+                                        .contains(
+                                            texto
+                                        ) ||
+
+                                    it.data
+                                        .lowercase()
+                                        .contains(
+                                            texto
+                                        )
+                                }
+
+                            mostrarEtapas(
+                                filtradas
+                            )
                         }
 
-                    mostrarEtapas(
-                        filtradas
+                    handlerPesquisa.postDelayed(
+                        pesquisaRunnable!!,
+                        250
                     )
                 }
 
@@ -427,42 +467,36 @@ class MainActivity : AppCompatActivity() {
         when (categoria) {
 
             "F1" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_f1
                 )
             }
 
             "F2" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_f2
                 )
             }
 
             "F3" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_f3
                 )
             }
 
             "IndyCar" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_indycar
                 )
             }
 
             "Formula E" -> {
-
                 logo.setImageResource(
                     R.drawable.logo_formulae
                 )
             }
 
             else -> {
-
                 logo.setImageDrawable(
                     null
                 )
@@ -520,7 +554,6 @@ class MainActivity : AppCompatActivity() {
         ) {
 
             evento.setOnClickListener {
-
                 abrirEventoF1()
             }
         }
@@ -530,7 +563,6 @@ class MainActivity : AppCompatActivity() {
         ) {
 
             evento.setOnClickListener {
-
                 abrirEventoF2()
             }
         }
@@ -540,7 +572,6 @@ class MainActivity : AppCompatActivity() {
         ) {
 
             evento.setOnClickListener {
-
                 abrirEventoF3()
             }
         }
