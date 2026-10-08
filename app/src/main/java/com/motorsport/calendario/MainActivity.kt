@@ -326,7 +326,22 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        for (etapa in etapas) {
+        val etapasOrdenadas =
+            etapas.sortedBy {
+
+                if (it.dataInicio.isNotEmpty()) {
+
+                    java.time.LocalDate.parse(
+                        it.dataInicio
+                    )
+
+                } else {
+
+                    java.time.LocalDate.MAX
+                }
+            }
+
+        for (etapa in etapasOrdenadas) {
 
             val item =
                 inflater.inflate(
