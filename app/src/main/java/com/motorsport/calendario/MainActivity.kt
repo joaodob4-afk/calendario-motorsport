@@ -160,35 +160,30 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.view.View>(
             R.id.btnF1
         ).setOnClickListener {
-
             abrirCategoria("F1")
         }
 
         findViewById<android.view.View>(
             R.id.btnF2
         ).setOnClickListener {
-
             abrirCategoria("F2")
         }
 
         findViewById<android.view.View>(
             R.id.btnF3
         ).setOnClickListener {
-
             abrirCategoria("F3")
         }
 
         findViewById<android.view.View>(
             R.id.btnIndyCar
         ).setOnClickListener {
-
             abrirCategoria("IndyCar")
         }
 
         findViewById<android.view.View>(
             R.id.btnFormulaE
         ).setOnClickListener {
-
             abrirCategoria("Formula E")
         }
 
@@ -463,12 +458,18 @@ class MainActivity : AppCompatActivity() {
             )
 
         if (data.isBefore(hoje)) {
-
             return "FINALIZADA"
         }
 
+        val proximasDaCategoria =
+            etapasOrdenadas.filter {
+
+                it.categoria ==
+                    etapa.categoria
+            }
+
         val proxima =
-            etapasOrdenadas.firstOrNull {
+            proximasDaCategoria.firstOrNull {
 
                 val dataInicio =
                     java.time.LocalDate.parse(
@@ -479,11 +480,8 @@ class MainActivity : AppCompatActivity() {
             }
 
         return if (proxima == etapa) {
-
             "PRÓXIMA"
-
         } else {
-
             "AGENDADA"
         }
     }
@@ -514,7 +512,6 @@ class MainActivity : AppCompatActivity() {
             "Brasil" -> "🇧🇷"
             "Catar" -> "🇶🇦"
             "Abu Dhabi" -> "🇦🇪"
-
             else -> "🌐"
         }
     }
@@ -591,9 +588,7 @@ class MainActivity : AppCompatActivity() {
                 "F2" -> "FÓRMULA 2"
                 "F3" -> "FÓRMULA 3"
                 "IndyCar" -> "INDYCAR"
-
-                else ->
-                    "FÓRMULA E"
+                else -> "FÓRMULA E"
             }
 
         voltar.setOnClickListener {
@@ -611,7 +606,6 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F1") {
 
             evento.setOnClickListener {
-
                 abrirEventoF1()
             }
         }
@@ -619,7 +613,6 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F2") {
 
             evento.setOnClickListener {
-
                 abrirEventoF2()
             }
         }
@@ -627,7 +620,6 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F3") {
 
             evento.setOnClickListener {
-
                 abrirEventoF3()
             }
         }
@@ -767,9 +759,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                if (
-                    proximaCorrida == null
-                ) {
+                if (proximaCorrida == null) {
 
                     runOnUiThread {
 
@@ -816,9 +806,7 @@ class MainActivity : AppCompatActivity() {
                 var textoQualificacao =
                     ""
 
-                if (
-                    qualificacao != null
-                ) {
+                if (qualificacao != null) {
 
                     val dataQualificacao =
                         qualificacao.getString(
