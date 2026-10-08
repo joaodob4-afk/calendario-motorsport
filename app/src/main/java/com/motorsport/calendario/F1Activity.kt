@@ -335,7 +335,7 @@ class F1Activity : AppCompatActivity() {
                     dp(44),
                     dp(29)
                 ).apply {
-                    setMargins(0, 0, dp(9), 0)
+                    setMargins(0, 0, dp(7), 0)
                 }
             )
         } else {
