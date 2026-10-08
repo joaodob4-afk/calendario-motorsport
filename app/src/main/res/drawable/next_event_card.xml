@@ -24,9 +24,7 @@
     <!-- Linha verde lateral -->
     <item
         android:width="7dp"
-        android:height="match_parent"
-        android:gravity="left"
-        android:left="0dp">
+        android:gravity="left">
 
         <shape android:shape="rectangle">
 
