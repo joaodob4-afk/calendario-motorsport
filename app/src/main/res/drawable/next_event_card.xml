@@ -23,8 +23,7 @@
 
     <!-- Linha verde lateral arredondada -->
     <item
-        android:width="7dp"
-        android:height="match_parent"
+        android:width="7dp" android:height="match_parent"
         android:gravity="left
         android:left="0dp">
 
