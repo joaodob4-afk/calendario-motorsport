@@ -21,9 +21,7 @@ import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         overridePendingTransition(
@@ -52,9 +50,7 @@ class F1Activity : AppCompatActivity() {
                     dp(18),
                     dp(28)
                 )
-                setBackgroundColor(
-                    Color.rgb(7, 26, 45)
-                )
+                setBackgroundColor(Color.rgb(7, 26, 45))
             }
 
         val voltarTopo = criarBotaoVoltar()
@@ -66,10 +62,7 @@ class F1Activity : AppCompatActivity() {
             )
 
         parametrosVoltarTopo.setMargins(
-            0,
-            0,
-            0,
-            dp(14)
+            0, 0, 0, dp(14)
         )
 
         conteudo.addView(
@@ -81,16 +74,9 @@ class F1Activity : AppCompatActivity() {
             TextView(this).apply {
                 text = "Carregando programação..."
                 textSize = 16f
-                setTextColor(
-                    Color.rgb(143, 166, 186)
-                )
+                setTextColor(Color.rgb(143, 166, 186))
                 gravity = Gravity.CENTER
-                setPadding(
-                    0,
-                    dp(30),
-                    0,
-                    dp(30)
-                )
+                setPadding(0, dp(30), 0, dp(30))
             }
 
         conteudo.addView(carregando)
@@ -327,7 +313,7 @@ class F1Activity : AppCompatActivity() {
 
         cabecalho.addView(circuitoEvento)
 
-        // Localização com bandeira PNG para o Brasil.
+        // Localização com bandeira PNG do Brasil.
         val localEvento =
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -346,10 +332,10 @@ class F1Activity : AppCompatActivity() {
             localEvento.addView(
                 imagemBandeira,
                 LinearLayout.LayoutParams(
-                    dp(28),
-                    dp(19)
+                    dp(44),
+                    dp(29)
                 ).apply {
-                    setMargins(0, 0, dp(7), 0)
+                    setMargins(0, 0, dp(9), 0)
                 }
             )
         } else {
@@ -367,9 +353,7 @@ class F1Activity : AppCompatActivity() {
             TextView(this).apply {
                 text = "$cidade • $pais"
                 textSize = 13f
-                setTextColor(
-                    Color.rgb(143, 166, 186)
-                )
+                setTextColor(Color.rgb(143, 166, 186))
             }
 
         localEvento.addView(textoLocal)
@@ -377,9 +361,7 @@ class F1Activity : AppCompatActivity() {
 
         val divisor =
             View(this).apply {
-                setBackgroundColor(
-                    Color.rgb(25, 183, 107)
-                )
+                setBackgroundColor(Color.rgb(25, 183, 107))
             }
 
         cabecalho.addView(
@@ -404,9 +386,7 @@ class F1Activity : AppCompatActivity() {
             TextView(this).apply {
                 text = "PROGRAMAÇÃO"
                 textSize = 12f
-                setTextColor(
-                    Color.rgb(25, 183, 107)
-                )
+                setTextColor(Color.rgb(25, 183, 107))
                 setTypeface(null, Typeface.BOLD)
                 letterSpacing = 0.14f
                 setPadding(0, dp(24), 0, dp(8))
@@ -548,9 +528,7 @@ class F1Activity : AppCompatActivity() {
                 TextView(this).apply {
                     text = ultima.year.toString()
                     textSize = 11f
-                    setTextColor(
-                        Color.rgb(143, 166, 186)
-                    )
+                    setTextColor(Color.rgb(143, 166, 186))
                     setTypeface(null, Typeface.BOLD)
                     letterSpacing = 0.1f
                 }
@@ -597,9 +575,7 @@ class F1Activity : AppCompatActivity() {
 
         val linha =
             View(this).apply {
-                setBackgroundColor(
-                    Color.rgb(41, 74, 99)
-                )
+                setBackgroundColor(Color.rgb(41, 74, 99))
             }
 
         cabecalhoDia.addView(
@@ -670,9 +646,7 @@ class F1Activity : AppCompatActivity() {
             if (corrida) {
                 val marcador =
                     View(this).apply {
-                        setBackgroundColor(
-                            Color.rgb(25, 183, 107)
-                        )
+                        setBackgroundColor(Color.rgb(25, 183, 107))
                     }
 
                 linha.addView(
@@ -724,9 +698,7 @@ class F1Activity : AppCompatActivity() {
             if (corrida) {
                 val divisor =
                     View(this).apply {
-                        setBackgroundColor(
-                            Color.rgb(25, 183, 107)
-                        )
+                        setBackgroundColor(Color.rgb(25, 183, 107))
                     }
 
                 layout.addView(
@@ -742,9 +714,7 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
-    private fun obterBandeira(
-        pais: String
-    ): String {
+    private fun obterBandeira(pais: String): String {
         return when (pais.lowercase()) {
             "australia" -> "🇦🇺"
             "bahrain" -> "🇧🇭"
