@@ -21,10 +21,11 @@
         </shape>
     </item>
 
-    <!-- Linha verde lateral arredondada -->
+    <!-- Linha verde lateral -->
     <item
-        android:width="7dp" android:height="match_parent"
-        android:gravity="left
+        android:width="7dp"
+        android:height="match_parent"
+        android:gravity="left"
         android:left="0dp">
 
         <shape android:shape="rectangle">
