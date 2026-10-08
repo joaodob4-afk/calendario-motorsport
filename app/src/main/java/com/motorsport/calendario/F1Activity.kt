@@ -66,15 +66,11 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
-        val paisSelecionado =
-            intent.getStringExtra("PAIS")
-
-        val circuitoSelecionado =
-            intent.getStringExtra("CIRCUITO")
+        val roundSelecionado =
+            intent.getStringExtra("ROUND_F1")
 
         val selecionada =
-            paisSelecionado != null ||
-            circuitoSelecionado != null
+            roundSelecionado != null
 
         val conteudo =
             LinearLayout(this).apply {
@@ -268,14 +264,9 @@ class F1Activity : AppCompatActivity() {
 
             try {
 
-                val paisSelecionado =
+                val roundSelecionado =
                     intent.getStringExtra(
-                        "PAIS"
-                    )
-
-                val circuitoSelecionado =
-                    intent.getStringExtra(
-                        "CIRCUITO"
+                        "ROUND_F1"
                     )
 
                 val races =
@@ -286,12 +277,10 @@ class F1Activity : AppCompatActivity() {
 
                 /*
                  * Se uma etapa específica foi
-                 * selecionada, procuramos ela.
+                 * selecionada, procuramos pelo
+                 * número oficial da etapa na API.
                  */
-                if (
-                    paisSelecionado != null ||
-                    circuitoSelecionado != null
-                ) {
+                if (roundSelecionado != null) {
 
                     for (
                         i in 0 until races.length()
@@ -300,59 +289,15 @@ class F1Activity : AppCompatActivity() {
                         val race =
                             races.getJSONObject(i)
 
-                        val circuit =
-                            race.optJSONObject(
-                                "Circuit"
-                            )
-
-                        val location =
-                            circuit?.optJSONObject(
-                                "Location"
-                            )
-
-                        val paisApi =
-                            location?.optString(
-                                "country",
+                        val roundApi =
+                            race.optString(
+                                "round",
                                 ""
-                            ) ?: ""
-
-                        val cidadeApi =
-                            location?.optString(
-                                "local",
-                                ""
-                            ) ?: ""
-
-                        val circuitoApi =
-                            circuit?.optString(
-                                "circuitName",
-                                ""
-                            ) ?: ""
-
-                        val paisConfere =
-                            paisSelecionado == null ||
-                            paisApi.equals(
-                                paisSelecionado,
-                                ignoreCase = true
-                            )
-
-                        val circuitoConfere =
-                            circuitoSelecionado == null ||
-                            cidadeApi.equals(
-                                circuitoSelecionado,
-                                ignoreCase = true
-                            ) ||
-                            circuitoApi.contains(
-                                circuitoSelecionado,
-                                ignoreCase = true
-                            ) ||
-                            cidadeApi.contains(
-                                circuitoSelecionado,
-                                ignoreCase = true
                             )
 
                         if (
-                            paisConfere &&
-                            circuitoConfere
+                            roundApi ==
+                            roundSelecionado
                         ) {
 
                             evento =
@@ -365,7 +310,7 @@ class F1Activity : AppCompatActivity() {
 
                 /*
                  * Se nenhuma etapa específica foi
-                 * enviada, usamos o próximo evento.
+                 * encontrada, usamos o próximo evento.
                  */
                 if (evento == null) {
 
