@@ -235,8 +235,8 @@
                             android:background="@drawable/category_circle">
 
                             <ImageView
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/logo_formulae"
                                 android:scaleType="fitCenter"
@@ -248,9 +248,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="9dp"
-                            android:text="FORMULA E"
+                            android:text="FE"
                             android:textColor="#FFFFFF"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-condensed"
                             android:gravity="center" />
