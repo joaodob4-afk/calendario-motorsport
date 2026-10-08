@@ -75,6 +75,8 @@ class MainActivity : AppCompatActivity() {
         Etapa("F2", "Hungria", "Budapeste", "24–26 JUL"),
         Etapa("F2", "Itália", "Monza", "04–06 SET"),
         Etapa("F2", "Espanha", "Madrid", "11–13 SET"),
+        Etapa("F2", "Catar", "Lusail", "27–29 NOV"),
+        Etapa("F2", "Abu Dhabi", "Yas Marina", "04–06 DEZ"),
 
         // F3 2026
         Etapa("F3", "Austrália", "Melbourne", "06–08 MAR"),
