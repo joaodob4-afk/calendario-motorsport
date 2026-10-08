@@ -15,7 +15,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -131,7 +130,9 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(titulo)
+        conteudo.addView(
+            titulo
+        )
 
         val carregando =
             TextView(this).apply {
@@ -160,7 +161,9 @@ class F1Activity : AppCompatActivity() {
                 )
             }
 
-        conteudo.addView(carregando)
+        conteudo.addView(
+            carregando
+        )
 
         val scrollView =
             ScrollView(this).apply {
@@ -187,37 +190,48 @@ class F1Activity : AppCompatActivity() {
         return TextView(this).apply {
 
             text =
-                "‹  VOLTAR"
+                "‹"
 
-            textSize = 14f
+            textSize = 30f
 
             setTextColor(
-                Color.rgb(
-                    143,
-                    166,
-                    186
-                )
-            )
-
-            setTypeface(
-                null,
-                Typeface.BOLD
+                Color.WHITE
             )
 
             gravity =
-                Gravity.START
+                Gravity.CENTER
+
+            setTypeface(
+                null,
+                Typeface.NORMAL
+            )
 
             setPadding(
-                2,
-                10,
-                2,
-                10
+                0,
+                0,
+                0,
+                3
             )
+
+            background =
+                getDrawable(
+                    R.drawable.back_button
+                )
 
             isClickable = true
             isFocusable = true
 
+            val parametros =
+                LinearLayout.LayoutParams(
+                    46,
+                    46
+                )
+
+            layoutParams =
+                parametros
+
             setOnClickListener {
+
                 voltarParaTelaAnterior()
             }
         }
