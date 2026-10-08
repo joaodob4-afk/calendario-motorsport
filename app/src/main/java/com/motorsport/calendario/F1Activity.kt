@@ -271,96 +271,21 @@ class F1Activity : AppCompatActivity() {
                         "CIRCUIT_ID_F1"
                     )
 
-                val races =
-                    buscarCorridasF1()
+                val evento: JSONObject?
 
-                var evento:
-                        JSONObject? = null
-
-                /*
-                 * Se uma etapa específica foi
-                 * selecionada, procuramos pelo
-                 * circuitId oficial da API.
-                 */
                 if (
                     circuitIdSelecionado != null
                 ) {
 
-                    for (
-                        i in 0 until races.length()
-                    ) {
-
-                        val race =
-                            races.getJSONObject(i)
-
-                        val circuit =
-                            race.optJSONObject(
-                                "Circuit"
-                            )
-
-                        val circuitIdApi =
-                            circuit?.optString(
-                                "circuitId",
-                                ""
-                            )
-
-                        if (
-                            circuitIdApi ==
+                    evento =
+                        buscarCorridaPorCircuito(
                             circuitIdSelecionado
-                        ) {
+                        )
 
-                            evento =
-                                race
+                } else {
 
-                            break
-                        }
-                    }
-                }
-
-                /*
-                 * Se nenhuma etapa específica
-                 * foi encontrada, usamos o
-                 * próximo evento.
-                 */
-                if (evento == null) {
-
-                    val agora =
-                        java.time.Instant.now()
-
-                    for (
-                        i in 0 until races.length()
-                    ) {
-
-                        val race =
-                            races.getJSONObject(i)
-
-                        val data =
-                            race.getString(
-                                "date"
-                            )
-
-                        val hora =
-                            race.optString(
-                                "time",
-                                "00:00:00Z"
-                            )
-
-                        val horario =
-                            OffsetDateTime.parse(
-                                "${data}T${hora}"
-                            )
-
-                        if (
-                            horario.toInstant()
-                                .isAfter(agora)
-                        ) {
-
-                            evento =
-                                race
-
-                            break
-                        }
-                    }
+                    evento =
+                        buscarProximaCorrida()
                 }
 
                 if (evento == null) {
@@ -382,7 +307,7 @@ class F1Activity : AppCompatActivity() {
 
                     mostrarEvento(
                         layout,
-                        evento!!
+                        evento
                     )
 
                     handler.post(
@@ -402,6 +327,138 @@ class F1Activity : AppCompatActivity() {
             }
 
         }.start()
+    }
+
+    private fun buscarCorridaPorCircuito(
+        circuitId: String
+    ): JSONObject? {
+
+        val url =
+            URL(
+                "https://api.jolpi.ca/ergast/f1/2026/circuits/" +
+                circuitId +
+                "/races/"
+            )
+
+        val connection =
+            url.openConnection()
+                    as HttpURLConnection
+
+        connection.requestMethod =
+            "GET"
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
+
+        connection.setRequestProperty(
+            "User-Agent",
+            "CalendarioMotorsport/1.0"
+        )
+
+        val resposta =
+            connection.inputStream
+                .bufferedReader()
+                .use {
+                    it.readText()
+                }
+
+        connection.disconnect()
+
+        val races =
+            JSONObject(resposta)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+
+        if (races.length() == 0) {
+            return null
+        }
+
+        return races.getJSONObject(
+            races.length() - 1
+        )
+    }
+
+    private fun buscarProximaCorrida():
+            JSONObject? {
+
+        val url =
+            URL(
+                "https://api.jolpi.ca/ergast/f1/current/races/"
+            )
+
+        val connection =
+            url.openConnection()
+                    as HttpURLConnection
+
+        connection.requestMethod =
+            "GET"
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
+
+        connection.setRequestProperty(
+            "User-Agent",
+            "CalendarioMotorsport/1.0"
+        )
+
+        val resposta =
+            connection.inputStream
+                .bufferedReader()
+                .use {
+                    it.readText()
+                }
+
+        connection.disconnect()
+
+        val races =
+            JSONObject(resposta)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+
+        val agora =
+            java.time.Instant.now()
+
+        for (
+            i in 0 until races.length()
+        ) {
+
+            val race =
+                races.getJSONObject(i)
+
+            val data =
+                race.getString(
+                    "date"
+                )
+
+            val hora =
+                race.optString(
+                    "time",
+                    "00:00:00Z"
+                )
+
+            val horario =
+                OffsetDateTime.parse(
+                    "${data}T${hora}"
+                )
+
+            if (
+                horario.toInstant()
+                    .isAfter(agora)
+            ) {
+
+                return race
+            }
+        }
+
+        return null
     }
 
     private fun mostrarEvento(
@@ -866,46 +923,5 @@ class F1Activity : AppCompatActivity() {
         )
 
         super.onDestroy()
-    }
-
-    private fun buscarCorridasF1():
-            org.json.JSONArray {
-
-        val url =
-            URL(
-                "https://api.jolpi.ca/ergast/f1/current/races/"
-            )
-
-        val connection =
-            url.openConnection()
-                    as HttpURLConnection
-
-        connection.requestMethod =
-            "GET"
-
-        connection.connectTimeout =
-            15000
-
-        connection.readTimeout =
-            15000
-
-        connection.setRequestProperty(
-            "User-Agent",
-            "CalendarioMotorsport/1.0"
-        )
-
-        val resposta =
-            connection.inputStream
-                .bufferedReader()
-                .use {
-                    it.readText()
-                }
-
-        connection.disconnect()
-
-        return JSONObject(resposta)
-            .getJSONObject("MRData")
-            .getJSONObject("RaceTable")
-            .getJSONArray("Races")
     }
 }
