@@ -81,10 +81,10 @@ class F1Activity : AppCompatActivity() {
                     LinearLayout.VERTICAL
 
                 setPadding(
-                    20,
-                    20,
-                    20,
-                    20
+                    18,
+                    18,
+                    18,
+                    24
                 )
 
                 setBackgroundColor(
@@ -105,14 +105,11 @@ class F1Activity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-        parametrosVoltarTopo.gravity =
-            Gravity.START
-
         parametrosVoltarTopo.setMargins(
             0,
             0,
             0,
-            10
+            8
         )
 
         conteudo.addView(
@@ -126,16 +123,16 @@ class F1Activity : AppCompatActivity() {
                 text =
                     if (selecionada) {
 
-                        "FÓRMULA 1\n\n" +
+                        "FÓRMULA 1\n" +
                         "PROGRAMAÇÃO DA ETAPA"
 
                     } else {
 
-                        "FÓRMULA 1\n\n" +
+                        "FÓRMULA 1\n" +
                         "PRÓXIMO EVENTO"
                     }
 
-                textSize = 27f
+                textSize = 25f
 
                 setTextColor(
                     Color.WHITE
@@ -147,15 +144,15 @@ class F1Activity : AppCompatActivity() {
                 )
 
                 gravity =
-                    Gravity.CENTER
+                    Gravity.START
 
                 letterSpacing = 0.04f
 
                 setPadding(
-                    0,
-                    10,
-                    0,
-                    28
+                    2,
+                    14,
+                    2,
+                    22
                 )
             }
 
@@ -167,10 +164,14 @@ class F1Activity : AppCompatActivity() {
                 text =
                     "Carregando programação..."
 
-                textSize = 17f
+                textSize = 16f
 
                 setTextColor(
-                    Color.LTGRAY
+                    Color.rgb(
+                        143,
+                        166,
+                        186
+                    )
                 )
 
                 gravity =
@@ -178,9 +179,9 @@ class F1Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    20,
+                    24,
                     0,
-                    20
+                    24
                 )
             }
 
@@ -212,7 +213,7 @@ class F1Activity : AppCompatActivity() {
             text =
                 "‹  VOLTAR"
 
-            textSize = 15f
+            textSize = 14f
 
             setTextColor(
                 Color.rgb(
@@ -231,10 +232,10 @@ class F1Activity : AppCompatActivity() {
                 Gravity.START
 
             setPadding(
-                0,
-                8,
-                0,
-                8
+                2,
+                10,
+                2,
+                10
             )
 
             isClickable = true
@@ -321,7 +322,6 @@ class F1Activity : AppCompatActivity() {
 
                     carregando.text =
                         "Erro ao carregar evento.\n\n" +
-                        "Erro: " +
                         e.javaClass.simpleName
                 }
             }
@@ -434,9 +434,7 @@ class F1Activity : AppCompatActivity() {
                 races.getJSONObject(i)
 
             val data =
-                race.getString(
-                    "date"
-                )
+                race.getString("date")
 
             val hora =
                 race.optString(
@@ -518,11 +516,11 @@ class F1Activity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "🏁 $nome\n\n" +
+                    "$nome\n\n" +
                     circuito + "\n" +
                     "$bandeira $cidade • $pais"
 
-                textSize = 20f
+                textSize = 19f
 
                 setTextColor(
                     Color.WHITE
@@ -534,13 +532,13 @@ class F1Activity : AppCompatActivity() {
                 )
 
                 gravity =
-                    Gravity.CENTER
+                    Gravity.START
 
                 setPadding(
                     20,
                     22,
                     20,
-                    26
+                    22
                 )
 
                 background =
@@ -559,7 +557,7 @@ class F1Activity : AppCompatActivity() {
             0,
             0,
             0,
-            20
+            18
         )
 
         layout.addView(
@@ -571,7 +569,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "FirstPractice",
-            "🟢  TREINO LIVRE 1",
+            "TREINO LIVRE 1",
             brasilia,
             formato
         )
@@ -580,7 +578,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "SecondPractice",
-            "🟢  TREINO LIVRE 2",
+            "TREINO LIVRE 2",
             brasilia,
             formato
         )
@@ -589,7 +587,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "ThirdPractice",
-            "🟢  TREINO LIVRE 3",
+            "TREINO LIVRE 3",
             brasilia,
             formato
         )
@@ -598,7 +596,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "SprintQualifying",
-            "🟡  CLASSIFICAÇÃO SPRINT",
+            "CLASSIFICAÇÃO SPRINT",
             brasilia,
             formato
         )
@@ -607,7 +605,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "Sprint",
-            "🟡  SPRINT",
+            "SPRINT",
             brasilia,
             formato
         )
@@ -616,7 +614,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "Qualifying",
-            "🔵  CLASSIFICAÇÃO",
+            "CLASSIFICAÇÃO",
             brasilia,
             formato
         )
@@ -625,7 +623,7 @@ class F1Activity : AppCompatActivity() {
             layout,
             race,
             "date",
-            "🔴  CORRIDA",
+            "CORRIDA",
             brasilia,
             formato
         )
@@ -648,9 +646,7 @@ class F1Activity : AppCompatActivity() {
             if (campo == "date") {
 
                 data =
-                    race.getString(
-                        "date"
-                    )
+                    race.getString("date")
 
                 hora =
                     race.optString(
@@ -661,19 +657,13 @@ class F1Activity : AppCompatActivity() {
             } else {
 
                 val sessao =
-                    race.getJSONObject(
-                        campo
-                    )
+                    race.getJSONObject(campo)
 
                 data =
-                    sessao.getString(
-                        "date"
-                    )
+                    sessao.getString("date")
 
                 hora =
-                    sessao.getString(
-                        "time"
-                    )
+                    sessao.getString("time")
             }
 
             val horarioUtc =
@@ -696,12 +686,11 @@ class F1Activity : AppCompatActivity() {
 
                     text =
                         "$nome\n\n" +
-                        "📅 " +
                         horarioBrasilia.format(
                             formato
                         )
 
-                    textSize = 17f
+                    textSize = 16f
 
                     setTextColor(
                         Color.WHITE
@@ -713,18 +702,18 @@ class F1Activity : AppCompatActivity() {
                     )
 
                     gravity =
-                        Gravity.CENTER
+                        Gravity.START
 
                     setPadding(
-                        20,
-                        20,
-                        20,
-                        20
+                        18,
+                        17,
+                        18,
+                        17
                     )
 
                     background =
                         getDrawable(
-                            R.drawable.rounded_card
+                            R.drawable.session_card
                         )
                 }
 
@@ -736,9 +725,9 @@ class F1Activity : AppCompatActivity() {
 
             parametros.setMargins(
                 0,
-                6,
+                5,
                 0,
-                6
+                5
             )
 
             layout.addView(
@@ -768,7 +757,7 @@ class F1Activity : AppCompatActivity() {
                     contadorView =
                         TextView(this).apply {
 
-                            textSize = 16f
+                            textSize = 15f
 
                             setTextColor(
                                 Color.WHITE
@@ -783,15 +772,15 @@ class F1Activity : AppCompatActivity() {
                                 Gravity.CENTER
 
                             setPadding(
-                                16,
-                                12,
-                                16,
-                                16
+                                18,
+                                15,
+                                18,
+                                15
                             )
 
                             background =
                                 getDrawable(
-                                    R.drawable.rounded_card
+                                    R.drawable.countdown_card
                                 )
                         }
 
@@ -803,7 +792,7 @@ class F1Activity : AppCompatActivity() {
 
                     parametrosContador.setMargins(
                         0,
-                        0,
+                        2,
                         0,
                         6
                     )
@@ -846,7 +835,7 @@ class F1Activity : AppCompatActivity() {
         ) {
 
             view.text =
-                "🏁 A próxima sessão está começando!"
+                "A próxima sessão está começando."
 
             return
         }
@@ -866,17 +855,17 @@ class F1Activity : AppCompatActivity() {
         view.text =
             if (dias > 0) {
 
-                "⏳  PRÓXIMA SESSÃO EM  " +
+                "PRÓXIMA SESSÃO  •  " +
                 "${dias}d ${horas}h ${minutos}min"
 
             } else if (horas > 0) {
 
-                "⏳  PRÓXIMA SESSÃO EM  " +
+                "PRÓXIMA SESSÃO  •  " +
                 "${horas}h ${minutos}min"
 
             } else {
 
-                "⏳  PRÓXIMA SESSÃO EM  " +
+                "PRÓXIMA SESSÃO  •  " +
                 "${minutos}min"
             }
     }
@@ -892,15 +881,19 @@ class F1Activity : AppCompatActivity() {
             "saudi arabia" -> "🇸🇦"
             "japan" -> "🇯🇵"
             "china" -> "🇨🇳"
+
             "usa",
             "united states" -> "🇺🇸"
+
             "italy" -> "🇮🇹"
             "monaco" -> "🇲🇨"
             "spain" -> "🇪🇸"
             "canada" -> "🇨🇦"
             "austria" -> "🇦🇹"
+
             "united kingdom",
             "uk" -> "🇬🇧"
+
             "belgium" -> "🇧🇪"
             "hungary" -> "🇭🇺"
             "netherlands" -> "🇳🇱"
@@ -909,6 +902,7 @@ class F1Activity : AppCompatActivity() {
             "mexico" -> "🇲🇽"
             "brazil" -> "🇧🇷"
             "qatar" -> "🇶🇦"
+
             "uae",
             "united arab emirates" -> "🇦🇪"
 
