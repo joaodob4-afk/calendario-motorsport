@@ -164,8 +164,6 @@ private fun mostrarMenu() {
         abrirCategoria("F3")
     }
 
-    // Mantidos por enquanto.
-    // IndyCar e Formula E ainda não entram na lista.
     findViewById<android.view.View>(
         R.id.btnIndyCar
     ).setOnClickListener {
@@ -313,7 +311,7 @@ private fun mostrarEtapas(
         item.findViewById<TextView>(
             R.id.itemPais
         ).text =
-            etapa.pais
+            "${bandeiraPais(etapa.pais)} ${etapa.pais}"
 
         item.findViewById<TextView>(
             R.id.itemCircuito
@@ -335,6 +333,37 @@ private fun mostrarEtapas(
         listaEtapas.addView(
             item
         )
+    }
+}
+
+private fun bandeiraPais(
+    pais: String
+): String {
+
+    return when (pais) {
+
+        "Austrália" -> "🇦🇺"
+        "Japão" -> "🇯🇵"
+        "Bahrein" -> "🇧🇭"
+        "Arábia Saudita" -> "🇸🇦"
+        "Estados Unidos" -> "🇺🇸"
+        "Canadá" -> "🇨🇦"
+        "Mônaco" -> "🇲🇨"
+        "Espanha" -> "🇪🇸"
+        "Áustria" -> "🇦🇹"
+        "Reino Unido" -> "🇬🇧"
+        "Bélgica" -> "🇧🇪"
+        "Hungria" -> "🇭🇺"
+        "Holanda" -> "🇳🇱"
+        "Itália" -> "🇮🇹"
+        "Azerbaijão" -> "🇦🇿"
+        "Singapura" -> "🇸🇬"
+        "México" -> "🇲🇽"
+        "Brasil" -> "🇧🇷"
+        "Catar" -> "🇶🇦"
+        "Abu Dhabi" -> "🇦🇪"
+
+        else -> "🌐"
     }
 }
 
