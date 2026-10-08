@@ -278,11 +278,11 @@
                 android:paddingEnd="14dp"
                 android:background="@drawable/search_bar">
 
+                <!-- Lupa própria do aplicativo -->
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_search"
-                    android:tint="#8FA6BA"
+                    android:src="@drawable/ic_search"
                     android:contentDescription="Pesquisar" />
 
                 <EditText
@@ -302,7 +302,7 @@
 
             </LinearLayout>
 
-            <!-- Espaço para a lista de etapas -->
+            <!-- Lista de etapas -->
             <LinearLayout
                 android:id="@+id/listaEtapas"
                 android:layout_width="match_parent"
