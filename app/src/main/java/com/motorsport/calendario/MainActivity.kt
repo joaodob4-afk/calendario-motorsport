@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         val pais: String,
         val circuito: String,
         val data: String,
+        val dataInicio: String = "",
         val circuitId: String = ""
     )
 
