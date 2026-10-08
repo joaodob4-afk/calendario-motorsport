@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
         val pais: String,
         val circuito: String,
         val data: String,
-        val roundF1: String = ""
+        val circuitId: String = ""
     )
 
     private lateinit var listaEtapas: LinearLayout
@@ -42,28 +42,28 @@ class MainActivity : AppCompatActivity() {
     private val todasEtapas = listOf(
 
         // F1 2026
-        Etapa("F1", "Austrália", "Melbourne", "06–08 MAR", "1"),
-        Etapa("F1", "Japão", "Suzuka", "27–29 MAR", "2"),
-        Etapa("F1", "Bahrein", "Sakhir", "10–12 ABR", "3"),
-        Etapa("F1", "Arábia Saudita", "Jeddah", "17–19 ABR", "4"),
-        Etapa("F1", "Estados Unidos", "Miami", "01–03 MAI", "5"),
-        Etapa("F1", "Canadá", "Montreal", "22–24 MAI", "6"),
-        Etapa("F1", "Mônaco", "Monte Carlo", "05–07 JUN", "7"),
-        Etapa("F1", "Espanha", "Barcelona", "12–14 JUN", "8"),
-        Etapa("F1", "Áustria", "Spielberg", "26–28 JUN", "9"),
-        Etapa("F1", "Reino Unido", "Silverstone", "03–05 JUL", "10"),
-        Etapa("F1", "Bélgica", "Spa-Francorchamps", "17–19 JUL", "11"),
-        Etapa("F1", "Hungria", "Budapeste", "24–26 JUL", "12"),
-        Etapa("F1", "Holanda", "Zandvoort", "21–23 AGO", "13"),
-        Etapa("F1", "Itália", "Monza", "04–06 SET", "14"),
-        Etapa("F1", "Azerbaijão", "Baku", "18–20 SET", "15"),
-        Etapa("F1", "Singapura", "Marina Bay", "09–11 OUT", "16"),
-        Etapa("F1", "Estados Unidos", "Austin", "23–25 OUT", "17"),
-        Etapa("F1", "México", "Cidade do México", "30 OUT–01 NOV", "18"),
-        Etapa("F1", "Brasil", "Interlagos", "06–08 NOV", "19"),
-        Etapa("F1", "Estados Unidos", "Las Vegas", "20–22 NOV", "20"),
-        Etapa("F1", "Catar", "Lusail", "27–29 NOV", "21"),
-        Etapa("F1", "Abu Dhabi", "Yas Marina", "04–06 DEZ", "22"),
+        Etapa("F1", "Austrália", "Melbourne", "06–08 MAR", "albert_park"),
+        Etapa("F1", "Japão", "Suzuka", "27–29 MAR", "suzuka"),
+        Etapa("F1", "Bahrein", "Sakhir", "10–12 ABR", "bahrain"),
+        Etapa("F1", "Arábia Saudita", "Jeddah", "17–19 ABR", "jeddah"),
+        Etapa("F1", "Estados Unidos", "Miami", "01–03 MAI", "miami"),
+        Etapa("F1", "Canadá", "Montreal", "22–24 MAI", "villeneuve"),
+        Etapa("F1", "Mônaco", "Monte Carlo", "05–07 JUN", "monaco"),
+        Etapa("F1", "Espanha", "Barcelona", "12–14 JUN", "catalunya"),
+        Etapa("F1", "Áustria", "Spielberg", "26–28 JUN", "red_bull_ring"),
+        Etapa("F1", "Reino Unido", "Silverstone", "03–05 JUL", "silverstone"),
+        Etapa("F1", "Bélgica", "Spa-Francorchamps", "17–19 JUL", "spa"),
+        Etapa("F1", "Hungria", "Budapeste", "24–26 JUL", "hungaroring"),
+        Etapa("F1", "Holanda", "Zandvoort", "21–23 AGO", "zandvoort"),
+        Etapa("F1", "Itália", "Monza", "04–06 SET", "monza"),
+        Etapa("F1", "Azerbaijão", "Baku", "18–20 SET", "baku"),
+        Etapa("F1", "Singapura", "Marina Bay", "09–11 OUT", "marina_bay"),
+        Etapa("F1", "Estados Unidos", "Austin", "23–25 OUT", "americas"),
+        Etapa("F1", "México", "Cidade do México", "30 OUT–01 NOV", "rodriguez"),
+        Etapa("F1", "Brasil", "Interlagos", "06–08 NOV", "interlagos"),
+        Etapa("F1", "Estados Unidos", "Las Vegas", "20–22 NOV", "las_vegas"),
+        Etapa("F1", "Catar", "Lusail", "27–29 NOV", "losail"),
+        Etapa("F1", "Abu Dhabi", "Yas Marina", "04–06 DEZ", "yas_marina"),
 
         // F2 2026
         Etapa("F2", "Austrália", "Melbourne", "06–08 MAR"),
@@ -357,21 +357,18 @@ class MainActivity : AppCompatActivity() {
                 when (etapa.categoria) {
 
                     "F1" -> {
-
                         abrirEventoF1PelaEtapa(
                             etapa
                         )
                     }
 
                     "F2" -> {
-
                         abrirEventoF2PelaEtapa(
                             etapa
                         )
                     }
 
                     "F3" -> {
-
                         abrirEventoF3PelaEtapa(
                             etapa
                         )
@@ -784,8 +781,8 @@ class MainActivity : AppCompatActivity() {
             )
 
         intent.putExtra(
-            "ROUND_F1",
-            etapa.roundF1
+            "CIRCUIT_ID_F1",
+            etapa.circuitId
         )
 
         startActivity(intent)
