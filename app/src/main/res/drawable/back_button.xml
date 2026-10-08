@@ -9,22 +9,21 @@
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.6"
+        android:strokeWidth="2.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M25,8
-                          C20,8 15,9 11,12
-                          C8,14 7,17 7,20" />
+                          C16,8 9,11 9,19" />
 
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.6"
+        android:strokeWidth="2.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M7,20
-                          L12,15
-                          M7,20
-                          L13,23" />
+        android:pathData="M9,19
+                          L14,14
+                          M9,19
+                          L14,24" />
 
 </vector>
