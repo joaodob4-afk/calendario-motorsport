@@ -66,8 +66,15 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
+        val paisSelecionado =
+            intent.getStringExtra("PAIS")
+
+        val circuitoSelecionado =
+            intent.getStringExtra("CIRCUITO")
+
         val selecionada =
-            intent.getStringExtra("RACE") != null
+            paisSelecionado != null ||
+            circuitoSelecionado != null
 
         val conteudo =
             LinearLayout(this).apply {
@@ -120,9 +127,12 @@ class F1Activity : AppCompatActivity() {
 
                 text =
                     if (selecionada) {
+
                         "FÓRMULA 1\n\n" +
                         "PROGRAMAÇÃO DA ETAPA"
+
                     } else {
+
                         "FÓRMULA 1\n\n" +
                         "PRÓXIMO EVENTO"
                     }
@@ -183,7 +193,8 @@ class F1Activity : AppCompatActivity() {
 
                 isVerticalScrollBarEnabled = false
                 isHorizontalScrollBarEnabled = false
-                overScrollMode = View.OVER_SCROLL_NEVER
+                overScrollMode =
+                    View.OVER_SCROLL_NEVER
 
                 addView(conteudo)
             }
@@ -257,26 +268,109 @@ class F1Activity : AppCompatActivity() {
 
             try {
 
-                val raceExtra =
-                    intent.getStringExtra("RACE")
+                val paisSelecionado =
+                    intent.getStringExtra(
+                        "PAIS"
+                    )
 
-                val evento: JSONObject
+                val circuitoSelecionado =
+                    intent.getStringExtra(
+                        "CIRCUITO"
+                    )
 
-                if (raceExtra != null) {
+                val races =
+                    buscarCorridasF1()
 
-                    evento =
-                        JSONObject(raceExtra)
+                var evento:
+                        JSONObject? = null
 
-                } else {
+                /*
+                 * Se uma etapa específica foi
+                 * selecionada, procuramos ela.
+                 */
+                if (
+                    paisSelecionado != null ||
+                    circuitoSelecionado != null
+                ) {
 
-                    val races =
-                        buscarCorridasF1()
+                    for (
+                        i in 0 until races.length()
+                    ) {
+
+                        val race =
+                            races.getJSONObject(i)
+
+                        val circuit =
+                            race.optJSONObject(
+                                "Circuit"
+                            )
+
+                        val location =
+                            circuit?.optJSONObject(
+                                "Location"
+                            )
+
+                        val paisApi =
+                            location?.optString(
+                                "country",
+                                ""
+                            ) ?: ""
+
+                        val cidadeApi =
+                            location?.optString(
+                                "local",
+                                ""
+                            ) ?: ""
+
+                        val circuitoApi =
+                            circuit?.optString(
+                                "circuitName",
+                                ""
+                            ) ?: ""
+
+                        val paisConfere =
+                            paisSelecionado == null ||
+                            paisApi.equals(
+                                paisSelecionado,
+                                ignoreCase = true
+                            )
+
+                        val circuitoConfere =
+                            circuitoSelecionado == null ||
+                            cidadeApi.equals(
+                                circuitoSelecionado,
+                                ignoreCase = true
+                            ) ||
+                            circuitoApi.contains(
+                                circuitoSelecionado,
+                                ignoreCase = true
+                            ) ||
+                            cidadeApi.contains(
+                                circuitoSelecionado,
+                                ignoreCase = true
+                            )
+
+                        if (
+                            paisConfere &&
+                            circuitoConfere
+                        ) {
+
+                            evento =
+                                race
+
+                            break
+                        }
+                    }
+                }
+
+                /*
+                 * Se nenhuma etapa específica foi
+                 * enviada, usamos o próximo evento.
+                 */
+                if (evento == null) {
 
                     val agora =
                         java.time.Instant.now()
-
-                    var proximo:
-                            JSONObject? = null
 
                     for (
                         i in 0 until races.length()
@@ -306,26 +400,23 @@ class F1Activity : AppCompatActivity() {
                                 .isAfter(agora)
                         ) {
 
-                            proximo =
+                            evento =
                                 race
 
                             break
                         }
                     }
+                }
 
-                    if (proximo == null) {
+                if (evento == null) {
 
-                        runOnUiThread {
+                    runOnUiThread {
 
-                            carregando.text =
-                                "Nenhum evento futuro encontrado."
-                        }
-
-                        return@Thread
+                        carregando.text =
+                            "Etapa não encontrada."
                     }
 
-                    evento =
-                        proximo
+                    return@Thread
                 }
 
                 runOnUiThread {
@@ -336,7 +427,7 @@ class F1Activity : AppCompatActivity() {
 
                     mostrarEvento(
                         layout,
-                        evento
+                        evento!!
                     )
 
                     handler.post(
@@ -784,74 +875,32 @@ class F1Activity : AppCompatActivity() {
 
         return when (pais.lowercase()) {
 
-            "australia" ->
-                "🇦🇺"
-
-            "bahrain" ->
-                "🇧🇭"
-
-            "saudi arabia" ->
-                "🇸🇦"
-
-            "japan" ->
-                "🇯🇵"
-
-            "china" ->
-                "🇨🇳"
-
+            "australia" -> "🇦🇺"
+            "bahrain" -> "🇧🇭"
+            "saudi arabia" -> "🇸🇦"
+            "japan" -> "🇯🇵"
+            "china" -> "🇨🇳"
             "usa",
-            "united states" ->
-                "🇺🇸"
-
-            "italy" ->
-                "🇮🇹"
-
-            "monaco" ->
-                "🇲🇨"
-
-            "spain" ->
-                "🇪🇸"
-
-            "canada" ->
-                "🇨🇦"
-
-            "austria" ->
-                "🇦🇹"
-
+            "united states" -> "🇺🇸"
+            "italy" -> "🇮🇹"
+            "monaco" -> "🇲🇨"
+            "spain" -> "🇪🇸"
+            "canada" -> "🇨🇦"
+            "austria" -> "🇦🇹"
             "united kingdom",
-            "uk" ->
-                "🇬🇧"
-
-            "belgium" ->
-                "🇧🇪"
-
-            "hungary" ->
-                "🇭🇺"
-
-            "netherlands" ->
-                "🇳🇱"
-
-            "azerbaijan" ->
-                "🇦🇿"
-
-            "singapore" ->
-                "🇸🇬"
-
-            "mexico" ->
-                "🇲🇽"
-
-            "brazil" ->
-                "🇧🇷"
-
-            "qatar" ->
-                "🇶🇦"
-
+            "uk" -> "🇬🇧"
+            "belgium" -> "🇧🇪"
+            "hungary" -> "🇭🇺"
+            "netherlands" -> "🇳🇱"
+            "azerbaijan" -> "🇦🇿"
+            "singapore" -> "🇸🇬"
+            "mexico" -> "🇲🇽"
+            "brazil" -> "🇧🇷"
+            "qatar" -> "🇶🇦"
             "uae",
-            "united arab emirates" ->
-                "🇦🇪"
+            "united arab emirates" -> "🇦🇪"
 
-            else ->
-                "🌐"
+            else -> "🌐"
         }
     }
 
@@ -865,7 +914,7 @@ class F1Activity : AppCompatActivity() {
     }
 
     private fun buscarCorridasF1():
-        org.json.JSONArray {
+            org.json.JSONArray {
 
         val url =
             URL(
