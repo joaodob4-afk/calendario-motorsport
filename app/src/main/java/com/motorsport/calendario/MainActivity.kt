@@ -342,6 +342,12 @@ class MainActivity : AppCompatActivity() {
                     false
                 )
 
+            val status =
+                statusEtapa(
+                    etapa,
+                    etapasOrdenadas
+                )
+
             item.findViewById<TextView>(
                 R.id.itemCategoria
             ).text =
@@ -361,6 +367,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.itemData
             ).text =
                 etapa.data
+
+            item.contentDescription =
+                status
 
             item.setOnClickListener {
 
@@ -389,6 +398,41 @@ class MainActivity : AppCompatActivity() {
             listaEtapas.addView(
                 item
             )
+        }
+    }
+
+    private fun statusEtapa(
+        etapa: Etapa,
+        etapasOrdenadas: List<Etapa>
+    ): String {
+
+        val hoje =
+            java.time.LocalDate.now()
+
+        val data =
+            java.time.LocalDate.parse(
+                etapa.dataInicio
+            )
+
+        if (data.isBefore(hoje)) {
+            return "FINALIZADA"
+        }
+
+        val proxima =
+            etapasOrdenadas.firstOrNull {
+
+                val dataInicio =
+                    java.time.LocalDate.parse(
+                        it.dataInicio
+                    )
+
+                !dataInicio.isBefore(hoje)
+            }
+
+        return if (proxima == etapa) {
+            "PRÓXIMA"
+        } else {
+            "AGENDADA"
         }
     }
 
