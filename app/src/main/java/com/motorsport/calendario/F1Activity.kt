@@ -44,7 +44,7 @@ class F1Activity : AppCompatActivity() {
         val conteudo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(18), dp(18), dp(28))
-            setBackgroundColor(Color.rgb(7, 26, 45))
+            setBackgroundColor(Color.rgb(5, 5, 5))
         }
 
         val voltarTopo = criarBotaoVoltar()
