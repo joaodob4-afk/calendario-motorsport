@@ -94,39 +94,13 @@ class F1Activity : AppCompatActivity() {
         val titulo =
             TextView(this).apply {
 
-                text =
-                    if (selecionada) {
-
-                        "FÓRMULA 1\n" +
-                        "PROGRAMAÇÃO DA ETAPA"
-
-                    } else {
-
-                        "FÓRMULA 1\n" +
-                        "PRÓXIMO EVENTO"
-                    }
-
-                textSize = 25f
-
-                setTextColor(
-                    Color.WHITE
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                gravity =
-                    Gravity.START
-
-                letterSpacing = 0.04f
+                text = ""
 
                 setPadding(
-                    2,
-                    14,
-                    2,
-                    18
+                    0,
+                    0,
+                    0,
+                    0
                 )
             }
 
@@ -189,28 +163,16 @@ class F1Activity : AppCompatActivity() {
 
         return TextView(this).apply {
 
-            text =
-                "‹"
-
-            textSize = 30f
-
-            setTextColor(
-                Color.WHITE
-            )
+            text = ""
 
             gravity =
                 Gravity.CENTER
-
-            setTypeface(
-                null,
-                Typeface.NORMAL
-            )
 
             setPadding(
                 0,
                 0,
                 0,
-                3
+                0
             )
 
             background =
@@ -223,8 +185,8 @@ class F1Activity : AppCompatActivity() {
 
             val parametros =
                 LinearLayout.LayoutParams(
-                    46,
-                    46
+                    48,
+                    42
                 )
 
             layoutParams =
