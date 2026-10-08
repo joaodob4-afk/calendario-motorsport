@@ -32,7 +32,8 @@
                 android:color="#19B76B" />
 
             <corners
-                android:radius="4dp" />
+                android:topRightRadius="14dp"
+                android:bottomRightRadius="14dp" />
 
         </shape>
 
