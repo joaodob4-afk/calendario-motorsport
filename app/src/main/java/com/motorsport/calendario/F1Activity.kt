@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -159,14 +160,16 @@ class F1Activity : AppCompatActivity() {
         )
     }
 
-    private fun criarBotaoVoltar(): TextView {
+    private fun criarBotaoVoltar(): ImageView {
 
-        return TextView(this).apply {
+        return ImageView(this).apply {
 
-            text = ""
+            setImageResource(
+                R.drawable.back_button
+            )
 
-            gravity =
-                Gravity.CENTER
+            scaleType =
+                ImageView.ScaleType.CENTER
 
             setPadding(
                 0,
@@ -175,10 +178,7 @@ class F1Activity : AppCompatActivity() {
                 0
             )
 
-            background =
-                getDrawable(
-                    R.drawable.back_button
-                )
+            background = null
 
             isClickable = true
             isFocusable = true
