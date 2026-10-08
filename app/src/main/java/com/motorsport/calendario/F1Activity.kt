@@ -46,9 +46,6 @@ class F1Activity : AppCompatActivity() {
                 "CIRCUIT_ID_F1"
             )
 
-        val selecionada =
-            circuitIdSelecionado != null
-
         val conteudo =
             LinearLayout(this).apply {
 
@@ -59,7 +56,7 @@ class F1Activity : AppCompatActivity() {
                     18,
                     18,
                     18,
-                    24
+                    28
                 )
 
                 setBackgroundColor(
@@ -84,29 +81,12 @@ class F1Activity : AppCompatActivity() {
             0,
             0,
             0,
-            8
+            14
         )
 
         conteudo.addView(
             voltarTopo,
             parametrosVoltarTopo
-        )
-
-        val titulo =
-            TextView(this).apply {
-
-                text = ""
-
-                setPadding(
-                    0,
-                    0,
-                    0,
-                    0
-                )
-            }
-
-        conteudo.addView(
-            titulo
         )
 
         val carregando =
@@ -130,9 +110,9 @@ class F1Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    24,
+                    30,
                     0,
-                    24
+                    30
                 )
             }
 
@@ -149,14 +129,19 @@ class F1Activity : AppCompatActivity() {
                 overScrollMode =
                     View.OVER_SCROLL_NEVER
 
-                addView(conteudo)
+                addView(
+                    conteudo
+                )
             }
 
-        setContentView(scrollView)
+        setContentView(
+            scrollView
+        )
 
         carregarEvento(
             conteudo,
-            carregando
+            carregando,
+            circuitIdSelecionado
         )
     }
 
@@ -183,15 +168,6 @@ class F1Activity : AppCompatActivity() {
             isClickable = true
             isFocusable = true
 
-            val parametros =
-                LinearLayout.LayoutParams(
-                    48,
-                    42
-                )
-
-            layoutParams =
-                parametros
-
             setOnClickListener {
 
                 voltarParaTelaAnterior()
@@ -211,27 +187,21 @@ class F1Activity : AppCompatActivity() {
 
     private fun carregarEvento(
         layout: LinearLayout,
-        carregando: TextView
+        carregando: TextView,
+        circuitId: String?
     ) {
 
         Thread {
 
             try {
 
-                val circuitIdSelecionado =
-                    intent.getStringExtra(
-                        "CIRCUIT_ID_F1"
-                    )
-
                 val evento: JSONObject?
 
-                if (
-                    circuitIdSelecionado != null
-                ) {
+                if (circuitId != null) {
 
                     evento =
                         buscarCorridaPorCircuito(
-                            circuitIdSelecionado
+                            circuitId
                         )
 
                 } else {
@@ -283,13 +253,13 @@ class F1Activity : AppCompatActivity() {
         val url =
             URL(
                 "https://api.jolpi.ca/ergast/f1/2026/circuits/" +
-                circuitId +
-                "/races/"
+                    circuitId +
+                    "/races/"
             )
 
         val connection =
             url.openConnection()
-                    as HttpURLConnection
+                as HttpURLConnection
 
         connection.requestMethod =
             "GET"
@@ -339,7 +309,7 @@ class F1Activity : AppCompatActivity() {
 
         val connection =
             url.openConnection()
-                    as HttpURLConnection
+                as HttpURLConnection
 
         connection.requestMethod =
             "GET"
@@ -418,7 +388,7 @@ class F1Activity : AppCompatActivity() {
 
         val formato =
             DateTimeFormatter.ofPattern(
-                "EEE dd MMM • HH:mm",
+                "EEE • dd MMM • HH:mm",
                 Locale("pt", "BR")
             )
 
@@ -468,39 +438,11 @@ class F1Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    8,
+                    4,
                     0,
-                    22
+                    18
                 )
             }
-
-        val identificacao =
-            TextView(this).apply {
-
-                text =
-                    "GRAND PRIX"
-
-                textSize = 11f
-
-                setTextColor(
-                    Color.rgb(
-                        143,
-                        166,
-                        186
-                    )
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                letterSpacing = 0.16f
-            }
-
-        cabecalho.addView(
-            identificacao
-        )
 
         val nomeEvento =
             TextView(this).apply {
@@ -508,7 +450,7 @@ class F1Activity : AppCompatActivity() {
                 text =
                     nome
 
-                textSize = 26f
+                textSize = 28f
 
                 setTextColor(
                     Color.WHITE
@@ -519,48 +461,19 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
-                letterSpacing = 0.01f
+                letterSpacing =
+                    0.01f
 
                 setPadding(
                     0,
-                    5,
                     0,
-                    0
+                    0,
+                    8
                 )
             }
 
         cabecalho.addView(
             nomeEvento
-        )
-
-        val divisor =
-            View(this).apply {
-
-                setBackgroundColor(
-                    Color.rgb(
-                        25,
-                        183,
-                        107
-                    )
-                )
-            }
-
-        val parametrosDivisor =
-            LinearLayout.LayoutParams(
-                42,
-                3
-            )
-
-        parametrosDivisor.setMargins(
-            0,
-            12,
-            0,
-            12
-        )
-
-        cabecalho.addView(
-            divisor,
-            parametrosDivisor
         )
 
         val circuitoEvento =
@@ -569,7 +482,7 @@ class F1Activity : AppCompatActivity() {
                 text =
                     circuito
 
-                textSize = 15f
+                textSize = 16f
 
                 setTextColor(
                     Color.WHITE
@@ -613,8 +526,44 @@ class F1Activity : AppCompatActivity() {
             localEvento
         )
 
+        val divisor =
+            View(this).apply {
+
+                setBackgroundColor(
+                    Color.rgb(
+                        25,
+                        183,
+                        107
+                    )
+                )
+            }
+
+        val parametrosDivisor =
+            LinearLayout.LayoutParams(
+                46,
+                3
+            )
+
+        parametrosDivisor.setMargins(
+            0,
+            16,
+            0,
+            0
+        )
+
+        cabecalho.addView(
+            divisor,
+            parametrosDivisor
+        )
+
         layout.addView(
             cabecalho
+        )
+
+        adicionarDataEtapa(
+            layout,
+            race,
+            brasilia
         )
 
         val tituloProgramacao =
@@ -638,13 +587,14 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
-                letterSpacing = 0.12f
+                letterSpacing =
+                    0.14f
 
                 setPadding(
                     0,
-                    4,
+                    24,
                     0,
-                    7
+                    12
                 )
             }
 
@@ -652,71 +602,300 @@ class F1Activity : AppCompatActivity() {
             tituloProgramacao
         )
 
-        adicionarSessao(
+        adicionarGrupoDia(
             layout,
             race,
-            "FirstPractice",
-            "TREINO LIVRE 1",
+            "SEXTA",
+            listOf(
+                Pair(
+                    "FirstPractice",
+                    "TREINO LIVRE 1"
+                ),
+                Pair(
+                    "SecondPractice",
+                    "TREINO LIVRE 2"
+                )
+            ),
             brasilia,
             formato
         )
 
-        adicionarSessao(
+        adicionarGrupoDia(
             layout,
             race,
-            "SecondPractice",
-            "TREINO LIVRE 2",
+            "SÁBADO",
+            listOf(
+                Pair(
+                    "ThirdPractice",
+                    "TREINO LIVRE 3"
+                ),
+                Pair(
+                    "SprintQualifying",
+                    "CLASSIFICAÇÃO SPRINT"
+                ),
+                Pair(
+                    "Qualifying",
+                    "CLASSIFICAÇÃO"
+                )
+            ),
             brasilia,
             formato
         )
 
-        adicionarSessao(
+        adicionarGrupoDia(
             layout,
             race,
-            "ThirdPractice",
-            "TREINO LIVRE 3",
-            brasilia,
-            formato
-        )
-
-        adicionarSessao(
-            layout,
-            race,
-            "SprintQualifying",
-            "CLASSIFICAÇÃO SPRINT",
-            brasilia,
-            formato
-        )
-
-        adicionarSessao(
-            layout,
-            race,
-            "Sprint",
-            "SPRINT",
-            brasilia,
-            formato
-        )
-
-        adicionarSessao(
-            layout,
-            race,
-            "Qualifying",
-            "CLASSIFICAÇÃO",
-            brasilia,
-            formato
-        )
-
-        adicionarSessao(
-            layout,
-            race,
-            "date",
-            "CORRIDA",
+            "DOMINGO",
+            listOf(
+                Pair(
+                    "Sprint",
+                    "SPRINT"
+                ),
+                Pair(
+                    "date",
+                    "CORRIDA"
+                )
+            ),
             brasilia,
             formato
         )
     }
 
-    private fun adicionarSessao(
+    private fun adicionarDataEtapa(
+        layout: LinearLayout,
+        race: JSONObject,
+        brasilia: ZoneId
+    ) {
+
+        try {
+
+            val data =
+                race.getString(
+                    "date"
+                )
+
+            val hora =
+                race.optString(
+                    "time",
+                    "00:00:00Z"
+                )
+
+            val horario =
+                OffsetDateTime.parse(
+                    "${data}T${hora}"
+                )
+
+            val dataBrasilia =
+                horario.atZoneSameInstant(
+                    brasilia
+                )
+
+            val dia =
+                dataBrasilia.dayOfMonth
+
+            val mes =
+                dataBrasilia.month
+                    .getDisplayName(
+                        java.time.format.TextStyle.SHORT,
+                        Locale("pt", "BR")
+                    )
+                    .uppercase(
+                        Locale("pt", "BR")
+                    )
+
+            val faixa =
+                LinearLayout(this).apply {
+
+                    orientation =
+                        LinearLayout.HORIZONTAL
+
+                    gravity =
+                        Gravity.CENTER_VERTICAL
+
+                    setPadding(
+                        0,
+                        14,
+                        0,
+                        14
+                    )
+                }
+
+            val numero =
+                TextView(this).apply {
+
+                    text =
+                        String.format(
+                            Locale("pt", "BR"),
+                            "%02d",
+                            dia
+                        )
+
+                    textSize =
+                        30f
+
+                    setTextColor(
+                        Color.WHITE
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+                }
+
+            faixa.addView(
+                numero
+            )
+
+            val mesTexto =
+                TextView(this).apply {
+
+                    text =
+                        mes
+
+                    textSize =
+                        12f
+
+                    setTextColor(
+                        Color.rgb(
+                            25,
+                            183,
+                            107
+                        )
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    setPadding(
+                        8,
+                        0,
+                        0,
+                        0
+                    )
+                }
+
+            faixa.addView(
+                mesTexto
+            )
+
+            val linha =
+                View(this).apply {
+
+                    setBackgroundColor(
+                        Color.rgb(
+                            41,
+                            74,
+                            99
+                        )
+                    )
+                }
+
+            val parametrosLinha =
+                LinearLayout.LayoutParams(
+                    0,
+                    1,
+                    1f
+                )
+
+            parametrosLinha.setMargins(
+                16,
+                0,
+                0,
+                0
+            )
+
+            faixa.addView(
+                linha,
+                parametrosLinha
+            )
+
+            layout.addView(
+                faixa
+            )
+
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun adicionarGrupoDia(
+        layout: LinearLayout,
+        race: JSONObject,
+        titulo: String,
+        sessoes: List<Pair<String, String>>,
+        brasilia: ZoneId,
+        formato: DateTimeFormatter
+    ) {
+
+        val sessoesExistentes =
+            sessoes.filter {
+
+                race.has(
+                    it.first
+                )
+            }
+
+        if (
+            sessoesExistentes.isEmpty()
+        ) {
+            return
+        }
+
+        val tituloDia =
+            TextView(this).apply {
+
+                text =
+                    titulo
+
+                textSize =
+                    11f
+
+                setTextColor(
+                    Color.rgb(
+                        143,
+                        166,
+                        186
+                    )
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                letterSpacing =
+                    0.14f
+
+                setPadding(
+                    0,
+                    18,
+                    0,
+                    4
+                )
+            }
+
+        layout.addView(
+            tituloDia
+        )
+
+        for (
+            sessao in sessoesExistentes
+        ) {
+
+            adicionarSessaoModerna(
+                layout,
+                race,
+                sessao.first,
+                sessao.second,
+                brasilia,
+                formato
+            )
+        }
+    }
+
+    private fun adicionarSessaoModerna(
         layout: LinearLayout,
         race: JSONObject,
         campo: String,
@@ -733,7 +912,9 @@ class F1Activity : AppCompatActivity() {
             if (campo == "date") {
 
                 data =
-                    race.getString("date")
+                    race.getString(
+                        "date"
+                    )
 
                 hora =
                     race.optString(
@@ -744,13 +925,19 @@ class F1Activity : AppCompatActivity() {
             } else {
 
                 val sessao =
-                    race.getJSONObject(campo)
+                    race.getJSONObject(
+                        campo
+                    )
 
                 data =
-                    sessao.getString("date")
+                    sessao.getString(
+                        "date"
+                    )
 
                 hora =
-                    sessao.getString("time")
+                    sessao.getString(
+                        "time"
+                    )
             }
 
             val horarioUtc =
@@ -767,25 +954,58 @@ class F1Activity : AppCompatActivity() {
                 LinearLayout(this).apply {
 
                     orientation =
-                        LinearLayout.VERTICAL
-
-                    setPadding(
-                        0,
-                        12,
-                        0,
-                        12
-                    )
-                }
-
-            val superior =
-                LinearLayout(this).apply {
-
-                    orientation =
                         LinearLayout.HORIZONTAL
 
                     gravity =
                         Gravity.CENTER_VERTICAL
+
+                    setPadding(
+                        0,
+                        13,
+                        0,
+                        13
+                    )
                 }
+
+            val marcador =
+                View(this).apply {
+
+                    setBackgroundColor(
+                        if (
+                            nome == "CORRIDA"
+                        ) {
+                            Color.rgb(
+                                25,
+                                183,
+                                107
+                            )
+                        } else {
+                            Color.rgb(
+                                41,
+                                74,
+                                99
+                            )
+                        }
+                    )
+                }
+
+            val parametrosMarcador =
+                LinearLayout.LayoutParams(
+                    3,
+                    24
+                )
+
+            parametrosMarcador.setMargins(
+                0,
+                0,
+                12,
+                0
+            )
+
+            linha.addView(
+                marcador,
+                parametrosMarcador
+            )
 
             val nomeSessao =
                 TextView(this).apply {
@@ -793,7 +1013,14 @@ class F1Activity : AppCompatActivity() {
                     text =
                         nome
 
-                    textSize = 14f
+                    textSize =
+                        if (
+                            nome == "CORRIDA"
+                        ) {
+                            15f
+                        } else {
+                            14f
+                        }
 
                     setTextColor(
                         Color.WHITE
@@ -804,8 +1031,6 @@ class F1Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
-                    letterSpacing = 0.03f
-
                     layoutParams =
                         LinearLayout.LayoutParams(
                             0,
@@ -814,7 +1039,7 @@ class F1Activity : AppCompatActivity() {
                         )
                 }
 
-            superior.addView(
+            linha.addView(
                 nomeSessao
             )
 
@@ -827,17 +1052,27 @@ class F1Activity : AppCompatActivity() {
                                 formato
                             )
                             .uppercase(
-                                Locale("pt", "BR")
+                                Locale(
+                                    "pt",
+                                    "BR"
+                                )
                             )
 
-                    textSize = 13f
+                    textSize =
+                        12f
 
                     setTextColor(
-                        Color.rgb(
-                            143,
-                            166,
-                            186
-                        )
+                        if (
+                            nome == "CORRIDA"
+                        ) {
+                            Color.WHITE
+                        } else {
+                            Color.rgb(
+                                143,
+                                166,
+                                186
+                            )
+                        }
                     )
 
                     setTypeface(
@@ -849,12 +1084,12 @@ class F1Activity : AppCompatActivity() {
                         Gravity.END
                 }
 
-            superior.addView(
+            linha.addView(
                 horarioSessao
             )
 
-            linha.addView(
-                superior
+            layout.addView(
+                linha
             )
 
             val divisor =
@@ -875,20 +1110,9 @@ class F1Activity : AppCompatActivity() {
                     1
                 )
 
-            parametrosDivisor.setMargins(
-                0,
-                12,
-                0,
-                0
-            )
-
-            linha.addView(
+            layout.addView(
                 divisor,
                 parametrosDivisor
-            )
-
-            layout.addView(
-                linha
             )
 
         } catch (_: Exception) {
@@ -899,39 +1123,78 @@ class F1Activity : AppCompatActivity() {
         pais: String
     ): String {
 
-        return when (pais.lowercase()) {
+        return when (
+            pais.lowercase()
+        ) {
 
-            "australia" -> "🇦🇺"
-            "bahrain" -> "🇧🇭"
-            "saudi arabia" -> "🇸🇦"
-            "japan" -> "🇯🇵"
-            "china" -> "🇨🇳"
+            "australia" ->
+                "🇦🇺"
+
+            "bahrain" ->
+                "🇧🇭"
+
+            "saudi arabia" ->
+                "🇸🇦"
+
+            "japan" ->
+                "🇯🇵"
+
+            "china" ->
+                "🇨🇳"
 
             "usa",
-            "united states" -> "🇺🇸"
+            "united states" ->
+                "🇺🇸"
 
-            "italy" -> "🇮🇹"
-            "monaco" -> "🇲🇨"
-            "spain" -> "🇪🇸"
-            "canada" -> "🇨🇦"
-            "austria" -> "🇦🇹"
+            "italy" ->
+                "🇮🇹"
+
+            "monaco" ->
+                "🇲🇨"
+
+            "spain" ->
+                "🇪🇸"
+
+            "canada" ->
+                "🇨🇦"
+
+            "austria" ->
+                "🇦🇹"
 
             "united kingdom",
-            "uk" -> "🇬🇧"
+            "uk" ->
+                "🇬🇧"
 
-            "belgium" -> "🇧🇪"
-            "hungary" -> "🇭🇺"
-            "netherlands" -> "🇳🇱"
-            "azerbaijan" -> "🇦🇿"
-            "singapore" -> "🇸🇬"
-            "mexico" -> "🇲🇽"
-            "brazil" -> "🇧🇷"
-            "qatar" -> "🇶🇦"
+            "belgium" ->
+                "🇧🇪"
+
+            "hungary" ->
+                "🇭🇺"
+
+            "netherlands" ->
+                "🇳🇱"
+
+            "azerbaijan" ->
+                "🇦🇿"
+
+            "singapore" ->
+                "🇸🇬"
+
+            "mexico" ->
+                "🇲🇽"
+
+            "brazil" ->
+                "🇧🇷"
+
+            "qatar" ->
+                "🇶🇦"
 
             "uae",
-            "united arab emirates" -> "🇦🇪"
+            "united arab emirates" ->
+                "🇦🇪"
 
-            else -> "🌐"
+            else ->
+                "🌐"
         }
     }
 }
