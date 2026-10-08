@@ -91,9 +91,7 @@ class MainActivity : AppCompatActivity() {
         Etapa("F3", "Espanha", "Madrid", "11–13 SET", "2026-09-11")
     )
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         onBackPressedDispatcher.addCallback(
@@ -152,52 +150,51 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarMenu() {
 
-        setContentView(
-            R.layout.activity_main
-        )
+        setContentView(R.layout.activity_main)
 
         animarEntrada()
 
         listaEtapas =
-            findViewById(
-                R.id.listaEtapas
-            )
+            findViewById(R.id.listaEtapas)
 
         findViewById<android.view.View>(
             R.id.btnF1
         ).setOnClickListener {
+
             abrirCategoria("F1")
         }
 
         findViewById<android.view.View>(
             R.id.btnF2
         ).setOnClickListener {
+
             abrirCategoria("F2")
         }
 
         findViewById<android.view.View>(
             R.id.btnF3
         ).setOnClickListener {
+
             abrirCategoria("F3")
         }
 
         findViewById<android.view.View>(
             R.id.btnIndyCar
         ).setOnClickListener {
+
             abrirCategoria("IndyCar")
         }
 
         findViewById<android.view.View>(
             R.id.btnFormulaE
         ).setOnClickListener {
+
             abrirCategoria("Formula E")
         }
 
         configurarBusca()
 
-        mostrarEtapas(
-            todasEtapas
-        )
+        mostrarEtapas(todasEtapas)
     }
 
     private fun configurarBusca() {
@@ -215,8 +212,7 @@ class MainActivity : AppCompatActivity() {
                     start: Int,
                     count: Int,
                     after: Int
-                ) {
-                }
+                ) {}
 
                 override fun onTextChanged(
                     s: CharSequence?,
@@ -280,8 +276,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun afterTextChanged(
                     s: Editable?
-                ) {
-                }
+                ) {}
             }
         )
     }
@@ -292,6 +287,7 @@ class MainActivity : AppCompatActivity() {
 
         val etapasOrdenadas =
             etapas.sortedBy {
+
                 java.time.LocalDate.parse(
                     it.dataInicio
                 )
@@ -326,9 +322,7 @@ class MainActivity : AppCompatActivity() {
                 30
             )
 
-            listaEtapas.addView(
-                vazio
-            )
+            listaEtapas.addView(vazio)
 
             return
         }
@@ -368,6 +362,65 @@ class MainActivity : AppCompatActivity() {
             ).text =
                 etapa.data
 
+            val itemStatus =
+                item.findViewById<TextView>(
+                    R.id.itemStatus
+                )
+
+            itemStatus.text =
+                status
+
+            when (status) {
+
+                "FINALIZADA" -> {
+
+                    itemStatus.setTextColor(
+                        android.graphics.Color.WHITE
+                    )
+
+                    itemStatus.backgroundTintList =
+                        android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.rgb(
+                                90,
+                                100,
+                                110
+                            )
+                        )
+                }
+
+                "PRÓXIMA" -> {
+
+                    itemStatus.setTextColor(
+                        android.graphics.Color.WHITE
+                    )
+
+                    itemStatus.backgroundTintList =
+                        android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.rgb(
+                                25,
+                                150,
+                                95
+                            )
+                        )
+                }
+
+                "AGENDADA" -> {
+
+                    itemStatus.setTextColor(
+                        android.graphics.Color.WHITE
+                    )
+
+                    itemStatus.backgroundTintList =
+                        android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.rgb(
+                                30,
+                                70,
+                                105
+                            )
+                        )
+                }
+            }
+
             item.contentDescription =
                 status
 
@@ -375,29 +428,24 @@ class MainActivity : AppCompatActivity() {
 
                 when (etapa.categoria) {
 
-                    "F1" -> {
+                    "F1" ->
                         abrirEventoF1PelaEtapa(
                             etapa
                         )
-                    }
 
-                    "F2" -> {
+                    "F2" ->
                         abrirEventoF2PelaEtapa(
                             etapa
                         )
-                    }
 
-                    "F3" -> {
+                    "F3" ->
                         abrirEventoF3PelaEtapa(
                             etapa
                         )
-                    }
                 }
             }
 
-            listaEtapas.addView(
-                item
-            )
+            listaEtapas.addView(item)
         }
     }
 
@@ -415,6 +463,7 @@ class MainActivity : AppCompatActivity() {
             )
 
         if (data.isBefore(hoje)) {
+
             return "FINALIZADA"
         }
 
@@ -430,8 +479,11 @@ class MainActivity : AppCompatActivity() {
             }
 
         return if (proxima == etapa) {
+
             "PRÓXIMA"
+
         } else {
+
             "AGENDADA"
         }
     }
@@ -539,7 +591,9 @@ class MainActivity : AppCompatActivity() {
                 "F2" -> "FÓRMULA 2"
                 "F3" -> "FÓRMULA 3"
                 "IndyCar" -> "INDYCAR"
-                else -> "FÓRMULA E"
+
+                else ->
+                    "FÓRMULA E"
             }
 
         voltar.setOnClickListener {
@@ -557,6 +611,7 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F1") {
 
             evento.setOnClickListener {
+
                 abrirEventoF1()
             }
         }
@@ -564,6 +619,7 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F2") {
 
             evento.setOnClickListener {
+
                 abrirEventoF2()
             }
         }
@@ -571,6 +627,7 @@ class MainActivity : AppCompatActivity() {
         if (categoria == "F3") {
 
             evento.setOnClickListener {
+
                 abrirEventoF3()
             }
         }
@@ -671,12 +728,10 @@ class MainActivity : AppCompatActivity() {
                     java.time.Instant.now()
 
                 var proximaCorrida:
-                        JSONObject? =
-                    null
+                        JSONObject? = null
 
                 var proximaData:
-                        OffsetDateTime? =
-                    null
+                        OffsetDateTime? = null
 
                 for (i in 0 until races.length()) {
 
@@ -702,14 +757,19 @@ class MainActivity : AppCompatActivity() {
                             .isAfter(agora)
                     ) {
 
-                        proximaCorrida = race
-                        proximaData = horario
+                        proximaCorrida =
+                            race
+
+                        proximaData =
+                            horario
 
                         break
                     }
                 }
 
-                if (proximaCorrida == null) {
+                if (
+                    proximaCorrida == null
+                ) {
 
                     runOnUiThread {
 
@@ -738,7 +798,9 @@ class MainActivity : AppCompatActivity() {
 
                 val nome =
                     proximaCorrida!!
-                        .getString("raceName")
+                        .getString(
+                            "raceName"
+                        )
 
                 val dataCorrida =
                     horarioBrasilia.format(
@@ -751,9 +813,12 @@ class MainActivity : AppCompatActivity() {
                             "Qualifying"
                         )
 
-                var textoQualificacao = ""
+                var textoQualificacao =
+                    ""
 
-                if (qualificacao != null) {
+                if (
+                    qualificacao != null
+                ) {
 
                     val dataQualificacao =
                         qualificacao.getString(
@@ -854,9 +919,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F2Event? = null
+        var proximo:
+                F2Event? = null
 
-        for (item in F2Calendar.eventos) {
+        for (
+            item in F2Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -869,6 +937,7 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
+
                 break
             }
         }
@@ -894,9 +963,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F2Event? = null
+        var proximo:
+                F2Event? = null
 
-        for (item in F2Calendar.eventos) {
+        for (
+            item in F2Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -909,22 +981,28 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
+
                 break
             }
         }
 
         if (proximo == null) return
 
-        abrirEventoF2Item(proximo)
+        abrirEventoF2Item(
+            proximo
+        )
     }
 
     private fun abrirEventoF2PelaEtapa(
         etapa: Etapa
     ) {
 
-        var encontrado: F2Event? = null
+        var encontrado:
+                F2Event? = null
 
-        for (item in F2Calendar.eventos) {
+        for (
+            item in F2Calendar.eventos
+        ) {
 
             if (
                 item.circuito.equals(
@@ -934,6 +1012,7 @@ class MainActivity : AppCompatActivity() {
             ) {
 
                 encontrado = item
+
                 break
             }
         }
@@ -980,9 +1059,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F3Event? = null
+        var proximo:
+                F3Event? = null
 
-        for (item in F3Calendar.eventos) {
+        for (
+            item in F3Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -995,6 +1077,7 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
+
                 break
             }
         }
@@ -1020,9 +1103,12 @@ class MainActivity : AppCompatActivity() {
         val hoje =
             java.time.LocalDate.now()
 
-        var proximo: F3Event? = null
+        var proximo:
+                F3Event? = null
 
-        for (item in F3Calendar.eventos) {
+        for (
+            item in F3Calendar.eventos
+        ) {
 
             val inicio =
                 java.time.LocalDate.parse(
@@ -1035,22 +1121,28 @@ class MainActivity : AppCompatActivity() {
             if (!inicio.isBefore(hoje)) {
 
                 proximo = item
+
                 break
             }
         }
 
         if (proximo == null) return
 
-        abrirEventoF3Item(proximo)
+        abrirEventoF3Item(
+            proximo
+        )
     }
 
     private fun abrirEventoF3PelaEtapa(
         etapa: Etapa
     ) {
 
-        var encontrado: F3Event? = null
+        var encontrado:
+                F3Event? = null
 
-        for (item in F3Calendar.eventos) {
+        for (
+            item in F3Calendar.eventos
+        ) {
 
             if (
                 item.circuito.equals(
@@ -1060,6 +1152,7 @@ class MainActivity : AppCompatActivity() {
             ) {
 
                 encontrado = item
+
                 break
             }
         }
@@ -1111,9 +1204,14 @@ class MainActivity : AppCompatActivity() {
             url.openConnection()
                 as HttpURLConnection
 
-        connection.requestMethod = "GET"
-        connection.connectTimeout = 15000
-        connection.readTimeout = 15000
+        connection.requestMethod =
+            "GET"
+
+        connection.connectTimeout =
+            15000
+
+        connection.readTimeout =
+            15000
 
         connection.setRequestProperty(
             "User-Agent",
