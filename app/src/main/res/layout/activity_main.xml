@@ -232,13 +232,13 @@
                         <FrameLayout
                             android:layout_width="62dp"
                             android:layout_height="62dp"
-                            android:background="@drawable/category_circle">
+                            android:background="@drawable/category_circle"
+                            android:padding="2dp">
 
                             <ImageView
-                                android:layout_width="40dp"
-                                android:layout_height="40dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/logo_formulae"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:src="@drawable/logo_formulaeinicio"
                                 android:scaleType="fitCenter"
                                 android:contentDescription="Formula E" />
 
