@@ -66,11 +66,13 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
-        val roundSelecionado =
-            intent.getStringExtra("ROUND_F1")
+        val circuitIdSelecionado =
+            intent.getStringExtra(
+                "CIRCUIT_ID_F1"
+            )
 
         val selecionada =
-            roundSelecionado != null
+            circuitIdSelecionado != null
 
         val conteudo =
             LinearLayout(this).apply {
@@ -264,9 +266,9 @@ class F1Activity : AppCompatActivity() {
 
             try {
 
-                val roundSelecionado =
+                val circuitIdSelecionado =
                     intent.getStringExtra(
-                        "ROUND_F1"
+                        "CIRCUIT_ID_F1"
                     )
 
                 val races =
@@ -278,9 +280,11 @@ class F1Activity : AppCompatActivity() {
                 /*
                  * Se uma etapa específica foi
                  * selecionada, procuramos pelo
-                 * número oficial da etapa na API.
+                 * circuitId oficial da API.
                  */
-                if (roundSelecionado != null) {
+                if (
+                    circuitIdSelecionado != null
+                ) {
 
                     for (
                         i in 0 until races.length()
@@ -289,15 +293,20 @@ class F1Activity : AppCompatActivity() {
                         val race =
                             races.getJSONObject(i)
 
-                        val roundApi =
-                            race.optString(
-                                "round",
+                        val circuit =
+                            race.optJSONObject(
+                                "Circuit"
+                            )
+
+                        val circuitIdApi =
+                            circuit?.optString(
+                                "circuitId",
                                 ""
                             )
 
                         if (
-                            roundApi ==
-                            roundSelecionado
+                            circuitIdApi ==
+                            circuitIdSelecionado
                         ) {
 
                             evento =
@@ -309,8 +318,9 @@ class F1Activity : AppCompatActivity() {
                 }
 
                 /*
-                 * Se nenhuma etapa específica foi
-                 * encontrada, usamos o próximo evento.
+                 * Se nenhuma etapa específica
+                 * foi encontrada, usamos o
+                 * próximo evento.
                  */
                 if (evento == null) {
 
