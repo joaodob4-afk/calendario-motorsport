@@ -21,7 +21,7 @@
         </shape>
     </item>
 
-    <!-- Linha verde lateral -->
+    <!-- Faixa verde lateral -->
     <item
         android:width="7dp"
         android:gravity="left">
@@ -32,8 +32,10 @@
                 android:color="#19B76B" />
 
             <corners
-                android:topRightRadius="14dp"
-                android:bottomRightRadius="14dp" />
+                android:topRightRadius="0dp"
+                android:bottomRightRadius="0dp"
+                android:topLeftRadius="14dp"
+                android:bottomLeftRadius="14dp" />
 
         </shape>
 
