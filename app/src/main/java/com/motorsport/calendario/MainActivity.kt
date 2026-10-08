@@ -80,7 +80,9 @@ class MainActivity : AppCompatActivity() {
         Etapa("F3", "Espanha", "Madrid", "11–13 SET")
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
         super.onCreate(savedInstanceState)
 
         onBackPressedDispatcher.addCallback(
@@ -89,7 +91,9 @@ class MainActivity : AppCompatActivity() {
 
                 override fun handleOnBackPressed() {
 
-                    if (categoriaAtual.isNotEmpty()) {
+                    if (
+                        categoriaAtual.isNotEmpty()
+                    ) {
 
                         categoriaAtual = ""
 
@@ -130,46 +134,57 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarMenu() {
 
-        setContentView(R.layout.activity_main)
+        setContentView(
+            R.layout.activity_main
+        )
 
         animarEntrada()
 
         listaEtapas =
-            findViewById(R.id.listaEtapas)
+            findViewById(
+                R.id.listaEtapas
+            )
 
         findViewById<android.view.View>(
             R.id.btnF1
         ).setOnClickListener {
+
             abrirCategoria("F1")
         }
 
         findViewById<android.view.View>(
             R.id.btnF2
         ).setOnClickListener {
+
             abrirCategoria("F2")
         }
 
         findViewById<android.view.View>(
             R.id.btnF3
         ).setOnClickListener {
+
             abrirCategoria("F3")
         }
 
         findViewById<android.view.View>(
             R.id.btnIndyCar
         ).setOnClickListener {
+
             abrirCategoria("IndyCar")
         }
 
         findViewById<android.view.View>(
             R.id.btnFormulaE
         ).setOnClickListener {
+
             abrirCategoria("Formula E")
         }
 
         configurarBusca()
 
-        mostrarEtapas(todasEtapas)
+        mostrarEtapas(
+            todasEtapas
+        )
     }
 
     private fun configurarBusca() {
@@ -203,7 +218,9 @@ class MainActivity : AppCompatActivity() {
                             ?.lowercase()
                             ?: ""
 
-                    if (texto.isEmpty()) {
+                    if (
+                        texto.isEmpty()
+                    ) {
 
                         mostrarEtapas(
                             todasEtapas
@@ -254,7 +271,9 @@ class MainActivity : AppCompatActivity() {
         val inflater =
             LayoutInflater.from(this)
 
-        if (etapas.isEmpty()) {
+        if (
+            etapas.isEmpty()
+        ) {
 
             val vazio =
                 TextView(this)
@@ -285,7 +304,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        for (etapa in etapas) {
+        for (
+            etapa in etapas
+        ) {
 
             val item =
                 inflater.inflate(
@@ -316,19 +337,26 @@ class MainActivity : AppCompatActivity() {
 
             item.setOnClickListener {
 
-                when (etapa.categoria) {
+                when (
+                    etapa.categoria
+                ) {
 
                     "F1" -> {
-                        abrirEventoF1()
+
+                        abrirEventoF1PelaEtapa(
+                            etapa
+                        )
                     }
 
                     "F2" -> {
+
                         abrirEventoF2PelaEtapa(
                             etapa
                         )
                     }
 
                     "F3" -> {
+
                         abrirEventoF3PelaEtapa(
                             etapa
                         )
@@ -399,37 +427,45 @@ class MainActivity : AppCompatActivity() {
         when (categoria) {
 
             "F1" -> {
+
                 logo.setImageResource(
                     R.drawable.logo_f1
                 )
             }
 
             "F2" -> {
+
                 logo.setImageResource(
                     R.drawable.logo_f2
                 )
             }
 
             "F3" -> {
+
                 logo.setImageResource(
                     R.drawable.logo_f3
                 )
             }
 
             "IndyCar" -> {
+
                 logo.setImageResource(
                     R.drawable.logo_indycar
                 )
             }
 
             "Formula E" -> {
+
                 logo.setImageResource(
                     R.drawable.logo_formulae
                 )
             }
 
             else -> {
-                logo.setImageDrawable(null)
+
+                logo.setImageDrawable(
+                    null
+                )
             }
         }
 
@@ -479,30 +515,41 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        if (categoria == "F1") {
+        if (
+            categoria == "F1"
+        ) {
 
             evento.setOnClickListener {
+
                 abrirEventoF1()
             }
         }
 
-        if (categoria == "F2") {
+        if (
+            categoria == "F2"
+        ) {
 
             evento.setOnClickListener {
+
                 abrirEventoF2()
             }
         }
 
-        if (categoria == "F3") {
+        if (
+            categoria == "F3"
+        ) {
 
             evento.setOnClickListener {
+
                 abrirEventoF3()
             }
         }
 
         calendario.setOnClickListener {
 
-            when (categoriaAtual) {
+            when (
+                categoriaAtual
+            ) {
 
                 "F1" -> {
 
@@ -560,7 +607,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        when (categoria) {
+        when (
+            categoria
+        ) {
 
             "F1" ->
                 carregarF1(evento)
@@ -611,10 +660,14 @@ class MainActivity : AppCompatActivity() {
                 ) {
 
                     val race =
-                        races.getJSONObject(i)
+                        races.getJSONObject(
+                            i
+                        )
 
                     val data =
-                        race.getString("date")
+                        race.getString(
+                            "date"
+                        )
 
                     val hora =
                         race.optString(
@@ -767,6 +820,34 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun abrirEventoF1PelaEtapa(
+        etapa: Etapa
+    ) {
+
+        val intent =
+            Intent(
+                this,
+                F1Activity::class.java
+            )
+
+        intent.putExtra(
+            "PAIS",
+            etapa.pais
+        )
+
+        intent.putExtra(
+            "CIRCUITO",
+            etapa.circuito
+        )
+
+        startActivity(intent)
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
+
     private fun carregarF2(
         evento: TextView
     ) {
@@ -855,7 +936,9 @@ class MainActivity : AppCompatActivity() {
             proximo == null
         ) return
 
-        abrirEventoF2Item(proximo)
+        abrirEventoF2Item(
+            proximo
+        )
     }
 
     private fun abrirEventoF2PelaEtapa(
@@ -1009,7 +1092,9 @@ class MainActivity : AppCompatActivity() {
             proximo == null
         ) return
 
-        abrirEventoF3Item(proximo)
+        abrirEventoF3Item(
+            proximo
+        )
     }
 
     private fun abrirEventoF3PelaEtapa(
