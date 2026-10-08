@@ -40,6 +40,25 @@ class MainActivity : AppCompatActivity() {
 
     private var pesquisaRunnable: Runnable? = null
 
+    private val handlerProximaEtapa =
+        Handler(Looper.getMainLooper())
+
+    private val atualizadorProximaEtapa =
+        object : Runnable {
+
+            override fun run() {
+
+                if (categoriaAtual.isEmpty()) {
+                    atualizarProximaEtapa()
+                }
+
+                handlerProximaEtapa.postDelayed(
+                    this,
+                    60000
+                )
+            }
+        }
+
     private val todasEtapas = listOf(
 
         // F1 2026
@@ -97,15 +116,22 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
+
                 override fun handleOnBackPressed() {
+
                     if (categoriaAtual.isNotEmpty()) {
+
                         categoriaAtual = ""
+
                         mostrarMenu()
+
                         overridePendingTransition(
                             R.anim.slide_in_left,
                             R.anim.slide_out_right
                         )
+
                     } else {
+
                         finish()
                     }
                 }
@@ -116,13 +142,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+
         pesquisaRunnable?.let {
             handlerPesquisa.removeCallbacks(it)
         }
+
+        handlerProximaEtapa.removeCallbacks(
+            atualizadorProximaEtapa
+        )
+
         super.onDestroy()
     }
 
     private fun animarEntrada() {
+
         val tela =
             findViewById<android.view.View>(
                 android.R.id.content
@@ -139,12 +172,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarMenu() {
-        setContentView(R.layout.activity_main)
+
+        setContentView(
+            R.layout.activity_main
+        )
 
         animarEntrada()
 
         listaEtapas =
-            findViewById(R.id.listaEtapas)
+            findViewById(
+                R.id.listaEtapas
+            )
 
         findViewById<android.view.View>(
             R.id.btnF1
@@ -180,7 +218,17 @@ class MainActivity : AppCompatActivity() {
 
         atualizarProximaEtapa()
 
-        mostrarEtapas(todasEtapas)
+        handlerProximaEtapa.removeCallbacks(
+            atualizadorProximaEtapa
+        )
+
+        handlerProximaEtapa.post(
+            atualizadorProximaEtapa
+        )
+
+        mostrarEtapas(
+            todasEtapas
+        )
     }
 
     private fun atualizarProximaEtapa() {
@@ -191,14 +239,17 @@ class MainActivity : AppCompatActivity() {
         val proxima =
             todasEtapas
                 .filter {
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    ).isAfter(hoje) ||
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    ).isEqual(hoje)
+
+                    val data =
+                        java.time.LocalDate.parse(
+                            it.dataInicio
+                        )
+
+                    data.isAfter(hoje) ||
+                    data.isEqual(hoje)
                 }
                 .minByOrNull {
+
                     java.time.LocalDate.parse(
                         it.dataInicio
                     )
@@ -258,6 +309,7 @@ class MainActivity : AppCompatActivity() {
 
         contador.text =
             when {
+
                 dias == 0L ->
                     "COMEÇA HOJE"
 
@@ -273,6 +325,7 @@ class MainActivity : AppCompatActivity() {
         ).setOnClickListener {
 
             when (proxima.categoria) {
+
                 "F1" ->
                     abrirEventoF1PelaEtapa(
                         proxima
@@ -316,7 +369,9 @@ class MainActivity : AppCompatActivity() {
                 ) {
 
                     pesquisaRunnable?.let {
-                        handlerPesquisa.removeCallbacks(it)
+                        handlerPesquisa.removeCallbacks(
+                            it
+                        )
                     }
 
                     val texto =
@@ -329,9 +384,11 @@ class MainActivity : AppCompatActivity() {
                         Runnable {
 
                             if (texto.isEmpty()) {
+
                                 mostrarEtapas(
                                     todasEtapas
                                 )
+
                                 return@Runnable
                             }
 
@@ -340,19 +397,27 @@ class MainActivity : AppCompatActivity() {
 
                                     it.categoria
                                         .lowercase()
-                                        .contains(texto) ||
+                                        .contains(
+                                            texto
+                                        ) ||
 
                                     it.pais
                                         .lowercase()
-                                        .contains(texto) ||
+                                        .contains(
+                                            texto
+                                        ) ||
 
                                     it.circuito
                                         .lowercase()
-                                        .contains(texto) ||
+                                        .contains(
+                                            texto
+                                        ) ||
 
                                     it.data
                                         .lowercase()
-                                        .contains(texto)
+                                        .contains(
+                                            texto
+                                        )
                                 }
 
                             mostrarEtapas(
@@ -379,6 +444,7 @@ class MainActivity : AppCompatActivity() {
 
         val etapasOrdenadas =
             etapas.sortedBy {
+
                 java.time.LocalDate.parse(
                     it.dataInicio
                 )
@@ -413,7 +479,9 @@ class MainActivity : AppCompatActivity() {
                 30
             )
 
-            listaEtapas.addView(vazio)
+            listaEtapas.addView(
+                vazio
+            )
 
             return
         }
@@ -536,7 +604,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            listaEtapas.addView(item)
+            listaEtapas.addView(
+                item
+            )
         }
     }
 
@@ -571,7 +641,9 @@ class MainActivity : AppCompatActivity() {
                         it.dataInicio
                     )
 
-                !dataInicio.isBefore(hoje)
+                !dataInicio.isBefore(
+                    hoje
+                )
             }
 
         return if (proxima == etapa) {
@@ -772,6 +844,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> {
+
                     evento.text =
                         "Programação completa"
                 }
