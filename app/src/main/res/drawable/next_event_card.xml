@@ -4,6 +4,7 @@
 
     <!-- Card principal -->
     <item>
+
         <shape android:shape="rectangle">
 
             <gradient
@@ -19,14 +20,15 @@
                 android:color="#31506A" />
 
         </shape>
+
     </item>
 
-    <!-- Faixa verde interna, colada à esquerda -->
+    <!-- Detalhe verde integrado à borda esquerda -->
     <item
         android:left="1dp"
-        android:top="1dp"
-        android:bottom="1dp"
-        android:width="7dp">
+        android:top="4dp"
+        android:bottom="4dp"
+        android:width="4dp">
 
         <shape android:shape="rectangle">
 
@@ -34,10 +36,10 @@
                 android:color="#19B76B" />
 
             <corners
-                android:topLeftRadius="13dp"
-                android:bottomLeftRadius="13dp"
-                android:topRightRadius="0dp"
-                android:bottomRightRadius="0dp" />
+                android:topLeftRadius="2dp"
+                android:topRightRadius="2dp"
+                android:bottomLeftRadius="2dp"
+                android:bottomRightRadius="2dp" />
 
         </shape>
 
