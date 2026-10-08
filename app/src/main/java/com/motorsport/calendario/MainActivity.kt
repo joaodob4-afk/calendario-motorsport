@@ -290,12 +290,19 @@ class MainActivity : AppCompatActivity() {
         etapas: List<Etapa>
     ) {
 
+        val etapasOrdenadas =
+            etapas.sortedBy {
+                java.time.LocalDate.parse(
+                    it.dataInicio
+                )
+            }
+
         listaEtapas.removeAllViews()
 
         val inflater =
             LayoutInflater.from(this)
 
-        if (etapas.isEmpty()) {
+        if (etapasOrdenadas.isEmpty()) {
 
             val vazio =
                 TextView(this)
@@ -325,21 +332,6 @@ class MainActivity : AppCompatActivity() {
 
             return
         }
-
-        val etapasOrdenadas =
-            etapas.sortedBy {
-
-                if (it.dataInicio.isNotEmpty()) {
-
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    )
-
-                } else {
-
-                    java.time.LocalDate.MAX
-                }
-            }
 
         for (etapa in etapasOrdenadas) {
 
