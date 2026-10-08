@@ -3,8 +3,6 @@ package com.motorsport.calendario
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
@@ -15,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -23,28 +20,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
-
-    private val handler =
-        Handler(Looper.getMainLooper())
-
-    private var contadorView: TextView? = null
-
-    private var proximoHorario:
-            ZonedDateTime? = null
-
-    private val atualizarContador =
-        object : Runnable {
-
-            override fun run() {
-
-                atualizarContadorTela()
-
-                handler.postDelayed(
-                    this,
-                    60_000
-                )
-            }
-        }
 
     override fun onCreate(
         savedInstanceState: Bundle?
@@ -310,10 +285,6 @@ class F1Activity : AppCompatActivity() {
                         layout,
                         evento
                     )
-
-                    handler.post(
-                        atualizarContador
-                    )
                 }
 
             } catch (e: Exception) {
@@ -520,12 +491,40 @@ class F1Activity : AppCompatActivity() {
                     LinearLayout.VERTICAL
 
                 setPadding(
-                    2,
-                    4,
-                    2,
-                    16
+                    0,
+                    8,
+                    0,
+                    22
                 )
             }
+
+        val identificacao =
+            TextView(this).apply {
+
+                text =
+                    "GRAND PRIX"
+
+                textSize = 11f
+
+                setTextColor(
+                    Color.rgb(
+                        143,
+                        166,
+                        186
+                    )
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                letterSpacing = 0.16f
+            }
+
+        cabecalho.addView(
+            identificacao
+        )
 
         val nomeEvento =
             TextView(this).apply {
@@ -533,7 +532,7 @@ class F1Activity : AppCompatActivity() {
                 text =
                     nome
 
-                textSize = 22f
+                textSize = 26f
 
                 setTextColor(
                     Color.WHITE
@@ -544,21 +543,79 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
-                letterSpacing = 0.02f
+                letterSpacing = 0.01f
+
+                setPadding(
+                    0,
+                    5,
+                    0,
+                    0
+                )
             }
 
         cabecalho.addView(
             nomeEvento
         )
 
+        val divisor =
+            View(this).apply {
+
+                setBackgroundColor(
+                    Color.rgb(
+                        25,
+                        183,
+                        107
+                    )
+                )
+            }
+
+        val parametrosDivisor =
+            LinearLayout.LayoutParams(
+                42,
+                3
+            )
+
+        parametrosDivisor.setMargins(
+            0,
+            12,
+            0,
+            12
+        )
+
+        cabecalho.addView(
+            divisor,
+            parametrosDivisor
+        )
+
+        val circuitoEvento =
+            TextView(this).apply {
+
+                text =
+                    circuito
+
+                textSize = 15f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+            }
+
+        cabecalho.addView(
+            circuitoEvento
+        )
+
         val localEvento =
             TextView(this).apply {
 
                 text =
-                    "$circuito\n" +
                     "$bandeira $cidade • $pais"
 
-                textSize = 14f
+                textSize = 13f
 
                 setTextColor(
                     Color.rgb(
@@ -570,7 +627,7 @@ class F1Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    7,
+                    5,
                     0,
                     0
                 )
@@ -609,7 +666,7 @@ class F1Activity : AppCompatActivity() {
 
                 setPadding(
                     0,
-                    8,
+                    4,
                     0,
                     7
                 )
@@ -730,11 +787,6 @@ class F1Activity : AppCompatActivity() {
                     brasilia
                 )
 
-            val agora =
-                ZonedDateTime.now(
-                    brasilia
-                )
-
             val linha =
                 LinearLayout(this).apply {
 
@@ -794,31 +846,22 @@ class F1Activity : AppCompatActivity() {
                 TextView(this).apply {
 
                     text =
-                        horarioBrasilia.format(
-                            formato
-                        ).uppercase(
-                            Locale("pt", "BR")
-                        )
+                        horarioBrasilia
+                            .format(
+                                formato
+                            )
+                            .uppercase(
+                                Locale("pt", "BR")
+                            )
 
                     textSize = 13f
 
                     setTextColor(
-                        if (campo == "date") {
-
-                            Color.rgb(
-                                25,
-                                183,
-                                107
-                            )
-
-                        } else {
-
-                            Color.rgb(
-                                143,
-                                166,
-                                186
-                            )
-                        }
+                        Color.rgb(
+                            143,
+                            166,
+                            186
+                        )
                     )
 
                     setTypeface(
@@ -872,139 +915,8 @@ class F1Activity : AppCompatActivity() {
                 linha
             )
 
-            if (
-                proximoHorario == null ||
-                (
-                    horarioBrasilia.isAfter(agora) &&
-                    horarioBrasilia.isBefore(
-                        proximoHorario
-                    )
-                )
-            ) {
-
-                if (
-                    horarioBrasilia.isAfter(
-                        agora
-                    )
-                ) {
-
-                    proximoHorario =
-                        horarioBrasilia
-
-                    contadorView =
-                        TextView(this).apply {
-
-                            textSize = 15f
-
-                            setTextColor(
-                                Color.WHITE
-                            )
-
-                            setTypeface(
-                                null,
-                                Typeface.BOLD
-                            )
-
-                            gravity =
-                                Gravity.CENTER
-
-                            setPadding(
-                                18,
-                                15,
-                                18,
-                                15
-                            )
-
-                            background =
-                                getDrawable(
-                                    R.drawable.countdown_card
-                                )
-                        }
-
-                    val parametrosContador =
-                        LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.MATCH_PARENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-
-                    parametrosContador.setMargins(
-                        0,
-                        8,
-                        0,
-                        8
-                    )
-
-                    layout.addView(
-                        contadorView,
-                        parametrosContador
-                    )
-                }
-            }
-
         } catch (_: Exception) {
         }
-    }
-
-    private fun atualizarContadorTela() {
-
-        val view =
-            contadorView ?: return
-
-        val horario =
-            proximoHorario ?: return
-
-        val agora =
-            ZonedDateTime.now(
-                ZoneId.of(
-                    "America/Sao_Paulo"
-                )
-            )
-
-        val duracao =
-            Duration.between(
-                agora,
-                horario
-            )
-
-        if (
-            duracao.isZero ||
-            duracao.isNegative
-        ) {
-
-            view.text =
-                "A próxima sessão está começando."
-
-            return
-        }
-
-        val totalMinutos =
-            duracao.toMinutes()
-
-        val dias =
-            totalMinutos / 1440
-
-        val horas =
-            (totalMinutos % 1440) / 60
-
-        val minutos =
-            totalMinutos % 60
-
-        view.text =
-            if (dias > 0) {
-
-                "PRÓXIMA SESSÃO  •  " +
-                "${dias}d ${horas}h ${minutos}min"
-
-            } else if (horas > 0) {
-
-                "PRÓXIMA SESSÃO  •  " +
-                "${horas}h ${minutos}min"
-
-            } else {
-
-                "PRÓXIMA SESSÃO  •  " +
-                "${minutos}min"
-            }
     }
 
     private fun obterBandeira(
@@ -1045,14 +957,5 @@ class F1Activity : AppCompatActivity() {
 
             else -> "🌐"
         }
-    }
-
-    override fun onDestroy() {
-
-        handler.removeCallbacks(
-            atualizarContador
-        )
-
-        super.onDestroy()
     }
 }
