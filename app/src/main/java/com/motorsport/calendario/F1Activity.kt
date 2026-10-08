@@ -75,8 +75,8 @@ class F1Activity : AppCompatActivity() {
 
         val parametrosVoltarTopo =
             LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                48,
+                42
             )
 
         parametrosVoltarTopo.setMargins(
