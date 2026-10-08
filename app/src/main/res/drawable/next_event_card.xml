@@ -24,8 +24,8 @@
     <!-- Linha verde lateral arredondada -->
     <item
         android:width="7dp"
-        android:height="48dp"
-        android:gravity="left|center_vertical"
+        android:height="match_parent"
+        android:gravity="left
         android:left="0dp">
 
         <shape android:shape="rectangle">
