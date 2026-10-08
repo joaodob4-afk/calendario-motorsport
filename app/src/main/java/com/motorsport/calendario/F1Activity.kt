@@ -536,7 +536,7 @@ class F1Activity : AppCompatActivity() {
         cabecalhoDia.addView(tituloDia)
 
         val linha = View(this).apply {
-            setBackgroundColor(Color.rgb(41, 74, 99))
+            setBackgroundColor(Color.rgb(48, 48, 48))
         }
 
         cabecalhoDia.addView(
