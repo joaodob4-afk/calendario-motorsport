@@ -110,8 +110,12 @@ class MainActivity : AppCompatActivity() {
         Etapa("F3", "Espanha", "Madrid", "11–13 SET", "2026-09-11")
     )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+        super.onCreate(
+            savedInstanceState
+        )
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -144,7 +148,9 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
 
         pesquisaRunnable?.let {
-            handlerPesquisa.removeCallbacks(it)
+            handlerPesquisa.removeCallbacks(
+                it
+            )
         }
 
         handlerProximaEtapa.removeCallbacks(
@@ -314,10 +320,13 @@ class MainActivity : AppCompatActivity() {
                     "COMEÇA HOJE"
 
                 dias == 1L ->
-                    "FALTA 1 DIA"
+                    "AMANHÃ"
+
+                dias > 1L ->
+                    "FALTAM $dias DIAS"
 
                 else ->
-                    "FALTAM $dias DIAS"
+                    "ETAPA EM ANDAMENTO"
             }
 
         findViewById<android.view.View>(
@@ -467,7 +476,8 @@ class MainActivity : AppCompatActivity() {
                 android.graphics.Color.WHITE
             )
 
-            vazio.textSize = 15f
+            vazio.textSize =
+                15f
 
             vazio.gravity =
                 android.view.Gravity.CENTER
@@ -679,7 +689,6 @@ class MainActivity : AppCompatActivity() {
             "Brasil" -> "🇧🇷"
             "Catar" -> "🇶🇦"
             "Abu Dhabi" -> "🇦🇪"
-
             else -> "🌐"
         }
     }
@@ -753,12 +762,20 @@ class MainActivity : AppCompatActivity() {
         titulo.text =
             when (categoria) {
 
-                "F1" -> "FÓRMULA 1"
-                "F2" -> "FÓRMULA 2"
-                "F3" -> "FÓRMULA 3"
-                "IndyCar" -> "INDYCAR"
+                "F1" ->
+                    "FÓRMULA 1"
 
-                else -> "FÓRMULA E"
+                "F2" ->
+                    "FÓRMULA 2"
+
+                "F3" ->
+                    "FÓRMULA 3"
+
+                "IndyCar" ->
+                    "INDYCAR"
+
+                else ->
+                    "FÓRMULA E"
             }
 
         voltar.setOnClickListener {
@@ -895,13 +912,17 @@ class MainActivity : AppCompatActivity() {
                 var proximaData:
                         OffsetDateTime? = null
 
-                for (i in 0 until races.length()) {
+                for (
+                    i in 0 until races.length()
+                ) {
 
                     val race =
                         races.getJSONObject(i)
 
                     val data =
-                        race.getString("date")
+                        race.getString(
+                            "date"
+                        )
 
                     val hora =
                         race.optString(
@@ -1142,7 +1163,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (proximo == null) return
+        if (proximo == null) {
+            return
+        }
 
         abrirEventoF2Item(
             proximo
@@ -1279,7 +1302,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (proximo == null) return
+        if (proximo == null) {
+            return
+        }
 
         abrirEventoF3Item(
             proximo
