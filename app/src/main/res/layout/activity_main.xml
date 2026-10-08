@@ -62,17 +62,30 @@
                     android:layout_height="125dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/rounded_card"
-                    android:gravity="center"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="58dp"
+                        android:layout_width="110dp"
+                        android:layout_height="52dp"
                         android:src="@drawable/logo_f1"
                         android:scaleType="fitCenter"
                         android:contentDescription="Fórmula 1" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="24dp"
+                        android:text="FÓRMULA 1"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center_vertical" />
 
                 </LinearLayout>
 
@@ -83,17 +96,30 @@
                     android:layout_height="125dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/rounded_card"
-                    android:gravity="center"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="wrap_content"
+                        android:layout_width="110dp"
                         android:layout_height="68dp"
                         android:src="@drawable/logo_f2"
                         android:scaleType="fitCenter"
                         android:contentDescription="Fórmula 2" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="24dp"
+                        android:text="FÓRMULA 2"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center_vertical" />
 
                 </LinearLayout>
 
@@ -104,17 +130,30 @@
                     android:layout_height="125dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/rounded_card"
-                    android:gravity="center"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="wrap_content"
+                        android:layout_width="110dp"
                         android:layout_height="68dp"
                         android:src="@drawable/logo_f3"
                         android:scaleType="fitCenter"
                         android:contentDescription="Fórmula 3" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="24dp"
+                        android:text="FÓRMULA 3"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center_vertical" />
 
                 </LinearLayout>
 
@@ -125,17 +164,30 @@
                     android:layout_height="125dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/rounded_card"
-                    android:gravity="center"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="wrap_content"
+                        android:layout_width="110dp"
                         android:layout_height="68dp"
                         android:src="@drawable/logo_indycar"
                         android:scaleType="fitCenter"
                         android:contentDescription="IndyCar" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="24dp"
+                        android:text="INDYCAR"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center_vertical" />
 
                 </LinearLayout>
 
@@ -146,17 +198,30 @@
                     android:layout_height="125dp"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/rounded_card"
-                    android:gravity="center"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
-                        android:layout_width="wrap_content"
+                        android:layout_width="110dp"
                         android:layout_height="75dp"
                         android:src="@drawable/logo_formulae"
                         android:scaleType="fitCenter"
                         android:contentDescription="Formula E" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="24dp"
+                        android:text="FORMULA E"
+                        android:textColor="#FFFFFF"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:gravity="center_vertical" />
 
                 </LinearLayout>
 
