@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         Etapa("F1", "Estados Unidos", "Austin", "23–25 OUT", "americas"),
         Etapa("F1", "México", "Cidade do México", "30 OUT–01 NOV", "rodriguez"),
         Etapa("F1", "Brasil", "Interlagos", "06–08 NOV", "interlagos"),
-        Etapa("F1", "Estados Unidos", "Las Vegas", "20–22 NOV", "las_vegas"),
+        Etapa("F1", "Estados Unidos", "Las Vegas", "20–22 NOV", "vegas"),
         Etapa("F1", "Catar", "Lusail", "27–29 NOV", "losail"),
         Etapa("F1", "Abu Dhabi", "Yas Marina", "04–06 DEZ", "yas_marina"),
 
