@@ -669,32 +669,102 @@ class F1Activity : AppCompatActivity() {
 
         try {
 
-            val data =
+            val inicioData =
                 race.getString(
                     "date"
                 )
 
-            val hora =
+            val inicioHora =
                 race.optString(
                     "time",
                     "00:00:00Z"
                 )
 
-            val horario =
+            val inicio =
                 OffsetDateTime.parse(
-                    "${data}T${hora}"
-                )
-
-            val dataBrasilia =
-                horario.atZoneSameInstant(
+                    "${inicioData}T${inicioHora}"
+                ).atZoneSameInstant(
                     brasilia
                 )
 
-            val dia =
-                dataBrasilia.dayOfMonth
+            val dataCorrida =
+                inicio.toLocalDate()
+
+            val sessoes =
+                mutableListOf<java.time.ZonedDateTime>()
+
+            val campos =
+                listOf(
+                    "FirstPractice",
+                    "SecondPractice",
+                    "ThirdPractice",
+                    "SprintQualifying",
+                    "Sprint",
+                    "Qualifying"
+                )
+
+            for (
+                campo in campos
+            ) {
+
+                if (
+                    race.has(campo)
+                ) {
+
+                    try {
+
+                        val sessao =
+                            race.getJSONObject(
+                                campo
+                            )
+
+                        val data =
+                            sessao.getString(
+                                "date"
+                            )
+
+                        val hora =
+                            sessao.getString(
+                                "time"
+                            )
+
+                        sessoes.add(
+                            OffsetDateTime.parse(
+                                "${data}T${hora}"
+                            ).atZoneSameInstant(
+                                brasilia
+                            )
+                        )
+
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
+            sessoes.add(
+                inicio
+            )
+
+            val primeiraData =
+                sessoes.minByOrNull {
+                    it.toLocalDate()
+                }?.toLocalDate()
+                    ?: dataCorrida
+
+            val ultimaData =
+                sessoes.maxByOrNull {
+                    it.toLocalDate()
+                }?.toLocalDate()
+                    ?: dataCorrida
+
+            val primeiroDia =
+                primeiraData.dayOfMonth
+
+            val ultimoDia =
+                ultimaData.dayOfMonth
 
             val mes =
-                dataBrasilia.month
+                ultimaData.month
                     .getDisplayName(
                         java.time.format.TextStyle.SHORT,
                         Locale("pt", "BR")
@@ -703,7 +773,24 @@ class F1Activity : AppCompatActivity() {
                         Locale("pt", "BR")
                     )
 
+            val ano =
+                ultimaData.year
+
             val faixa =
+                LinearLayout(this).apply {
+
+                    orientation =
+                        LinearLayout.VERTICAL
+
+                    setPadding(
+                        0,
+                        10,
+                        0,
+                        14
+                    )
+                }
+
+            val superior =
                 LinearLayout(this).apply {
 
                     orientation =
@@ -711,24 +798,28 @@ class F1Activity : AppCompatActivity() {
 
                     gravity =
                         Gravity.CENTER_VERTICAL
-
-                    setPadding(
-                        0,
-                        14,
-                        0,
-                        14
-                    )
                 }
 
-            val numero =
+            val dataGrande =
                 TextView(this).apply {
 
                     text =
-                        String.format(
-                            Locale("pt", "BR"),
-                            "%02d",
-                            dia
-                        )
+                        if (
+                            primeiroDia == ultimoDia
+                        ) {
+                            String.format(
+                                Locale("pt", "BR"),
+                                "%02d",
+                                primeiroDia
+                            )
+                        } else {
+                            String.format(
+                                Locale("pt", "BR"),
+                                "%02d–%02d",
+                                primeiroDia,
+                                ultimoDia
+                            )
+                        }
 
                     textSize =
                         30f
@@ -743,9 +834,23 @@ class F1Activity : AppCompatActivity() {
                     )
                 }
 
-            faixa.addView(
-                numero
+            superior.addView(
+                dataGrande
             )
+
+            val mesAno =
+                LinearLayout(this).apply {
+
+                    orientation =
+                        LinearLayout.VERTICAL
+
+                    setPadding(
+                        10,
+                        0,
+                        0,
+                        0
+                    )
+                }
 
             val mesTexto =
                 TextView(this).apply {
@@ -769,16 +874,45 @@ class F1Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
+                    letterSpacing =
+                        0.08f
+                }
+
+            mesAno.addView(
+                mesTexto
+            )
+
+            val anoTexto =
+                TextView(this).apply {
+
+                    text =
+                        ano.toString()
+
+                    textSize =
+                        11f
+
+                    setTextColor(
+                        Color.rgb(
+                            143,
+                            166,
+                            186
+                        )
+                    )
+
                     setPadding(
-                        8,
                         0,
+                        2,
                         0,
                         0
                     )
                 }
 
-            faixa.addView(
-                mesTexto
+            mesAno.addView(
+                anoTexto
+            )
+
+            superior.addView(
+                mesAno
             )
 
             val linha =
@@ -801,15 +935,56 @@ class F1Activity : AppCompatActivity() {
                 )
 
             parametrosLinha.setMargins(
-                16,
+                18,
                 0,
                 0,
                 0
             )
 
-            faixa.addView(
+            superior.addView(
                 linha,
                 parametrosLinha
+            )
+
+            faixa.addView(
+                superior
+            )
+
+            val descricao =
+                TextView(this).apply {
+
+                    text =
+                        "FIM DE SEMANA DA CORRIDA"
+
+                    textSize =
+                        10f
+
+                    setTextColor(
+                        Color.rgb(
+                            143,
+                            166,
+                            186
+                        )
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    letterSpacing =
+                        0.12f
+
+                    setPadding(
+                        0,
+                        7,
+                        0,
+                        0
+                    )
+                }
+
+            faixa.addView(
+                descricao
             )
 
             layout.addView(
@@ -909,7 +1084,9 @@ class F1Activity : AppCompatActivity() {
             val data: String
             val hora: String
 
-            if (campo == "date") {
+            if (
+                campo == "date"
+            ) {
 
                 data =
                     race.getString(
