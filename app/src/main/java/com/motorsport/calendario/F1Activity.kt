@@ -20,6 +20,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
 
@@ -60,7 +61,6 @@ class F1Activity : AppCompatActivity() {
             object : OnBackPressedCallback(true) {
 
                 override fun handleOnBackPressed() {
-
                     voltarParaTelaAnterior()
                 }
             }
@@ -152,7 +152,7 @@ class F1Activity : AppCompatActivity() {
                     2,
                     14,
                     2,
-                    22
+                    18
                 )
             }
 
@@ -192,6 +192,7 @@ class F1Activity : AppCompatActivity() {
 
                 isVerticalScrollBarEnabled = false
                 isHorizontalScrollBarEnabled = false
+
                 overScrollMode =
                     View.OVER_SCROLL_NEVER
 
@@ -242,7 +243,6 @@ class F1Activity : AppCompatActivity() {
             isFocusable = true
 
             setOnClickListener {
-
                 voltarParaTelaAnterior()
             }
         }
@@ -471,7 +471,8 @@ class F1Activity : AppCompatActivity() {
 
         val formato =
             DateTimeFormatter.ofPattern(
-                "dd/MM/yyyy - HH:mm"
+                "EEE dd MMM • HH:mm",
+                Locale("pt", "BR")
             )
 
         val nome =
@@ -513,14 +514,26 @@ class F1Activity : AppCompatActivity() {
             obterBandeira(pais)
 
         val cabecalho =
+            LinearLayout(this).apply {
+
+                orientation =
+                    LinearLayout.VERTICAL
+
+                setPadding(
+                    2,
+                    4,
+                    2,
+                    16
+                )
+            }
+
+        val nomeEvento =
             TextView(this).apply {
 
                 text =
-                    "$nome\n\n" +
-                    circuito + "\n" +
-                    "$bandeira $cidade • $pais"
+                    nome
 
-                textSize = 19f
+                textSize = 22f
 
                 setTextColor(
                     Color.WHITE
@@ -531,38 +544,79 @@ class F1Activity : AppCompatActivity() {
                     Typeface.BOLD
                 )
 
-                gravity =
-                    Gravity.START
-
-                setPadding(
-                    20,
-                    22,
-                    20,
-                    22
-                )
-
-                background =
-                    getDrawable(
-                        R.drawable.rounded_card
-                    )
+                letterSpacing = 0.02f
             }
 
-        val parametrosCabecalho =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+        cabecalho.addView(
+            nomeEvento
+        )
 
-        parametrosCabecalho.setMargins(
-            0,
-            0,
-            0,
-            18
+        val localEvento =
+            TextView(this).apply {
+
+                text =
+                    "$circuito\n" +
+                    "$bandeira $cidade • $pais"
+
+                textSize = 14f
+
+                setTextColor(
+                    Color.rgb(
+                        143,
+                        166,
+                        186
+                    )
+                )
+
+                setPadding(
+                    0,
+                    7,
+                    0,
+                    0
+                )
+            }
+
+        cabecalho.addView(
+            localEvento
         )
 
         layout.addView(
-            cabecalho,
-            parametrosCabecalho
+            cabecalho
+        )
+
+        val tituloProgramacao =
+            TextView(this).apply {
+
+                text =
+                    "PROGRAMAÇÃO"
+
+                textSize = 12f
+
+                setTextColor(
+                    Color.rgb(
+                        25,
+                        183,
+                        107
+                    )
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                letterSpacing = 0.12f
+
+                setPadding(
+                    0,
+                    8,
+                    0,
+                    7
+                )
+            }
+
+        layout.addView(
+            tituloProgramacao
         )
 
         adicionarSessao(
@@ -681,16 +735,37 @@ class F1Activity : AppCompatActivity() {
                     brasilia
                 )
 
-            val card =
+            val linha =
+                LinearLayout(this).apply {
+
+                    orientation =
+                        LinearLayout.VERTICAL
+
+                    setPadding(
+                        0,
+                        12,
+                        0,
+                        12
+                    )
+                }
+
+            val superior =
+                LinearLayout(this).apply {
+
+                    orientation =
+                        LinearLayout.HORIZONTAL
+
+                    gravity =
+                        Gravity.CENTER_VERTICAL
+                }
+
+            val nomeSessao =
                 TextView(this).apply {
 
                     text =
-                        "$nome\n\n" +
-                        horarioBrasilia.format(
-                            formato
-                        )
+                        nome
 
-                    textSize = 16f
+                    textSize = 14f
 
                     setTextColor(
                         Color.WHITE
@@ -701,38 +776,100 @@ class F1Activity : AppCompatActivity() {
                         Typeface.BOLD
                     )
 
-                    gravity =
-                        Gravity.START
+                    letterSpacing = 0.03f
 
-                    setPadding(
-                        18,
-                        17,
-                        18,
-                        17
-                    )
-
-                    background =
-                        getDrawable(
-                            R.drawable.session_card
+                    layoutParams =
+                        LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            1f
                         )
                 }
 
-            val parametros =
+            superior.addView(
+                nomeSessao
+            )
+
+            val horarioSessao =
+                TextView(this).apply {
+
+                    text =
+                        horarioBrasilia.format(
+                            formato
+                        ).uppercase(
+                            Locale("pt", "BR")
+                        )
+
+                    textSize = 13f
+
+                    setTextColor(
+                        if (campo == "date") {
+
+                            Color.rgb(
+                                25,
+                                183,
+                                107
+                            )
+
+                        } else {
+
+                            Color.rgb(
+                                143,
+                                166,
+                                186
+                            )
+                        }
+                    )
+
+                    setTypeface(
+                        null,
+                        Typeface.BOLD
+                    )
+
+                    gravity =
+                        Gravity.END
+                }
+
+            superior.addView(
+                horarioSessao
+            )
+
+            linha.addView(
+                superior
+            )
+
+            val divisor =
+                View(this).apply {
+
+                    setBackgroundColor(
+                        Color.rgb(
+                            41,
+                            74,
+                            99
+                        )
+                    )
+                }
+
+            val parametrosDivisor =
                 LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+                    1
                 )
 
-            parametros.setMargins(
+            parametrosDivisor.setMargins(
                 0,
-                5,
+                12,
                 0,
-                5
+                0
+            )
+
+            linha.addView(
+                divisor,
+                parametrosDivisor
             )
 
             layout.addView(
-                card,
-                parametros
+                linha
             )
 
             if (
@@ -792,9 +929,9 @@ class F1Activity : AppCompatActivity() {
 
                     parametrosContador.setMargins(
                         0,
-                        2,
+                        8,
                         0,
-                        6
+                        8
                     )
 
                     layout.addView(
