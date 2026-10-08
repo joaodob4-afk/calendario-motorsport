@@ -451,8 +451,69 @@ class MainActivity : AppCompatActivity() {
         etapas: List<Etapa>
     ) {
 
+        val hoje =
+            java.time.LocalDate.now()
+
+        /*
+         * A próxima etapa é calculada sempre
+         * a partir do calendário completo.
+         *
+         * Isso é importante para a pesquisa:
+         * pesquisar uma etapa não faz com que
+         * ela seja considerada "a próxima".
+         */
+        val proximaEtapa =
+            todasEtapas
+                .filter {
+
+                    val data =
+                        java.time.LocalDate.parse(
+                            it.dataInicio
+                        )
+
+                    data.isAfter(hoje) ||
+                    data.isEqual(hoje)
+                }
+                .minByOrNull {
+
+                    java.time.LocalDate.parse(
+                        it.dataInicio
+                    )
+                }
+
+        val etapasVisiveis =
+
+            if (categoriaAtual.isEmpty()) {
+
+                /*
+                 * Tela inicial:
+                 *
+                 * - remove etapas finalizadas
+                 * - remove a etapa que já está
+                 *   no card PRÓXIMA ETAPA
+                 */
+                etapas.filter { etapa ->
+
+                    val data =
+                        java.time.LocalDate.parse(
+                            etapa.dataInicio
+                        )
+
+                    data.isAfter(hoje) &&
+                    etapa != proximaEtapa
+                }
+
+            } else {
+
+                /*
+                 * Dentro das categorias,
+                 * mantém o calendário completo.
+                 */
+                etapas
+            }
+
         val etapasOrdenadas =
-            etapas.sortedBy {
+            etapasVisiveis.sortedBy {
 
                 java.time.LocalDate.parse(
                     it.dataInicio
@@ -638,7 +699,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val proximasDaCategoria =
-            etapasOrdenadas.filter {
+            todasEtapas.filter {
                 it.categoria ==
                     etapa.categoria
             }
