@@ -30,6 +30,8 @@ class F2Activity : AppCompatActivity() {
 
     private lateinit var conteudo: LinearLayout
 
+    private var etapaEhProxima = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -54,7 +56,14 @@ class F2Activity : AppCompatActivity() {
 
         // Carrega o JSON e usa o calendário local como reserva.
         val eventos = F2CalendarJson.carregar(this)
-        val evento = obterProximaEtapa(eventos)
+        val proximaEtapa = obterProximaEtapa(eventos)
+
+        // Usa a etapa que o usuário tocou; sem escolha, usa a próxima.
+        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
+        val evento = eventos.find { it.etapa == etapaEscolhida }
+            ?: proximaEtapa
+
+        etapaEhProxima = evento == null || evento == proximaEtapa
 
         if (evento != null) {
             mostrarEvento(evento)
@@ -217,7 +226,7 @@ class F2Activity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            "PRÓXIMA ETAPA",
+            if (etapaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
             12f,
             verde,
             true
