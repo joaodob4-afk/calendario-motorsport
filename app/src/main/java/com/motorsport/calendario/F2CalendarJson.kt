@@ -1,64 +1,147 @@
 package com.motorsport.calendario
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import org.json.JSONObject
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 object F2CalendarJson {
 
+    private const val URL_JSON =
+        "https://raw.githubusercontent.com/joaodob4-afk/" +
+        "calendario-motorsport/main/app/src/main/assets/f2_calendar.json"
+
+    private const val ARQUIVO_CACHE = "f2_calendar_cache.json"
+
+    /**
+     * Prioridade: cache baixado do GitHub > JSON embutido no APK >
+     * calendário fixo no código. Nunca lança exceção.
+     */
     fun carregar(context: Context): List<F2Event> {
+        val json = lerCache(context) ?: lerAsset(context)
+
+        val eventosJson = try {
+            if (json != null) interpretar(json) else emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+
+        val combinados = F2Calendar.eventos
+            .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
+            eventosJson
+
+        return combinados.sortedBy { it.etapa }
+    }
+
+    /**
+     * Baixa o JSON mais recente em segundo plano e guarda em cache.
+     * O novo calendário passa a valer na próxima leitura (carregar).
+     * Se estiver sem internet ou o arquivo vier inválido, nada muda.
+     */
+    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
+        val app = context.applicationContext
+
+        Thread {
+            var gravou = false
+
+            try {
+                val conexao = URL(URL_JSON).openConnection() as HttpURLConnection
+                conexao.connectTimeout = 10000
+                conexao.readTimeout = 10000
+                conexao.setRequestProperty("Cache-Control", "no-cache")
+
+                if (conexao.responseCode == 200) {
+                    val texto = conexao.inputStream
+                        .bufferedReader()
+                        .use { it.readText() }
+
+                    // Só aceita se for um calendário válido.
+                    if (interpretar(texto).isNotEmpty()) {
+                        val destino = File(app.filesDir, ARQUIVO_CACHE)
+                        val temporario = File(app.filesDir, "$ARQUIVO_CACHE.tmp")
+                        temporario.writeText(texto)
+                        gravou = temporario.renameTo(destino) ||
+                            run { destino.writeText(texto); true }
+                    }
+                }
+
+                conexao.disconnect()
+            } catch (_: Exception) {
+                // Sem internet ou erro: continua com o que já existe.
+            }
+
+            if (gravou && aoTerminar != null) {
+                Handler(Looper.getMainLooper()).post { aoTerminar() }
+            }
+        }.start()
+    }
+
+    private fun lerCache(context: Context): String? {
         return try {
-            val json = context.assets
+            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+            if (!arquivo.exists()) return null
+
+            // Se o app foi atualizado depois do cache, o JSON do APK
+            // pode ser mais novo: ignora o cache antigo.
+            val instalado = context.packageManager
+                .getPackageInfo(context.packageName, 0)
+                .lastUpdateTime
+            if (arquivo.lastModified() < instalado) return null
+
+            val texto = arquivo.readText()
+            if (interpretar(texto).isEmpty()) null else texto
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun lerAsset(context: Context): String? {
+        return try {
+            context.assets
                 .open("f2_calendar.json")
                 .bufferedReader()
                 .use { it.readText() }
+        } catch (_: Exception) {
+            null
+        }
+    }
 
-            val etapas = JSONObject(json).getJSONArray("etapas")
-            val eventosJson = mutableListOf<F2Event>()
+    private fun interpretar(json: String): List<F2Event> {
+        val etapas = JSONObject(json).getJSONArray("etapas")
+        val eventos = mutableListOf<F2Event>()
 
-            for (i in 0 until etapas.length()) {
-                val etapa = etapas.getJSONObject(i)
-                val sessoesJson = etapa.getJSONArray("sessoes")
-                val sessoes = mutableListOf<F2Session>()
+        for (i in 0 until etapas.length()) {
+            val etapa = etapas.getJSONObject(i)
+            val sessoesJson = etapa.getJSONArray("sessoes")
+            val sessoes = mutableListOf<F2Session>()
 
-                for (j in 0 until sessoesJson.length()) {
-                    val sessao = sessoesJson.getJSONObject(j)
+            for (j in 0 until sessoesJson.length()) {
+                val sessao = sessoesJson.getJSONObject(j)
 
-                    sessoes.add(
-                        F2Session(
-                            nome = sessao.getString("nome"),
-                            data = sessao.getString("data"),
-                            horario = sessao.optString(
-                                "horario",
-                                "A confirmar"
-                            )
-                        )
-                    )
-                }
-
-                eventosJson.add(
-                    F2Event(
-                        etapa = etapa.getInt("etapa"),
-                        circuito = etapa.getString("circuito"),
-                        pais = etapa.getString("pais"),
-                        inicio = etapa.getString("inicio"),
-                        fim = etapa.getString("fim"),
-                        sessoes = sessoes
+                sessoes.add(
+                    F2Session(
+                        nome = sessao.getString("nome"),
+                        data = sessao.getString("data"),
+                        horario = sessao.optString("horario", "A confirmar")
                     )
                 )
             }
 
-            val eventosCombinados =
-                F2Calendar.eventos
-                    .filterNot { local ->
-                        eventosJson.any {
-                            it.etapa == local.etapa
-                        }
-                    } + eventosJson
-
-            eventosCombinados.sortedBy { it.etapa }
-
-        } catch (_: Exception) {
-            F2Calendar.eventos
+            eventos.add(
+                F2Event(
+                    etapa = etapa.getInt("etapa"),
+                    circuito = etapa.getString("circuito"),
+                    pais = etapa.getString("pais"),
+                    inicio = etapa.getString("inicio"),
+                    fim = etapa.getString("fim"),
+                    sessoes = sessoes
+                )
+            )
         }
+
+        return eventos
     }
 }
