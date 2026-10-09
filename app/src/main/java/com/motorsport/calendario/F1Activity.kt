@@ -25,10 +25,10 @@ import java.util.Locale
 class F1Activity : AppCompatActivity() {
 
     private val preto = Color.rgb(13, 13, 13)
-    private val verde = Color.rgb(25, 183, 107)
+    private val verde = Color.rgb(57, 255, 20)
     private val branco = Color.WHITE
-    private val cinza = Color.rgb(143, 143, 143)
-    private val linhaCinza = Color.rgb(48, 48, 48)
+    private val cinza = Color.rgb(165, 165, 165)
+    private val linhaCinza = Color.rgb(72, 72, 72)
 
     private val localeBR = Locale("pt", "BR")
     private val brasilia = ZoneId.of("America/Sao_Paulo")
@@ -672,8 +672,12 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
+        val temCorrida = sessoes.any { it.corrida }
+
         val faixaVerde = View(this).apply {
-            setBackgroundColor(verde)
+            setBackgroundColor(
+                if (temCorrida) verde else linhaCinza
+            )
         }
 
         grupo.addView(
