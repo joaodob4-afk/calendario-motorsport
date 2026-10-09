@@ -2,48 +2,40 @@ package com.motorsport.calendario
 
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
+import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.Space
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class F2Activity : AppCompatActivity() {
 
-    private val handler =
-        Handler(Looper.getMainLooper())
+    private val preto = Color.BLACK
+    private val verde = Color.rgb(57, 255, 20)
+    private val branco = Color.WHITE
+    private val cinza = Color.rgb(175, 175, 175)
+    private val fundoCard = Color.rgb(15, 20, 15)
+    private val verdeEscuro = Color.rgb(20, 75, 20)
+    private val linhaCinza = Color.rgb(55, 55, 55)
 
-    private var contadorView: TextView? = null
+    private val brasilia =
+        ZoneId.of("America/Sao_Paulo")
 
-    private var proximoHorario:
-            LocalDateTime? = null
+    private val localePt =
+        Locale("pt", "BR")
 
-    private val atualizarContador =
-        object : Runnable {
+    private lateinit var conteudo: LinearLayout
 
-            override fun run() {
-
-                atualizarContadorTela()
-
-                handler.postDelayed(
-                    this,
-                    60_000
-                )
-            }
-        }
-
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         overridePendingTransition(
@@ -54,225 +46,155 @@ class F2Activity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
-
                 override fun handleOnBackPressed() {
-
                     voltarParaTelaAnterior()
                 }
             }
         )
 
-        val etapa =
-            intent.getIntExtra(
-                "ETAPA",
-                -1
-            )
+        val etapa = intent.getIntExtra("ETAPA", -1)
 
-        val evento =
-            F2Calendar.eventos.find {
-                it.etapa == etapa
-            }
-
-        val conteudo =
-            LinearLayout(this).apply {
-
-                orientation =
-                    LinearLayout.VERTICAL
-
-                setPadding(
-                    20,
-                    20,
-                    20,
-                    20
-                )
-
-                setBackgroundColor(
-                    Color.rgb(
-                        7,
-                        26,
-                        45
-                    )
-                )
-            }
-
-        val voltarTopo =
-            criarBotaoVoltar()
-
-        val parametrosVoltarTopo =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltarTopo.gravity =
-            Gravity.START
-
-        parametrosVoltarTopo.setMargins(
-            0,
-            0,
-            0,
-            10
-        )
-
-        conteudo.addView(
-            voltarTopo,
-            parametrosVoltarTopo
-        )
-
-        val titulo =
-            TextView(this).apply {
-
-                text =
-                    if (evento != null) {
-                        "FÓRMULA 2\n\n" +
-                        "ETAPA ${evento.etapa}"
-                    } else {
-                        "FÓRMULA 2"
-                    }
-
-                textSize = 27f
-
-                setTextColor(
-                    Color.WHITE
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                gravity =
-                    Gravity.CENTER
-
-                letterSpacing = 0.04f
-
-                setPadding(
-                    0,
-                    10,
-                    0,
-                    28
-                )
-            }
-
-        conteudo.addView(
-            titulo
-        )
-
-        if (evento == null) {
-
-            val erro =
-                TextView(this).apply {
-
-                    text =
-                        "Etapa não encontrada."
-
-                    textSize = 17f
-
-                    setTextColor(
-                        Color.LTGRAY
-                    )
-
-                    gravity =
-                        Gravity.CENTER
-
-                    setPadding(
-                        0,
-                        30,
-                        0,
-                        30
-                    )
-                }
-
-            conteudo.addView(
-                erro
-            )
-
-        } else {
-
-            mostrarEvento(
-                conteudo,
-                evento
-            )
+        val evento = F2Calendar.eventos.find {
+            it.etapa == etapa
         }
 
-        adicionarBotaoVoltarFundo(
-            conteudo
-        )
+        val raiz = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(preto)
+            setPadding(dp(18), dp(12), dp(18), dp(20))
+        }
 
-        val scrollView =
-            ScrollView(this).apply {
+        val cabecalho = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
 
-                isVerticalScrollBarEnabled = false
+        val voltar = ImageView(this).apply {
+            val recurso = resources.getIdentifier(
+                "back_button",
+                "drawable",
+                packageName
+            )
 
-                addView(
-                    conteudo,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT
-                    )
+            if (recurso != 0) {
+                setImageResource(recurso)
+            } else {
+                setImageResource(
+                    android.R.drawable.ic_media_previous
                 )
+                setColorFilter(verde)
             }
 
-        setContentView(
-            scrollView
-        )
-
-        if (evento != null) {
-
-            handler.post(
-                atualizarContador
-            )
-        }
-    }
-
-    private fun criarBotaoVoltar(): TextView {
-
-        return TextView(this).apply {
-
-            text =
-                "‹  VOLTAR"
-
-            textSize = 15f
-
-            setTextColor(
-                Color.rgb(
-                    143,
-                    166,
-                    186
-                )
-            )
-
-            setTypeface(
-                null,
-                Typeface.BOLD
-            )
-
-            gravity =
-                Gravity.START
-
-            setPadding(
-                0,
-                8,
-                0,
-                8
-            )
-
-            isClickable = true
-            isFocusable = true
+            contentDescription = "Voltar"
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setPadding(dp(4), dp(4), dp(12), dp(4))
 
             setOnClickListener {
-
                 voltarParaTelaAnterior()
             }
+        }
+
+        cabecalho.addView(
+            voltar,
+            LinearLayout.LayoutParams(dp(42), dp(42))
+        )
+
+        val tituloTela = TextView(this).apply {
+            text = "FÓRMULA 2"
+            textSize = 23f
+            setTextColor(branco)
+            typeface = Typeface.create(
+                "sans-serif-black",
+                Typeface.NORMAL
+            )
+            letterSpacing = 0.06f
+        }
+
+        cabecalho.addView(
+            tituloTela,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        raiz.addView(cabecalho)
+
+        val detalhe = View(this).apply {
+            setBackgroundColor(verde)
+        }
+
+        raiz.addView(
+            detalhe,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(2)
+            ).apply {
+                topMargin = dp(12)
+                bottomMargin = dp(20)
+            }
+        )
+
+        conteudo = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(2), 0, dp(20))
+        }
+
+        val scrollView = ScrollView(this).apply {
+            isFillViewport = true
+            clipToPadding = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            isVerticalFadingEdgeEnabled = false
+
+            addView(
+                conteudo,
+                ScrollView.LayoutParams(
+                    ScrollView.LayoutParams.MATCH_PARENT,
+                    ScrollView.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+
+        raiz.addView(
+            scrollView,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+
+        setContentView(raiz)
+
+        if (evento == null) {
+            adicionarTexto(
+                conteudo,
+                "ETAPA NÃO ENCONTRADA",
+                17f,
+                verde,
+                true
+            )
+
+            adicionarTexto(
+                conteudo,
+                "Não foi possível encontrar os dados desta etapa.",
+                14f,
+                cinza,
+                false
+            ).setPadding(0, dp(12), 0, dp(20))
+        } else {
+            mostrarEvento(conteudo, evento)
         }
     }
 
     private fun voltarParaTelaAnterior() {
-
         finish()
 
         overridePendingTransition(
-            R.anim.slide_in_left,
+            android.R.anim.slide_in_left,
             R.anim.slide_out_right
         )
     }
@@ -281,73 +203,129 @@ class F2Activity : AppCompatActivity() {
         layout: LinearLayout,
         evento: F2Event
     ) {
+        adicionarTexto(
+            layout,
+            "PRÓXIMA ETAPA",
+            12f,
+            verde,
+            true
+        ).apply {
+            letterSpacing = 0.16f
+            setPadding(0, 0, 0, dp(5))
+        }
 
-        val bandeira =
-            obterBandeira(
-                evento.pais
+        adicionarTexto(
+            layout,
+            "ETAPA ${evento.etapa}",
+            28f,
+            branco,
+            true
+        ).setPadding(0, dp(3), 0, dp(12))
+
+        val cabecalho = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(16), dp(18), dp(16), dp(18))
+
+            background = criarFundoCard(
+                Color.rgb(10, 25, 10),
+                verde,
+                2
             )
+        }
 
-        val cabecalho =
-            TextView(this).apply {
+        adicionarTexto(
+            cabecalho,
+            evento.circuito,
+            20f,
+            branco,
+            true
+        )
 
-                text =
-                    "🏁 ${evento.circuito}\n\n" +
-                    "$bandeira ${evento.pais}\n\n" +
-                    "📅 ${evento.inicio} — ${evento.fim}"
+        val localLinha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(12), 0, 0)
+        }
 
-                textSize = 19f
+        val bandeira = TextView(this).apply {
+            text = obterBandeira(evento.pais)
+            textSize = 25f
+            gravity = Gravity.CENTER
+        }
 
-                setTextColor(
-                    Color.WHITE
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                gravity =
-                    Gravity.CENTER
-
-                setPadding(
-                    16,
-                    22,
-                    16,
-                    26
-                )
-
-                background =
-                    getDrawable(
-                        R.drawable.rounded_card
-                    )
+        localLinha.addView(
+            bandeira,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                rightMargin = dp(10)
             }
+        )
 
-        val parametrosCabecalho =
+        val pais = TextView(this).apply {
+            text = evento.pais
+            textSize = 14f
+            setTextColor(cinza)
+        }
+
+        localLinha.addView(
+            pais,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        cabecalho.addView(localLinha)
+
+        val separador = View(this).apply {
+            setBackgroundColor(verdeEscuro)
+        }
+
+        cabecalho.addView(
+            separador,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+                dp(1)
+            ).apply {
+                topMargin = dp(15)
+                bottomMargin = dp(12)
+            }
+        )
 
-        parametrosCabecalho.setMargins(
-            0,
-            0,
-            0,
-            20
+        adicionarTexto(
+            cabecalho,
+            "${evento.inicio}  —  ${evento.fim}",
+            14f,
+            branco,
+            true
         )
 
         layout.addView(
             cabecalho,
-            parametrosCabecalho
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(22)
+            }
         )
 
-        for (
-            sessao in evento.sessoes
-        ) {
+        adicionarTexto(
+            layout,
+            "PROGRAMAÇÃO",
+            15f,
+            verde,
+            true
+        ).apply {
+            letterSpacing = 0.1f
+            setPadding(0, 0, 0, dp(12))
+        }
 
-            adicionarSessao(
-                layout,
-                sessao
-            )
+        for (sessao in evento.sessoes) {
+            adicionarSessao(layout, sessao)
         }
     }
 
@@ -355,407 +333,239 @@ class F2Activity : AppCompatActivity() {
         layout: LinearLayout,
         sessao: F2Session
     ) {
+        val dataHora = if (
+            sessao.horario.equals(
+                "A confirmar",
+                ignoreCase = true
+            )
+        ) {
+            null
+        } else {
+            try {
+                LocalDateTime.parse(
+                    "${sessao.data} ${sessao.horario}",
+                    DateTimeFormatter.ofPattern(
+                        "dd/MM/yyyy HH:mm"
+                    )
+                )
+            } catch (_: Exception) {
+                null
+            }
+        }
 
-        val dataHora =
-            if (
-                sessao.horario.equals(
-                    "A confirmar",
+        val nome = obterNomeSessao(sessao.nome)
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(15), dp(14), dp(15))
+
+            val eCorrida =
+                sessao.nome.contains(
+                    "corrida",
+                    ignoreCase = true
+                ) ||
+                sessao.nome.contains(
+                    "race",
                     ignoreCase = true
                 )
-            ) {
-                null
-            } else {
 
-                try {
+            background = criarFundoCard(
+                if (eCorrida) {
+                    Color.rgb(15, 45, 15)
+                } else {
+                    fundoCard
+                },
+                if (eCorrida) verde else verdeEscuro,
+                if (eCorrida) 2 else 1
+            )
+        }
 
-                    LocalDateTime.parse(
-                        "${sessao.data} ${sessao.horario}",
-                        DateTimeFormatter.ofPattern(
-                            "dd/MM/yyyy HH:mm"
-                        )
+        val nomeSessao = TextView(this).apply {
+            text = nome
+            textSize = 13f
+            setTextColor(
+                if (
+                    sessao.nome.contains(
+                        "corrida",
+                        ignoreCase = true
+                    ) ||
+                    sessao.nome.contains(
+                        "race",
+                        ignoreCase = true
                     )
-
-                } catch (_: Exception) {
-                    null
-                }
-            }
-
-        val nomeSessao =
-            obterNomeSessao(
-                sessao.nome
+                ) verde else branco
             )
 
-        val card =
-            TextView(this).apply {
+            typeface = Typeface.create(
+                "sans-serif",
+                Typeface.BOLD
+            )
+        }
 
-                text =
-                    if (dataHora != null) {
-
-                        "$nomeSessao\n\n" +
-                        "📅 " +
-                        dataHora.format(
-                            DateTimeFormatter.ofPattern(
-                                "dd/MM/yyyy - HH:mm"
-                            )
-                        )
-
-                    } else {
-
-                        "$nomeSessao\n\n" +
-                        "📅 A confirmar"
-                    }
-
-                textSize = 17f
-
-                setTextColor(
-                    Color.WHITE
-                )
-
-                setTypeface(
-                    null,
-                    Typeface.BOLD
-                )
-
-                gravity =
-                    Gravity.CENTER
-
-                setPadding(
-                    20,
-                    20,
-                    20,
-                    20
-                )
-
-                background =
-                    getDrawable(
-                        R.drawable.rounded_card
-                    )
-            }
-
-        val parametros =
+        card.addView(
+            nomeSessao,
             LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
             )
+        )
 
-        parametros.setMargins(
-            0,
-            6,
-            0,
-            6
+        val horario = TextView(this).apply {
+            text = dataHora?.format(
+                DateTimeFormatter.ofPattern("HH:mm")
+            ) ?: "--:--"
+
+            textSize = 17f
+            setTextColor(verde)
+            typeface = Typeface.create(
+                "sans-serif",
+                Typeface.BOLD
+            )
+            gravity = Gravity.END
+        }
+
+        card.addView(
+            horario,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                leftMargin = dp(8)
+            }
         )
 
         layout.addView(
             card,
-            parametros
-        )
-
-        if (
-            dataHora != null &&
-            dataHora.isAfter(
-                LocalDateTime.now(
-                    ZoneId.of(
-                        "America/Sao_Paulo"
-                    )
-                )
-            ) &&
-            (
-                proximoHorario == null ||
-                dataHora.isBefore(
-                    proximoHorario
-                )
-            )
-        ) {
-
-            proximoHorario =
-                dataHora
-
-            contadorView =
-                TextView(this).apply {
-
-                    textSize = 16f
-
-                    setTextColor(
-                        Color.WHITE
-                    )
-
-                    setTypeface(
-                        null,
-                        Typeface.BOLD
-                    )
-
-                    gravity =
-                        Gravity.CENTER
-
-                    setPadding(
-                        16,
-                        12,
-                        16,
-                        16
-                    )
-
-                    background =
-                        getDrawable(
-                            R.drawable.rounded_card
-                        )
-                }
-
-            val parametrosContador =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-
-            parametrosContador.setMargins(
-                0,
-                0,
-                0,
-                6
-            )
-
-            layout.addView(
-                contadorView,
-                parametrosContador
-            )
-        }
-    }
-
-    private fun adicionarBotaoVoltarFundo(
-        layout: LinearLayout
-    ) {
-
-        val espaco =
-            Space(this)
-
-        val parametrosEspaco =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0
-            )
-
-        parametrosEspaco.weight =
-            1f
-
-        layout.addView(
-            espaco,
-            parametrosEspaco
-        )
-
-        val voltarFundo =
-            criarBotaoVoltar()
-
-        val parametrosVoltarFundo =
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        parametrosVoltarFundo.gravity =
-            Gravity.START
-
-        parametrosVoltarFundo.setMargins(
-            0,
-            20,
-            0,
-            10
+            ).apply {
+                bottomMargin = dp(5)
+            }
         )
 
-        layout.addView(
-            voltarFundo,
-            parametrosVoltarFundo
-        )
+        val dataTexto = TextView(this).apply {
+            text = if (dataHora != null) {
+                dataHora.format(
+                    DateTimeFormatter.ofPattern(
+                        "EEEE, dd/MM/yyyy",
+                        localePt
+                    )
+                ).uppercase(localePt)
+            } else {
+                "${sessao.data}  •  A CONFIRMAR"
+            }
+
+            textSize = 11f
+            setTextColor(cinza)
+            setPadding(dp(4), 0, dp(4), dp(12))
+        }
+
+        layout.addView(dataTexto)
     }
 
     private fun obterNomeSessao(
         nomeOriginal: String
     ): String {
-
-        val nome =
-            nomeOriginal.lowercase()
+        val nome = nomeOriginal.lowercase(localePt)
 
         return when {
-
             nome.contains("treino") ||
-            nome.contains("practice") -> {
-
-                "🟢  $nomeOriginal"
-            }
+                nome.contains("practice") ->
+                "TREINO  •  $nomeOriginal"
 
             nome.contains("classificação") ||
-            nome.contains("qualifying") ||
-            nome.contains("qualificacao") -> {
+                nome.contains("qualifying") ||
+                nome.contains("qualificacao") ->
+                "CLASSIFICAÇÃO  •  $nomeOriginal"
 
-                "🔵  $nomeOriginal"
-            }
-
-            nome.contains("sprint") -> {
-
-                "🟡  $nomeOriginal"
-            }
+            nome.contains("sprint") ->
+                "SPRINT  •  $nomeOriginal"
 
             nome.contains("corrida") ||
-            nome.contains("race") -> {
+                nome.contains("race") ->
+                "CORRIDA  •  $nomeOriginal"
 
-                "🔴  $nomeOriginal"
-            }
-
-            else -> {
-
-                nomeOriginal
-            }
+            else -> nomeOriginal
         }
     }
 
-    private fun obterBandeira(
-        pais: String
-    ): String {
-
-        return when (
-            pais.lowercase()
-                .trim()
-        ) {
-
-            "austrália",
-            "australia" -> "🇦🇺"
-
-            "mônaco",
-            "monaco" -> "🇲🇨"
-
-            "reino unido",
-            "united kingdom",
-            "uk" -> "🇬🇧"
-
-            "hungria",
-            "hungría",
-            "hungary" -> "🇭🇺"
-
-            "bélgica",
-            "belgica",
-            "belgium" -> "🇧🇪"
-
-            "itália",
-            "italia",
-            "italy" -> "🇮🇹"
-
-            "áustria",
-            "austria" -> "🇦🇹"
-
-            "países baixos",
-            "paises baixos",
-            "netherlands" -> "🇳🇱"
-
-            "azerbaijão",
-            "azerbaijan" -> "🇦🇿"
-
-            "catar",
-            "qatar" -> "🇶🇦"
-
+    private fun obterBandeira(pais: String): String {
+        return when (pais.lowercase(localePt).trim()) {
+            "austrália", "australia" -> "🇦🇺"
+            "mônaco", "monaco" -> "🇲🇨"
+            "reino unido", "united kingdom", "uk" -> "🇬🇧"
+            "hungria", "hungría", "hungary" -> "🇭🇺"
+            "bélgica", "belgica", "belgium" -> "🇧🇪"
+            "itália", "italia", "italy" -> "🇮🇹"
+            "áustria", "austria" -> "🇦🇹"
+            "países baixos", "paises baixos", "netherlands" -> "🇳🇱"
+            "azerbaijão", "azerbaijan" -> "🇦🇿"
+            "catar", "qatar" -> "🇶🇦"
             "emirados árabes unidos",
-            "united arab emirates",
-            "uae" -> "🇦🇪"
-
-            "bahrein",
-            "bahrain" -> "🇧🇭"
-
-            "arábia saudita",
-            "arabia saudita",
+            "united arab emirates", "uae" -> "🇦🇪"
+            "bahrein", "bahrain" -> "🇧🇭"
+            "arábia saudita", "arabia saudita",
             "saudi arabia" -> "🇸🇦"
-
-            "japão",
-            "japao",
-            "japan" -> "🇯🇵"
-
-            "espanha",
-            "spain" -> "🇪🇸"
-
-            "canadá",
-            "canada" -> "🇨🇦"
-
-            "estados unidos",
-            "united states",
-            "usa" -> "🇺🇸"
-
-            "singapura",
-            "singapore" -> "🇸🇬"
-
-            "méxico",
-            "mexico" -> "🇲🇽"
-
-            "brasil",
-            "brazil" -> "🇧🇷"
-
+            "japão", "japao", "japan" -> "🇯🇵"
+            "espanha", "spain" -> "🇪🇸"
+            "canadá", "canada" -> "🇨🇦"
+            "estados unidos", "united states", "usa" -> "🇺🇸"
+            "singapura", "singapore" -> "🇸🇬"
+            "méxico", "mexico" -> "🇲🇽"
+            "brasil", "brazil" -> "🇧🇷"
             else -> "🏳️"
         }
     }
 
-    private fun atualizarContadorTela() {
+    private fun adicionarTexto(
+        layout: LinearLayout,
+        texto: String,
+        tamanho: Float,
+        cor: Int,
+        negrito: Boolean
+    ): TextView {
+        val view = TextView(this).apply {
+            text = texto
+            textSize = tamanho
+            setTextColor(cor)
 
-        val view =
-            contadorView ?: return
-
-        val horario =
-            proximoHorario ?: return
-
-        val agora =
-            LocalDateTime.now(
-                ZoneId.of(
-                    "America/Sao_Paulo"
+            if (negrito) {
+                typeface = Typeface.create(
+                    "sans-serif",
+                    Typeface.BOLD
                 )
-            )
-
-        val duracao =
-            Duration.between(
-                agora,
-                horario
-            )
-
-        if (
-            duracao.isZero ||
-            duracao.isNegative
-        ) {
-
-            view.text =
-                "🏁 A próxima sessão está começando!"
-
-            return
+            }
         }
 
-        val totalMinutos =
-            duracao.toMinutes()
-
-        val dias =
-            totalMinutos / 1440
-
-        val horas =
-            (totalMinutos % 1440) / 60
-
-        val minutos =
-            totalMinutos % 60
-
-        view.text =
-            if (dias > 0) {
-
-                "⏳  PRÓXIMA SESSÃO EM  " +
-                "${dias}d ${horas}h ${minutos}min"
-
-            } else if (horas > 0) {
-
-                "⏳  PRÓXIMA SESSÃO EM  " +
-                "${horas}h ${minutos}min"
-
-            } else {
-
-                "⏳  PRÓXIMA SESSÃO EM  " +
-                "${minutos}min"
-            }
-    }
-
-    override fun onDestroy() {
-
-        handler.removeCallbacks(
-            atualizarContador
+        layout.addView(
+            view,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         )
 
-        super.onDestroy()
+        return view
+    }
+
+    private fun criarFundoCard(
+        corFundo: Int,
+        corBorda: Int,
+        espessura: Int
+    ): GradientDrawable {
+        return GradientDrawable().apply {
+            cornerRadius = dp(9).toFloat()
+            setColor(corFundo)
+            setStroke(dp(espessura), corBorda)
+        }
+    }
+
+    private fun dp(valor: Int): Int {
+        return (
+            valor * resources.displayMetrics.density
+        ).toInt()
     }
 }
