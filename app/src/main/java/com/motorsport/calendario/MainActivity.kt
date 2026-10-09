@@ -58,13 +58,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private val todasEtapas = listOf(
+    private val etapasFixas = listOf(
 
         // F1 2026
         Etapa("F1", "Austrália", "Melbourne", "06–08 MAR", "2026-03-06", "albert_park"),
+        Etapa("F1", "China", "Xangai", "13–15 MAR", "2026-03-13", "shanghai"),
         Etapa("F1", "Japão", "Suzuka", "27–29 MAR", "2026-03-27", "suzuka"),
-        Etapa("F1", "Bahrein", "Sakhir", "10–12 ABR", "2026-04-10", "bahrain"),
-        Etapa("F1", "Arábia Saudita", "Jeddah", "17–19 ABR", "2026-04-17", "jeddah"),
         Etapa("F1", "Estados Unidos", "Miami", "01–03 MAI", "2026-05-01", "miami"),
         Etapa("F1", "Canadá", "Montreal", "22–24 MAI", "2026-05-22", "villeneuve"),
         Etapa("F1", "Mônaco", "Monte Carlo", "05–07 JUN", "2026-06-05", "monaco"),
@@ -75,7 +74,8 @@ class MainActivity : AppCompatActivity() {
         Etapa("F1", "Hungria", "Budapeste", "24–26 JUL", "2026-07-24", "hungaroring"),
         Etapa("F1", "Holanda", "Zandvoort", "21–23 AGO", "2026-08-21", "zandvoort"),
         Etapa("F1", "Itália", "Monza", "04–06 SET", "2026-09-04", "monza"),
-        Etapa("F1", "Azerbaijão", "Baku", "18–20 SET", "2026-09-18", "baku"),
+        Etapa("F1", "Espanha", "Madrid", "11–13 SET", "2026-09-11", "madring"),
+        Etapa("F1", "Azerbaijão", "Baku", "24–26 SET", "2026-09-24", "baku"),
         Etapa("F1", "Singapura", "Marina Bay", "09–11 OUT", "2026-10-09", "marina_bay"),
         Etapa("F1", "Estados Unidos", "Austin", "23–25 OUT", "2026-10-23", "americas"),
         Etapa("F1", "México", "Cidade do México", "30 OUT–01 NOV", "2026-10-30", "rodriguez"),
@@ -109,11 +109,48 @@ class MainActivity : AppCompatActivity() {
         Etapa("F3", "Espanha", "Madrid", "11–13 SET", "2026-09-11")
     )
 
+    // Etapas da F1 baixadas da API; null usa a lista fixa como reserva.
+    private var etapasF1Dinamicas: List<Etapa>? = null
+
+    // Etapas da F2 vindas do f2_calendar.json (cache/GitHub/APK).
+    private var etapasF2Dinamicas: List<Etapa>? = null
+
+    private val todasEtapas: List<Etapa>
+        get() =
+            (etapasF1Dinamicas
+                ?: etapasFixas.filter { it.categoria == "F1" }) +
+                (etapasF2Dinamicas
+                    ?: etapasFixas.filter { it.categoria == "F2" }) +
+                etapasFixas.filter {
+                    it.categoria != "F1" && it.categoria != "F2"
+                }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Baixa o calendário F2 mais recente em segundo plano.
-        F2CalendarJson.atualizar(this)
+        // Calendário da F2: usa o último baixado e atualiza em segundo plano.
+        etapasF2Dinamicas =
+            F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
+        F2CalendarJson.atualizar(this) {
+            etapasF2Dinamicas =
+                F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
+
+            if (categoriaAtual.isEmpty()) {
+                atualizarProximaEtapa()
+                mostrarEtapas(todasEtapas)
+            }
+        }
+
+        // Calendário da F1: usa o último baixado e atualiza em segundo plano.
+        etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
+        F1CalendarApi.atualizar(this) {
+            etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
+
+            if (categoriaAtual.isEmpty()) {
+                atualizarProximaEtapa()
+                mostrarEtapas(todasEtapas)
+            }
+        }
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -614,6 +651,7 @@ class MainActivity : AppCompatActivity() {
                 "México" -> "flag_mx"
                 "Brasil" -> "flag_br"
                 "Catar" -> "flag_qa"
+                "China" -> "flag_cn"
                 "Abu Dhabi" -> "flag_ae"
                 else -> return 0
             }
@@ -646,6 +684,7 @@ class MainActivity : AppCompatActivity() {
             "México" -> "🇲🇽"
             "Brasil" -> "🇧🇷"
             "Catar" -> "🇶🇦"
+            "China" -> "🇨🇳"
             "Abu Dhabi" -> "🇦🇪"
             else -> "🌐"
         }
