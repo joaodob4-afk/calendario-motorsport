@@ -1,3 +1,4 @@
+
 package com.motorsport.calendario
 
 import android.graphics.Color
@@ -49,9 +50,9 @@ class F2Activity : AppCompatActivity() {
 
         montarTela()
 
-        // Escolhe automaticamente a próxima etapa.
+        // Carrega o JSON e usa o calendário local como reserva.
         val eventos = F2CalendarJson.carregar(this)
-val evento = obterProximaEtapa(eventos)
+        val evento = obterProximaEtapa(eventos)
 
         if (evento != null) {
             mostrarEvento(evento)
@@ -72,7 +73,9 @@ val evento = obterProximaEtapa(eventos)
         }
     }
 
-    private fun obterProximaEtapa(): F2Event? {
+    private fun obterProximaEtapa(
+        eventos: List<F2Event>
+    ): F2Event? {
         val hoje = SimpleDateFormat(
             "dd/MM/yyyy",
             Locale.US
@@ -283,7 +286,9 @@ val evento = obterProximaEtapa(eventos)
         val inicio = formatarData(evento.inicio)
         val fim = formatarData(evento.fim)
 
-        val intervalo = if (inicio.isNotBlank() && fim.isNotBlank()) {
+        val intervalo = if (
+            inicio.isNotBlank() && fim.isNotBlank()
+        ) {
             "$inicio – $fim"
         } else {
             inicio.ifBlank { fim }
@@ -422,18 +427,18 @@ val evento = obterProximaEtapa(eventos)
                 "CORRIDA PRINCIPAL"
 
             nomeNormalizado.contains("practice") ||
-                nomeNormalizado.contains("treino") ->
+            nomeNormalizado.contains("treino") ->
                 "TREINO LIVRE"
 
             nomeNormalizado.contains("qualifying") ||
-                nomeNormalizado.contains("classificação") ->
+            nomeNormalizado.contains("classificação") ->
                 "CLASSIFICAÇÃO"
 
             sprint ->
                 "CORRIDA SPRINT"
 
             nomeNormalizado.contains("corrida") ||
-                nomeNormalizado == "race" ->
+            nomeNormalizado == "race" ->
                 "CORRIDA"
 
             else -> nomeOriginal.uppercase(localePt)
