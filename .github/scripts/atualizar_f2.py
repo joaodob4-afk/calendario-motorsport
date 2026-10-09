@@ -1,4 +1,3 @@
-import json
 import re
 import urllib.request
 from html.parser import HTMLParser
@@ -6,34 +5,26 @@ from html.parser import HTMLParser
 URL = "https://www.fiaformula2.com/en/racing/2026"
 
 
-class JSONLDParser(HTMLParser):
+class LinksParser(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.dentro = False
-        self.conteudo = []
-        self.blocos = []
+        self.links = []
 
     def handle_starttag(self, tag, attrs):
-        if tag.lower() == "script":
-            atributos = dict(attrs)
-            if atributos.get("type") == "application/ld+json":
-                self.dentro = True
-                self.conteudo = []
+        if tag.lower() != "a":
+            return
 
-    def handle_data(self, data):
-        if self.dentro:
-            self.conteudo.append(data)
-
-    def handle_endtag(self, tag):
-        if tag.lower() == "script" and self.dentro:
-            texto = "".join(self.conteudo).strip()
-            if texto:
-                self.blocos.append(texto)
-            self.dentro = False
+        for nome, valor in attrs:
+            if nome.lower() == "href" and valor:
+                if re.search(
+                    r"/en/racing/2026/[^/?#]+",
+                    valor
+                ):
+                    self.links.append(valor)
 
 
 def main():
-    print("Consultando o calendário oficial da F2...")
+    print("Consultando páginas oficiais da F2...")
 
     requisicao = urllib.request.Request(
         URL,
@@ -43,42 +34,28 @@ def main():
         },
     )
 
-    with urllib.request.urlopen(requisicao, timeout=30) as resposta:
+    with urllib.request.urlopen(
+        requisicao, timeout=30
+    ) as resposta:
         html = resposta.read().decode(
             "utf-8", errors="replace"
         )
 
-    if len(html) < 1000:
-        raise RuntimeError("A página retornou conteúdo insuficiente.")
-
-    parser = JSONLDParser()
+    parser = LinksParser()
     parser.feed(html)
 
-    print("Página acessada com sucesso.")
-    print("Tamanho recebido:", len(html), "caracteres")
-    print("Blocos JSON-LD encontrados:", len(parser.blocos))
+    links = sorted(set(parser.links))
 
-    for i, bloco in enumerate(parser.blocos, start=1):
-        try:
-            dados = json.loads(bloco)
-            print(f"Bloco estruturado {i}:")
-            print(json.dumps(dados, ensure_ascii=False)[:1500])
-        except json.JSONDecodeError:
-            print(f"Bloco {i}: formato JSON inválido")
+    print("Links de etapas encontrados:", len(links))
 
-    palavras = [
-        "Practice",
-        "Qualifying",
-        "Sprint Race",
-        "Feature Race",
-        "schedule",
-    ]
+    for link in links:
+        if link.startswith("/"):
+            link = "https://www.fiaformula2.com" + link
+        print(link)
 
-    for palavra in palavras:
-        encontrados = list(
-            re.finditer(re.escape(palavra), html, re.IGNORECASE)
-        )
-        print(f"{palavra}: {len(encontrados)} ocorrência(s)")
+    if not links:
+        print("Nenhum link de etapa encontrado.")
+        print("O calendário não foi alterado.")
 
     print("Teste concluído. Nenhum arquivo foi alterado.")
 
