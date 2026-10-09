@@ -240,8 +240,6 @@ class F1Activity : AppCompatActivity() {
             val hora = race.optString("time", "")
 
             if (hora.isBlank()) {
-                // Sem horário oficial: não inventa meia-noite.
-                // Mantém a etapa de hoje ou de uma data futura.
                 if (!dataCorrida.isBefore(hoje)) {
                     return race
                 }
@@ -277,7 +275,6 @@ class F1Activity : AppCompatActivity() {
         val localizacao = race.optJSONObject("Circuit")
             ?.optJSONObject("Location")
 
-        // A API usa "locality" para a cidade.
         val cidade = localizacao?.optString("locality", "") ?: ""
         val pais = localizacao?.optString("country", "") ?: ""
 
@@ -513,7 +510,6 @@ class F1Activity : AppCompatActivity() {
             }
 
             val horaTexto = sessao.optString("time", "")
-
             val horario = converterHorario(dataTexto, horaTexto)
 
             resultado.add(
@@ -663,6 +659,7 @@ class F1Activity : AppCompatActivity() {
             setTextColor(branco)
             setTypeface(null, Typeface.BOLD)
             letterSpacing = 0.02f
+            gravity = Gravity.TOP
         }
 
         grupo.addView(
@@ -675,28 +672,26 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
+        val faixaVerde = View(this).apply {
+            setBackgroundColor(verde)
+        }
+
+        grupo.addView(
+            faixaVerde,
+            LinearLayout.LayoutParams(
+                dp(2),
+                LinearLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                setMargins(0, 0, dp(12), 0)
+            }
+        )
+
         val colunaSessoes = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
         }
 
-        for ((indice, sessao) in sessoes.withIndex()) {
+        for (sessao in sessoes) {
             adicionarSessao(colunaSessoes, sessao)
-
-            if (indice < sessoes.lastIndex) {
-                val divisor = View(this).apply {
-                    setBackgroundColor(linhaCinza)
-                }
-
-                colunaSessoes.addView(
-                    divisor,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        dp(1)
-                    ).apply {
-                        setMargins(0, dp(9), 0, dp(9))
-                    }
-                )
-            }
         }
 
         grupo.addView(
@@ -709,6 +704,8 @@ class F1Activity : AppCompatActivity() {
         )
 
         layout.addView(grupo)
+
+        // Separador cinza somente entre os dias.
         adicionarSeparador(layout)
     }
 
