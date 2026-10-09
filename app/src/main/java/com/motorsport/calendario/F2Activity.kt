@@ -79,7 +79,7 @@ class F2Activity : AppCompatActivity() {
 
         val dataHoje = converterData(hoje) ?: return null
 
-        return F2Calendar.eventos
+        return eventos
             .filter { evento ->
                 val dataFim = converterData(evento.fim)
                 dataFim != null && !dataFim.before(dataHoje)
