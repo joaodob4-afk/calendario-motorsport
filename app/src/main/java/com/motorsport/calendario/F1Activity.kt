@@ -1,4 +1,3 @@
-
 package com.motorsport.calendario
 
 import android.graphics.Color
@@ -330,9 +329,11 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(circuitoEvento)
 
+        // Alteração visual: desloca apenas a linha de localização 5 dp à esquerda.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            translationX = -dp(5).toFloat()
             setPadding(0, dp(10), 0, dp(18))
         }
 
@@ -366,7 +367,7 @@ class F1Activity : AppCompatActivity() {
         val textoLocal = TextView(this).apply {
             text = listOf(cidade, pais)
                 .filter { it.isNotBlank() }
-                .joinToString(" • ")
+                .joinToString(", ")
             textSize = 12f
             setTextColor(cinza)
             gravity = Gravity.CENTER_VERTICAL
