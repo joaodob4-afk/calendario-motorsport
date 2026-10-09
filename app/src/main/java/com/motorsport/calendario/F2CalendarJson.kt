@@ -7,6 +7,8 @@ import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object F2CalendarJson {
 
@@ -77,6 +79,38 @@ object F2CalendarJson {
                 Handler(Looper.getMainLooper()).post { aoTerminar() }
             }
         }.start()
+    }
+
+    /** Converte os eventos da F2 para o formato da lista da tela inicial. */
+    fun comoEtapas(eventos: List<F2Event>): List<MainActivity.Etapa> {
+        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        val lista = mutableListOf<MainActivity.Etapa>()
+
+        for (evento in eventos) {
+            try {
+                val inicio = LocalDate.parse(evento.inicio, formato)
+                val fim = LocalDate.parse(evento.fim, formato)
+
+                // A lista da tela inicial usa "Abu Dhabi" para a bandeira.
+                val pais =
+                    if (evento.pais == "Emirados Árabes Unidos") "Abu Dhabi"
+                    else evento.pais
+
+                lista.add(
+                    MainActivity.Etapa(
+                        categoria = "F2",
+                        pais = pais,
+                        circuito = evento.circuito,
+                        data = F1CalendarApi.formatarPeriodo(inicio, fim),
+                        dataInicio = inicio.toString()
+                    )
+                )
+            } catch (_: Exception) {
+                // Ignora etapa com data inválida.
+            }
+        }
+
+        return lista.sortedBy { it.dataInicio }
     }
 
     private fun lerCache(context: Context): String? {
