@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.time.Instant
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -34,7 +36,8 @@ class F1Activity : AppCompatActivity() {
 
     private data class Sessao(
         val nome: String,
-        val horario: java.time.ZonedDateTime,
+        val data: LocalDate,
+        val horario: java.time.ZonedDateTime?,
         val corrida: Boolean = false
     )
 
@@ -89,7 +92,6 @@ class F1Activity : AppCompatActivity() {
         }
 
         setContentView(scrollView)
-
         carregarEvento(conteudo, carregando, circuitId)
     }
 
@@ -103,6 +105,7 @@ class F1Activity : AppCompatActivity() {
             background = null
             isClickable = true
             isFocusable = true
+            contentDescription = "Voltar"
 
             setOnClickListener {
                 voltarParaTelaAnterior()
@@ -125,7 +128,7 @@ class F1Activity : AppCompatActivity() {
     ) {
         Thread {
             try {
-                val evento = if (circuitId != null) {
+                val evento = if (!circuitId.isNullOrBlank()) {
                     buscarCorridaPorCircuito(circuitId)
                 } else {
                     buscarProximaCorrida()
@@ -133,7 +136,8 @@ class F1Activity : AppCompatActivity() {
 
                 if (evento == null) {
                     runOnUiThread {
-                        carregando.text = "Etapa não encontrada."
+                        carregando.text =
+                            "Etapa não encontrada ou ainda indisponível."
                     }
                     return@Thread
                 }
@@ -146,7 +150,7 @@ class F1Activity : AppCompatActivity() {
                 runOnUiThread {
                     carregando.text =
                         "Erro ao carregar evento.\n\n" +
-                        e.javaClass.simpleName
+                        (e.message ?: e.javaClass.simpleName)
                 }
             }
         }.start()
@@ -164,10 +168,29 @@ class F1Activity : AppCompatActivity() {
                 "User-Agent",
                 "CalendarioMotorsport/1.0"
             )
+            connection.setRequestProperty(
+                "Accept",
+                "application/json"
+            )
 
-            return connection.inputStream.bufferedReader().use {
-                it.readText()
+            val codigo = connection.responseCode
+            val stream = if (codigo in 200..299) {
+                connection.inputStream
+            } else {
+                connection.errorStream
             }
+
+            val resposta = stream?.bufferedReader()?.use {
+                it.readText()
+            }.orEmpty()
+
+            if (codigo !in 200..299) {
+                throw IllegalStateException(
+                    "A API respondeu com HTTP $codigo."
+                )
+            }
+
+            return resposta
         } finally {
             connection.disconnect()
         }
@@ -201,15 +224,38 @@ class F1Activity : AppCompatActivity() {
             .getJSONObject("RaceTable")
             .getJSONArray("Races")
 
-        val agora = java.time.Instant.now()
+        val agora = Instant.now()
+        val hoje = LocalDate.now(brasilia)
 
         for (i in 0 until races.length()) {
             val race = races.getJSONObject(i)
-            val data = race.getString("date")
-            val hora = race.optString("time", "00:00:00Z")
-            val horario = OffsetDateTime.parse("${data}T${hora}")
+            val data = race.optString("date", "")
 
-            if (horario.toInstant().isAfter(agora)) {
+            val dataCorrida = try {
+                LocalDate.parse(data)
+            } catch (_: Exception) {
+                continue
+            }
+
+            val hora = race.optString("time", "")
+
+            if (hora.isBlank()) {
+                // Sem horário oficial: não inventa meia-noite.
+                // Mantém a etapa de hoje ou de uma data futura.
+                if (!dataCorrida.isBefore(hoje)) {
+                    return race
+                }
+                continue
+            }
+
+            val instante = try {
+                OffsetDateTime.parse("${data}T${hora}")
+                    .toInstant()
+            } catch (_: Exception) {
+                continue
+            }
+
+            if (instante.isAfter(agora)) {
                 return race
             }
         }
@@ -231,10 +277,10 @@ class F1Activity : AppCompatActivity() {
         val localizacao = race.optJSONObject("Circuit")
             ?.optJSONObject("Location")
 
-        val cidade = localizacao?.optString("local", "") ?: ""
+        // A API usa "locality" para a cidade.
+        val cidade = localizacao?.optString("locality", "") ?: ""
         val pais = localizacao?.optString("country", "") ?: ""
 
-        // Categoria e faixa verde.
         val cabecalho = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -263,7 +309,6 @@ class F1Activity : AppCompatActivity() {
         cabecalho.addView(categoria)
         layout.addView(cabecalho)
 
-        // Nome da etapa.
         val nomeEvento = TextView(this).apply {
             text = tituloGrandPrix
             textSize = 24f
@@ -274,7 +319,6 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(nomeEvento)
 
-        // Nome do autódromo.
         val circuitoEvento = TextView(this).apply {
             text = circuito.replaceFirstChar {
                 if (it.isLowerCase()) {
@@ -289,7 +333,6 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(circuitoEvento)
 
-        // Bandeira e localização.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -324,7 +367,9 @@ class F1Activity : AppCompatActivity() {
         }
 
         val textoLocal = TextView(this).apply {
-            text = "$cidade • $pais"
+            text = listOf(cidade, pais)
+                .filter { it.isNotBlank() }
+                .joinToString(" • ")
             textSize = 12f
             setTextColor(cinza)
             gravity = Gravity.CENTER_VERTICAL
@@ -341,10 +386,8 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(localEvento)
 
-        // Data calculada a partir das datas reais das sessões.
         val sessoes = obterSessoes(race)
         adicionarDataEtapa(layout, sessoes)
-
         adicionarSeparador(layout)
 
         val tituloProgramacao = TextView(this).apply {
@@ -369,19 +412,27 @@ class F1Activity : AppCompatActivity() {
             return
         }
 
-        // Agrupa as sessões pela data e hora reais da API.
-        val grupos = sessoes.groupBy {
-            it.horario.toLocalDate()
-        }.toSortedMap()
+        val grupos = sessoes
+            .groupBy { it.data }
+            .toSortedMap()
 
         for ((data, sessoesDoDia) in grupos) {
+            val diaCurto = data.dayOfWeek
+                .getDisplayName(TextStyle.SHORT, localeBR)
+                .uppercase(localeBR)
+                .replace(".", "")
+
+            val dataCurta = data.format(
+                DateTimeFormatter.ofPattern("dd MMM", localeBR)
+            ).uppercase(localeBR).replace(".", "")
+
             adicionarGrupoDia(
                 layout,
-                data.dayOfWeek.getDisplayName(
-                    TextStyle.FULL,
-                    localeBR
-                ).uppercase(localeBR),
-                sessoesDoDia.sortedBy { it.horario }
+                "$diaCurto $dataCurta",
+                sessoesDoDia.sortedWith(
+                    compareBy<Sessao> { it.horario == null }
+                        .thenBy { it.horario?.toInstant() }
+                )
             )
         }
     }
@@ -421,7 +472,6 @@ class F1Activity : AppCompatActivity() {
 
         titulos[chave]?.let { return it }
 
-        // Fallback para nomes de etapas ainda não mapeados.
         val nomeBase = nome
             .replace(Regex("(?i)\\s*grand prix\\s*"), "")
             .trim()
@@ -441,44 +491,81 @@ class F1Activity : AppCompatActivity() {
             "SecondPractice" to "TREINO LIVRE 2",
             "ThirdPractice" to "TREINO LIVRE 3",
             "SprintQualifying" to "CLASSIFICAÇÃO SPRINT",
+            "SprintShootout" to "CLASSIFICAÇÃO SPRINT",
             "Sprint" to "SPRINT",
             "Qualifying" to "CLASSIFICAÇÃO"
         )
 
+        val nomesAdicionados = mutableSetOf<String>()
+
         for ((campo, nome) in campos) {
-            if (!race.has(campo)) continue
-
-            try {
-                val sessao = race.getJSONObject(campo)
-                val data = sessao.getString("date")
-                val hora = sessao.optString("time", "00:00:00Z")
-
-                val horario = OffsetDateTime.parse(
-                    "${data}T${hora}"
-                ).atZoneSameInstant(brasilia)
-
-                resultado.add(Sessao(nome, horario))
-            } catch (_: Exception) {
-                // Ignora apenas sessões com dados inválidos.
+            if (!race.has(campo) || !nomesAdicionados.add(nome)) {
+                continue
             }
-        }
 
-        // A corrida principal usa a data e o horário oficiais da etapa.
-        try {
-            val data = race.getString("date")
-            val hora = race.optString("time", "00:00:00Z")
+            val sessao = race.optJSONObject(campo) ?: continue
+            val dataTexto = sessao.optString("date", "")
 
-            val horario = OffsetDateTime.parse(
-                "${data}T${hora}"
-            ).atZoneSameInstant(brasilia)
+            val data = try {
+                LocalDate.parse(dataTexto)
+            } catch (_: Exception) {
+                continue
+            }
+
+            val horaTexto = sessao.optString("time", "")
+
+            val horario = converterHorario(dataTexto, horaTexto)
 
             resultado.add(
-                Sessao("CORRIDA", horario, corrida = true)
+                Sessao(
+                    nome = nome,
+                    data = horario?.toLocalDate() ?: data,
+                    horario = horario
+                )
             )
-        } catch (_: Exception) {
         }
 
-        return resultado.sortedBy { it.horario }
+        val dataCorridaTexto = race.optString("date", "")
+        val dataCorrida = try {
+            LocalDate.parse(dataCorridaTexto)
+        } catch (_: Exception) {
+            null
+        }
+
+        if (dataCorrida != null) {
+            val horarioCorrida = converterHorario(
+                dataCorridaTexto,
+                race.optString("time", "")
+            )
+
+            resultado.add(
+                Sessao(
+                    nome = "CORRIDA",
+                    data = horarioCorrida?.toLocalDate() ?: dataCorrida,
+                    horario = horarioCorrida,
+                    corrida = true
+                )
+            )
+        }
+
+        return resultado.sortedWith(
+            compareBy<Sessao> { it.data }
+                .thenBy { it.horario?.toInstant() }
+        )
+    }
+
+    private fun converterHorario(
+        data: String,
+        hora: String
+    ): java.time.ZonedDateTime? {
+        if (data.isBlank() || hora.isBlank()) return null
+
+        return try {
+            OffsetDateTime.parse("${data}T${hora}")
+                .atZoneSameInstant(brasilia)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun adicionarDataEtapa(
@@ -487,23 +574,18 @@ class F1Activity : AppCompatActivity() {
     ) {
         if (sessoes.isEmpty()) return
 
-        val primeira = sessoes.minByOrNull {
-            it.horario
-        }!!.horario.toLocalDate()
+        val primeira = sessoes.minOf { it.data }
+        val ultima = sessoes.maxOf { it.data }
 
-        val ultima = sessoes.maxByOrNull {
-            it.horario
-        }!!.horario.toLocalDate()
+        val mesInicial = primeira.month
+            .getDisplayName(TextStyle.SHORT, localeBR)
+            .uppercase(localeBR)
+            .replace(".", "")
 
-        val mesInicial = primeira.month.getDisplayName(
-            TextStyle.SHORT,
-            localeBR
-        ).uppercase(localeBR).replace(".", "")
-
-        val mesFinal = ultima.month.getDisplayName(
-            TextStyle.SHORT,
-            localeBR
-        ).uppercase(localeBR).replace(".", "")
+        val mesFinal = ultima.month
+            .getDisplayName(TextStyle.SHORT, localeBR)
+            .uppercase(localeBR)
+            .replace(".", "")
 
         val dataFormatada = when {
             primeira.year != ultima.year -> String.format(
@@ -586,9 +668,11 @@ class F1Activity : AppCompatActivity() {
         grupo.addView(
             tituloDia,
             LinearLayout.LayoutParams(
-                dp(66),
+                dp(90),
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+            ).apply {
+                setMargins(0, 0, dp(5), 0)
+            }
         )
 
         val colunaSessoes = LinearLayout(this).apply {
@@ -646,11 +730,10 @@ class F1Activity : AppCompatActivity() {
 
         bloco.addView(nomeSessao)
 
-        // Exibe apenas o início oficial; não inventa horário de término.
         val horarioSessao = TextView(this).apply {
-            text = sessao.horario.format(
+            text = sessao.horario?.format(
                 DateTimeFormatter.ofPattern("HH:mm", localeBR)
-            )
+            ) ?: "Horário não divulgado"
 
             textSize = 11f
             setTextColor(if (sessao.corrida) verde else cinza)
@@ -675,7 +758,8 @@ class F1Activity : AppCompatActivity() {
             "spain" -> R.drawable.flag_es
             "canada" -> R.drawable.flag_ca
             "austria" -> R.drawable.flag_at
-            "united kingdom", "uk", "great britain" -> R.drawable.flag_gb
+            "united kingdom", "uk",
+            "great britain" -> R.drawable.flag_gb
             "belgium" -> R.drawable.flag_be
             "hungary" -> R.drawable.flag_hu
             "netherlands", "the netherlands" -> R.drawable.flag_nl
@@ -704,7 +788,8 @@ class F1Activity : AppCompatActivity() {
             "spain" -> "🇪🇸"
             "canada" -> "🇨🇦"
             "austria" -> "🇦🇹"
-            "united kingdom", "uk", "great britain" -> "🇬🇧"
+            "united kingdom", "uk",
+            "great britain" -> "🇬🇧"
             "belgium" -> "🇧🇪"
             "hungary" -> "🇭🇺"
             "netherlands", "the netherlands" -> "🇳🇱"
