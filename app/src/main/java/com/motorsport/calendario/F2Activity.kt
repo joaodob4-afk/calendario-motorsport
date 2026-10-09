@@ -33,6 +33,9 @@ class F2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Baixa o calendário F2 mais recente em segundo plano.
+        F2CalendarJson.atualizar(this)
+
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
