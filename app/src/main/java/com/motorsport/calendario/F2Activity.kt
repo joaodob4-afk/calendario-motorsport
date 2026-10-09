@@ -6,33 +6,24 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class F2Activity : AppCompatActivity() {
 
-    private val preto = Color.BLACK
+    private val preto = Color.rgb(5, 5, 5)
     private val verde = Color.rgb(57, 255, 20)
     private val branco = Color.WHITE
-    private val cinza = Color.rgb(175, 175, 175)
-    private val fundoCard = Color.rgb(15, 20, 15)
-    private val verdeEscuro = Color.rgb(20, 75, 20)
-    private val linhaCinza = Color.rgb(55, 55, 55)
+    private val cinza = Color.rgb(165, 165, 165)
+    private val cardEscuro = Color.rgb(18, 18, 18)
 
-    private val brasilia =
-        ZoneId.of("America/Sao_Paulo")
-
-    private val localePt =
-        Locale("pt", "BR")
-
+    private lateinit var raiz: LinearLayout
     private lateinit var conteudo: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,12 +44,11 @@ class F2Activity : AppCompatActivity() {
         )
 
         val etapa = intent.getIntExtra("ETAPA", -1)
-
         val evento = F2Calendar.eventos.find {
             it.etapa == etapa
         }
 
-        val raiz = LinearLayout(this).apply {
+        raiz = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(preto)
             setPadding(dp(18), dp(12), dp(18), dp(20))
@@ -69,49 +59,40 @@ class F2Activity : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
         }
 
-        val voltar = ImageView(this).apply {
-            val recurso = resources.getIdentifier(
-                "back_button",
-                "drawable",
-                packageName
-            )
-
-            if (recurso != 0) {
-                setImageResource(recurso)
-            } else {
-                setImageResource(
-                    android.R.drawable.ic_media_previous
-                )
-                setColorFilter(verde)
-            }
-
+        val botaoVoltar = TextView(this).apply {
+            text = "‹"
+            textSize = 38f
+            setTextColor(verde)
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            setPadding(dp(4), 0, dp(16), dp(4))
             contentDescription = "Voltar"
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(4), dp(4), dp(12), dp(4))
-
             setOnClickListener {
                 voltarParaTelaAnterior()
             }
         }
 
         cabecalho.addView(
-            voltar,
-            LinearLayout.LayoutParams(dp(42), dp(42))
+            botaoVoltar,
+            LinearLayout.LayoutParams(
+                dp(42),
+                dp(48)
+            )
         )
 
-        val tituloTela = TextView(this).apply {
+        val titulo = TextView(this).apply {
             text = "FÓRMULA 2"
             textSize = 23f
             setTextColor(branco)
             typeface = Typeface.create(
-                "sans-serif-black",
-                Typeface.NORMAL
+                "sans-serif-condensed",
+                Typeface.BOLD
             )
-            letterSpacing = 0.06f
+            letterSpacing = 0.12f
         }
 
         cabecalho.addView(
-            tituloTela,
+            titulo,
             LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -119,27 +100,26 @@ class F2Activity : AppCompatActivity() {
             )
         )
 
-        raiz.addView(cabecalho)
+        raiz.addView(
+            cabecalho,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
 
-        val detalhe = View(this).apply {
+        val linhaVerde = View(this).apply {
             setBackgroundColor(verde)
         }
 
-        raiz.addView(
-            detalhe,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(2)
-            ).apply {
-                topMargin = dp(12)
-                bottomMargin = dp(20)
-            }
+        val margemLinha = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(2)
         )
+        margemLinha.topMargin = dp(4)
+        margemLinha.bottomMargin = dp(16)
 
-        conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(2), 0, dp(20))
-        }
+        raiz.addView(linhaVerde, margemLinha)
 
         val scrollView = ScrollView(this).apply {
             isFillViewport = true
@@ -150,10 +130,10 @@ class F2Activity : AppCompatActivity() {
             isVerticalFadingEdgeEnabled = false
 
             addView(
-                conteudo,
-                ScrollView.LayoutParams(
-                    ScrollView.LayoutParams.MATCH_PARENT,
-                    ScrollView.LayoutParams.WRAP_CONTENT
+                conteudoContainer(),
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
                 )
             )
         }
@@ -172,238 +152,179 @@ class F2Activity : AppCompatActivity() {
         if (evento == null) {
             adicionarTexto(
                 conteudo,
-                "ETAPA NÃO ENCONTRADA",
-                17f,
-                verde,
+                "Etapa não encontrada.",
+                18f,
+                branco,
                 true
             )
-
-            adicionarTexto(
-                conteudo,
-                "Não foi possível encontrar os dados desta etapa.",
-                14f,
-                cinza,
-                false
-            ).setPadding(0, dp(12), 0, dp(20))
         } else {
-            mostrarEvento(conteudo, evento)
+            mostrarEvento(evento)
         }
+    }
+
+    private fun conteudoContainer(): LinearLayout {
+        conteudo = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        return conteudo
     }
 
     private fun voltarParaTelaAnterior() {
         finish()
-
         overridePendingTransition(
             android.R.anim.slide_in_left,
             R.anim.slide_out_right
         )
     }
 
-    private fun mostrarEvento(
-        layout: LinearLayout,
-        evento: F2Event
-    ) {
+    private fun mostrarEvento(evento: F2Event) {
+
         adicionarTexto(
-            layout,
+            conteudo,
             "PRÓXIMA ETAPA",
             12f,
             verde,
             true
-        ).apply {
-            letterSpacing = 0.16f
-            setPadding(0, 0, 0, dp(5))
+        )
+
+        val numeroEtapa = TextView(this).apply {
+            text = "ETAPA ${evento.etapa}"
+            textSize = 28f
+            setTextColor(branco)
+            typeface = Typeface.create(
+                "sans-serif-condensed",
+                Typeface.BOLD
+            )
+            letterSpacing = 0.06f
         }
 
-        adicionarTexto(
-            layout,
-            "ETAPA ${evento.etapa}",
-            28f,
-            branco,
-            true
-        ).setPadding(0, dp(3), 0, dp(12))
+        val margemNumero = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        margemNumero.topMargin = dp(5)
+        margemNumero.bottomMargin = dp(14)
 
-        val cabecalho = LinearLayout(this).apply {
+        conteudo.addView(numeroEtapa, margemNumero)
+
+        val cardEvento = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(18), dp(16), dp(18))
-
+            setPadding(dp(16), dp(16), dp(16), dp(16))
             background = criarFundoCard(
-                Color.rgb(10, 25, 10),
+                cardEscuro,
                 verde,
-                2
+                14
             )
         }
 
         adicionarTexto(
-            cabecalho,
+            cardEvento,
             evento.circuito,
-            20f,
+            23f,
             branco,
             true
         )
 
-        val localLinha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(12), 0, 0)
-        }
-
-        val bandeira = TextView(this).apply {
-            text = obterBandeira(evento.pais)
-            textSize = 25f
-            gravity = Gravity.CENTER
-        }
-
-        localLinha.addView(
-            bandeira,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                rightMargin = dp(10)
-            }
-        )
-
-        val pais = TextView(this).apply {
-            text = evento.pais
-            textSize = 14f
+        val localizacao = TextView(this).apply {
+            text = "${obterBandeira(evento.pais)}  ${evento.pais}"
+            textSize = 15f
             setTextColor(cinza)
         }
 
-        localLinha.addView(
-            pais,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
+        val margemLocalizacao = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
         )
+        margemLocalizacao.topMargin = dp(10)
 
-        cabecalho.addView(localLinha)
+        cardEvento.addView(localizacao, margemLocalizacao)
 
-        val separador = View(this).apply {
-            setBackgroundColor(verdeEscuro)
+        val datas = TextView(this).apply {
+            text = "${formatarData(evento.inicio)} — ${formatarData(evento.fim)}"
+            textSize = 14f
+            setTextColor(verde)
         }
 
-        cabecalho.addView(
-            separador,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                topMargin = dp(15)
-                bottomMargin = dp(12)
-            }
+        val margemDatas = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
         )
+        margemDatas.topMargin = dp(12)
+
+        cardEvento.addView(datas, margemDatas)
+
+        val margemCard = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        margemCard.bottomMargin = dp(24)
+
+        conteudo.addView(cardEvento, margemCard)
 
         adicionarTexto(
-            cabecalho,
-            "${evento.inicio}  —  ${evento.fim}",
-            14f,
-            branco,
-            true
-        )
-
-        layout.addView(
-            cabecalho,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(22)
-            }
-        )
-
-        adicionarTexto(
-            layout,
+            conteudo,
             "PROGRAMAÇÃO",
-            15f,
+            17f,
             verde,
             true
-        ).apply {
-            letterSpacing = 0.1f
-            setPadding(0, 0, 0, dp(12))
-        }
+        )
 
-        for (sessao in evento.sessoes) {
-            adicionarSessao(layout, sessao)
+        val margemProgramacao = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        margemProgramacao.bottomMargin = dp(12)
+
+        conteudo.getChildAt(conteudo.childCount - 1)
+            .layoutParams = margemProgramacao
+
+        if (evento.sessoes.isEmpty()) {
+            adicionarTexto(
+                conteudo,
+                "Horários ainda não disponíveis.",
+                14f,
+                cinza,
+                false
+            )
+        } else {
+            evento.sessoes.forEach { sessao ->
+                adicionarSessao(
+                    sessao.nome,
+                    sessao.data,
+                    sessao.horario
+                )
+            }
         }
     }
 
     private fun adicionarSessao(
-        layout: LinearLayout,
-        sessao: F2Session
+        nome: String,
+        data: String,
+        horario: String
     ) {
-        val dataHora = if (
-            sessao.horario.equals(
-                "A confirmar",
-                ignoreCase = true
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(14), dp(13), dp(14), dp(13))
+            background = criarFundoCard(
+                cardEscuro,
+                Color.rgb(45, 45, 45),
+                10
             )
-        ) {
-            null
-        } else {
-            try {
-                LocalDateTime.parse(
-                    "${sessao.data} ${sessao.horario}",
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy HH:mm"
-                    )
-                )
-            } catch (_: Exception) {
-                null
-            }
         }
 
-        val nome = obterNomeSessao(sessao.nome)
-
-        val card = LinearLayout(this).apply {
+        val linha = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(15), dp(14), dp(15))
-
-            val eCorrida =
-                sessao.nome.contains(
-                    "corrida",
-                    ignoreCase = true
-                ) ||
-                sessao.nome.contains(
-                    "race",
-                    ignoreCase = true
-                )
-
-            background = criarFundoCard(
-                if (eCorrida) {
-                    Color.rgb(15, 45, 15)
-                } else {
-                    fundoCard
-                },
-                if (eCorrida) verde else verdeEscuro,
-                if (eCorrida) 2 else 1
-            )
         }
 
         val nomeSessao = TextView(this).apply {
-            text = nome
-            textSize = 13f
-            setTextColor(
-                if (
-                    sessao.nome.contains(
-                        "corrida",
-                        ignoreCase = true
-                    ) ||
-                    sessao.nome.contains(
-                        "race",
-                        ignoreCase = true
-                    )
-                ) verde else branco
-            )
-
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
+            text = obterNomeSessao(nome)
+            textSize = 15f
+            setTextColor(branco)
+            typeface = Typeface.DEFAULT_BOLD
         }
 
-        card.addView(
+        linha.addView(
             nomeSessao,
             LinearLayout.LayoutParams(
                 0,
@@ -412,112 +333,129 @@ class F2Activity : AppCompatActivity() {
             )
         )
 
-        val horario = TextView(this).apply {
-            text = dataHora?.format(
-                DateTimeFormatter.ofPattern("HH:mm")
-            ) ?: "--:--"
-
-            textSize = 17f
+        val horaSessao = TextView(this).apply {
+            text = horario
+            textSize = 15f
             setTextColor(verde)
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
+            typeface = Typeface.DEFAULT_BOLD
             gravity = Gravity.END
         }
 
-        card.addView(
-            horario,
+        linha.addView(
+            horaSessao,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                leftMargin = dp(8)
-            }
+            )
         )
 
-        layout.addView(
-            card,
+        card.addView(
+            linha,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(5)
-            }
+            )
         )
 
-        val dataTexto = TextView(this).apply {
-            text = if (dataHora != null) {
-                dataHora.format(
-                    DateTimeFormatter.ofPattern(
-                        "EEEE, dd/MM/yyyy",
-                        localePt
-                    )
-                ).uppercase(localePt)
-            } else {
-                "${sessao.data}  •  A CONFIRMAR"
+        if (data.isNotBlank()) {
+            val dataSessao = TextView(this).apply {
+                text = formatarData(data)
+                textSize = 12f
+                setTextColor(cinza)
             }
 
-            textSize = 11f
-            setTextColor(cinza)
-            setPadding(dp(4), 0, dp(4), dp(12))
+            val margemData = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            margemData.topMargin = dp(7)
+
+            card.addView(dataSessao, margemData)
         }
 
-        layout.addView(dataTexto)
+        val margemCard = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        margemCard.bottomMargin = dp(10)
+
+        conteudo.addView(card, margemCard)
     }
 
-    private fun obterNomeSessao(
-        nomeOriginal: String
-    ): String {
-        val nome = nomeOriginal.lowercase(localePt)
+    private fun obterNomeSessao(nome: String): String {
+        val texto = nome.trim()
 
-        return when {
-            nome.contains("treino") ||
-                nome.contains("practice") ->
-                "TREINO  •  $nomeOriginal"
-
-            nome.contains("classificação") ||
-                nome.contains("qualifying") ||
-                nome.contains("qualificacao") ->
-                "CLASSIFICAÇÃO  •  $nomeOriginal"
-
-            nome.contains("sprint") ->
-                "SPRINT  •  $nomeOriginal"
-
-            nome.contains("corrida") ||
-                nome.contains("race") ->
-                "CORRIDA  •  $nomeOriginal"
-
-            else -> nomeOriginal
+        return when (texto.lowercase(Locale.ROOT)) {
+            "practice" -> "TREINO LIVRE"
+            "practice session" -> "TREINO LIVRE"
+            "qualifying" -> "CLASSIFICAÇÃO"
+            "sprint qualifying" -> "CLASSIFICAÇÃO DA SPRINT"
+            "sprint race" -> "CORRIDA SPRINT"
+            "feature race" -> "CORRIDA PRINCIPAL"
+            "race" -> "CORRIDA"
+            else -> texto.uppercase(Locale.getDefault())
         }
     }
 
     private fun obterBandeira(pais: String): String {
-        return when (pais.lowercase(localePt).trim()) {
-            "austrália", "australia" -> "🇦🇺"
-            "mônaco", "monaco" -> "🇲🇨"
-            "reino unido", "united kingdom", "uk" -> "🇬🇧"
-            "hungria", "hungría", "hungary" -> "🇭🇺"
-            "bélgica", "belgica", "belgium" -> "🇧🇪"
-            "itália", "italia", "italy" -> "🇮🇹"
-            "áustria", "austria" -> "🇦🇹"
-            "países baixos", "paises baixos", "netherlands" -> "🇳🇱"
-            "azerbaijão", "azerbaijan" -> "🇦🇿"
-            "catar", "qatar" -> "🇶🇦"
-            "emirados árabes unidos",
-            "united arab emirates", "uae" -> "🇦🇪"
-            "bahrein", "bahrain" -> "🇧🇭"
-            "arábia saudita", "arabia saudita",
-            "saudi arabia" -> "🇸🇦"
-            "japão", "japao", "japan" -> "🇯🇵"
-            "espanha", "spain" -> "🇪🇸"
-            "canadá", "canada" -> "🇨🇦"
-            "estados unidos", "united states", "usa" -> "🇺🇸"
-            "singapura", "singapore" -> "🇸🇬"
-            "méxico", "mexico" -> "🇲🇽"
-            "brasil", "brazil" -> "🇧🇷"
-            else -> "🏳️"
+        return when (pais.trim().lowercase(Locale.ROOT)) {
+            "australia", "austrália" -> "🇦🇺"
+            "bahrain", "barein" -> "🇧🇭"
+            "saudi arabia", "arábia saudita" -> "🇸🇦"
+            "italy", "itália" -> "🇮🇹"
+            "monaco", "mônaco" -> "🇲🇨"
+            "spain", "espanha" -> "🇪🇸"
+            "canada", "canadá" -> "🇨🇦"
+            "austria", "áustria" -> "🇦🇹"
+            "united kingdom", "reino unido", "great britain" -> "🇬🇧"
+            "hungary", "hungria", "hungria" -> "🇭🇺"
+            "belgium", "bélgica" -> "🇧🇪"
+            "netherlands", "holanda", "países baixos" -> "🇳🇱"
+            "azerbaijan", "azerbaijão" -> "🇦🇿"
+            "singapore", "singapura" -> "🇸🇬"
+            "united states", "estados unidos", "usa" -> "🇺🇸"
+            "mexico", "méxico" -> "🇲🇽"
+            "brazil", "brasil" -> "🇧🇷"
+            "qatar" -> "🇶🇦"
+            "uae", "united arab emirates", "emirados árabes unidos" -> "🇦🇪"
+            "japan", "japão" -> "🇯🇵"
+            else -> "🏁"
         }
+    }
+
+    private fun formatarData(data: String): String {
+        if (data.isBlank()) return ""
+
+        val formatos = listOf(
+            "yyyy-MM-dd",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm",
+            "dd/MM/yyyy"
+        )
+
+        for (formato in formatos) {
+            try {
+                val entrada = java.text.SimpleDateFormat(
+                    formato,
+                    Locale.getDefault()
+                )
+                entrada.isLenient = false
+
+                val dataConvertida = entrada.parse(data)
+
+                if (dataConvertida != null) {
+                    val saida = java.text.SimpleDateFormat(
+                        "dd/MM/yyyy",
+                        Locale.getDefault()
+                    )
+                    return saida.format(dataConvertida)
+                }
+            } catch (_: Exception) {
+                // Tenta o próximo formato.
+            }
+        }
+
+        return data
     }
 
     private fun adicionarTexto(
@@ -526,46 +464,39 @@ class F2Activity : AppCompatActivity() {
         tamanho: Float,
         cor: Int,
         negrito: Boolean
-    ): TextView {
-        val view = TextView(this).apply {
+    ) {
+        val textoView = TextView(this).apply {
             text = texto
             textSize = tamanho
             setTextColor(cor)
 
             if (negrito) {
-                typeface = Typeface.create(
-                    "sans-serif",
-                    Typeface.BOLD
-                )
+                typeface = Typeface.DEFAULT_BOLD
             }
         }
 
         layout.addView(
-            view,
+            textoView,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         )
-
-        return view
     }
 
     private fun criarFundoCard(
         corFundo: Int,
         corBorda: Int,
-        espessura: Int
+        raio: Int
     ): GradientDrawable {
         return GradientDrawable().apply {
-            cornerRadius = dp(9).toFloat()
             setColor(corFundo)
-            setStroke(dp(espessura), corBorda)
+            setCornerRadius(dp(raio).toFloat())
+            setStroke(dp(1), corBorda)
         }
     }
 
     private fun dp(valor: Int): Int {
-        return (
-            valor * resources.displayMetrics.density
-        ).toInt()
+        return (valor * resources.displayMetrics.density).toInt()
     }
 }
