@@ -32,6 +32,12 @@ class F1Activity : AppCompatActivity() {
     private val localeBR = Locale("pt", "BR")
     private val brasilia = ZoneId.of("America/Sao_Paulo")
 
+    private data class Sessao(
+        val nome: String,
+        val horario: java.time.ZonedDateTime,
+        val corrida: Boolean = false
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -215,7 +221,9 @@ class F1Activity : AppCompatActivity() {
         layout: LinearLayout,
         race: JSONObject
     ) {
-        val nome = race.getString("raceName")
+        val nome = race.optString("raceName", "Grand Prix")
+        val tituloGrandPrix = obterTituloGrandPrix(nome)
+
         val circuito = race.optJSONObject("Circuit")
             ?.optString("circuitName", "Circuito não informado")
             ?: "Circuito não informado"
@@ -226,10 +234,10 @@ class F1Activity : AppCompatActivity() {
         val cidade = localizacao?.optString("local", "") ?: ""
         val pais = localizacao?.optString("country", "") ?: ""
 
-        // Cabeçalho: linha verde e categoria.
+        // Categoria e faixa verde.
         val cabecalho = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.TOP
+            gravity = Gravity.CENTER_VERTICAL
             setPadding(0, dp(4), 0, dp(18))
         }
 
@@ -239,8 +247,8 @@ class F1Activity : AppCompatActivity() {
 
         cabecalho.addView(
             faixaVerde,
-            LinearLayout.LayoutParams(dp(4), dp(26)).apply {
-                setMargins(0, dp(1), dp(12), 0)
+            LinearLayout.LayoutParams(dp(4), dp(25)).apply {
+                setMargins(0, 0, dp(12), 0)
             }
         )
 
@@ -255,16 +263,9 @@ class F1Activity : AppCompatActivity() {
         cabecalho.addView(categoria)
         layout.addView(cabecalho)
 
-        // Título do Grand Prix.
-        val nomeGrandPrix = nome
-            .replace("Grand Prix", "", ignoreCase = true)
-            .replace("Grand Prix", "", ignoreCase = true)
-            .replace(Regex("\\s+"), " ")
-            .trim()
-            .uppercase(localeBR)
-
+        // Nome da etapa.
         val nomeEvento = TextView(this).apply {
-            text = "GRAND PRIX DO $nomeGrandPrix"
+            text = tituloGrandPrix
             textSize = 24f
             setTextColor(branco)
             setTypeface(null, Typeface.BOLD)
@@ -276,7 +277,11 @@ class F1Activity : AppCompatActivity() {
         // Nome do autódromo.
         val circuitoEvento = TextView(this).apply {
             text = circuito.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(localeBR) else it.toString()
+                if (it.isLowerCase()) {
+                    it.titlecase(localeBR)
+                } else {
+                    it.toString()
+                }
             }
             textSize = 14f
             setTextColor(cinza)
@@ -284,7 +289,7 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(circuitoEvento)
 
-        // Bandeira e localização, alinhadas verticalmente.
+        // Bandeira e localização.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -336,10 +341,10 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(localEvento)
 
-        // Data da etapa.
-        adicionarDataEtapa(layout, race)
+        // Data calculada a partir das datas reais das sessões.
+        val sessoes = obterSessoes(race)
+        adicionarDataEtapa(layout, sessoes)
 
-        // Separador com margens laterais.
         adicionarSeparador(layout)
 
         val tituloProgramacao = TextView(this).apply {
@@ -353,123 +358,194 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(tituloProgramacao)
 
-        adicionarGrupoDia(
-            layout,
-            race,
-            "SEXTA",
-            listOf(
-                "FirstPractice" to "TREINO LIVRE 1",
-                "SecondPractice" to "TREINO LIVRE 2"
+        if (sessoes.isEmpty()) {
+            val semProgramacao = TextView(this).apply {
+                text = "Horários ainda não disponíveis."
+                textSize = 13f
+                setTextColor(cinza)
+                setPadding(0, dp(8), 0, dp(8))
+            }
+            layout.addView(semProgramacao)
+            return
+        }
+
+        // Agrupa as sessões pela data e hora reais da API.
+        val grupos = sessoes.groupBy {
+            it.horario.toLocalDate()
+        }.toSortedMap()
+
+        for ((data, sessoesDoDia) in grupos) {
+            adicionarGrupoDia(
+                layout,
+                data.dayOfWeek.getDisplayName(
+                    TextStyle.FULL,
+                    localeBR
+                ).uppercase(localeBR),
+                sessoesDoDia.sortedBy { it.horario }
             )
+        }
+    }
+
+    private fun obterTituloGrandPrix(nome: String): String {
+        val chave = nome.trim().lowercase(Locale.ROOT)
+
+        val titulos = mapOf(
+            "australian grand prix" to "GRAND PRIX DA AUSTRÁLIA",
+            "bahrain grand prix" to "GRAND PRIX DO BAHREIN",
+            "saudi arabian grand prix" to "GRAND PRIX DA ARÁBIA SAUDITA",
+            "japanese grand prix" to "GRAND PRIX DO JAPÃO",
+            "chinese grand prix" to "GRAND PRIX DA CHINA",
+            "miami grand prix" to "GRAND PRIX DE MIAMI",
+            "emilia romagna grand prix" to "GRAND PRIX DA EMÍLIA-ROMANHA",
+            "monaco grand prix" to "GRAND PRIX DE MÔNACO",
+            "spanish grand prix" to "GRAND PRIX DA ESPANHA",
+            "canadian grand prix" to "GRAND PRIX DO CANADÁ",
+            "austrian grand prix" to "GRAND PRIX DA ÁUSTRIA",
+            "british grand prix" to "GRAND PRIX DA GRÃ-BRETANHA",
+            "belgian grand prix" to "GRAND PRIX DA BÉLGICA",
+            "hungarian grand prix" to "GRAND PRIX DA HUNGRIA",
+            "dutch grand prix" to "GRAND PRIX DOS PAÍSES BAIXOS",
+            "italian grand prix" to "GRAND PRIX DA ITÁLIA",
+            "azerbaijan grand prix" to "GRAND PRIX DO AZERBAIJÃO",
+            "singapore grand prix" to "GRAND PRIX DE SINGAPURA",
+            "united states grand prix" to "GRAND PRIX DOS ESTADOS UNIDOS",
+            "mexico city grand prix" to "GRAND PRIX DA CIDADE DO MÉXICO",
+            "mexican grand prix" to "GRAND PRIX DO MÉXICO",
+            "são paulo grand prix" to "GRAND PRIX DE SÃO PAULO",
+            "brazilian grand prix" to "GRAND PRIX DO BRASIL",
+            "qatar grand prix" to "GRAND PRIX DO CATAR",
+            "abu dhabi grand prix" to "GRAND PRIX DE ABU DHABI",
+            "las vegas grand prix" to "GRAND PRIX DE LAS VEGAS",
+            "portuguese grand prix" to "GRAND PRIX DE PORTUGAL"
         )
 
-        adicionarGrupoDia(
-            layout,
-            race,
-            "SÁBADO",
-            listOf(
-                "ThirdPractice" to "TREINO LIVRE 3",
-                "SprintQualifying" to "CLASSIFICAÇÃO SPRINT",
-                "Qualifying" to "CLASSIFICAÇÃO"
-            )
+        titulos[chave]?.let { return it }
+
+        // Fallback para nomes de etapas ainda não mapeados.
+        val nomeBase = nome
+            .replace(Regex("(?i)\\s*grand prix\\s*"), "")
+            .trim()
+
+        return if (nomeBase.isNotEmpty()) {
+            "GRAND PRIX DE ${nomeBase.uppercase(localeBR)}"
+        } else {
+            "GRAND PRIX"
+        }
+    }
+
+    private fun obterSessoes(race: JSONObject): List<Sessao> {
+        val resultado = mutableListOf<Sessao>()
+
+        val campos = listOf(
+            "FirstPractice" to "TREINO LIVRE 1",
+            "SecondPractice" to "TREINO LIVRE 2",
+            "ThirdPractice" to "TREINO LIVRE 3",
+            "SprintQualifying" to "CLASSIFICAÇÃO SPRINT",
+            "Sprint" to "SPRINT",
+            "Qualifying" to "CLASSIFICAÇÃO"
         )
 
-        adicionarGrupoDia(
-            layout,
-            race,
-            "DOMINGO",
-            listOf(
-                "Sprint" to "SPRINT",
-                "date" to "CORRIDA"
+        for ((campo, nome) in campos) {
+            if (!race.has(campo)) continue
+
+            try {
+                val sessao = race.getJSONObject(campo)
+                val data = sessao.getString("date")
+                val hora = sessao.optString("time", "00:00:00Z")
+
+                val horario = OffsetDateTime.parse(
+                    "${data}T${hora}"
+                ).atZoneSameInstant(brasilia)
+
+                resultado.add(Sessao(nome, horario))
+            } catch (_: Exception) {
+                // Ignora apenas sessões com dados inválidos.
+            }
+        }
+
+        // A corrida principal usa a data e o horário oficiais da etapa.
+        try {
+            val data = race.getString("date")
+            val hora = race.optString("time", "00:00:00Z")
+
+            val horario = OffsetDateTime.parse(
+                "${data}T${hora}"
+            ).atZoneSameInstant(brasilia)
+
+            resultado.add(
+                Sessao("CORRIDA", horario, corrida = true)
             )
-        )
+        } catch (_: Exception) {
+        }
+
+        return resultado.sortedBy { it.horario }
     }
 
     private fun adicionarDataEtapa(
         layout: LinearLayout,
-        race: JSONObject
+        sessoes: List<Sessao>
     ) {
-        try {
-            val datas = mutableListOf<java.time.ZonedDateTime>()
+        if (sessoes.isEmpty()) return
 
-            val campos = listOf(
-                "FirstPractice",
-                "SecondPractice",
-                "ThirdPractice",
-                "SprintQualifying",
-                "Sprint",
-                "Qualifying"
+        val primeira = sessoes.minByOrNull {
+            it.horario
+        }!!.horario.toLocalDate()
+
+        val ultima = sessoes.maxByOrNull {
+            it.horario
+        }!!.horario.toLocalDate()
+
+        val mesInicial = primeira.month.getDisplayName(
+            TextStyle.SHORT,
+            localeBR
+        ).uppercase(localeBR).replace(".", "")
+
+        val mesFinal = ultima.month.getDisplayName(
+            TextStyle.SHORT,
+            localeBR
+        ).uppercase(localeBR).replace(".", "")
+
+        val dataFormatada = when {
+            primeira.year != ultima.year -> String.format(
+                localeBR,
+                "%02d %s %d - %02d %s %d",
+                primeira.dayOfMonth,
+                mesInicial,
+                primeira.year,
+                ultima.dayOfMonth,
+                mesFinal,
+                ultima.year
             )
 
-            for (campo in campos) {
-                if (race.has(campo)) {
-                    try {
-                        val sessao = race.getJSONObject(campo)
-                        datas.add(
-                            OffsetDateTime.parse(
-                                sessao.getString("date") +
-                                    "T" + sessao.getString("time")
-                            ).atZoneSameInstant(brasilia)
-                        )
-                    } catch (_: Exception) {
-                    }
-                }
-            }
+            primeira.month != ultima.month -> String.format(
+                localeBR,
+                "%02d %s - %02d %s %d",
+                primeira.dayOfMonth,
+                mesInicial,
+                ultima.dayOfMonth,
+                mesFinal,
+                ultima.year
+            )
 
-            val dataCorrida = OffsetDateTime.parse(
-                race.getString("date") +
-                    "T" + race.optString("time", "00:00:00Z")
-            ).atZoneSameInstant(brasilia)
-
-            datas.add(dataCorrida)
-
-            val primeira = datas.minByOrNull { it.toLocalDate() }!!
-                .toLocalDate()
-            val ultima = datas.maxByOrNull { it.toLocalDate() }!!
-                .toLocalDate()
-
-            val mes = ultima.month.getDisplayName(
-                TextStyle.SHORT,
-                localeBR
-            ).uppercase(localeBR).replace(".", "")
-
-            val dataFormatada = if (primeira.month == ultima.month) {
-                String.format(
-                    localeBR,
-                    "%02d-%02d %s %d",
-                    primeira.dayOfMonth,
-                    ultima.dayOfMonth,
-                    mes,
-                    ultima.year
-                )
-            } else {
-                val mesInicial = primeira.month.getDisplayName(
-                    TextStyle.SHORT,
-                    localeBR
-                ).uppercase(localeBR).replace(".", "")
-
-                String.format(
-                    localeBR,
-                    "%02d %s - %02d %s %d",
-                    primeira.dayOfMonth,
-                    mesInicial,
-                    ultima.dayOfMonth,
-                    mes,
-                    ultima.year
-                )
-            }
-
-            val data = TextView(this).apply {
-                text = dataFormatada
-                textSize = 23f
-                setTextColor(branco)
-                setTypeface(null, Typeface.BOLD)
-                setPadding(0, dp(2), 0, dp(18))
-            }
-
-            layout.addView(data)
-        } catch (_: Exception) {
+            else -> String.format(
+                localeBR,
+                "%02d-%02d %s %d",
+                primeira.dayOfMonth,
+                ultima.dayOfMonth,
+                mesFinal,
+                ultima.year
+            )
         }
+
+        val data = TextView(this).apply {
+            text = dataFormatada
+            textSize = 23f
+            setTextColor(branco)
+            setTypeface(null, Typeface.BOLD)
+            setPadding(0, dp(2), 0, dp(18))
+        }
+
+        layout.addView(data)
     }
 
     private fun adicionarSeparador(layout: LinearLayout) {
@@ -490,57 +566,39 @@ class F1Activity : AppCompatActivity() {
 
     private fun adicionarGrupoDia(
         layout: LinearLayout,
-        race: JSONObject,
         titulo: String,
-        sessoes: List<Pair<String, String>>
+        sessoes: List<Sessao>
     ) {
-        val existentes = sessoes.filter { race.has(it.first) }
-        if (existentes.isEmpty()) return
-
         val grupo = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.TOP
-            setPadding(0, dp(12), 0, dp(12))
+            setPadding(0, dp(14), 0, dp(14))
         }
 
         val tituloDia = TextView(this).apply {
             text = titulo
-            textSize = 11f
+            textSize = 10f
             setTextColor(branco)
             setTypeface(null, Typeface.BOLD)
-            letterSpacing = 0.04f
+            letterSpacing = 0.02f
         }
 
         grupo.addView(
             tituloDia,
-            LinearLayout.LayoutParams(dp(66), LinearLayout.LayoutParams.WRAP_CONTENT)
-        )
-
-        val divisorVertical = View(this).apply {
-            setBackgroundColor(linhaCinza)
-        }
-
-        grupo.addView(
-            divisorVertical,
-            LinearLayout.LayoutParams(dp(1), dp(1)).apply {
-                height = dp(1)
-                setMargins(0, dp(2), dp(10), 0)
-            }
+            LinearLayout.LayoutParams(
+                dp(66),
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         )
 
         val colunaSessoes = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
         }
 
-        for ((indice, sessao) in existentes.withIndex()) {
-            adicionarSessao(
-                colunaSessoes,
-                race,
-                sessao.first,
-                sessao.second
-            )
+        for ((indice, sessao) in sessoes.withIndex()) {
+            adicionarSessao(colunaSessoes, sessao)
 
-            if (indice < existentes.lastIndex) {
+            if (indice < sessoes.lastIndex) {
                 val divisor = View(this).apply {
                     setBackgroundColor(linhaCinza)
                 }
@@ -551,7 +609,7 @@ class F1Activity : AppCompatActivity() {
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         dp(1)
                     ).apply {
-                        setMargins(0, dp(8), 0, dp(8))
+                        setMargins(0, dp(9), 0, dp(9))
                     }
                 )
             }
@@ -572,59 +630,35 @@ class F1Activity : AppCompatActivity() {
 
     private fun adicionarSessao(
         layout: LinearLayout,
-        race: JSONObject,
-        campo: String,
-        nome: String
+        sessao: Sessao
     ) {
-        try {
-            val data: String
-            val hora: String
-
-            if (campo == "date") {
-                data = race.getString("date")
-                hora = race.optString("time", "00:00:00Z")
-            } else {
-                val sessao = race.getJSONObject(campo)
-                data = sessao.getString("date")
-                hora = sessao.getString("time")
-            }
-
-            val horario = OffsetDateTime.parse(
-                "${data}T${hora}"
-            ).atZoneSameInstant(brasilia)
-
-            val corrida = nome == "CORRIDA"
-
-            val bloco = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, dp(1), 0, dp(1))
-            }
-
-            val nomeSessao = TextView(this).apply {
-                text = nome
-                textSize = 12f
-                setTextColor(if (corrida) verde else branco)
-                setTypeface(null, Typeface.BOLD)
-            }
-
-            bloco.addView(nomeSessao)
-
-            val horarioSessao = TextView(this).apply {
-                text = horario.format(
-                    DateTimeFormatter.ofPattern("HH:mm", localeBR)
-                ) + " - " + horario.plusMinutes(
-                    if (corrida) 120 else 90
-                ).format(DateTimeFormatter.ofPattern("HH:mm", localeBR))
-
-                textSize = 11f
-                setTextColor(if (corrida) verde else cinza)
-                setPadding(0, dp(3), 0, 0)
-            }
-
-            bloco.addView(horarioSessao)
-            layout.addView(bloco)
-        } catch (_: Exception) {
+        val bloco = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(1), 0, dp(1))
         }
+
+        val nomeSessao = TextView(this).apply {
+            text = sessao.nome
+            textSize = 12f
+            setTextColor(if (sessao.corrida) verde else branco)
+            setTypeface(null, Typeface.BOLD)
+        }
+
+        bloco.addView(nomeSessao)
+
+        // Exibe apenas o início oficial; não inventa horário de término.
+        val horarioSessao = TextView(this).apply {
+            text = sessao.horario.format(
+                DateTimeFormatter.ofPattern("HH:mm", localeBR)
+            )
+
+            textSize = 11f
+            setTextColor(if (sessao.corrida) verde else cinza)
+            setPadding(0, dp(3), 0, 0)
+        }
+
+        bloco.addView(horarioSessao)
+        layout.addView(bloco)
     }
 
     private fun obterRecursoBandeira(pais: String): Int {
