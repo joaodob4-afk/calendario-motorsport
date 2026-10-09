@@ -119,7 +119,7 @@ class F2CalendarActivity : AppCompatActivity() {
         )
 
         for (
-            evento in F2Calendar.eventos
+            evento in F2CalendarJson.carregar(this)
         ) {
 
             adicionarEtapa(
