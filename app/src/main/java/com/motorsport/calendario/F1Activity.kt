@@ -1,7 +1,9 @@
+
 package com.motorsport.calendario
 
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -28,7 +30,7 @@ class F1Activity : AppCompatActivity() {
     private val verde = Color.rgb(57, 255, 20)
     private val branco = Color.WHITE
     private val cinza = Color.rgb(165, 165, 165)
-    private val linhaCinza = Color.rgb(85, 85, 85)
+    private val bordaCard = Color.rgb(20, 48, 15)
 
     private val localeBR = Locale("pt", "BR")
     private val brasilia = ZoneId.of("America/Sao_Paulo")
@@ -163,6 +165,7 @@ class F1Activity : AppCompatActivity() {
             connection.requestMethod = "GET"
             connection.connectTimeout = 15000
             connection.readTimeout = 15000
+
             connection.setRequestProperty(
                 "User-Agent",
                 "CalendarioMotorsport/1.0"
@@ -277,6 +280,7 @@ class F1Activity : AppCompatActivity() {
         val cidade = localizacao?.optString("locality", "") ?: ""
         val pais = localizacao?.optString("country", "") ?: ""
 
+        // Cabeçalho da categoria.
         val cabecalho = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -305,6 +309,7 @@ class F1Activity : AppCompatActivity() {
         cabecalho.addView(categoria)
         layout.addView(cabecalho)
 
+        // Nome principal da etapa.
         val nomeEvento = TextView(this).apply {
             text = tituloGrandPrix
             textSize = 24f
@@ -315,6 +320,7 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(nomeEvento)
 
+        // Nome do circuito.
         val circuitoEvento = TextView(this).apply {
             text = circuito.replaceFirstChar {
                 if (it.isLowerCase()) {
@@ -329,6 +335,7 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(circuitoEvento)
 
+        // Bandeira e localização.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -384,6 +391,7 @@ class F1Activity : AppCompatActivity() {
         layout.addView(localEvento)
 
         val sessoes = obterSessoes(race)
+
         adicionarDataEtapa(layout, sessoes)
         adicionarSeparador(layout)
 
@@ -393,7 +401,7 @@ class F1Activity : AppCompatActivity() {
             setTextColor(verde)
             setTypeface(null, Typeface.BOLD)
             letterSpacing = 0.16f
-            setPadding(0, dp(18), 0, dp(10))
+            setPadding(0, dp(14), 0, dp(10))
         }
 
         layout.addView(tituloProgramacao)
@@ -405,6 +413,7 @@ class F1Activity : AppCompatActivity() {
                 setTextColor(cinza)
                 setPadding(0, dp(8), 0, dp(8))
             }
+
             layout.addView(semProgramacao)
             return
         }
@@ -438,7 +447,7 @@ class F1Activity : AppCompatActivity() {
         val chave = nome.trim().lowercase(Locale.ROOT)
 
         val titulos = mapOf(
-            "australian grand prix" to "GRAND PRIX DA AUSTRÁLIA",
+            "australian grand prix" to "GRAND PRIX DA\nAUSTRÁLIA",
             "bahrain grand prix" to "GRAND PRIX DO BAHREIN",
             "saudi arabian grand prix" to "GRAND PRIX DA ARÁBIA SAUDITA",
             "japanese grand prix" to "GRAND PRIX DO JAPÃO",
@@ -564,6 +573,7 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
+    // Data da etapa no estilo da imagem: 06–08 MAR.
     private fun adicionarDataEtapa(
         layout: LinearLayout,
         sessoes: List<Sessao>
@@ -584,31 +594,34 @@ class F1Activity : AppCompatActivity() {
             .replace(".", "")
 
         val dataFormatada = when {
-            primeira.year != ultima.year -> String.format(
-                localeBR,
-                "%02d %s %d - %02d %s %d",
-                primeira.dayOfMonth,
-                mesInicial,
-                primeira.year,
-                ultima.dayOfMonth,
-                mesFinal,
-                ultima.year
-            )
+            primeira.month == ultima.month &&
+                primeira.year == ultima.year -> {
+                String.format(
+                    localeBR,
+                    "%02d–%02d %s",
+                    primeira.dayOfMonth,
+                    ultima.dayOfMonth,
+                    mesFinal
+                )
+            }
 
-            primeira.month != ultima.month -> String.format(
-                localeBR,
-                "%02d %s - %02d %s %d",
-                primeira.dayOfMonth,
-                mesInicial,
-                ultima.dayOfMonth,
-                mesFinal,
-                ultima.year
-            )
+            primeira.year == ultima.year -> {
+                String.format(
+                    localeBR,
+                    "%02d %s – %02d %s",
+                    primeira.dayOfMonth,
+                    mesInicial,
+                    ultima.dayOfMonth,
+                    mesFinal
+                )
+            }
 
             else -> String.format(
                 localeBR,
-                "%02d-%02d %s %d",
+                "%02d %s %d – %02d %s %d",
                 primeira.dayOfMonth,
+                mesInicial,
+                primeira.year,
                 ultima.dayOfMonth,
                 mesFinal,
                 ultima.year
@@ -617,7 +630,7 @@ class F1Activity : AppCompatActivity() {
 
         val data = TextView(this).apply {
             text = dataFormatada
-            textSize = 23f
+            textSize = 20f
             setTextColor(branco)
             setTypeface(null, Typeface.BOLD)
             setPadding(0, dp(2), 0, dp(18))
@@ -628,7 +641,7 @@ class F1Activity : AppCompatActivity() {
 
     private fun adicionarSeparador(layout: LinearLayout) {
         val separador = View(this).apply {
-            setBackgroundColor(linhaCinza)
+            setBackgroundColor(Color.rgb(65, 65, 65))
         }
 
         layout.addView(
@@ -642,107 +655,107 @@ class F1Activity : AppCompatActivity() {
         )
     }
 
+    // Título do dia em verde e sessões em cards horizontais.
     private fun adicionarGrupoDia(
         layout: LinearLayout,
         titulo: String,
         sessoes: List<Sessao>
     ) {
         val grupo = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.TOP
-            setPadding(0, dp(18), 0, dp(18))
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(14), 0, dp(4))
         }
 
         val tituloDia = TextView(this).apply {
             text = titulo
-            textSize = 10f
-            setTextColor(branco)
+            textSize = 16f
+            setTextColor(verde)
             setTypeface(null, Typeface.BOLD)
-            letterSpacing = 0.02f
-            gravity = Gravity.TOP
+            letterSpacing = 0.04f
+            setPadding(0, 0, 0, dp(9))
         }
 
-        grupo.addView(
-            tituloDia,
-            LinearLayout.LayoutParams(
-                dp(90),
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 0, dp(5), 0)
-            }
-        )
-
-        val temCorrida = sessoes.any { it.corrida }
-
-        val faixaVerde = View(this).apply {
-            setBackgroundColor(
-                if (temCorrida) verde else linhaCinza
-            )
-        }
-
-        grupo.addView(
-            faixaVerde,
-            LinearLayout.LayoutParams(
-                dp(2),
-                LinearLayout.LayoutParams.MATCH_PARENT
-            ).apply {
-                setMargins(0, 0, dp(12), 0)
-            }
-        )
-
-        val colunaSessoes = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
+        grupo.addView(tituloDia)
 
         for (sessao in sessoes) {
-            adicionarSessao(colunaSessoes, sessao)
+            adicionarSessao(grupo, sessao)
         }
 
-        grupo.addView(
-            colunaSessoes,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
         layout.addView(grupo)
-
-        // Separador cinza somente entre os dias.
-        adicionarSeparador(layout)
     }
 
+    // Card de cada sessão, seguindo a referência enviada.
     private fun adicionarSessao(
         layout: LinearLayout,
         sessao: Sessao
     ) {
-        val bloco = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(1), 0, dp(1))
+        val corBorda = if (sessao.corrida) {
+            Color.rgb(57, 180, 30)
+        } else {
+            bordaCard
+        }
+
+        val fundoCard = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(preto)
+            setStroke(dp(1), corBorda)
+            cornerRadius = dp(11).toFloat()
+        }
+
+        val card = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(15), dp(13), dp(15), dp(13))
+            background = fundoCard
         }
 
         val nomeSessao = TextView(this).apply {
             text = sessao.nome
-            textSize = 12f
-            setTextColor(if (sessao.corrida) verde else branco)
+            textSize = 14f
+            setTextColor(if (sessao.corrida) branco else Color.LTGRAY)
             setTypeface(null, Typeface.BOLD)
+            maxLines = 2
         }
 
-        bloco.addView(nomeSessao)
+        card.addView(
+            nomeSessao,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            ).apply {
+                setMargins(0, 0, dp(8), 0)
+            }
+        )
 
         val horarioSessao = TextView(this).apply {
             text = sessao.horario?.format(
                 DateTimeFormatter.ofPattern("HH:mm", localeBR)
-            ) ?: "Horário não divulgado"
+            ) ?: "A definir"
 
-            textSize = 11f
-            setTextColor(if (sessao.corrida) verde else cinza)
-            setPadding(0, dp(3), 0, 0)
+            textSize = 14f
+            setTextColor(verde)
+            setTypeface(null, Typeface.BOLD)
+            gravity = Gravity.END or Gravity.CENTER_VERTICAL
         }
 
-        bloco.addView(horarioSessao)
-        layout.addView(bloco)
+        card.addView(
+            horarioSessao,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        layout.addView(
+            card,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 0, 0, dp(8))
+            }
+        )
     }
 
     private fun obterRecursoBandeira(pais: String): Int {
