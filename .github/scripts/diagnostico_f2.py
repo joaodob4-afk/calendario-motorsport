@@ -1,10 +1,7 @@
 import re
 import urllib.request
 
-URLS = [
-    "https://www.fiaformula2.com/en/racing/2026/monza",
-    "https://www.fiaformula2.com/en/racing/2026/baku",
-]
+URL = "https://www.fiaformula2.com/en/racing/2026/monza"
 
 
 def baixar(url):
@@ -20,33 +17,53 @@ def baixar(url):
 
 
 def main():
-    for i, url in enumerate(URLS):
-        print("=" * 60)
-        print(url)
-        try:
-            html = baixar(url)
-        except Exception as e:
-            print("ERRO ao baixar:", e)
+    html = baixar(URL)
+    with open("pagina_0.html", "w", encoding="utf-8") as f:
+        f.write(html)
+
+    print("##### JSON-LD #####")
+    blocos = re.findall(
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>',
+        html,
+        flags=re.S,
+    )
+    for i, b in enumerate(blocos):
+        print(f"--- bloco {i} ({len(b)} chars) ---")
+        print(b[:1800])
+
+    print()
+    print("##### CONTEXTO DOS DATETIMES #####")
+    vistos = set()
+    n = 0
+    for m in re.finditer(
+        r"20\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d+Z", html
+    ):
+        if m.group(0) in vistos:
             continue
+        vistos.add(m.group(0))
+        n += 1
+        if n > 5:
+            break
+        ini = max(0, m.start() - 350)
+        print(f"--- datetime {m.group(0)} ---")
+        print(html[ini : m.end() + 120].replace("\n", " "))
 
-        with open(f"pagina_{i}.html", "w", encoding="utf-8") as f:
-            f.write(html)
+    print()
+    print("##### TITULOS DE SESSAO NA ORDEM #####")
+    nomes = re.findall(
+        r">((?:Practice|Qualifying|Sprint Race|Feature Race)[^<]{0,30})<",
+        html,
+    )
+    print(nomes[:20])
 
-        print("Tamanho do HTML:", len(html))
-        print("JSON-LD:", len(re.findall(r"application/ld\+json", html)))
-        print("__NEXT_DATA__:", "__NEXT_DATA__" in html)
-        print("Menciona Sprint:", len(re.findall(r"Sprint", html)))
-        print("Menciona Feature:", len(re.findall(r"Feature", html)))
-        print("Menciona Qualifying:", len(re.findall(r"Qualifying", html)))
-        horas = re.findall(r"\b\d{1,2}:\d{2}\b", html)
-        print("Horários HH:MM encontrados:", len(horas), horas[:12])
-        datas = re.findall(r"20\d\d-\d\d-\d\dT\d\d:\d\d[^\"'<\s]*", html)
-        print("Datas ISO com hora:", len(datas), datas[:8])
-
-        for m in list(re.finditer(r"Sprint", html))[:2]:
-            ini = max(0, m.start() - 150)
-            print("--- trecho ---")
-            print(html[ini : m.end() + 250].replace("\n", " "))
+    print()
+    print("##### DIAS (cabecalhos de data) #####")
+    dias = re.findall(
+        r">((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,? ?\d{1,2}[^<]{0,15})<",
+        html,
+    )
+    print(dias[:10])
+    print("datetime= atributos:", re.findall(r'datetime="([^"]+)"', html)[:10])
 
 
 if __name__ == "__main__":
