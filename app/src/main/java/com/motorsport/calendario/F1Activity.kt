@@ -18,6 +18,7 @@ import java.net.URL
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
@@ -27,6 +28,9 @@ class F1Activity : AppCompatActivity() {
     private val branco = Color.WHITE
     private val cinza = Color.rgb(143, 143, 143)
     private val linhaCinza = Color.rgb(48, 48, 48)
+
+    private val localeBR = Locale("pt", "BR")
+    private val brasilia = ZoneId.of("America/Sao_Paulo")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,8 +49,7 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
-        val circuitIdSelecionado =
-            intent.getStringExtra("CIRCUIT_ID_F1")
+        val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
 
         val conteudo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -54,10 +57,8 @@ class F1Activity : AppCompatActivity() {
             setBackgroundColor(preto)
         }
 
-        val voltarTopo = criarBotaoVoltar()
-
         conteudo.addView(
-            voltarTopo,
+            criarBotaoVoltar(),
             LinearLayout.LayoutParams(dp(48), dp(42)).apply {
                 setMargins(0, 0, 0, dp(18))
             }
@@ -83,11 +84,7 @@ class F1Activity : AppCompatActivity() {
 
         setContentView(scrollView)
 
-        carregarEvento(
-            conteudo,
-            carregando,
-            circuitIdSelecionado
-        )
+        carregarEvento(conteudo, carregando, circuitId)
     }
 
     private fun dp(valor: Int): Int =
@@ -139,7 +136,6 @@ class F1Activity : AppCompatActivity() {
                     layout.removeView(carregando)
                     mostrarEvento(layout, evento)
                 }
-
             } catch (e: Exception) {
                 runOnUiThread {
                     carregando.text =
@@ -219,13 +215,6 @@ class F1Activity : AppCompatActivity() {
         layout: LinearLayout,
         race: JSONObject
     ) {
-        val brasilia = ZoneId.of("America/Sao_Paulo")
-
-        val formato = DateTimeFormatter.ofPattern(
-            "EEE • dd MMM • HH:mm",
-            Locale("pt", "BR")
-        )
-
         val nome = race.getString("raceName")
         val circuito = race.optJSONObject("Circuit")
             ?.optString("circuitName", "Circuito não informado")
@@ -237,7 +226,7 @@ class F1Activity : AppCompatActivity() {
         val cidade = localizacao?.optString("local", "") ?: ""
         val pais = localizacao?.optString("country", "") ?: ""
 
-        // Cabeçalho de estilo automobilístico.
+        // Cabeçalho: linha verde e categoria.
         val cabecalho = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.TOP
@@ -250,48 +239,56 @@ class F1Activity : AppCompatActivity() {
 
         cabecalho.addView(
             faixaVerde,
-            LinearLayout.LayoutParams(dp(4), dp(104)).apply {
-                setMargins(0, dp(2), dp(13), 0)
+            LinearLayout.LayoutParams(dp(4), dp(26)).apply {
+                setMargins(0, dp(1), dp(12), 0)
             }
         )
 
-        val colunaTitulo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-
         val categoria = TextView(this).apply {
             text = "FORMULA 1"
-            textSize = 11f
+            textSize = 12f
             setTextColor(verde)
             setTypeface(null, Typeface.BOLD)
-            letterSpacing = 0.18f
+            letterSpacing = 0.16f
         }
 
-        colunaTitulo.addView(categoria)
+        cabecalho.addView(categoria)
+        layout.addView(cabecalho)
+
+        // Título do Grand Prix.
+        val nomeGrandPrix = nome
+            .replace("Grand Prix", "", ignoreCase = true)
+            .replace("Grand Prix", "", ignoreCase = true)
+            .replace(Regex("\\s+"), " ")
+            .trim()
+            .uppercase(localeBR)
 
         val nomeEvento = TextView(this).apply {
-            text = nome
-            textSize = 26f
+            text = "GRAND PRIX DO $nomeGrandPrix"
+            textSize = 24f
             setTextColor(branco)
             setTypeface(null, Typeface.BOLD)
-            setPadding(0, dp(5), 0, dp(8))
+            setPadding(0, 0, 0, dp(8))
         }
 
-        colunaTitulo.addView(nomeEvento)
+        layout.addView(nomeEvento)
 
+        // Nome do autódromo.
         val circuitoEvento = TextView(this).apply {
-            text = circuito
+            text = circuito.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(localeBR) else it.toString()
+            }
             textSize = 14f
-            setTextColor(branco)
-            setTypeface(null, Typeface.BOLD)
+            setTextColor(cinza)
         }
 
-        colunaTitulo.addView(circuitoEvento)
+        layout.addView(circuitoEvento)
 
+        // Bandeira e localização, alinhadas verticalmente.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(8), 0, 0)
+            setPadding(0, dp(10), 0, dp(18))
         }
 
         val recursoBandeira = obterRecursoBandeira(pais)
@@ -306,15 +303,18 @@ class F1Activity : AppCompatActivity() {
             localEvento.addView(
                 imagemBandeira,
                 LinearLayout.LayoutParams(dp(44), dp(29)).apply {
-                    setMargins(0, 0, dp(7), 0)
+                    gravity = Gravity.CENTER_VERTICAL
+                    setMargins(0, 0, dp(8), 0)
                 }
             )
         } else {
             val bandeiraEmoji = TextView(this).apply {
                 text = obterBandeira(pais)
-                textSize = 14f
-                setPadding(0, 0, dp(7), 0)
+                textSize = 18f
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(0, 0, dp(8), 0)
             }
+
             localEvento.addView(bandeiraEmoji)
         }
 
@@ -322,13 +322,11 @@ class F1Activity : AppCompatActivity() {
             text = "$cidade • $pais"
             textSize = 12f
             setTextColor(cinza)
+            gravity = Gravity.CENTER_VERTICAL
         }
 
-        localEvento.addView(textoLocal)
-        colunaTitulo.addView(localEvento)
-
-        cabecalho.addView(
-            colunaTitulo,
+        localEvento.addView(
+            textoLocal,
             LinearLayout.LayoutParams(
                 0,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -336,20 +334,13 @@ class F1Activity : AppCompatActivity() {
             )
         )
 
-        layout.addView(cabecalho)
+        layout.addView(localEvento)
 
-        val divisorPrincipal = View(this).apply {
-            setBackgroundColor(verde)
-        }
+        // Data da etapa.
+        adicionarDataEtapa(layout, race)
 
-        layout.addView(
-            divisorPrincipal,
-            LinearLayout.LayoutParams(dp(46), dp(3)).apply {
-                setMargins(0, 0, 0, dp(14))
-            }
-        )
-
-        adicionarDataEtapa(layout, race, brasilia)
+        // Separador com margens laterais.
+        adicionarSeparador(layout)
 
         val tituloProgramacao = TextView(this).apply {
             text = "PROGRAMAÇÃO"
@@ -357,38 +348,283 @@ class F1Activity : AppCompatActivity() {
             setTextColor(verde)
             setTypeface(null, Typeface.BOLD)
             letterSpacing = 0.16f
-            setPadding(0, dp(20), 0, dp(8))
+            setPadding(0, dp(18), 0, dp(10))
         }
 
         layout.addView(tituloProgramacao)
 
         adicionarGrupoDia(
-            layout, race, "SEXTA",
+            layout,
+            race,
+            "SEXTA",
             listOf(
-                Pair("FirstPractice", "TREINO LIVRE 1"),
-                Pair("SecondPractice", "TREINO LIVRE 2")
-            ),
-            brasilia, formato
+                "FirstPractice" to "TREINO LIVRE 1",
+                "SecondPractice" to "TREINO LIVRE 2"
+            )
         )
 
         adicionarGrupoDia(
-            layout, race, "SÁBADO",
+            layout,
+            race,
+            "SÁBADO",
             listOf(
-                Pair("ThirdPractice", "TREINO LIVRE 3"),
-                Pair("SprintQualifying", "CLASSIFICAÇÃO SPRINT"),
-                Pair("Qualifying", "CLASSIFICAÇÃO")
-            ),
-            brasilia, formato
+                "ThirdPractice" to "TREINO LIVRE 3",
+                "SprintQualifying" to "CLASSIFICAÇÃO SPRINT",
+                "Qualifying" to "CLASSIFICAÇÃO"
+            )
         )
 
         adicionarGrupoDia(
-            layout, race, "DOMINGO",
+            layout,
+            race,
+            "DOMINGO",
             listOf(
-                Pair("Sprint", "SPRINT"),
-                Pair("date", "CORRIDA")
-            ),
-            brasilia, formato
+                "Sprint" to "SPRINT",
+                "date" to "CORRIDA"
+            )
         )
+    }
+
+    private fun adicionarDataEtapa(
+        layout: LinearLayout,
+        race: JSONObject
+    ) {
+        try {
+            val datas = mutableListOf<java.time.ZonedDateTime>()
+
+            val campos = listOf(
+                "FirstPractice",
+                "SecondPractice",
+                "ThirdPractice",
+                "SprintQualifying",
+                "Sprint",
+                "Qualifying"
+            )
+
+            for (campo in campos) {
+                if (race.has(campo)) {
+                    try {
+                        val sessao = race.getJSONObject(campo)
+                        datas.add(
+                            OffsetDateTime.parse(
+                                sessao.getString("date") +
+                                    "T" + sessao.getString("time")
+                            ).atZoneSameInstant(brasilia)
+                        )
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
+            val dataCorrida = OffsetDateTime.parse(
+                race.getString("date") +
+                    "T" + race.optString("time", "00:00:00Z")
+            ).atZoneSameInstant(brasilia)
+
+            datas.add(dataCorrida)
+
+            val primeira = datas.minByOrNull { it.toLocalDate() }!!
+                .toLocalDate()
+            val ultima = datas.maxByOrNull { it.toLocalDate() }!!
+                .toLocalDate()
+
+            val mes = ultima.month.getDisplayName(
+                TextStyle.SHORT,
+                localeBR
+            ).uppercase(localeBR).replace(".", "")
+
+            val dataFormatada = if (primeira.month == ultima.month) {
+                String.format(
+                    localeBR,
+                    "%02d-%02d %s %d",
+                    primeira.dayOfMonth,
+                    ultima.dayOfMonth,
+                    mes,
+                    ultima.year
+                )
+            } else {
+                val mesInicial = primeira.month.getDisplayName(
+                    TextStyle.SHORT,
+                    localeBR
+                ).uppercase(localeBR).replace(".", "")
+
+                String.format(
+                    localeBR,
+                    "%02d %s - %02d %s %d",
+                    primeira.dayOfMonth,
+                    mesInicial,
+                    ultima.dayOfMonth,
+                    mes,
+                    ultima.year
+                )
+            }
+
+            val data = TextView(this).apply {
+                text = dataFormatada
+                textSize = 23f
+                setTextColor(branco)
+                setTypeface(null, Typeface.BOLD)
+                setPadding(0, dp(2), 0, dp(18))
+            }
+
+            layout.addView(data)
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun adicionarSeparador(layout: LinearLayout) {
+        val separador = View(this).apply {
+            setBackgroundColor(linhaCinza)
+        }
+
+        layout.addView(
+            separador,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(1)
+            ).apply {
+                setMargins(dp(2), 0, dp(2), 0)
+            }
+        )
+    }
+
+    private fun adicionarGrupoDia(
+        layout: LinearLayout,
+        race: JSONObject,
+        titulo: String,
+        sessoes: List<Pair<String, String>>
+    ) {
+        val existentes = sessoes.filter { race.has(it.first) }
+        if (existentes.isEmpty()) return
+
+        val grupo = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.TOP
+            setPadding(0, dp(12), 0, dp(12))
+        }
+
+        val tituloDia = TextView(this).apply {
+            text = titulo
+            textSize = 11f
+            setTextColor(branco)
+            setTypeface(null, Typeface.BOLD)
+            letterSpacing = 0.04f
+        }
+
+        grupo.addView(
+            tituloDia,
+            LinearLayout.LayoutParams(dp(66), LinearLayout.LayoutParams.WRAP_CONTENT)
+        )
+
+        val divisorVertical = View(this).apply {
+            setBackgroundColor(linhaCinza)
+        }
+
+        grupo.addView(
+            divisorVertical,
+            LinearLayout.LayoutParams(dp(1), dp(1)).apply {
+                height = dp(1)
+                setMargins(0, dp(2), dp(10), 0)
+            }
+        )
+
+        val colunaSessoes = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        for ((indice, sessao) in existentes.withIndex()) {
+            adicionarSessao(
+                colunaSessoes,
+                race,
+                sessao.first,
+                sessao.second
+            )
+
+            if (indice < existentes.lastIndex) {
+                val divisor = View(this).apply {
+                    setBackgroundColor(linhaCinza)
+                }
+
+                colunaSessoes.addView(
+                    divisor,
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        dp(1)
+                    ).apply {
+                        setMargins(0, dp(8), 0, dp(8))
+                    }
+                )
+            }
+        }
+
+        grupo.addView(
+            colunaSessoes,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        layout.addView(grupo)
+        adicionarSeparador(layout)
+    }
+
+    private fun adicionarSessao(
+        layout: LinearLayout,
+        race: JSONObject,
+        campo: String,
+        nome: String
+    ) {
+        try {
+            val data: String
+            val hora: String
+
+            if (campo == "date") {
+                data = race.getString("date")
+                hora = race.optString("time", "00:00:00Z")
+            } else {
+                val sessao = race.getJSONObject(campo)
+                data = sessao.getString("date")
+                hora = sessao.getString("time")
+            }
+
+            val horario = OffsetDateTime.parse(
+                "${data}T${hora}"
+            ).atZoneSameInstant(brasilia)
+
+            val corrida = nome == "CORRIDA"
+
+            val bloco = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(0, dp(1), 0, dp(1))
+            }
+
+            val nomeSessao = TextView(this).apply {
+                text = nome
+                textSize = 12f
+                setTextColor(if (corrida) verde else branco)
+                setTypeface(null, Typeface.BOLD)
+            }
+
+            bloco.addView(nomeSessao)
+
+            val horarioSessao = TextView(this).apply {
+                text = horario.format(
+                    DateTimeFormatter.ofPattern("HH:mm", localeBR)
+                ) + " - " + horario.plusMinutes(
+                    if (corrida) 120 else 90
+                ).format(DateTimeFormatter.ofPattern("HH:mm", localeBR))
+
+                textSize = 11f
+                setTextColor(if (corrida) verde else cinza)
+                setPadding(0, dp(3), 0, 0)
+            }
+
+            bloco.addView(horarioSessao)
+            layout.addView(bloco)
+        } catch (_: Exception) {
+        }
     }
 
     private fun obterRecursoBandeira(pais: String): Int {
@@ -420,269 +656,8 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
-    private fun adicionarDataEtapa(
-        layout: LinearLayout,
-        race: JSONObject,
-        brasilia: ZoneId
-    ) {
-        try {
-            val corrida = OffsetDateTime.parse(
-                race.getString("date") +
-                    "T" +
-                    race.optString("time", "00:00:00Z")
-            ).atZoneSameInstant(brasilia)
-
-            val sessoes = mutableListOf<java.time.ZonedDateTime>()
-
-            val campos = listOf(
-                "FirstPractice",
-                "SecondPractice",
-                "ThirdPractice",
-                "SprintQualifying",
-                "Sprint",
-                "Qualifying"
-            )
-
-            for (campo in campos) {
-                if (race.has(campo)) {
-                    try {
-                        val sessao = race.getJSONObject(campo)
-                        sessoes.add(
-                            OffsetDateTime.parse(
-                                sessao.getString("date") +
-                                    "T" + sessao.getString("time")
-                            ).atZoneSameInstant(brasilia)
-                        )
-                    } catch (_: Exception) {
-                    }
-                }
-            }
-
-            sessoes.add(corrida)
-
-            val primeira = sessoes.minByOrNull {
-                it.toLocalDate()
-            }!!.toLocalDate()
-
-            val ultima = sessoes.maxByOrNull {
-                it.toLocalDate()
-            }!!.toLocalDate()
-
-            val textoData = if (primeira == ultima) {
-                String.format(
-                    Locale("pt", "BR"),
-                    "%02d %s",
-                    primeira.dayOfMonth,
-                    primeira.month.getDisplayName(
-                        java.time.format.TextStyle.SHORT,
-                        Locale("pt", "BR")
-                    ).uppercase(Locale("pt", "BR"))
-                )
-            } else {
-                String.format(
-                    Locale("pt", "BR"),
-                    "%02d–%02d %s",
-                    primeira.dayOfMonth,
-                    ultima.dayOfMonth,
-                    ultima.month.getDisplayName(
-                        java.time.format.TextStyle.SHORT,
-                        Locale("pt", "BR")
-                    ).uppercase(Locale("pt", "BR"))
-                )
-            }
-
-            val bloco = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(0, dp(8), 0, dp(14))
-            }
-
-            val data = TextView(this).apply {
-                text = textoData
-                textSize = 28f
-                setTextColor(branco)
-                setTypeface(null, Typeface.BOLD)
-            }
-
-            bloco.addView(data)
-
-            val ano = TextView(this).apply {
-                text = ultima.year.toString()
-                textSize = 11f
-                setTextColor(cinza)
-                setTypeface(null, Typeface.BOLD)
-                letterSpacing = 0.12f
-            }
-
-            bloco.addView(ano)
-            layout.addView(bloco)
-
-        } catch (_: Exception) {
-        }
-    }
-
-    private fun adicionarGrupoDia(
-        layout: LinearLayout,
-        race: JSONObject,
-        titulo: String,
-        sessoes: List<Pair<String, String>>,
-        brasilia: ZoneId,
-        formato: DateTimeFormatter
-    ) {
-        val existentes = sessoes.filter { race.has(it.first) }
-        if (existentes.isEmpty()) return
-
-        val cabecalhoDia = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(18), 0, dp(8))
-        }
-
-        val tituloDia = TextView(this).apply {
-            text = titulo
-            textSize = 12f
-            setTextColor(branco)
-            setTypeface(null, Typeface.BOLD)
-            letterSpacing = 0.16f
-        }
-
-        cabecalhoDia.addView(tituloDia)
-
-        val linha = View(this).apply {
-            setBackgroundColor(linhaCinza)
-        }
-
-        cabecalhoDia.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                0, dp(1), 1f
-            ).apply {
-                setMargins(dp(12), 0, 0, 0)
-            }
-        )
-
-        layout.addView(cabecalhoDia)
-
-        for (sessao in existentes) {
-            adicionarSessaoModerna(
-                layout,
-                race,
-                sessao.first,
-                sessao.second,
-                brasilia,
-                formato
-            )
-        }
-    }
-
-    private fun adicionarSessaoModerna(
-        layout: LinearLayout,
-        race: JSONObject,
-        campo: String,
-        nome: String,
-        brasilia: ZoneId,
-        formato: DateTimeFormatter
-    ) {
-        try {
-            val data: String
-            val hora: String
-
-            if (campo == "date") {
-                data = race.getString("date")
-                hora = race.optString("time", "00:00:00Z")
-            } else {
-                val sessao = race.getJSONObject(campo)
-                data = sessao.getString("date")
-                hora = sessao.getString("time")
-            }
-
-            val horario = OffsetDateTime.parse(
-                "${data}T${hora}"
-            ).atZoneSameInstant(brasilia)
-
-            val corrida = nome == "CORRIDA"
-
-            val linha = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
-                setPadding(
-                    0,
-                    dp(if (corrida) 17 else 12),
-                    0,
-                    dp(if (corrida) 17 else 12)
-                )
-            }
-
-            if (corrida) {
-                val marcador = View(this).apply {
-                    setBackgroundColor(verde)
-                }
-
-                linha.addView(
-                    marcador,
-                    LinearLayout.LayoutParams(dp(4), dp(30)).apply {
-                        setMargins(0, 0, dp(12), 0)
-                    }
-                )
-            }
-
-            val nomeSessao = TextView(this).apply {
-                text = nome
-                textSize = if (corrida) 16f else 13f
-                setTextColor(branco)
-                setTypeface(null, Typeface.BOLD)
-                layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
-            }
-
-            linha.addView(nomeSessao)
-
-            val horarioSessao = TextView(this).apply {
-                text = horario.format(formato)
-                    .uppercase(Locale("pt", "BR"))
-                textSize = if (corrida) 13f else 11f
-                setTextColor(if (corrida) verde else cinza)
-                setTypeface(null, Typeface.BOLD)
-                gravity = Gravity.END
-            }
-
-            linha.addView(horarioSessao)
-            layout.addView(linha)
-
-            if (corrida) {
-                val divisor = View(this).apply {
-                    setBackgroundColor(verde)
-                }
-
-                layout.addView(
-                    divisor,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        dp(2)
-                    )
-                )
-            } else {
-                val divisor = View(this).apply {
-                    setBackgroundColor(linhaCinza)
-                }
-
-                layout.addView(
-                    divisor,
-                    LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        dp(1)
-                    )
-                )
-            }
-
-        } catch (_: Exception) {
-        }
-    }
-
     private fun obterBandeira(pais: String): String {
-        return when (pais.lowercase(Locale.ROOT)) {
+        return when (pais.trim().lowercase(Locale.ROOT)) {
             "australia" -> "🇦🇺"
             "bahrain" -> "🇧🇭"
             "saudi arabia" -> "🇸🇦"
