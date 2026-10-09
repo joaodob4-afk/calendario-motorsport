@@ -50,7 +50,8 @@ class F2Activity : AppCompatActivity() {
         montarTela()
 
         // Escolhe automaticamente a próxima etapa.
-        val evento = obterProximaEtapa()
+        val eventos = F2CalendarJson.carregar(this)
+val evento = obterProximaEtapa(eventos)
 
         if (evento != null) {
             mostrarEvento(evento)
