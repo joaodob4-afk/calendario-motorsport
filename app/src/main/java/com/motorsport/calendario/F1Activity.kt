@@ -329,7 +329,6 @@ class F1Activity : AppCompatActivity() {
 
         layout.addView(circuitoEvento)
 
-        // Alteração visual: desloca apenas a linha de localização 5 dp à esquerda.
         val localEvento = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -350,7 +349,7 @@ class F1Activity : AppCompatActivity() {
                 imagemBandeira,
                 LinearLayout.LayoutParams(dp(44), dp(29)).apply {
                     gravity = Gravity.CENTER_VERTICAL
-                    setMargins(0, 0, dp(8), 0)
+                    setMargins(-dp(2), 0, dp(4), 0)
                 }
             )
         } else {
@@ -358,7 +357,7 @@ class F1Activity : AppCompatActivity() {
                 text = obterBandeira(pais)
                 textSize = 18f
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, 0, dp(8), 0)
+                setPadding(0, 0, dp(4), 0)
             }
 
             localEvento.addView(bandeiraEmoji)
