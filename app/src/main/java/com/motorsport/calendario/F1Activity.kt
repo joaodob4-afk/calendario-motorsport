@@ -321,7 +321,16 @@ class F1Activity : AppCompatActivity() {
             28f,
             branco,
             true
-        ).setPadding(0, dp(5), 0, dp(8))
+        ).setPadding(0, dp(5), 0, dp(5))
+
+        if (nomeCircuito.isNotBlank()) {
+            adicionarTexto(
+                nomeCircuito,
+                12f,
+                cinza,
+                false
+            ).setPadding(0, 0, 0, dp(12))
+        }
 
         val localLinha = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -374,7 +383,7 @@ class F1Activity : AppCompatActivity() {
             }
         )
 
-        adicionarDataEtapa(dataCorrida)
+        adicionarFimDeSemana(race, dataCorrida)
         adicionarSeparador()
 
         adicionarTexto(
@@ -385,15 +394,6 @@ class F1Activity : AppCompatActivity() {
         ).apply {
             letterSpacing = 0.1f
             setPadding(0, dp(3), 0, dp(12))
-        }
-
-        if (nomeCircuito.isNotBlank()) {
-            adicionarTexto(
-                nomeCircuito,
-                12f,
-                cinza,
-                false
-            ).setPadding(0, 0, 0, dp(10))
         }
 
         val sessoes = obterSessoes(race)
@@ -422,11 +422,93 @@ class F1Activity : AppCompatActivity() {
     }
 
     private fun obterTituloGrandPrix(nome: String): String {
-        return nome
-            .replace(" Grand Prix", "")
-            .replace("Grand Prix", "")
-            .trim()
-            .ifBlank { "Grande Prêmio" }
+        val titulo = nome.trim()
+
+        if (titulo.isBlank()) {
+            return "GRANDE PRÊMIO"
+        }
+
+        return if (titulo.endsWith("Grand Prix", ignoreCase = true)) {
+            titulo
+        } else {
+            "$titulo Grand Prix"
+        }
+    }
+
+    private fun adicionarFimDeSemana(
+        race: JSONObject,
+        dataCorrida: LocalDate
+    ) {
+        val campos = listOf(
+            "FirstPractice",
+            "SecondPractice",
+            "ThirdPractice",
+            "SprintQualifying",
+            "SprintShootout",
+            "Sprint",
+            "Qualifying"
+        )
+
+        val datas = mutableListOf<LocalDate>()
+
+        for (campo in campos) {
+            val sessao = race.optJSONObject(campo) ?: continue
+            val dataTexto = sessao.optString("date", "")
+
+            try {
+                datas.add(LocalDate.parse(dataTexto))
+            } catch (_: Exception) {
+                // Ignora datas ausentes ou inválidas.
+            }
+        }
+
+        datas.add(dataCorrida)
+
+        val inicio = datas.minOrNull() ?: dataCorrida
+        val fim = dataCorrida
+
+        val formatoDia = DateTimeFormatter.ofPattern(
+            "dd",
+            localePt
+        )
+
+        val formatoMes = DateTimeFormatter.ofPattern(
+            "MMM",
+            localePt
+        )
+
+        val formatoMesCompleto = DateTimeFormatter.ofPattern(
+            "MMMM",
+            localePt
+        )
+
+        val intervalo = when {
+            inicio.year != fim.year -> {
+                "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", localePt))} – " +
+                    fim.format(
+                        DateTimeFormatter.ofPattern("dd MMM yyyy", localePt)
+                    )
+            }
+
+            inicio.month != fim.month -> {
+                "${inicio.format(formatoDia)} " +
+                    "${inicio.format(formatoMes)} – " +
+                    "${fim.format(DateTimeFormatter.ofPattern("dd MMM", localePt))}"
+            }
+
+            else -> {
+                "${inicio.format(formatoDia)} – " +
+                    "${fim.format(formatoDia)} " +
+                    fim.format(formatoMesCompleto)
+            }
+        }.uppercase(localePt)
+
+        adicionarTexto(
+            intervalo,
+            16f,
+            branco,
+            true
+        ).setPadding(0, dp(1), 0, dp(15))
     }
 
     private fun obterSessoes(race: JSONObject): List<Sessao> {
@@ -518,29 +600,6 @@ class F1Activity : AppCompatActivity() {
                 null
             }
         }
-    }
-
-    private fun adicionarDataEtapa(dataCorrida: LocalDate) {
-        adicionarTexto(
-            "DATA DA CORRIDA",
-            11f,
-            cinza,
-            true
-        )
-
-        val texto = dataCorrida.format(
-            DateTimeFormatter.ofPattern(
-                "dd 'DE' MMMM",
-                localePt
-            )
-        ).uppercase(localePt)
-
-        adicionarTexto(
-            texto,
-            16f,
-            branco,
-            true
-        ).setPadding(0, dp(3), 0, dp(15))
     }
 
     private fun adicionarSeparador() {
