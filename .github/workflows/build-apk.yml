@@ -21,6 +21,14 @@ jobs:
       - name: Baixar código
         uses: actions/checkout@v4
 
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Consultar calendário oficial da F2
+        run: python .github/scripts/atualizar_f2.py
+
       - name: Configurar Java 17
         uses: actions/setup-java@v4
         with:
