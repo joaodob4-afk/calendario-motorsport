@@ -1,3 +1,4 @@
+
 package com.motorsport.calendario
 
 import android.content.Intent
@@ -47,7 +48,6 @@ class MainActivity : AppCompatActivity() {
         object : Runnable {
 
             override fun run() {
-
                 if (categoriaAtual.isEmpty()) {
                     atualizarProximaEtapa()
                 }
@@ -110,32 +110,23 @@ class MainActivity : AppCompatActivity() {
         Etapa("F3", "Espanha", "Madrid", "11–13 SET", "2026-09-11")
     )
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
-        super.onCreate(
-            savedInstanceState
-        )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
 
                 override fun handleOnBackPressed() {
-
                     if (categoriaAtual.isNotEmpty()) {
-
                         categoriaAtual = ""
-
                         mostrarMenu()
 
                         overridePendingTransition(
                             R.anim.slide_in_left,
                             R.anim.slide_out_right
                         )
-
                     } else {
-
                         finish()
                     }
                 }
@@ -146,11 +137,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-
         pesquisaRunnable?.let {
-            handlerPesquisa.removeCallbacks(
-                it
-            )
+            handlerPesquisa.removeCallbacks(it)
         }
 
         handlerProximaEtapa.removeCallbacks(
@@ -161,7 +149,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun animarEntrada() {
-
         val tela =
             findViewById<android.view.View>(
                 android.R.id.content
@@ -178,17 +165,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarMenu() {
-
-        setContentView(
-            R.layout.activity_main
-        )
+        setContentView(R.layout.activity_main)
 
         animarEntrada()
 
         listaEtapas =
-            findViewById(
-                R.id.listaEtapas
-            )
+            findViewById(R.id.listaEtapas)
 
         findViewById<android.view.View>(
             R.id.btnF1
@@ -221,7 +203,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         configurarBusca()
-
         atualizarProximaEtapa()
 
         handlerProximaEtapa.removeCallbacks(
@@ -232,38 +213,30 @@ class MainActivity : AppCompatActivity() {
             atualizadorProximaEtapa
         )
 
-        mostrarEtapas(
-            todasEtapas
-        )
+        mostrarEtapas(todasEtapas)
     }
 
     private fun atualizarProximaEtapa() {
-
-        val hoje =
-            java.time.LocalDate.now()
+        val hoje = java.time.LocalDate.now()
 
         val proxima =
             todasEtapas
                 .filter {
-
                     val data =
                         java.time.LocalDate.parse(
                             it.dataInicio
                         )
 
                     data.isAfter(hoje) ||
-                    data.isEqual(hoje)
+                        data.isEqual(hoje)
                 }
                 .minByOrNull {
-
                     java.time.LocalDate.parse(
                         it.dataInicio
                     )
                 }
 
-        if (proxima == null) {
-            return
-        }
+        if (proxima == null) return
 
         val titulo =
             findViewById<TextView>(
@@ -296,11 +269,8 @@ class MainActivity : AppCompatActivity() {
         nome.text =
             "${bandeiraPais(proxima.pais)} ${proxima.pais}"
 
-        circuito.text =
-            proxima.circuito
-
-        data.text =
-            proxima.data
+        circuito.text = proxima.circuito
+        data.text = proxima.data
 
         val dataInicio =
             java.time.LocalDate.parse(
@@ -315,46 +285,24 @@ class MainActivity : AppCompatActivity() {
 
         contador.text =
             when {
-
-                dias == 0L ->
-                    "COMEÇA HOJE"
-
-                dias == 1L ->
-                    "AMANHÃ"
-
-                dias > 1L ->
-                    "FALTAM $dias DIAS"
-
-                else ->
-                    "ETAPA EM ANDAMENTO"
+                dias == 0L -> "COMEÇA HOJE"
+                dias == 1L -> "AMANHÃ"
+                dias > 1L -> "FALTAM $dias DIAS"
+                else -> "ETAPA EM ANDAMENTO"
             }
 
         findViewById<android.view.View>(
             R.id.painelProximaEtapa
         ).setOnClickListener {
-
             when (proxima.categoria) {
-
-                "F1" ->
-                    abrirEventoF1PelaEtapa(
-                        proxima
-                    )
-
-                "F2" ->
-                    abrirEventoF2PelaEtapa(
-                        proxima
-                    )
-
-                "F3" ->
-                    abrirEventoF3PelaEtapa(
-                        proxima
-                    )
+                "F1" -> abrirEventoF1PelaEtapa(proxima)
+                "F2" -> abrirEventoF2PelaEtapa(proxima)
+                "F3" -> abrirEventoF3PelaEtapa(proxima)
             }
         }
     }
 
     private fun configurarBusca() {
-
         val busca =
             findViewById<EditText>(
                 R.id.searchEtapa
@@ -376,11 +324,8 @@ class MainActivity : AppCompatActivity() {
                     before: Int,
                     count: Int
                 ) {
-
                     pesquisaRunnable?.let {
-                        handlerPesquisa.removeCallbacks(
-                            it
-                        )
+                        handlerPesquisa.removeCallbacks(it)
                     }
 
                     val texto =
@@ -389,50 +334,22 @@ class MainActivity : AppCompatActivity() {
                             ?.lowercase()
                             ?: ""
 
-                    pesquisaRunnable =
-                        Runnable {
+                    pesquisaRunnable = Runnable {
+                        if (texto.isEmpty()) {
+                            mostrarEtapas(todasEtapas)
+                            return@Runnable
+                        }
 
-                            if (texto.isEmpty()) {
-
-                                mostrarEtapas(
-                                    todasEtapas
-                                )
-
-                                return@Runnable
+                        val filtradas =
+                            todasEtapas.filter {
+                                it.categoria.lowercase().contains(texto) ||
+                                    it.pais.lowercase().contains(texto) ||
+                                    it.circuito.lowercase().contains(texto) ||
+                                    it.data.lowercase().contains(texto)
                             }
 
-                            val filtradas =
-                                todasEtapas.filter {
-
-                                    it.categoria
-                                        .lowercase()
-                                        .contains(
-                                            texto
-                                        ) ||
-
-                                    it.pais
-                                        .lowercase()
-                                        .contains(
-                                            texto
-                                        ) ||
-
-                                    it.circuito
-                                        .lowercase()
-                                        .contains(
-                                            texto
-                                        ) ||
-
-                                    it.data
-                                        .lowercase()
-                                        .contains(
-                                            texto
-                                        )
-                                }
-
-                            mostrarEtapas(
-                                filtradas
-                            )
-                        }
+                        mostrarEtapas(filtradas)
+                    }
 
                     handlerPesquisa.postDelayed(
                         pesquisaRunnable!!,
@@ -447,74 +364,43 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun mostrarEtapas(
-        etapas: List<Etapa>
-    ) {
+    private fun mostrarEtapas(etapas: List<Etapa>) {
+        val hoje = java.time.LocalDate.now()
 
-        val hoje =
-            java.time.LocalDate.now()
-
-        /*
-         * A próxima etapa é calculada sempre
-         * a partir do calendário completo.
-         *
-         * Isso é importante para a pesquisa:
-         * pesquisar uma etapa não faz com que
-         * ela seja considerada "a próxima".
-         */
         val proximaEtapa =
             todasEtapas
                 .filter {
-
                     val data =
                         java.time.LocalDate.parse(
                             it.dataInicio
                         )
 
                     data.isAfter(hoje) ||
-                    data.isEqual(hoje)
+                        data.isEqual(hoje)
                 }
                 .minByOrNull {
-
                     java.time.LocalDate.parse(
                         it.dataInicio
                     )
                 }
 
         val etapasVisiveis =
-
             if (categoriaAtual.isEmpty()) {
-
-                /*
-                 * Tela inicial:
-                 *
-                 * - remove etapas finalizadas
-                 * - remove a etapa que já está
-                 *   no card PRÓXIMA ETAPA
-                 */
                 etapas.filter { etapa ->
-
                     val data =
                         java.time.LocalDate.parse(
                             etapa.dataInicio
                         )
 
                     data.isAfter(hoje) &&
-                    etapa != proximaEtapa
+                        etapa != proximaEtapa
                 }
-
             } else {
-
-                /*
-                 * Dentro das categorias,
-                 * mantém o calendário completo.
-                 */
                 etapas
             }
 
         val etapasOrdenadas =
             etapasVisiveis.sortedBy {
-
                 java.time.LocalDate.parse(
                     it.dataInicio
                 )
@@ -522,43 +408,25 @@ class MainActivity : AppCompatActivity() {
 
         listaEtapas.removeAllViews()
 
-        val inflater =
-            LayoutInflater.from(this)
+        val inflater = LayoutInflater.from(this)
 
         if (etapasOrdenadas.isEmpty()) {
+            val vazio = TextView(this)
 
-            val vazio =
-                TextView(this)
-
-            vazio.text =
-                "Nenhuma etapa encontrada."
-
+            vazio.text = "Nenhuma etapa encontrada."
             vazio.setTextColor(
                 android.graphics.Color.WHITE
             )
+            vazio.textSize = 15f
+            vazio.gravity = android.view.Gravity.CENTER
 
-            vazio.textSize =
-                15f
-
-            vazio.gravity =
-                android.view.Gravity.CENTER
-
-            vazio.setPadding(
-                0,
-                30,
-                0,
-                30
-            )
-
-            listaEtapas.addView(
-                vazio
-            )
+            vazio.setPadding(0, 30, 0, 30)
+            listaEtapas.addView(vazio)
 
             return
         }
 
         for (etapa in etapasOrdenadas) {
-
             val item =
                 inflater.inflate(
                     R.layout.item_etapa,
@@ -574,36 +442,48 @@ class MainActivity : AppCompatActivity() {
 
             item.findViewById<TextView>(
                 R.id.itemCategoria
-            ).text =
-                etapa.categoria
+            ).text = etapa.categoria
+
+            val imagemBandeira =
+                item.findViewById<ImageView>(
+                    R.id.itemBandeira
+                )
+
+            val idBandeira =
+                recursoBandeira(etapa.pais)
+
+            if (idBandeira != 0) {
+                imagemBandeira.setImageResource(
+                    idBandeira
+                )
+                imagemBandeira.visibility =
+                    android.view.View.VISIBLE
+            } else {
+                imagemBandeira.visibility =
+                    android.view.View.GONE
+            }
 
             item.findViewById<TextView>(
                 R.id.itemPais
-            ).text =
-                "${bandeiraPais(etapa.pais)} ${etapa.pais}"
+            ).text = etapa.pais
 
             item.findViewById<TextView>(
                 R.id.itemCircuito
-            ).text =
-                etapa.circuito
+            ).text = etapa.circuito
 
             item.findViewById<TextView>(
                 R.id.itemData
-            ).text =
-                etapa.data
+            ).text = etapa.data
 
             val itemStatus =
                 item.findViewById<TextView>(
                     R.id.itemStatus
                 )
 
-            itemStatus.text =
-                status
+            itemStatus.text = status
 
             when (status) {
-
                 "FINALIZADA" -> {
-
                     itemStatus.setTextColor(
                         android.graphics.Color.WHITE
                     )
@@ -611,15 +491,12 @@ class MainActivity : AppCompatActivity() {
                     itemStatus.backgroundTintList =
                         android.content.res.ColorStateList.valueOf(
                             android.graphics.Color.rgb(
-                                90,
-                                100,
-                                110
+                                90, 100, 110
                             )
                         )
                 }
 
                 "PRÓXIMA" -> {
-
                     itemStatus.setTextColor(
                         android.graphics.Color.WHITE
                     )
@@ -627,15 +504,12 @@ class MainActivity : AppCompatActivity() {
                     itemStatus.backgroundTintList =
                         android.content.res.ColorStateList.valueOf(
                             android.graphics.Color.rgb(
-                                25,
-                                150,
-                                95
+                                25, 150, 95
                             )
                         )
                 }
 
                 "AGENDADA" -> {
-
                     itemStatus.setTextColor(
                         android.graphics.Color.WHITE
                     )
@@ -643,41 +517,23 @@ class MainActivity : AppCompatActivity() {
                     itemStatus.backgroundTintList =
                         android.content.res.ColorStateList.valueOf(
                             android.graphics.Color.rgb(
-                                30,
-                                70,
-                                105
+                                30, 70, 105
                             )
                         )
                 }
             }
 
-            item.contentDescription =
-                status
+            item.contentDescription = status
 
             item.setOnClickListener {
-
                 when (etapa.categoria) {
-
-                    "F1" ->
-                        abrirEventoF1PelaEtapa(
-                            etapa
-                        )
-
-                    "F2" ->
-                        abrirEventoF2PelaEtapa(
-                            etapa
-                        )
-
-                    "F3" ->
-                        abrirEventoF3PelaEtapa(
-                            etapa
-                        )
+                    "F1" -> abrirEventoF1PelaEtapa(etapa)
+                    "F2" -> abrirEventoF2PelaEtapa(etapa)
+                    "F3" -> abrirEventoF3PelaEtapa(etapa)
                 }
             }
 
-            listaEtapas.addView(
-                item
-            )
+            listaEtapas.addView(item)
         }
     }
 
@@ -685,9 +541,7 @@ class MainActivity : AppCompatActivity() {
         etapa: Etapa,
         etapasOrdenadas: List<Etapa>
     ): String {
-
-        val hoje =
-            java.time.LocalDate.now()
+        val hoje = java.time.LocalDate.now()
 
         val data =
             java.time.LocalDate.parse(
@@ -700,21 +554,17 @@ class MainActivity : AppCompatActivity() {
 
         val proximasDaCategoria =
             todasEtapas.filter {
-                it.categoria ==
-                    etapa.categoria
+                it.categoria == etapa.categoria
             }
 
         val proxima =
             proximasDaCategoria.firstOrNull {
-
                 val dataInicio =
                     java.time.LocalDate.parse(
                         it.dataInicio
                     )
 
-                !dataInicio.isBefore(
-                    hoje
-                )
+                !dataInicio.isBefore(hoje)
             }
 
         return if (proxima == etapa) {
@@ -724,12 +574,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun bandeiraPais(
-        pais: String
-    ): String {
+    private fun recursoBandeira(pais: String): Int {
+        val arquivo =
+            when (pais) {
+                "Austrália" -> "flag_au"
+                "Japão" -> "flag_jp"
+                "Bahrein" -> "flag_bh"
+                "Arábia Saudita" -> "flag_sa"
+                "Estados Unidos" -> "flag_us"
+                "Canadá" -> "flag_ca"
+                "Mônaco" -> "flag_mc"
+                "Espanha" -> "flag_es"
+                "Áustria" -> "flag_at"
+                "Reino Unido" -> "flag_gb"
+                "Bélgica" -> "flag_be"
+                "Hungria" -> "flag_hu"
+                "Holanda" -> "flag_nl"
+                "Itália" -> "flag_it"
+                "Azerbaijão" -> "flag_az"
+                "Singapura" -> "flag_sg"
+                "México" -> "flag_mx"
+                "Brasil" -> "flag_br"
+                "Catar" -> "flag_qa"
+                "Abu Dhabi" -> "flag_ae"
+                else -> return 0
+            }
 
+        return resources.getIdentifier(
+            arquivo,
+            "drawable",
+            packageName
+        )
+    }
+
+    private fun bandeiraPais(pais: String): String {
         return when (pais) {
-
             "Austrália" -> "🇦🇺"
             "Japão" -> "🇯🇵"
             "Bahrein" -> "🇧🇭"
@@ -754,17 +633,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun abrirCategoria(
-        categoria: String
-    ) {
+    private fun abrirCategoria(categoria: String) {
+        categoriaAtual = categoria
 
-        categoriaAtual =
-            categoria
-
-        setContentView(
-            R.layout.activity_category
-        )
-
+        setContentView(R.layout.activity_category)
         animarEntrada()
 
         val titulo =
@@ -778,31 +650,11 @@ class MainActivity : AppCompatActivity() {
             )
 
         when (categoria) {
-
-            "F1" ->
-                logo.setImageResource(
-                    R.drawable.logo_f1
-                )
-
-            "F2" ->
-                logo.setImageResource(
-                    R.drawable.logo_f2
-                )
-
-            "F3" ->
-                logo.setImageResource(
-                    R.drawable.logo_f3
-                )
-
-            "IndyCar" ->
-                logo.setImageResource(
-                    R.drawable.logo_indycar
-                )
-
-            "Formula E" ->
-                logo.setImageResource(
-                    R.drawable.logo_formulae
-                )
+            "F1" -> logo.setImageResource(R.drawable.logo_f1)
+            "F2" -> logo.setImageResource(R.drawable.logo_f2)
+            "F3" -> logo.setImageResource(R.drawable.logo_f3)
+            "IndyCar" -> logo.setImageResource(R.drawable.logo_indycar)
+            "Formula E" -> logo.setImageResource(R.drawable.logo_formulae)
         }
 
         val evento =
@@ -822,27 +674,15 @@ class MainActivity : AppCompatActivity() {
 
         titulo.text =
             when (categoria) {
-
-                "F1" ->
-                    "FÓRMULA 1"
-
-                "F2" ->
-                    "FÓRMULA 2"
-
-                "F3" ->
-                    "FÓRMULA 3"
-
-                "IndyCar" ->
-                    "INDYCAR"
-
-                else ->
-                    "FÓRMULA E"
+                "F1" -> "FÓRMULA 1"
+                "F2" -> "FÓRMULA 2"
+                "F3" -> "FÓRMULA 3"
+                "IndyCar" -> "INDYCAR"
+                else -> "FÓRMULA E"
             }
 
         voltar.setOnClickListener {
-
             categoriaAtual = ""
-
             mostrarMenu()
 
             overridePendingTransition(
@@ -852,32 +692,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (categoria == "F1") {
-
             evento.setOnClickListener {
                 abrirEventoF1()
             }
         }
 
         if (categoria == "F2") {
-
             evento.setOnClickListener {
                 abrirEventoF2()
             }
         }
 
         if (categoria == "F3") {
-
             evento.setOnClickListener {
                 abrirEventoF3()
             }
         }
 
         calendario.setOnClickListener {
-
             when (categoriaAtual) {
-
                 "F1" -> {
-
                     startActivity(
                         Intent(
                             this,
@@ -892,7 +726,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 "F2" -> {
-
                     startActivity(
                         Intent(
                             this,
@@ -907,7 +740,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 "F3" -> {
-
                     startActivity(
                         Intent(
                             this,
@@ -922,26 +754,17 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> {
-
-                    evento.text =
-                        "Programação completa"
+                    evento.text = "Programação completa"
                 }
             }
         }
 
         when (categoria) {
-
-            "F1" ->
-                carregarF1(evento)
-
-            "F2" ->
-                carregarF2(evento)
-
-            "F3" ->
-                carregarF3(evento)
+            "F1" -> carregarF1(evento)
+            "F2" -> carregarF2(evento)
+            "F3" -> carregarF3(evento)
 
             else -> {
-
                 evento.text =
                     "Calendário automático\n\n" +
                     "Esta categoria será adicionada em breve.\n\n" +
@@ -953,79 +776,43 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun carregarF1(
-        evento: TextView
-    ) {
-
+    private fun carregarF1(evento: TextView) {
         Thread {
-
             try {
+                val races = buscarCorridasF1()
+                val agora = java.time.Instant.now()
 
-                val races =
-                    buscarCorridasF1()
+                var proximaCorrida: JSONObject? = null
+                var proximaData: OffsetDateTime? = null
 
-                val agora =
-                    java.time.Instant.now()
+                for (i in 0 until races.length()) {
+                    val race = races.getJSONObject(i)
 
-                var proximaCorrida:
-                        JSONObject? = null
-
-                var proximaData:
-                        OffsetDateTime? = null
-
-                for (
-                    i in 0 until races.length()
-                ) {
-
-                    val race =
-                        races.getJSONObject(i)
-
-                    val data =
-                        race.getString(
-                            "date"
-                        )
-
-                    val hora =
-                        race.optString(
-                            "time",
-                            "00:00:00Z"
-                        )
+                    val data = race.getString("date")
+                    val hora = race.optString("time", "00:00:00Z")
 
                     val horario =
                         OffsetDateTime.parse(
                             "${data}T${hora}"
                         )
 
-                    if (
-                        horario.toInstant()
-                            .isAfter(agora)
-                    ) {
-
-                        proximaCorrida =
-                            race
-
-                        proximaData =
-                            horario
-
+                    if (horario.toInstant().isAfter(agora)) {
+                        proximaCorrida = race
+                        proximaData = horario
                         break
                     }
                 }
 
                 if (proximaCorrida == null) {
-
                     runOnUiThread {
-
                         evento.text =
                             "Nenhuma corrida futura encontrada."
                     }
-
                     return@Thread
                 }
 
                 val brasilia =
-                    ZoneId.of(
-                        "America/Sao_Paulo"
-                    )
+                    ZoneId.of("America/Sao_Paulo")
 
                 val formato =
                     DateTimeFormatter.ofPattern(
@@ -1033,42 +820,25 @@ class MainActivity : AppCompatActivity() {
                     )
 
                 val horarioBrasilia =
-                    proximaData!!
-                        .atZoneSameInstant(
-                            brasilia
-                        )
+                    proximaData!!.atZoneSameInstant(brasilia)
 
                 val nome =
-                    proximaCorrida!!
-                        .getString(
-                            "raceName"
-                        )
+                    proximaCorrida!!.getString("raceName")
 
                 val dataCorrida =
-                    horarioBrasilia.format(
-                        formato
-                    )
+                    horarioBrasilia.format(formato)
 
                 val qualificacao =
-                    proximaCorrida!!
-                        .optJSONObject(
-                            "Qualifying"
-                        )
+                    proximaCorrida!!.optJSONObject("Qualifying")
 
-                var textoQualificacao =
-                    ""
+                var textoQualificacao = ""
 
                 if (qualificacao != null) {
-
                     val dataQualificacao =
-                        qualificacao.getString(
-                            "date"
-                        )
+                        qualificacao.getString("date")
 
                     val horaQualificacao =
-                        qualificacao.getString(
-                            "time"
-                        )
+                        qualificacao.getString("time")
 
                     val horarioQualificacao =
                         OffsetDateTime.parse(
@@ -1076,21 +846,18 @@ class MainActivity : AppCompatActivity() {
                         )
 
                     val horarioBrasiliaQualificacao =
-                        horarioQualificacao
-                            .atZoneSameInstant(
-                                brasilia
-                            )
+                        horarioQualificacao.atZoneSameInstant(
+                            brasilia
+                        )
 
                     textoQualificacao =
                         "🔵 Classificação\n" +
                         "📅 ${
-                            horarioBrasiliaQualificacao
-                                .format(formato)
+                            horarioBrasiliaQualificacao.format(formato)
                         }"
                 }
 
                 runOnUiThread {
-
                     evento.text =
                         "🏁 $nome\n\n" +
                         "🔴 Corrida\n" +
@@ -1099,23 +866,18 @@ class MainActivity : AppCompatActivity() {
                         "\n\n" +
                         "TOQUE PARA VER OS DETALHES"
                 }
-
             } catch (e: Exception) {
-
                 runOnUiThread {
-
                     evento.text =
                         "Erro ao carregar calendário.\n\n" +
                         "Erro: " +
                         e.javaClass.simpleName
                 }
             }
-
         }.start()
     }
 
     private fun abrirEventoF1() {
-
         startActivity(
             Intent(
                 this,
@@ -1129,10 +891,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun abrirEventoF1PelaEtapa(
-        etapa: Etapa
-    ) {
-
+    private fun abrirEventoF1PelaEtapa(etapa: Etapa) {
         val intent =
             Intent(
                 this,
@@ -1152,40 +911,26 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun carregarF2(
-        evento: TextView
-    ) {
+    private fun carregarF2(evento: TextView) {
+        val hoje = java.time.LocalDate.now()
 
-        val hoje =
-            java.time.LocalDate.now()
-
-        var proximo:
-                F2Event? = null
+        var proximo: F2Event? = null
 
         for (item in F2Calendar.eventos) {
-
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                    )
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
             if (!inicio.isBefore(hoje)) {
-
-                proximo =
-                    item
-
+                proximo = item
                 break
             }
         }
 
         if (proximo == null) {
-
-            evento.text =
-                "Temporada 2026 encerrada"
-
+            evento.text = "Temporada 2026 encerrada"
             return
         }
 
@@ -1198,91 +943,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirEventoF2() {
+        val hoje = java.time.LocalDate.now()
 
-        val hoje =
-            java.time.LocalDate.now()
-
-        var proximo:
-                F2Event? = null
+        var proximo: F2Event? = null
 
         for (item in F2Calendar.eventos) {
-
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                    )
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
             if (!inicio.isBefore(hoje)) {
-
-                proximo =
-                    item
-
+                proximo = item
                 break
             }
         }
 
-        if (proximo == null) {
-            return
-        }
+        if (proximo == null) return
 
-        abrirEventoF2Item(
-            proximo
-        )
+        abrirEventoF2Item(proximo)
     }
 
-    private fun abrirEventoF2PelaEtapa(
-        etapa: Etapa
-    ) {
-
-        var encontrado:
-                F2Event? = null
+    private fun abrirEventoF2PelaEtapa(etapa: Etapa) {
+        var encontrado: F2Event? = null
 
         for (item in F2Calendar.eventos) {
-
             if (
                 item.circuito.equals(
                     etapa.circuito,
                     ignoreCase = true
                 )
             ) {
-
-                encontrado =
-                    item
-
+                encontrado = item
                 break
             }
         }
 
         if (encontrado != null) {
-
-            abrirEventoF2Item(
-                encontrado
-            )
-
+            abrirEventoF2Item(encontrado)
         } else {
-
             abrirCategoria("F2")
         }
     }
 
-    private fun abrirEventoF2Item(
-        evento: F2Event
-    ) {
-
+    private fun abrirEventoF2Item(evento: F2Event) {
         val intent =
             Intent(
                 this,
                 F2Activity::class.java
             )
 
-        intent.putExtra(
-            "ETAPA",
-            evento.etapa
-        )
-
+        intent.putExtra("ETAPA", evento.etapa)
         startActivity(intent)
 
         overridePendingTransition(
@@ -1291,40 +1003,26 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun carregarF3(
-        evento: TextView
-    ) {
+    private fun carregarF3(evento: TextView) {
+        val hoje = java.time.LocalDate.now()
 
-        val hoje =
-            java.time.LocalDate.now()
-
-        var proximo:
-                F3Event? = null
+        var proximo: F3Event? = null
 
         for (item in F3Calendar.eventos) {
-
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                    )
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
             if (!inicio.isBefore(hoje)) {
-
-                proximo =
-                    item
-
+                proximo = item
                 break
             }
         }
 
         if (proximo == null) {
-
-            evento.text =
-                "Temporada 2026 encerrada"
-
+            evento.text = "Temporada 2026 encerrada"
             return
         }
 
@@ -1337,91 +1035,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirEventoF3() {
+        val hoje = java.time.LocalDate.now()
 
-        val hoje =
-            java.time.LocalDate.now()
-
-        var proximo:
-                F3Event? = null
+        var proximo: F3Event? = null
 
         for (item in F3Calendar.eventos) {
-
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
-                    DateTimeFormatter.ofPattern(
-                        "dd/MM/yyyy"
-                    )
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
             if (!inicio.isBefore(hoje)) {
-
-                proximo =
-                    item
-
+                proximo = item
                 break
             }
         }
 
-        if (proximo == null) {
-            return
-        }
+        if (proximo == null) return
 
-        abrirEventoF3Item(
-            proximo
-        )
+        abrirEventoF3Item(proximo)
     }
 
-    private fun abrirEventoF3PelaEtapa(
-        etapa: Etapa
-    ) {
-
-        var encontrado:
-                F3Event? = null
+    private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
+        var encontrado: F3Event? = null
 
         for (item in F3Calendar.eventos) {
-
             if (
                 item.circuito.equals(
                     etapa.circuito,
                     ignoreCase = true
                 )
             ) {
-
-                encontrado =
-                    item
-
+                encontrado = item
                 break
             }
         }
 
         if (encontrado != null) {
-
-            abrirEventoF3Item(
-                encontrado
-            )
-
+            abrirEventoF3Item(encontrado)
         } else {
-
             abrirCategoria("F3")
         }
     }
 
-    private fun abrirEventoF3Item(
-        evento: F3Event
-    ) {
-
+    private fun abrirEventoF3Item(evento: F3Event) {
         val intent =
             Intent(
                 this,
                 F3Activity::class.java
             )
 
-        intent.putExtra(
-            "ETAPA",
-            evento.etapa
-        )
-
+        intent.putExtra("ETAPA", evento.etapa)
         startActivity(intent)
 
         overridePendingTransition(
@@ -1430,26 +1095,18 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun buscarCorridasF1():
-            org.json.JSONArray {
-
+    private fun buscarCorridasF1(): org.json.JSONArray {
         val url =
             URL(
                 "https://api.jolpi.ca/ergast/f1/current/races/"
             )
 
         val connection =
-            url.openConnection()
-                as HttpURLConnection
+            url.openConnection() as HttpURLConnection
 
-        connection.requestMethod =
-            "GET"
-
-        connection.connectTimeout =
-            15000
-
-        connection.readTimeout =
-            15000
+        connection.requestMethod = "GET"
+        connection.connectTimeout = 15000
+        connection.readTimeout = 15000
 
         connection.setRequestProperty(
             "User-Agent",
@@ -1459,9 +1116,7 @@ class MainActivity : AppCompatActivity() {
         val resposta =
             connection.inputStream
                 .bufferedReader()
-                .use {
-                    it.readText()
-                }
+                .use { it.readText() }
 
         connection.disconnect()
 
