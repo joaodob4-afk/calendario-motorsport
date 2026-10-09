@@ -1,5 +1,93 @@
 {
-"temporada": 2026,
-"categoria": "F2",
-"etapas": []
+  "temporada": 2026,
+  "categoria": "F2",
+  "etapas": [
+    {
+      "etapa": 12,
+      "circuito": "Baku City Circuit",
+      "pais": "Azerbaijão",
+      "inicio": "24/09/2026",
+      "fim": "26/09/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "24/09/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação",
+          "data": "24/09/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "25/09/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "26/09/2026",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 13,
+      "circuito": "Lusail",
+      "pais": "Catar",
+      "inicio": "27/11/2026",
+      "fim": "29/11/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "27/11/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação",
+          "data": "27/11/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "28/11/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "29/11/2026",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 14,
+      "circuito": "Yas Marina",
+      "pais": "Emirados Árabes Unidos",
+      "inicio": "04/12/2026",
+      "fim": "06/12/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "04/12/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação",
+          "data": "04/12/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "05/12/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "06/12/2026",
+          "horario": "A confirmar"
+        }
+      ]
+    }
+  ]
 }
