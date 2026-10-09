@@ -31,6 +31,12 @@ object F2CalendarJson {
             emptyList()
         }
 
+        // JSON completo: usa só ele (assim etapas removidas do calendário
+        // não sobram do calendário fixo). JSON parcial: completa com o fixo.
+        if (eventosJson.size >= 10) {
+            return eventosJson.sortedBy { it.etapa }
+        }
+
         val combinados = F2Calendar.eventos
             .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
             eventosJson
