@@ -1,4 +1,3 @@
-
 package com.motorsport.calendario
 
 import android.content.Intent
@@ -248,6 +247,11 @@ class MainActivity : AppCompatActivity() {
                 R.id.nomeProximaEtapa
             )
 
+        val bandeira =
+            findViewById<ImageView>(
+                R.id.bandeiraProximaEtapa
+            )
+
         val circuito =
             findViewById<TextView>(
                 R.id.circuitoProximaEtapa
@@ -266,8 +270,19 @@ class MainActivity : AppCompatActivity() {
         titulo.text =
             "PRÓXIMA ETAPA • ${proxima.categoria}"
 
-        nome.text =
-            "${bandeiraPais(proxima.pais)} ${proxima.pais}"
+        nome.text = proxima.pais
+
+        val idBandeira =
+            recursoBandeira(proxima.pais)
+
+        if (idBandeira != 0) {
+            bandeira.setImageResource(idBandeira)
+            bandeira.visibility =
+                android.view.View.VISIBLE
+        } else {
+            bandeira.visibility =
+                android.view.View.GONE
+        }
 
         circuito.text = proxima.circuito
         data.text = proxima.data
