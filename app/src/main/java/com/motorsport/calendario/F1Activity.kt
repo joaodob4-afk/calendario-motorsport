@@ -115,7 +115,7 @@ class F1Activity : AppCompatActivity() {
             setOnClickListener {
                 finish()
                 overridePendingTransition(
-                    R.anim.slide_in_right,
+                    android.R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
             }
@@ -166,6 +166,11 @@ class F1Activity : AppCompatActivity() {
         scrollView = ScrollView(this).apply {
             isFillViewport = true
             clipToPadding = false
+
+            overScrollMode = View.OVER_SCROLL_NEVER
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            isVerticalFadingEdgeEnabled = false
         }
 
         conteudo = LinearLayout(this).apply {
