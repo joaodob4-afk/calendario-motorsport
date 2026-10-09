@@ -974,13 +974,13 @@ class MainActivity : AppCompatActivity() {
         var proximo: F2Event? = null
 
         for (item in F2CalendarJson.carregar(this)) {
-            val inicio =
+            val fim =
                 java.time.LocalDate.parse(
-                    item.inicio,
+                    item.fim,
                     DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (!fim.isBefore(hoje)) {
                 proximo = item
                 break
             }
@@ -1005,13 +1005,13 @@ class MainActivity : AppCompatActivity() {
         var proximo: F2Event? = null
 
         for (item in F2CalendarJson.carregar(this)) {
-            val inicio =
+            val fim =
                 java.time.LocalDate.parse(
-                    item.inicio,
+                    item.fim,
                     DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (!fim.isBefore(hoje)) {
                 proximo = item
                 break
             }
