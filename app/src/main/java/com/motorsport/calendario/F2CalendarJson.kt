@@ -1,4 +1,3 @@
-
 package com.motorsport.calendario
 
 import android.content.Context
@@ -14,12 +13,7 @@ object F2CalendarJson {
                 .use { it.readText() }
 
             val etapas = JSONObject(json).getJSONArray("etapas")
-
-            if (etapas.length() == 0) {
-                return F2Calendar.eventos
-            }
-
-            val eventos = mutableListOf<F2Event>()
+            val eventosJson = mutableListOf<F2Event>()
 
             for (i in 0 until etapas.length()) {
                 val etapa = etapas.getJSONObject(i)
@@ -41,7 +35,7 @@ object F2CalendarJson {
                     )
                 }
 
-                eventos.add(
+                eventosJson.add(
                     F2Event(
                         etapa = etapa.getInt("etapa"),
                         circuito = etapa.getString("circuito"),
@@ -53,7 +47,15 @@ object F2CalendarJson {
                 )
             }
 
-            eventos
+            val eventosCombinados =
+                F2Calendar.eventos
+                    .filterNot { local ->
+                        eventosJson.any {
+                            it.etapa == local.etapa
+                        }
+                    } + eventosJson
+
+            eventosCombinados.sortedBy { it.etapa }
 
         } catch (_: Exception) {
             F2Calendar.eventos
