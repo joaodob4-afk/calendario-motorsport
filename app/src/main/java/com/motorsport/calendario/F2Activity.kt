@@ -49,22 +49,46 @@ class F2Activity : AppCompatActivity() {
 
         montarTela()
 
-        val etapa = intent.getIntExtra("ETAPA", -1)
-
-        val evento = F2Calendar.eventos.find {
-            it.etapa == etapa
-        }
+        // Escolhe automaticamente a próxima etapa.
+        val evento = obterProximaEtapa()
 
         if (evento != null) {
             mostrarEvento(evento)
         } else {
             adicionarTexto(
-                "ETAPA NÃO ENCONTRADA",
+                "CALENDÁRIO INDISPONÍVEL",
                 17f,
                 verde,
                 true
             )
+
+            adicionarTexto(
+                "Não foi possível encontrar uma próxima etapa no calendário.",
+                14f,
+                cinza,
+                false
+            )
         }
+    }
+
+    private fun obterProximaEtapa(): F2Event? {
+        val hoje = SimpleDateFormat(
+            "dd/MM/yyyy",
+            Locale.US
+        ).format(Date())
+
+        val dataHoje = converterData(hoje) ?: return null
+
+        return F2Calendar.eventos
+            .filter { evento ->
+                val dataFim = converterData(evento.fim)
+                dataFim != null && !dataFim.before(dataHoje)
+            }
+            .sortedBy { evento ->
+                converterData(evento.inicio)?.time
+                    ?: Long.MAX_VALUE
+            }
+            .firstOrNull()
     }
 
     private fun montarTela() {
@@ -390,8 +414,7 @@ class F2Activity : AppCompatActivity() {
             nomeNormalizado == "corrida" ||
             nomeNormalizado == "race"
 
-        val sprint =
-            nomeNormalizado.contains("sprint")
+        val sprint = nomeNormalizado.contains("sprint")
 
         val nomeExibido = when {
             nomeNormalizado.contains("feature") ->
@@ -405,11 +428,8 @@ class F2Activity : AppCompatActivity() {
                 nomeNormalizado.contains("classificação") ->
                 "CLASSIFICAÇÃO"
 
-            sprint && corridaPrincipal ->
-                "CORRIDA SPRINT"
-
             sprint ->
-                "CLASSIFICAÇÃO SPRINT"
+                "CORRIDA SPRINT"
 
             nomeNormalizado.contains("corrida") ||
                 nomeNormalizado == "race" ->
@@ -545,7 +565,7 @@ class F2Activity : AppCompatActivity() {
             "austria", "áustria" -> "flag_at"
             "united kingdom", "great britain", "reino unido" -> "flag_gb"
             "belgium", "bélgica" -> "flag_be"
-            "hungary", "hungria", "hungria" -> "flag_hu"
+            "hungary", "hungria" -> "flag_hu"
             "netherlands", "holanda", "países baixos" -> "flag_nl"
             "italy", "itália" -> "flag_it"
             "azerbaijan", "azerbaijão" -> "flag_az"
