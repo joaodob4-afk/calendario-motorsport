@@ -59,7 +59,7 @@ class F1Activity : AppCompatActivity() {
 
         Thread {
             try {
-                val corrida = buscarProximaCorrida()
+                val corrida = buscarCorridaSelecionada()
 
                 runOnUiThread {
                     if (corrida != null) {
@@ -192,6 +192,72 @@ class F1Activity : AppCompatActivity() {
         setContentView(raiz)
     }
 
+    // false quando o usuário abriu uma corrida específica (não a próxima).
+    private var corridaEhProxima = true
+
+    /**
+     * Usa a corrida escolhida pelo usuário (extra "RACE" ou
+     * "CIRCUIT_ID_F1"). Sem escolha, ou se não achar, usa a próxima.
+     */
+    private fun buscarCorridaSelecionada(): JSONObject? {
+        val corridaTexto = intent.getStringExtra("RACE")
+        val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
+
+        var selecionada: JSONObject? = null
+
+        if (!corridaTexto.isNullOrBlank()) {
+            selecionada = try {
+                JSONObject(corridaTexto)
+            } catch (_: Exception) {
+                null
+            }
+        }
+
+        val proxima = try {
+            buscarProximaCorrida()
+        } catch (e: Exception) {
+            if (selecionada != null) null else throw e
+        }
+
+        if (selecionada == null && !circuitId.isNullOrBlank()) {
+            selecionada = buscarCorridaPorCircuito(circuitId)
+        }
+
+        if (selecionada == null) {
+            corridaEhProxima = true
+            return proxima
+        }
+
+        corridaEhProxima =
+            proxima != null &&
+            selecionada.optString("round") == proxima.optString("round")
+
+        return selecionada
+    }
+
+    private fun buscarCorridaPorCircuito(circuitId: String): JSONObject? {
+        val resposta = requisitarJson(
+            "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
+        )
+
+        val races = JSONObject(resposta)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
+
+        for (i in 0 until races.length()) {
+            val race = races.getJSONObject(i)
+            val id = race.optJSONObject("Circuit")
+                ?.optString("circuitId", "") ?: ""
+
+            if (id.equals(circuitId, ignoreCase = true)) {
+                return race
+            }
+        }
+
+        return null
+    }
+
     private fun buscarProximaCorrida(): JSONObject? {
         val resposta = requisitarJson(
             "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
@@ -315,7 +381,7 @@ class F1Activity : AppCompatActivity() {
         }
 
         adicionarTexto(
-            "PRÓXIMA ETAPA",
+            if (corridaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
             12f,
             verde,
             true
@@ -824,7 +890,7 @@ class F1Activity : AppCompatActivity() {
 
                 Thread {
                     try {
-                        val corrida = buscarProximaCorrida()
+                        val corrida = buscarCorridaSelecionada()
 
                         runOnUiThread {
                             if (corrida != null) {
