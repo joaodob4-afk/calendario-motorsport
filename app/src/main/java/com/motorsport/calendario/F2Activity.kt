@@ -1,4 +1,3 @@
-
 package com.motorsport.calendario
 
 import android.graphics.Color
