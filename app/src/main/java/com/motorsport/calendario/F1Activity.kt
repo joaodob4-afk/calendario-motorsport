@@ -24,11 +24,11 @@ import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
 
-    private val preto = Color.rgb(13, 13, 13)
+    private val preto = Color.BLACK
     private val verde = Color.rgb(57, 255, 20)
     private val branco = Color.WHITE
     private val cinza = Color.rgb(165, 165, 165)
-    private val linhaCinza = Color.rgb(72, 72, 72)
+    private val linhaCinza = Color.rgb(85, 85, 85)
 
     private val localeBR = Locale("pt", "BR")
     private val brasilia = ZoneId.of("America/Sao_Paulo")
@@ -650,7 +650,7 @@ class F1Activity : AppCompatActivity() {
         val grupo = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.TOP
-            setPadding(0, dp(14), 0, dp(14))
+            setPadding(0, dp(18), 0, dp(18))
         }
 
         val tituloDia = TextView(this).apply {
