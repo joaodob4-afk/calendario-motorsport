@@ -112,9 +112,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Baixa o calendário F2 mais recente em segundo plano.
-        F2CalendarJson.atualizar(this)
-
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
@@ -934,7 +931,7 @@ class MainActivity : AppCompatActivity() {
 
         var proximo: F2Event? = null
 
-        for (item in F2CalendarJson.carregar(this)) {
+        for (item in F2Calendar.eventos) {
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
@@ -965,7 +962,7 @@ class MainActivity : AppCompatActivity() {
 
         var proximo: F2Event? = null
 
-        for (item in F2CalendarJson.carregar(this)) {
+        for (item in F2Calendar.eventos) {
             val inicio =
                 java.time.LocalDate.parse(
                     item.inicio,
@@ -986,7 +983,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirEventoF2PelaEtapa(etapa: Etapa) {
         var encontrado: F2Event? = null
 
-        for (item in F2CalendarJson.carregar(this)) {
+        for (item in F2Calendar.eventos) {
             if (
                 item.circuito.equals(
                     etapa.circuito,
