@@ -27,6 +27,7 @@ jobs:
           python-version: '3.x'
 
       - name: Consultar calendário oficial da F2
+        continue-on-error: true
         run: python .github/scripts/atualizar_f2.py
 
       - name: Configurar Java 17
