@@ -590,7 +590,7 @@ class F2Activity : AppCompatActivity() {
             "mexico", "méxico" -> "flag_mx"
             "brazil", "brasil" -> "flag_br"
             "united arab emirates", "emirados árabes unidos" -> "flag_ae"
-            "qatar" -> "flag_qa"
+            "qatar", "catar" -> "flag_qa"
             "portugal" -> "flag_pt"
             "france", "frança" -> "flag_fr"
             "germany", "alemanha" -> "flag_de"
