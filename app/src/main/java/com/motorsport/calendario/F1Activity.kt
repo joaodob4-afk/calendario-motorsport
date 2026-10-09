@@ -22,7 +22,7 @@ import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
 
-    private val preto = Color.rgb(5, 5, 5)
+    private val preto = Color.rgb(13, 13, 13)
     private val verde = Color.rgb(25, 183, 107)
     private val branco = Color.WHITE
     private val cinza = Color.rgb(143, 143, 143)
