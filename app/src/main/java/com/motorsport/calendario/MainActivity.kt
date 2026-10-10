@@ -115,14 +115,21 @@ class MainActivity : AppCompatActivity() {
     // Etapas da F2 vindas do f2_calendar.json (cache/GitHub/APK).
     private var etapasF2Dinamicas: List<Etapa>? = null
 
+    // Etapas da F3 vindas do f3_calendar.json (cache/GitHub/APK).
+    private var etapasF3Dinamicas: List<Etapa>? = null
+
     private val todasEtapas: List<Etapa>
         get() =
             (etapasF1Dinamicas
                 ?: etapasFixas.filter { it.categoria == "F1" }) +
                 (etapasF2Dinamicas
                     ?: etapasFixas.filter { it.categoria == "F2" }) +
+                (etapasF3Dinamicas
+                    ?: etapasFixas.filter { it.categoria == "F3" }) +
                 etapasFixas.filter {
-                    it.categoria != "F1" && it.categoria != "F2"
+                    it.categoria != "F1" &&
+                        it.categoria != "F2" &&
+                        it.categoria != "F3"
                 }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,6 +141,19 @@ class MainActivity : AppCompatActivity() {
         F2CalendarJson.atualizar(this) {
             etapasF2Dinamicas =
                 F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
+
+            if (categoriaAtual.isEmpty()) {
+                atualizarProximaEtapa()
+                mostrarEtapas(todasEtapas)
+            }
+        }
+
+        // Calendário da F3: usa o último baixado e atualiza em segundo plano.
+        etapasF3Dinamicas =
+            F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
+        F3CalendarJson.atualizar(this) {
+            etapasF3Dinamicas =
+                F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
 
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -1065,14 +1085,14 @@ class MainActivity : AppCompatActivity() {
 
         var proximo: F3Event? = null
 
-        for (item in F3Calendar.eventos) {
-            val inicio =
+        for (item in F3CalendarJson.carregar(this)) {
+            val fim =
                 java.time.LocalDate.parse(
-                    item.inicio,
+                    item.fim,
                     DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (!fim.isBefore(hoje)) {
                 proximo = item
                 break
             }
@@ -1096,14 +1116,14 @@ class MainActivity : AppCompatActivity() {
 
         var proximo: F3Event? = null
 
-        for (item in F3Calendar.eventos) {
-            val inicio =
+        for (item in F3CalendarJson.carregar(this)) {
+            val fim =
                 java.time.LocalDate.parse(
-                    item.inicio,
+                    item.fim,
                     DateTimeFormatter.ofPattern("dd/MM/yyyy")
                 )
 
-            if (!inicio.isBefore(hoje)) {
+            if (!fim.isBefore(hoje)) {
                 proximo = item
                 break
             }
@@ -1117,7 +1137,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
         var encontrado: F3Event? = null
 
-        for (item in F3Calendar.eventos) {
+        for (item in F3CalendarJson.carregar(this)) {
             if (
                 item.circuito.equals(
                     etapa.circuito,
