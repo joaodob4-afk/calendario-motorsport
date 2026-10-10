@@ -40,6 +40,22 @@
     },
     {
       "etapa": 2,
+      "nome": "Good Ranchers 250",
+      "circuito": "Phoenix Raceway",
+      "local": "Avondale, Arizona",
+      "pais": "Estados Unidos",
+      "inicio": "07/03/2026",
+      "fim": "07/03/2026",
+      "sessoes": [
+        {
+          "nome": "Corrida",
+          "data": "07/03/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 3,
       "nome": "Java House Grand Prix of Arlington",
       "circuito": "Streets of Arlington",
       "local": "Arlington, Texas",
@@ -67,22 +83,6 @@
           "data": "15/03/2026",
           "horario": "10:30"
         },
-        {
-          "nome": "Corrida",
-          "data": "15/03/2026",
-          "horario": "12:30"
-        }
-      ]
-    },
-    {
-      "etapa": 3,
-      "nome": "Good Ranchers 250",
-      "circuito": "Phoenix Raceway",
-      "local": "Avondale, Arizona",
-      "pais": "Estados Unidos",
-      "inicio": "15/03/2026",
-      "fim": "15/03/2026",
-      "sessoes": [
         {
           "nome": "Corrida",
           "data": "15/03/2026",
@@ -320,7 +320,7 @@
           "horario": "17:30"
         },
         {
-          "nome": "Final Practice",
+          "nome": "Treino Final",
           "data": "06/06/2026",
           "horario": "22:00"
         },
@@ -423,7 +423,7 @@
           "horario": "16:00"
         },
         {
-          "nome": "Final Practice",
+          "nome": "Treino Final",
           "data": "18/07/2026",
           "horario": "19:00"
         },
@@ -557,7 +557,7 @@
       "fim": "30/08/2026",
       "sessoes": [
         {
-          "nome": "Practice",
+          "nome": "Treino Livre",
           "data": "28/08/2026",
           "horario": "19:00"
         },
@@ -567,12 +567,12 @@
           "horario": "12:00"
         },
         {
-          "nome": "Race 2",
+          "nome": "Corrida 2",
           "data": "30/08/2026",
           "horario": "14:00"
         },
         {
-          "nome": "Race 1",
+          "nome": "Corrida 1",
           "data": "30/08/2026",
           "horario": "19:00"
         }
@@ -593,7 +593,7 @@
           "horario": "12:00"
         },
         {
-          "nome": "Race 2",
+          "nome": "Corrida 2",
           "data": "30/08/2026",
           "horario": "14:00"
         }
@@ -624,7 +624,7 @@
           "horario": "17:30"
         },
         {
-          "nome": "Final Practice",
+          "nome": "Treino Final",
           "data": "05/09/2026",
           "horario": "21:00"
         },
