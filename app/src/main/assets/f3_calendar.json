@@ -1,0 +1,287 @@
+{
+  "temporada": 2026,
+  "categoria": "F3",
+  "etapas": [
+    {
+      "etapa": 1,
+      "circuito": "Melbourne",
+      "pais": "Austrália",
+      "inicio": "06/03/2026",
+      "fim": "08/03/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "05/03/2026",
+          "horario": "18:50"
+        },
+        {
+          "nome": "Classificação",
+          "data": "06/03/2026",
+          "horario": "00:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "06/03/2026",
+          "horario": "21:15"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "07/03/2026",
+          "horario": "18:50"
+        }
+      ]
+    },
+    {
+      "etapa": 2,
+      "circuito": "Monte Carlo",
+      "pais": "Mônaco",
+      "inicio": "04/06/2026",
+      "fim": "07/06/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "04/06/2026",
+          "horario": "08:25"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "05/06/2026",
+          "horario": "06:05"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "05/06/2026",
+          "horario": "06:29"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "06/06/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "07/06/2026",
+          "horario": "02:45"
+        }
+      ]
+    },
+    {
+      "etapa": 3,
+      "circuito": "Barcelona",
+      "pais": "Espanha",
+      "inicio": "12/06/2026",
+      "fim": "14/06/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "12/06/2026",
+          "horario": "04:55"
+        },
+        {
+          "nome": "Classificação",
+          "data": "12/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "13/06/2026",
+          "horario": "05:05"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "14/06/2026",
+          "horario": "03:40"
+        }
+      ]
+    },
+    {
+      "etapa": 4,
+      "circuito": "Spielberg",
+      "pais": "Áustria",
+      "inicio": "26/06/2026",
+      "fim": "28/06/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "26/06/2026",
+          "horario": "04:55"
+        },
+        {
+          "nome": "Classificação",
+          "data": "26/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "27/06/2026",
+          "horario": "05:05"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "28/06/2026",
+          "horario": "03:40"
+        }
+      ]
+    },
+    {
+      "etapa": 5,
+      "circuito": "Silverstone",
+      "pais": "Reino Unido",
+      "inicio": "03/07/2026",
+      "fim": "05/07/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "03/07/2026",
+          "horario": "04:50"
+        },
+        {
+          "nome": "Classificação",
+          "data": "03/07/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "04/07/2026",
+          "horario": "05:35"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "05/07/2026",
+          "horario": "04:25"
+        }
+      ]
+    },
+    {
+      "etapa": 6,
+      "circuito": "Spa-Francorchamps",
+      "pais": "Bélgica",
+      "inicio": "17/07/2026",
+      "fim": "19/07/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "17/07/2026",
+          "horario": "04:55"
+        },
+        {
+          "nome": "Classificação",
+          "data": "17/07/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "18/07/2026",
+          "horario": "05:00"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "19/07/2026",
+          "horario": "03:30"
+        }
+      ]
+    },
+    {
+      "etapa": 7,
+      "circuito": "Budapeste",
+      "pais": "Hungria",
+      "inicio": "24/07/2026",
+      "fim": "26/07/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "24/07/2026",
+          "horario": "04:55"
+        },
+        {
+          "nome": "Classificação",
+          "data": "24/07/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "25/07/2026",
+          "horario": "05:05"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "26/07/2026",
+          "horario": "03:40"
+        }
+      ]
+    },
+    {
+      "etapa": 8,
+      "circuito": "Monza",
+      "pais": "Itália",
+      "inicio": "04/09/2026",
+      "fim": "06/09/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "04/09/2026",
+          "horario": "03:35"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "04/09/2026",
+          "horario": "09:00"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "04/09/2026",
+          "horario": "09:20"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "05/09/2026",
+          "horario": "04:30"
+        },
+        {
+          "nome": "Corrida Feature",
+          "data": "06/09/2026",
+          "horario": "03:15"
+        }
+      ]
+    },
+    {
+      "etapa": 9,
+      "circuito": "Madrid",
+      "pais": "Espanha",
+      "inicio": "11/09/2026",
+      "fim": "13/09/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre",
+          "data": "11/09/2026",
+          "horario": "04:55"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "11/09/2026",
+          "horario": "13:25"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "11/09/2026",
+          "horario": "13:55"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "12/09/2026",
+          "horario": "06:05"
+        },
+        {
+          "nome": "Corrida Feature 1",
+          "data": "12/09/2026",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Corrida Feature 2",
+          "data": "13/09/2026",
+          "horario": "04:45"
+        }
+      ]
+    }
+  ]
+}
