@@ -290,11 +290,24 @@ class F3Activity : AppCompatActivity() {
                 evento.pais
             )
 
+        val nomeAutodromo = Autodromos.nome(evento.circuito)
+
+        val linhaAutodromo =
+            if (nomeAutodromo.isNotBlank() &&
+                !nomeAutodromo.equals(evento.circuito, ignoreCase = true)
+            ) {
+                "$nomeAutodromo\n"
+            } else {
+                ""
+            }
+
         val cabecalho =
             TextView(this).apply {
 
                 text =
-                    "🏁 ${evento.circuito}\n\n" +
+                    "🏁 ${evento.circuito}\n" +
+                    linhaAutodromo +
+                    "\n" +
                     "$bandeira ${evento.pais}\n\n" +
                     "📅 ${evento.inicio} — ${evento.fim}"
 
