@@ -119,7 +119,7 @@ class F3CalendarActivity : AppCompatActivity() {
         )
 
         for (
-            evento in F3Calendar.eventos
+            evento in F3CalendarJson.carregar(this)
         ) {
 
             adicionarEtapa(
