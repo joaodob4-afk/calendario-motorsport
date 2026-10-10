@@ -30,7 +30,8 @@ class MainActivity : AppCompatActivity() {
         val circuito: String,
         val data: String,
         val dataInicio: String = "",
-        val circuitId: String = ""
+        val circuitId: String = "",
+        val dataFim: String = ""
     )
 
     private lateinit var listaEtapas: LinearLayout
@@ -275,19 +276,28 @@ class MainActivity : AppCompatActivity() {
         mostrarEtapas(todasEtapas)
     }
 
+    // Último dia da etapa (sem dataFim, assume fim de semana de 3 dias).
+    private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate {
+        val inicio = java.time.LocalDate.parse(etapa.dataInicio)
+
+        return try {
+            if (etapa.dataFim.isNotBlank()) {
+                java.time.LocalDate.parse(etapa.dataFim)
+            } else {
+                inicio.plusDays(2)
+            }
+        } catch (_: Exception) {
+            inicio.plusDays(2)
+        }
+    }
+
     private fun atualizarProximaEtapa() {
         val hoje = java.time.LocalDate.now()
 
         val proxima =
             todasEtapas
                 .filter {
-                    val data =
-                        java.time.LocalDate.parse(
-                            it.dataInicio
-                        )
-
-                    data.isAfter(hoje) ||
-                        data.isEqual(hoje)
+                    !fimDaEtapa(it).isBefore(hoje)
                 }
                 .minByOrNull {
                     java.time.LocalDate.parse(
@@ -445,13 +455,7 @@ class MainActivity : AppCompatActivity() {
         val proximaEtapa =
             todasEtapas
                 .filter {
-                    val data =
-                        java.time.LocalDate.parse(
-                            it.dataInicio
-                        )
-
-                    data.isAfter(hoje) ||
-                        data.isEqual(hoje)
+                    !fimDaEtapa(it).isBefore(hoje)
                 }
                 .minByOrNull {
                     java.time.LocalDate.parse(
@@ -571,7 +575,7 @@ class MainActivity : AppCompatActivity() {
                         )
                 }
 
-                "PRÓXIMA" -> {
+                "PRÓXIMA", "EM ANDAMENTO" -> {
                     itemStatus.setTextColor(
                         android.graphics.Color.WHITE
                     )
@@ -618,13 +622,17 @@ class MainActivity : AppCompatActivity() {
     ): String {
         val hoje = java.time.LocalDate.now()
 
-        val data =
+        val inicioEtapa =
             java.time.LocalDate.parse(
                 etapa.dataInicio
             )
 
-        if (data.isBefore(hoje)) {
+        if (fimDaEtapa(etapa).isBefore(hoje)) {
             return "FINALIZADA"
+        }
+
+        if (!inicioEtapa.isAfter(hoje)) {
+            return "EM ANDAMENTO"
         }
 
         val proximasDaCategoria =
@@ -634,12 +642,7 @@ class MainActivity : AppCompatActivity() {
 
         val proxima =
             proximasDaCategoria.firstOrNull {
-                val dataInicio =
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    )
-
-                !dataInicio.isBefore(hoje)
+                !fimDaEtapa(it).isBefore(hoje)
             }
 
         return if (proxima == etapa) {
