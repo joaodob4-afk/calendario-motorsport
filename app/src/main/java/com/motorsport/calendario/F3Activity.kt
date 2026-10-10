@@ -46,6 +46,9 @@ class F3Activity : AppCompatActivity() {
     ) {
         super.onCreate(savedInstanceState)
 
+        // Baixa o calendário F3 mais recente em segundo plano.
+        F3CalendarJson.atualizar(this)
+
         overridePendingTransition(
             R.anim.slide_in_right,
             R.anim.slide_out_left
@@ -69,7 +72,7 @@ class F3Activity : AppCompatActivity() {
             )
 
         val evento =
-            F3Calendar.eventos.find {
+            F3CalendarJson.carregar(this).find {
                 it.etapa == etapa
             }
 
