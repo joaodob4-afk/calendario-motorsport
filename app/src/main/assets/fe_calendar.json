@@ -1,0 +1,228 @@
+{
+  "temporada": "2026/27",
+  "categoria": "Formula E",
+  "etapas": [
+    {
+      "etapa": 1,
+      "circuito": "Jeddah",
+      "pais": "Arábia Saudita",
+      "inicio": "18/12/2026",
+      "fim": "19/12/2026",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 1)",
+          "data": "18/12/2026",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 2)",
+          "data": "19/12/2026",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 2,
+      "circuito": "Cidade do México",
+      "pais": "México",
+      "inicio": "16/01/2027",
+      "fim": "16/01/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 3)",
+          "data": "16/01/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 3,
+      "circuito": "Austin",
+      "pais": "Estados Unidos",
+      "inicio": "06/02/2027",
+      "fim": "06/02/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 4)",
+          "data": "06/02/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 4,
+      "circuito": "Miami",
+      "pais": "Estados Unidos",
+      "inicio": "20/02/2027",
+      "fim": "20/02/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 5)",
+          "data": "20/02/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 5,
+      "circuito": "São Paulo",
+      "pais": "Brasil",
+      "inicio": "13/03/2027",
+      "fim": "13/03/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 6)",
+          "data": "13/03/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 6,
+      "circuito": "Sanya",
+      "pais": "China",
+      "inicio": "17/04/2027",
+      "fim": "17/04/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 7)",
+          "data": "17/04/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 7,
+      "circuito": "Monte Carlo",
+      "pais": "Mônaco",
+      "inicio": "01/05/2027",
+      "fim": "02/05/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 8)",
+          "data": "01/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 9)",
+          "data": "02/05/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 8,
+      "circuito": "Berlin",
+      "pais": "Alemanha",
+      "inicio": "08/05/2027",
+      "fim": "09/05/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 10)",
+          "data": "08/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 11)",
+          "data": "09/05/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 9,
+      "circuito": "Londres",
+      "pais": "Reino Unido",
+      "inicio": "29/05/2027",
+      "fim": "30/05/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 12)",
+          "data": "29/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 13)",
+          "data": "30/05/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 10,
+      "circuito": "Zandvoort",
+      "pais": "Holanda",
+      "inicio": "18/06/2027",
+      "fim": "19/06/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 14)",
+          "data": "18/06/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 15)",
+          "data": "19/06/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 11,
+      "circuito": "Madrid",
+      "pais": "Espanha",
+      "inicio": "26/06/2027",
+      "fim": "27/06/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 16)",
+          "data": "26/06/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 17)",
+          "data": "27/06/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 12,
+      "circuito": "Xangai",
+      "pais": "China",
+      "inicio": "10/07/2027",
+      "fim": "11/07/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 18)",
+          "data": "10/07/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 19)",
+          "data": "11/07/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 13,
+      "circuito": "Tóquio",
+      "pais": "Japão",
+      "inicio": "24/07/2027",
+      "fim": "25/07/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 20)",
+          "data": "24/07/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Corrida (Rodada 21)",
+          "data": "25/07/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    }
+  ]
+}
