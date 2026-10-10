@@ -254,7 +254,7 @@ class FormulaEActivity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text = evento.pais
+            text = "${evento.circuito}, ${evento.pais}"
             textSize = 13f
             setTextColor(cinza)
         }
