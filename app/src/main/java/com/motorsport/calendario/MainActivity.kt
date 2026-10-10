@@ -119,6 +119,9 @@ class MainActivity : AppCompatActivity() {
     // Etapas da F3 vindas do f3_calendar.json (cache/GitHub/APK).
     private var etapasF3Dinamicas: List<Etapa>? = null
 
+    // Etapas da Fórmula E vindas do fe_calendar.json (cache/GitHub/APK).
+    private var etapasFormulaEDinamicas: List<Etapa>? = null
+
     private val todasEtapas: List<Etapa>
         get() =
             (etapasF1Dinamicas
@@ -127,10 +130,12 @@ class MainActivity : AppCompatActivity() {
                     ?: etapasFixas.filter { it.categoria == "F2" }) +
                 (etapasF3Dinamicas
                     ?: etapasFixas.filter { it.categoria == "F3" }) +
+                (etapasFormulaEDinamicas ?: emptyList()) +
                 etapasFixas.filter {
                     it.categoria != "F1" &&
                         it.categoria != "F2" &&
-                        it.categoria != "F3"
+                        it.categoria != "F3" &&
+                        it.categoria != "Formula E"
                 }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,6 +160,19 @@ class MainActivity : AppCompatActivity() {
         F3CalendarJson.atualizar(this) {
             etapasF3Dinamicas =
                 F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
+
+            if (categoriaAtual.isEmpty()) {
+                atualizarProximaEtapa()
+                mostrarEtapas(todasEtapas)
+            }
+        }
+
+        // Calendário da Fórmula E: usa o último baixado e atualiza em segundo plano.
+        etapasFormulaEDinamicas =
+            FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
+        FormulaECalendarJson.atualizar(this) {
+            etapasFormulaEDinamicas =
+                FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
 
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -383,6 +401,7 @@ class MainActivity : AppCompatActivity() {
                 "F1" -> abrirEventoF1PelaEtapa(proxima)
                 "F2" -> abrirEventoF2PelaEtapa(proxima)
                 "F3" -> abrirEventoF3PelaEtapa(proxima)
+                "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
             }
         }
     }
@@ -609,6 +628,7 @@ class MainActivity : AppCompatActivity() {
                     "F1" -> abrirEventoF1PelaEtapa(etapa)
                     "F2" -> abrirEventoF2PelaEtapa(etapa)
                     "F3" -> abrirEventoF3PelaEtapa(etapa)
+                    "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
                 }
             }
 
@@ -675,6 +695,7 @@ class MainActivity : AppCompatActivity() {
                 "Brasil" -> "flag_br"
                 "Catar" -> "flag_qa"
                 "China" -> "flag_cn"
+                "Alemanha" -> "flag_de"
                 "Abu Dhabi" -> "flag_ae"
                 else -> return 0
             }
@@ -708,6 +729,7 @@ class MainActivity : AppCompatActivity() {
             "Brasil" -> "🇧🇷"
             "Catar" -> "🇶🇦"
             "China" -> "🇨🇳"
+            "Alemanha" -> "🇩🇪"
             "Abu Dhabi" -> "🇦🇪"
             else -> "🌐"
         }
@@ -789,6 +811,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (categoria == "Formula E") {
+            evento.setOnClickListener {
+                abrirEventoFormulaE()
+            }
+        }
+
         calendario.setOnClickListener {
             when (categoriaAtual) {
                 "F1" -> {
@@ -833,6 +861,20 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
+                "Formula E" -> {
+                    startActivity(
+                        Intent(
+                            this,
+                            FormulaECalendarActivity::class.java
+                        )
+                    )
+
+                    overridePendingTransition(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                    )
+                }
+
                 else -> {
                     evento.text = "Programação completa"
                 }
@@ -843,6 +885,7 @@ class MainActivity : AppCompatActivity() {
             "F1" -> carregarF1(evento)
             "F2" -> carregarF2(evento)
             "F3" -> carregarF3(evento)
+            "Formula E" -> carregarFormulaE(evento)
 
             else -> {
                 evento.text =
@@ -1164,6 +1207,103 @@ class MainActivity : AppCompatActivity() {
             Intent(
                 this,
                 F3Activity::class.java
+            )
+
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
+
+    private fun proximoEventoFormulaE(): FormulaEEvent? {
+        val hoje = java.time.LocalDate.now()
+
+        for (item in FormulaECalendarJson.carregar(this)) {
+            try {
+                val fim =
+                    java.time.LocalDate.parse(
+                        item.fim,
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    )
+
+                if (!fim.isBefore(hoje)) {
+                    return item
+                }
+            } catch (_: Exception) {
+                // Ignora etapa com data inválida.
+            }
+        }
+
+        return null
+    }
+
+    private fun carregarFormulaE(evento: TextView) {
+        if (FormulaECalendarJson.carregar(this).isEmpty()) {
+            evento.text =
+                "Calendário da Fórmula E\n\n" +
+                "Ainda não foi carregado.\n" +
+                "Abra o app com internet."
+            return
+        }
+
+        val proximo = proximoEventoFormulaE()
+
+        if (proximo == null) {
+            evento.text = "Temporada encerrada"
+            return
+        }
+
+        val datas =
+            if (proximo.inicio == proximo.fim) {
+                proximo.inicio
+            } else {
+                "${proximo.inicio} até ${proximo.fim}"
+            }
+
+        evento.text =
+            "⚡ Etapa ${proximo.etapa}\n\n" +
+            "${proximo.circuito} E-Prix\n" +
+            "${proximo.pais}\n\n" +
+            "📅 $datas\n\n" +
+            "TOQUE PARA VER OS DETALHES"
+    }
+
+    private fun abrirEventoFormulaE() {
+        val proximo = proximoEventoFormulaE() ?: return
+
+        abrirEventoFormulaEItem(proximo)
+    }
+
+    private fun abrirEventoFormulaEPelaEtapa(etapa: Etapa) {
+        var encontrado: FormulaEEvent? = null
+
+        for (item in FormulaECalendarJson.carregar(this)) {
+            if (
+                item.circuito.equals(
+                    etapa.circuito,
+                    ignoreCase = true
+                ) && item.inicio.takeLast(4) == etapa.dataInicio.take(4)
+            ) {
+                encontrado = item
+                break
+            }
+        }
+
+        if (encontrado != null) {
+            abrirEventoFormulaEItem(encontrado)
+        } else {
+            abrirCategoria("Formula E")
+        }
+    }
+
+    private fun abrirEventoFormulaEItem(evento: FormulaEEvent) {
+        val intent =
+            Intent(
+                this,
+                FormulaEActivity::class.java
             )
 
         intent.putExtra("ETAPA", evento.etapa)
