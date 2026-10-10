@@ -122,6 +122,9 @@ class MainActivity : AppCompatActivity() {
     // Etapas da Fórmula E vindas do fe_calendar.json (cache/GitHub/APK).
     private var etapasFormulaEDinamicas: List<Etapa>? = null
 
+    // Etapas da IndyCar vindas do indycar_calendar.json (cache/GitHub/APK).
+    private var etapasIndyCarDinamicas: List<Etapa>? = null
+
     private val todasEtapas: List<Etapa>
         get() =
             (etapasF1Dinamicas
@@ -131,11 +134,13 @@ class MainActivity : AppCompatActivity() {
                 (etapasF3Dinamicas
                     ?: etapasFixas.filter { it.categoria == "F3" }) +
                 (etapasFormulaEDinamicas ?: emptyList()) +
+                (etapasIndyCarDinamicas ?: emptyList()) +
                 etapasFixas.filter {
                     it.categoria != "F1" &&
                         it.categoria != "F2" &&
                         it.categoria != "F3" &&
-                        it.categoria != "Formula E"
+                        it.categoria != "Formula E" &&
+                        it.categoria != "IndyCar"
                 }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,6 +165,19 @@ class MainActivity : AppCompatActivity() {
         F3CalendarJson.atualizar(this) {
             etapasF3Dinamicas =
                 F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
+
+            if (categoriaAtual.isEmpty()) {
+                atualizarProximaEtapa()
+                mostrarEtapas(todasEtapas)
+            }
+        }
+
+        // Calendário da IndyCar: usa o último baixado e atualiza em segundo plano.
+        etapasIndyCarDinamicas =
+            IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
+        IndyCarCalendarJson.atualizar(this) {
+            etapasIndyCarDinamicas =
+                IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
 
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -402,6 +420,7 @@ class MainActivity : AppCompatActivity() {
                 "F2" -> abrirEventoF2PelaEtapa(proxima)
                 "F3" -> abrirEventoF3PelaEtapa(proxima)
                 "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
+                "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
             }
         }
     }
@@ -624,6 +643,7 @@ class MainActivity : AppCompatActivity() {
                     "F2" -> abrirEventoF2PelaEtapa(etapa)
                     "F3" -> abrirEventoF3PelaEtapa(etapa)
                     "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
+                    "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
                 }
             }
 
@@ -812,6 +832,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (categoria == "IndyCar") {
+            evento.setOnClickListener {
+                abrirEventoIndyCar()
+            }
+        }
+
         calendario.setOnClickListener {
             when (categoriaAtual) {
                 "F1" -> {
@@ -870,6 +896,20 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
+                "IndyCar" -> {
+                    startActivity(
+                        Intent(
+                            this,
+                            IndyCarCalendarActivity::class.java
+                        )
+                    )
+
+                    overridePendingTransition(
+                        R.anim.slide_in_right,
+                        R.anim.slide_out_left
+                    )
+                }
+
                 else -> {
                     evento.text = "Programação completa"
                 }
@@ -881,6 +921,7 @@ class MainActivity : AppCompatActivity() {
             "F2" -> carregarF2(evento)
             "F3" -> carregarF3(evento)
             "Formula E" -> carregarFormulaE(evento)
+            "IndyCar" -> carregarIndyCar(evento)
 
             else -> {
                 evento.text =
@@ -1299,6 +1340,129 @@ class MainActivity : AppCompatActivity() {
             Intent(
                 this,
                 FormulaEActivity::class.java
+            )
+
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
+
+    private fun proximoEventoIndyCar(): IndyCarEvent? {
+        val hoje = java.time.LocalDate.now()
+
+        for (item in IndyCarCalendarJson.carregar(this)) {
+            try {
+                val fim =
+                    java.time.LocalDate.parse(
+                        item.fim,
+                        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    )
+
+                if (!fim.isBefore(hoje)) {
+                    return item
+                }
+            } catch (_: Exception) {
+                // Ignora etapa com data inválida.
+            }
+        }
+
+        return null
+    }
+
+    private fun carregarIndyCar(evento: TextView) {
+        if (IndyCarCalendarJson.carregar(this).isEmpty()) {
+            evento.text =
+                "Calendário da IndyCar\n\n" +
+                "Ainda não foi carregado.\n" +
+                "Abra o app com internet."
+            return
+        }
+
+        val proximo = proximoEventoIndyCar()
+
+        if (proximo == null) {
+            evento.text =
+                "Temporada encerrada\n\n" +
+                "TOQUE EM CALENDÁRIO PARA VER AS CORRIDAS"
+            return
+        }
+
+        val datas =
+            if (proximo.inicio == proximo.fim) {
+                proximo.inicio
+            } else {
+                "${proximo.inicio} até ${proximo.fim}"
+            }
+
+        evento.text =
+            "🏎 Etapa ${proximo.etapa}\n\n" +
+            "${proximo.nome}\n" +
+            "${proximo.circuito}\n\n" +
+            "📅 $datas\n\n" +
+            "TOQUE PARA VER OS DETALHES"
+    }
+
+    private fun abrirEventoIndyCar() {
+        val proximo = proximoEventoIndyCar()
+
+        if (proximo == null) {
+            // Temporada encerrada: abre a lista de corridas.
+            startActivity(
+                Intent(
+                    this,
+                    IndyCarCalendarActivity::class.java
+                )
+            )
+
+            overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            )
+            return
+        }
+
+        abrirEventoIndyCarItem(proximo)
+    }
+
+    private fun abrirEventoIndyCarPelaEtapa(etapa: Etapa) {
+        var encontrado: IndyCarEvent? = null
+        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+        for (item in IndyCarCalendarJson.carregar(this)) {
+            try {
+                val inicioIso =
+                    java.time.LocalDate.parse(item.inicio, formato).toString()
+
+                if (
+                    item.circuito.equals(
+                        etapa.circuito,
+                        ignoreCase = true
+                    ) && inicioIso == etapa.dataInicio
+                ) {
+                    encontrado = item
+                    break
+                }
+            } catch (_: Exception) {
+                // Ignora etapa com data inválida.
+            }
+        }
+
+        if (encontrado != null) {
+            abrirEventoIndyCarItem(encontrado)
+        } else {
+            abrirCategoria("IndyCar")
+        }
+    }
+
+    private fun abrirEventoIndyCarItem(evento: IndyCarEvent) {
+        val intent =
+            Intent(
+                this,
+                IndyCarActivity::class.java
             )
 
         intent.putExtra("ETAPA", evento.etapa)
