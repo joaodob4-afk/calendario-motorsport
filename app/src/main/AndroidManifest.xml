@@ -53,6 +53,14 @@
             android:name=".FormulaECalendarActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".IndyCarActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".IndyCarCalendarActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
