@@ -45,6 +45,14 @@
             android:name=".F3CalendarActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".FormulaEActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".FormulaECalendarActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
