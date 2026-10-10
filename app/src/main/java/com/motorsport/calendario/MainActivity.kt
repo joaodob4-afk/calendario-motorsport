@@ -935,6 +935,120 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Monta o texto do cartão "próximo evento" com hierarquia visual.
+    private fun definirCartaoProximo(
+        evento: TextView,
+        rotulo: String,
+        titulo: String,
+        detalhe: String,
+        linhas: List<String>,
+        rodape: String
+    ) {
+        val verde = android.graphics.Color.rgb(57, 255, 20)
+        val branco = android.graphics.Color.WHITE
+        val cinza = android.graphics.Color.rgb(175, 175, 175)
+
+        val texto = android.text.SpannableStringBuilder()
+
+        fun linha(
+            conteudo: String,
+            cor: Int,
+            escala: Float,
+            negrito: Boolean
+        ) {
+            val inicio = texto.length
+            texto.append(conteudo)
+            val fim = texto.length
+
+            texto.setSpan(
+                android.text.style.ForegroundColorSpan(cor),
+                inicio,
+                fim,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            texto.setSpan(
+                android.text.style.RelativeSizeSpan(escala),
+                inicio,
+                fim,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            if (negrito) {
+                texto.setSpan(
+                    android.text.style.StyleSpan(
+                        android.graphics.Typeface.BOLD
+                    ),
+                    inicio,
+                    fim,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+
+            texto.append("\n")
+        }
+
+        fun espaco() {
+            val inicio = texto.length
+            texto.append("\n")
+
+            texto.setSpan(
+                android.text.style.RelativeSizeSpan(0.5f),
+                inicio,
+                texto.length,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        linha(rotulo, verde, 0.72f, true)
+        linha(titulo, branco, 1.3f, true)
+
+        if (detalhe.isNotBlank()) {
+            for (parte in detalhe.split("\n")) {
+                if (parte.isNotBlank()) {
+                    linha(parte, cinza, 0.85f, false)
+                }
+            }
+        }
+
+        if (linhas.isNotEmpty()) {
+            espaco()
+            for (item in linhas) {
+                linha(item, branco, 0.9f, false)
+            }
+        }
+
+        espaco()
+        linha(rodape, verde, 0.72f, true)
+
+        // Remove a quebra de linha final.
+        texto.delete(texto.length - 1, texto.length)
+
+        evento.text = texto
+    }
+
+    // "ETAPA 5" ou "EM ANDAMENTO • ETAPA 5" (inicio no formato dd/MM/yyyy).
+    private fun rotuloEtapa(numero: Int, inicio: String): String {
+        return try {
+            val data =
+                java.time.LocalDate.parse(
+                    inicio,
+                    DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                )
+
+            if (!data.isAfter(java.time.LocalDate.now())) {
+                "EM ANDAMENTO  •  ETAPA $numero"
+            } else {
+                "ETAPA $numero"
+            }
+        } catch (_: Exception) {
+            "ETAPA $numero"
+        }
+    }
+
+    private fun periodoDatas(inicio: String, fim: String): String {
+        return if (inicio == fim) inicio else "$inicio até $fim"
+    }
+
     private fun carregarF1(evento: TextView) {
         Thread {
             try {
@@ -1010,20 +1124,32 @@ class MainActivity : AppCompatActivity() {
                         )
 
                     textoQualificacao =
-                        "🔵 Classificação\n" +
-                        "📅 ${
-                            horarioBrasiliaQualificacao.format(formato)
-                        }"
+                        "🔵 Classificação  " +
+                        horarioBrasiliaQualificacao.format(formato)
                 }
 
+                val nomeCircuito =
+                    proximaCorrida!!
+                        .optJSONObject("Circuit")
+                        ?.optString("circuitName", "") ?: ""
+
+                val linhasF1 = mutableListOf<String>()
+
+                if (textoQualificacao.isNotBlank()) {
+                    linhasF1.add(textoQualificacao)
+                }
+
+                linhasF1.add("🔴 Corrida  $dataCorrida")
+
                 runOnUiThread {
-                    evento.text =
-                        "🏁 $nome\n\n" +
-                        "🔴 Corrida\n" +
-                        "📅 $dataCorrida\n\n" +
-                        textoQualificacao +
-                        "\n\n" +
-                        "TOQUE PARA VER OS DETALHES"
+                    definirCartaoProximo(
+                        evento,
+                        "PRÓXIMA CORRIDA",
+                        nome,
+                        nomeCircuito,
+                        linhasF1,
+                        "TOQUE PARA VER OS DETALHES  ›"
+                    )
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -1089,16 +1215,23 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (proximo == null) {
-            evento.text = "Temporada 2026 encerrada"
+            evento.text = "Temporada encerrada"
             return
         }
 
-        evento.text =
-            "🏁 Etapa ${proximo.etapa}\n\n" +
-            "${proximo.circuito}\n" +
-            "🇺🇳 ${proximo.pais}\n\n" +
-            "📅 ${proximo.inicio} até ${proximo.fim}\n\n" +
-            "TOQUE PARA VER OS DETALHES"
+        val autodromo = Autodromos.nome(proximo.circuito)
+
+        definirCartaoProximo(
+            evento,
+            rotuloEtapa(proximo.etapa, proximo.inicio),
+            proximo.circuito,
+            listOf(
+                if (autodromo.equals(proximo.circuito, ignoreCase = true)) "" else autodromo,
+                "${bandeiraPais(proximo.pais)} ${proximo.pais}"
+            ).filter { it.isNotBlank() }.joinToString("\n"),
+            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
+            "TOQUE PARA VER OS DETALHES  ›"
+        )
     }
 
     private fun abrirEventoF2() {
@@ -1181,16 +1314,23 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (proximo == null) {
-            evento.text = "Temporada 2026 encerrada"
+            evento.text = "Temporada encerrada"
             return
         }
 
-        evento.text =
-            "🏁 Etapa ${proximo.etapa}\n\n" +
-            "${proximo.circuito}\n" +
-            "🇺🇳 ${proximo.pais}\n\n" +
-            "📅 ${proximo.inicio} até ${proximo.fim}\n\n" +
-            "TOQUE PARA VER OS DETALHES"
+        val autodromo = Autodromos.nome(proximo.circuito)
+
+        definirCartaoProximo(
+            evento,
+            rotuloEtapa(proximo.etapa, proximo.inicio),
+            proximo.circuito,
+            listOf(
+                if (autodromo.equals(proximo.circuito, ignoreCase = true)) "" else autodromo,
+                "${bandeiraPais(proximo.pais)} ${proximo.pais}"
+            ).filter { it.isNotBlank() }.joinToString("\n"),
+            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
+            "TOQUE PARA VER OS DETALHES  ›"
+        )
     }
 
     private fun abrirEventoF3() {
@@ -1292,19 +1432,14 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val datas =
-            if (proximo.inicio == proximo.fim) {
-                proximo.inicio
-            } else {
-                "${proximo.inicio} até ${proximo.fim}"
-            }
-
-        evento.text =
-            "⚡ Etapa ${proximo.etapa}\n\n" +
-            "${proximo.circuito} E-Prix\n" +
-            "${proximo.pais}\n\n" +
-            "📅 $datas\n\n" +
-            "TOQUE PARA VER OS DETALHES"
+        definirCartaoProximo(
+            evento,
+            rotuloEtapa(proximo.etapa, proximo.inicio),
+            "${proximo.circuito} E-Prix",
+            "${bandeiraPais(proximo.pais)} ${proximo.pais}",
+            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
+            "TOQUE PARA VER OS DETALHES  ›"
+        )
     }
 
     private fun abrirEventoFormulaE() {
@@ -1391,19 +1526,18 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val datas =
-            if (proximo.inicio == proximo.fim) {
-                proximo.inicio
-            } else {
-                "${proximo.inicio} até ${proximo.fim}"
-            }
+        val localTexto =
+            if (proximo.local.isNotBlank()) proximo.local else proximo.pais
 
-        evento.text =
-            "🏎 Etapa ${proximo.etapa}\n\n" +
-            "${proximo.nome}\n" +
-            "${proximo.circuito}\n\n" +
-            "📅 $datas\n\n" +
-            "TOQUE PARA VER OS DETALHES"
+        definirCartaoProximo(
+            evento,
+            rotuloEtapa(proximo.etapa, proximo.inicio),
+            proximo.nome,
+            proximo.circuito + "\n" +
+                "${bandeiraPais(proximo.pais)} $localTexto",
+            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
+            "TOQUE PARA VER OS DETALHES  ›"
+        )
     }
 
     private fun abrirEventoIndyCar() {
