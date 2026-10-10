@@ -485,12 +485,7 @@ class MainActivity : AppCompatActivity() {
         val etapasVisiveis =
             if (categoriaAtual.isEmpty()) {
                 etapas.filter { etapa ->
-                    val data =
-                        java.time.LocalDate.parse(
-                            etapa.dataInicio
-                        )
-
-                    data.isAfter(hoje) &&
+                    !fimDaEtapa(etapa).isBefore(hoje) &&
                         etapa != proximaEtapa
                 }
             } else {
