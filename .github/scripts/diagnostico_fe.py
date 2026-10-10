@@ -4,15 +4,7 @@ import urllib.error
 import urllib.request
 
 BASE = "https://www.fiaformulae.com"
-
-CANDIDATAS = [
-    BASE + "/en/calendar",
-    BASE + "/en/racing/calendar",
-    BASE + "/en/race-calendar",
-    BASE + "/en/calendar/season-13",
-]
-
-contador = 0
+CALENDARIO = BASE + "/en/calendar"
 
 
 def baixar(url):
@@ -30,64 +22,72 @@ def baixar(url):
         return None, ""
 
 
-def analisar(url):
-    global contador
-    print("=" * 60)
-    print(url)
-    status, html = baixar(url)
-    print("  status:", status, "| tamanho:", len(html))
-    if not html:
-        return []
-
-    contador += 1
-    with open(f"fe_pagina_{contador}.html", "w", encoding="utf-8") as f:
-        f.write(html)
-
-    print("  JSON-LD:", len(re.findall(r"application/ld\+json", html)))
-    print("  __NEXT_DATA__:", "__NEXT_DATA__" in html)
-    print("  Jeddah:", len(re.findall("Jeddah", html)))
-
-    blocos = re.findall(
+def blocos_jsonld(html):
+    return re.findall(
         r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
-    for b in blocos:
-        try:
-            dados = json.loads(b)
-        except ValueError:
-            continue
-        itens = dados if isinstance(dados, list) else [dados]
-        for d in itens:
-            if not isinstance(d, dict):
-                continue
-            print("  JSON-LD tipo:", d.get("@type"), "|", d.get("name"))
-            for s in (d.get("subEvent") or [])[:12]:
-                print("     ", s.get("name"), "|", s.get("startDate"), "->", s.get("endDate"))
 
-    datas = re.findall(r"20\d\d-\d\d-\d\dT\d\d:\d\d[^\"'<\s]*", html)
-    print("  Datas ISO com hora:", len(datas), datas[:6])
 
-    hrefs = re.findall(r'href="([^"#]+)"', html)
-    uteis = []
-    for h in hrefs:
-        if re.search(r"e-prix|/racing/|/calendar/|/race/|jeddah|season", h, re.I):
-            if h not in uteis:
-                uteis.append(h)
-    print("  Links possivelmente úteis:", len(uteis))
-    for h in uteis[:40]:
-        print("     ", h)
-    return uteis
+def achar_urls(obj, saida):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in ("url", "@id") and isinstance(v, str) and v.startswith("http"):
+                saida.append(v)
+            else:
+                achar_urls(v, saida)
+    elif isinstance(obj, list):
+        for v in obj:
+            achar_urls(v, saida)
 
 
 def main():
-    todos = []
-    for url in CANDIDATAS:
-        todos += analisar(url)
+    status, html = baixar(CALENDARIO)
+    print("status:", status, "| tamanho:", len(html))
+    with open("fe_calendario.html", "w", encoding="utf-8") as f:
+        f.write(html)
 
-    # Tenta abrir a página de um evento (Jeddah) se algum link apareceu.
-    jeddah = [h for h in todos if "jeddah" in h.lower()]
-    for h in list(dict.fromkeys(jeddah))[:2]:
-        url = h if h.startswith("http") else BASE + h
-        analisar(url)
+    print()
+    print("##### JSON-LD (primeiros 2500 chars de cada) #####")
+    urls = []
+    for i, b in enumerate(blocos_jsonld(html)):
+        print(f"--- bloco {i} ({len(b)} chars) ---")
+        print(b[:2500])
+        try:
+            achar_urls(json.loads(b), urls)
+        except ValueError:
+            pass
+
+    print()
+    print("##### TODOS OS HREFS (distintos, primeiros 60) #####")
+    hrefs = list(dict.fromkeys(re.findall(r'href="([^"#]+)"', html)))
+    print("total distintos:", len(hrefs))
+    for h in hrefs[:60]:
+        print("  ", h)
+
+    print()
+    print("##### CONTEXTO DE 'Jeddah' #####")
+    for m in list(re.finditer("Jeddah", html))[:3]:
+        ini = max(0, m.start() - 250)
+        print("---")
+        print(html[ini : m.end() + 250].replace("\n", " "))
+
+    print()
+    print("##### PAGINAS DE EVENTO #####")
+    candidatas = [u for u in dict.fromkeys(urls) if "jeddah" in u.lower()][:1]
+    if not candidatas:
+        candidatas = [BASE + h if h.startswith("/") else h for h in hrefs if "jeddah" in h.lower()][:1]
+    for u in candidatas:
+        print("Abrindo:", u)
+        st, h = baixar(u)
+        print("  status:", st, "| tamanho:", len(h))
+        if not h:
+            continue
+        with open("fe_evento.html", "w", encoding="utf-8") as f:
+            f.write(h)
+        for i, b in enumerate(blocos_jsonld(h)):
+            print(f"  --- JSON-LD {i} ({len(b)} chars) ---")
+            print(b[:2500])
+        print("  Datas ISO com hora:", re.findall(r"20\d\d-\d\d-\d\dT\d\d:\d\d[^\"'<\s]*", h)[:10])
 
 
 if __name__ == "__main__":
