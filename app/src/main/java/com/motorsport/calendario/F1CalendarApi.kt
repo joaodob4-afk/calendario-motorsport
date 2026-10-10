@@ -196,7 +196,8 @@ object F1CalendarApi {
                     circuito = cidade,
                     data = formatarPeriodo(inicio, fim),
                     dataInicio = inicio.toString(),
-                    circuitId = circuitId
+                    circuitId = circuitId,
+                    dataFim = fim.toString()
                 )
             )
         }
