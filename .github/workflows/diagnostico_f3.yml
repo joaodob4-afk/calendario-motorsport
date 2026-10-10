@@ -1,0 +1,28 @@
+name: Diagnostico F3
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Rodar diagnóstico F3
+        run: python .github/scripts/diagnostico_f3.py
+
+      - name: Guardar HTML baixado
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paginas-f3
+          path: f3_*.html
+          if-no-files-found: ignore
