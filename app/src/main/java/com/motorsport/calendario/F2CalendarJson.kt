@@ -108,7 +108,8 @@ object F2CalendarJson {
                         pais = pais,
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
-                        dataInicio = inicio.toString()
+                        dataInicio = inicio.toString(),
+                        dataFim = fim.toString()
                     )
                 )
             } catch (_: Exception) {
