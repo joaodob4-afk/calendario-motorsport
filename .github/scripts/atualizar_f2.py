@@ -107,12 +107,28 @@ def traduzir_sessoes(subs):
         elif "feature" in baixo:
             pt = "Corrida Feature"
         elif baixo == "race":
-            pos = corridas.index(idx)
-            pt = "Corrida Feature" if pos == len(corridas) - 1 else "Corrida Sprint"
+            # Etapa normal: 2 corridas (Sprint, Feature). Etapa "supersized"
+            # (ex.: Baku 2026): Sprint + 2 Features. A 1a é sempre a Sprint.
+            if len(corridas) == 1:
+                pt = "Corrida Feature"
+            else:
+                pt = "Corrida Sprint" if corridas.index(idx) == 0 else "Corrida Feature"
         else:
             raise ValueError(f"Sessão desconhecida: {nome!r}")
         resultado.append((pt, dt))
-    return resultado
+
+    # Nomes repetidos na mesma etapa ganham número (ex.: Feature 1 e 2).
+    total = {}
+    for pt, _ in resultado:
+        total[pt] = total.get(pt, 0) + 1
+    visto = {}
+    final = []
+    for pt, dt in resultado:
+        if total[pt] > 1:
+            visto[pt] = visto.get(pt, 0) + 1
+            pt = f"{pt} {visto[pt]}"
+        final.append((pt, dt))
+    return final
 
 
 def montar_etapa(slug, html):
@@ -122,7 +138,7 @@ def montar_etapa(slug, html):
     sessoes = traduzir_sessoes(sub_eventos(html))
 
     nomes = [n for n, _ in sessoes]
-    if len(sessoes) < 3 or "Corrida Feature" not in nomes:
+    if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
         raise ValueError(f"{slug}: sessões incompletas {nomes}")
 
     local = ZoneInfo(fuso)
