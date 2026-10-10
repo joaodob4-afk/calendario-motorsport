@@ -239,8 +239,10 @@ class F2Activity : AppCompatActivity() {
             true
         ).setPadding(0, dp(5), 0, dp(5))
 
+        val nomeAutodromo = Autodromos.nome(evento.circuito)
+
         adicionarTexto(
-            evento.circuito,
+            nomeAutodromo.ifBlank { evento.circuito },
             12f,
             cinza,
             false
@@ -270,7 +272,14 @@ class F2Activity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text = evento.pais
+            text =
+                if (nomeAutodromo.isNotBlank() &&
+                    !nomeAutodromo.equals(evento.circuito, ignoreCase = true)
+                ) {
+                    "${evento.circuito}, ${evento.pais}"
+                } else {
+                    evento.pais
+                }
             textSize = 13f
             setTextColor(cinza)
         }
