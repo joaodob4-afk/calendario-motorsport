@@ -1,19 +1,13 @@
-import json
 import re
 import urllib.error
 import urllib.request
 
-HTML = [
-    "https://www.indycar.com/Schedule",
-    "https://www.indycar.com/Schedule/2027",
+BASE = "https://www.indycar.com"
+LISTA = BASE + "/Schedule"
+EVENTOS = [
+    BASE + "/Schedule/2026/St-Petersburg",
+    BASE + "/Schedule/2026/Indianapolis-500",
 ]
-
-JSONS = [
-    "https://site.api.espn.com/apis/site/v2/sports/racing/irl/scoreboard?dates=2027",
-    "https://site.api.espn.com/apis/site/v2/sports/racing/irl/scoreboard?dates=20270307",
-]
-
-contador = 0
 
 
 def baixar(url):
@@ -31,82 +25,59 @@ def baixar(url):
         return None, ""
 
 
-def analisar_html(url):
-    global contador
-    print("=" * 60)
-    print(url)
-    status, html = baixar(url)
-    print("  status:", status, "| tamanho:", len(html))
-    if not html:
-        return
-
-    contador += 1
-    with open(f"indy_pagina_{contador}.html", "w", encoding="utf-8") as f:
-        f.write(html)
-
-    print("  JSON-LD:", len(re.findall(r"application/ld\+json", html)))
-    print("  __NEXT_DATA__:", "__NEXT_DATA__" in html)
-    print("  St. Petersburg:", len(re.findall("Petersburg", html)))
-
-    for i, b in enumerate(
-        re.findall(r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S)
-    ):
-        print(f"  --- JSON-LD {i} ({len(b)} chars) ---")
-        print(b[:1500])
-
-    datas = re.findall(r"20\d\d-\d\d-\d\dT\d\d:\d\d[^\"'<\s]*", html)
-    print("  Datas ISO com hora:", len(datas), datas[:8])
-
-    hrefs = list(dict.fromkeys(re.findall(r'href="([^"#]+)"', html)))
-    uteis = [h for h in hrefs if re.search(r"schedule|event|race|raceweekend", h, re.I)]
-    print("  Links úteis:", len(uteis))
-    for h in uteis[:30]:
-        print("     ", h)
-
-    for m in list(re.finditer("Petersburg", html))[:2]:
-        ini = max(0, m.start() - 200)
-        print("  --- contexto ---")
-        print("  ", html[ini : m.end() + 200].replace("\n", " "))
+def texto_limpo(html):
+    html = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|<svg[\s\S]*?</svg>", "", html)
+    t = re.sub(r"<[^>]+>", "\n", html)
+    linhas = [re.sub(r"\s+", " ", l).strip() for l in t.split("\n")]
+    return "\n".join(l for l in linhas if l)
 
 
-def analisar_json(url):
-    print("=" * 60)
-    print(url)
-    status, texto = baixar(url)
-    print("  status:", status, "| tamanho:", len(texto))
-    if not texto:
-        return
-    try:
-        dados = json.loads(texto)
-    except ValueError:
-        print("  Não é JSON. Início:", texto[:300])
-        return
-
-    print("  chaves:", list(dados.keys())[:15])
-    ligas = dados.get("leagues") or []
-    if ligas:
-        liga = ligas[0]
-        print("  liga:", liga.get("name"), "| temporada:", (liga.get("season") or {}).get("year"))
-        cal = liga.get("calendar") or []
-        print("  calendar:", len(cal))
-        for item in cal[:25]:
-            if isinstance(item, dict):
-                print("     ", item.get("label"), "|", item.get("startDate"), "->", item.get("endDate"))
-            else:
-                print("     ", item)
-    eventos = dados.get("events") or []
-    print("  events:", len(eventos))
-    for e in eventos[:5]:
-        print("     ", e.get("name"), "|", e.get("date"))
-        for comp in (e.get("competitions") or [])[:6]:
-            print("        ", (comp.get("type") or {}).get("text") or comp.get("name"), "|", comp.get("date"))
+def compacto(s):
+    return re.sub(r"\s+", " ", s)
 
 
 def main():
-    for u in HTML:
-        analisar_html(u)
-    for u in JSONS:
-        analisar_json(u)
+    status, html = baixar(LISTA)
+    print("LISTA status:", status, "| tamanho:", len(html))
+
+    print()
+    print("##### PRIMEIRO CARTÃO (HTML cru, compactado) #####")
+    cartoes = re.findall(
+        r'<div class="event-card-container">([\s\S]*?)(?=<div class="event-card-container">|$)',
+        html,
+    )
+    print("cartões encontrados:", len(cartoes))
+    if cartoes:
+        print(compacto(cartoes[0])[:2500])
+
+    print()
+    print("##### TEXTO DOS 3 PRIMEIROS CARTÕES #####")
+    for c in cartoes[:3]:
+        print("---")
+        print(texto_limpo(c)[:600])
+
+    for url in EVENTOS:
+        print()
+        print("=" * 60)
+        print(url)
+        st, h = baixar(url)
+        print("  status:", st, "| tamanho:", len(h))
+        if not h:
+            continue
+
+        t = texto_limpo(h)
+        i = t.find("Practice")
+        if i < 0:
+            i = t.find("Qualif")
+        print("  ##### TEXTO em volta de 'Practice' #####")
+        print(t[max(0, i - 300) : i + 2200])
+
+        if url.endswith("St-Petersburg"):
+            m = re.search(r"Practice", h)
+            if m:
+                print()
+                print("  ##### HTML cru em volta de 'Practice' #####")
+                print(compacto(h[max(0, m.start() - 600) : m.end() + 1200]))
 
 
 if __name__ == "__main__":
