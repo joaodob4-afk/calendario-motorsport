@@ -30,5 +30,6 @@ jobs:
             echo "Nada para salvar."
           else
             git commit -m "Atualizar calendário F2"
+            git pull --rebase
             git push
           fi
