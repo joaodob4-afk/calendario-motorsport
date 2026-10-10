@@ -83,15 +83,21 @@ def extrair_cartoes(html):
             r = re.search(r'class="' + classe + r'"[^>]*>(.*?)</', bloco, re.S)
             return htmllib.unescape(r.group(1)).strip() if r else ""
 
-        linhas = linhas_de_texto(bloco)
+        # No site, a data e a hora de cada cartão aparecem ANTES do link do
+        # próprio cartão (ou seja, no fim do trecho do cartão anterior).
+        inicio_trecho = achados[i - 1].start() if i > 0 else max(0, m.start() - 8000)
+        anterior = linhas_de_texto(html[inicio_trecho : m.start()])
+
         data = hora = None
-        for l in linhas:
+        for l in reversed(anterior):
             mm = re.fullmatch(r"([A-Z][a-z]{2}) (\d{1,2})", l)
             if mm and mm.group(1) in MESES and data is None:
                 data = (MESES[mm.group(1)], int(mm.group(2)))
             mh = re.fullmatch(r"(\d{1,2}):(\d{2}) ?([AP]M) ET", l)
             if mh and hora is None:
                 hora = (int(mh.group(1)), int(mh.group(2)), mh.group(3))
+            if data and hora:
+                break
 
         cartoes[slug] = {
             "slug": slug,
@@ -123,6 +129,13 @@ def traduzir(nome):
         return "Classificação" + n[len("Qualifying"):]
     if n == "Race":
         return "Corrida"
+    m = re.fullmatch(r"Race (\d+)", n)
+    if m:
+        return f"Corrida {m.group(1)}"
+    if n == "Practice":
+        return "Treino Livre"
+    if n == "Final Practice":
+        return "Treino Final"
     if n == "Warmup":
         return "Warm-up"
     if n == "Carb Day Final Practice":
@@ -157,8 +170,9 @@ def extrair_sessoes(html, ano):
         mh = re.fullmatch(r"(\d{1,2}):(\d{2}) ?([AP]M) ET", l)
         if mh and dia and i + 1 < fim:
             desc = linhas[i + 1]
-            if desc.startswith(PREFIXO):
-                nome = traduzir(desc[len(PREFIXO):])
+            mp = re.match(r"^(?:NTT )?INDYCAR SERIES\s*[-–]\s*(.+)$", desc)
+            if mp:
+                nome = traduzir(mp.group(1))
                 if nome:
                     dt = converter_hora(ano, dia[0], dia[1], int(mh.group(1)), int(mh.group(2)), mh.group(3))
                     sessoes.append((nome, dt, dia))
