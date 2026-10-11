@@ -761,31 +761,13 @@ class MainActivity : AppCompatActivity() {
                 R.id.categoryTitle
             )
 
-        val logo =
-            findViewById<ImageView>(
-                R.id.categoryLogo
-            )
-
-        when (categoria) {
-            "F1" -> logo.setImageResource(R.drawable.logo_f1)
-            "F2" -> logo.setImageResource(R.drawable.logo_f2)
-            "F3" -> logo.setImageResource(R.drawable.logo_f3)
-            "IndyCar" -> logo.setImageResource(R.drawable.logo_indycar)
-            "Formula E" -> logo.setImageResource(R.drawable.logo_formulae)
-        }
-
-        val evento =
-            findViewById<TextView>(
-                R.id.nextEvent
-            )
-
         val calendario =
             findViewById<TextView>(
                 R.id.fullCalendarButton
             )
 
         val voltar =
-            findViewById<TextView>(
+            findViewById<android.view.View>(
                 R.id.backButton
             )
 
@@ -806,36 +788,6 @@ class MainActivity : AppCompatActivity() {
                 R.anim.slide_in_left,
                 R.anim.slide_out_right
             )
-        }
-
-        if (categoria == "F1") {
-            evento.setOnClickListener {
-                abrirEventoF1()
-            }
-        }
-
-        if (categoria == "F2") {
-            evento.setOnClickListener {
-                abrirEventoF2()
-            }
-        }
-
-        if (categoria == "F3") {
-            evento.setOnClickListener {
-                abrirEventoF3()
-            }
-        }
-
-        if (categoria == "Formula E") {
-            evento.setOnClickListener {
-                abrirEventoFormulaE()
-            }
-        }
-
-        if (categoria == "IndyCar") {
-            evento.setOnClickListener {
-                abrirEventoIndyCar()
-            }
         }
 
         calendario.setOnClickListener {
@@ -911,26 +863,8 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> {
-                    evento.text = "Programação completa"
+                    // Categoria sem calendário.
                 }
-            }
-        }
-
-        when (categoria) {
-            "F1" -> carregarF1(evento)
-            "F2" -> carregarF2(evento)
-            "F3" -> carregarF3(evento)
-            "Formula E" -> carregarFormulaE(evento)
-            "IndyCar" -> carregarIndyCar(evento)
-
-            else -> {
-                evento.text =
-                    "Calendário automático\n\n" +
-                    "Esta categoria será adicionada em breve.\n\n" +
-                    "• Treinos\n" +
-                    "• Classificação\n" +
-                    "• Corrida\n" +
-                    "• Horários de Brasília"
             }
         }
     }
