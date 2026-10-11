@@ -10,6 +10,23 @@ import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+data class IndyCarSession(
+    val nome: String,
+    val data: String,
+    val horario: String
+)
+
+data class IndyCarEvent(
+    val etapa: Int,
+    val circuito: String,
+    val pais: String,
+    val inicio: String,
+    val fim: String,
+    val nome: String = "",
+    val local: String = "",
+    val sessoes: List<IndyCarSession> = emptyList()
+)
+
 object IndyCarCalendarJson {
 
     private const val URL_JSON =
@@ -26,15 +43,7 @@ object IndyCarCalendarJson {
             emptyList()
         }
 
-        if (eventosJson.size >= 10) {
-            return eventosJson.sortedBy { it.etapa }
-        }
-
-        val combinados = IndyCarCalendar.eventos
-            .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
-            eventosJson
-
-        return combinados.sortedBy { it.etapa }
+        return eventosJson.sortedBy { it.etapa }
     }
 
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
@@ -136,18 +145,20 @@ object IndyCarCalendarJson {
 
             for (i in 0 until etapas.length()) {
                 val etapa = etapas.getJSONObject(i)
-                val sessoesJson = etapa.getJSONArray("sessoes")
+                val sessoesJson = etapa.optJSONArray("sessoes")
                 val sessoes = mutableListOf<IndyCarSession>()
 
-                for (j in 0 until sessoesJson.length()) {
-                    val sessao = sessoesJson.getJSONObject(j)
-                    sessoes.add(
-                        IndyCarSession(
-                            nome = sessao.getString("nome"),
-                            data = sessao.getString("data"),
-                            horario = sessao.optString("horario", "A confirmar")
+                if (sessoesJson != null) {
+                    for (j in 0 until sessoesJson.length()) {
+                        val sessao = sessoesJson.getJSONObject(j)
+                        sessoes.add(
+                            IndyCarSession(
+                                nome = sessao.getString("nome"),
+                                data = sessao.getString("data"),
+                                horario = sessao.optString("horario", "A confirmar")
+                            )
                         )
-                    )
+                    }
                 }
 
                 eventos.add(
