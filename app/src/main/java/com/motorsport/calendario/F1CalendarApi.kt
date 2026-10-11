@@ -1,3 +1,4 @@
+
 package com.motorsport.calendario
 
 import android.content.Context
@@ -5,13 +6,15 @@ import android.os.Handler
 import android.os.Looper
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDate
 
 /**
  * Monta a lista de etapas da F1 a partir da API Jolpica,
- * guarda em cache e nunca lança exceção.
+ * guarda em cache com gravação segura e nunca lança exceção
+ * para a interface do aplicativo.
  */
 object F1CalendarApi {
 
@@ -19,13 +22,14 @@ object F1CalendarApi {
         "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
 
     private const val ARQUIVO_CACHE = "f1_races_cache.json"
+    private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
+    private const val MINIMO_CORRIDAS_VALIDAS = 5
 
     private val MESES = arrayOf(
         "JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
         "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
     )
 
-    // circuitId -> (país, cidade) nos nomes usados pelo app.
     private val CONHECIDOS = mapOf(
         "albert_park" to Pair("Austrália", "Melbourne"),
         "shanghai" to Pair("China", "Xangai"),
@@ -53,7 +57,6 @@ object F1CalendarApi {
         "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
     )
 
-    // País em inglês (como vem da API) -> nome usado pelo app.
     private val PAISES = mapOf(
         "Australia" to "Austrália",
         "China" to "China",
@@ -89,48 +92,140 @@ object F1CalendarApi {
 
     fun carregarCache(context: Context): List<MainActivity.Etapa>? {
         return try {
-            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-            if (!arquivo.exists()) return null
+            val arquivo = File(
+                context.applicationContext.filesDir,
+                ARQUIVO_CACHE
+            )
 
-            val lista = interpretar(arquivo.readText())
-            if (lista.isEmpty()) null else lista
+            if (!arquivo.exists() || !arquivo.isFile) {
+                return null
+            }
+
+            val lista = interpretar(arquivo.readText(Charsets.UTF_8))
+
+            if (lista.size < MINIMO_CORRIDAS_VALIDAS) {
+                null
+            } else {
+                lista
+            }
         } catch (_: Exception) {
             null
         }
     }
 
-    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
+    fun atualizar(
+        context: Context,
+        aoTerminar: (() -> Unit)? = null
+    ) {
         val app = context.applicationContext
 
         Thread {
             var gravou = false
+            var conexao: HttpURLConnection? = null
 
             try {
-                val conexao = URL(URL_API).openConnection() as HttpURLConnection
+                conexao = URL(URL_API)
+                    .openConnection() as HttpURLConnection
+
                 conexao.connectTimeout = 10000
                 conexao.readTimeout = 10000
-                conexao.setRequestProperty("Accept", "application/json")
+                conexao.requestMethod = "GET"
+                conexao.setRequestProperty(
+                    "Accept",
+                    "application/json"
+                )
 
-                if (conexao.responseCode == 200) {
+                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
                     val texto = conexao.inputStream
-                        .bufferedReader()
+                        .bufferedReader(Charsets.UTF_8)
                         .use { it.readText() }
 
-                    if (interpretar(texto).isNotEmpty()) {
-                        File(app.filesDir, ARQUIVO_CACHE).writeText(texto)
-                        gravou = true
+                    val etapas = interpretar(texto)
+
+                    if (etapas.size >= MINIMO_CORRIDAS_VALIDAS) {
+                        gravou = gravarCacheSeguro(
+                            app.filesDir,
+                            texto
+                        )
                     }
                 }
-
-                conexao.disconnect()
             } catch (_: Exception) {
-                // Sem internet ou resposta inválida: mantém o que já existe.
+                // Sem internet ou resposta inválida:
+                // preserva o cache anterior.
+            } finally {
+                try {
+                    conexao?.disconnect()
+                } catch (_: Exception) {
+                    // Evita que uma falha ao fechar afete o app.
+                }
             }
 
             if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post { aoTerminar() }
+                Handler(Looper.getMainLooper()).post {
+                    try {
+                        aoTerminar()
+                    } catch (_: Exception) {
+                        // A atualização do cache já foi concluída.
+                    }
+                }
             }
         }.start()
+    }
+
+    /**
+     * Escreve primeiro em um arquivo temporário no mesmo diretório.
+     * Só substitui o cache quando a gravação temporária está completa.
+     * Se a substituição falhar, preserva o cache anterior.
+     */
+    private fun gravarCacheSeguro(
+        diretorio: File,
+        conteudo: String
+    ): Boolean {
+        val destino = File(diretorio, ARQUIVO_CACHE)
+        val temporario = File(diretorio, ARQUIVO_TEMPORARIO)
+
+        return try {
+            if (!diretorio.exists() && !diretorio.mkdirs()) {
+                return false
+            }
+
+            if (!diretorio.isDirectory) {
+                return false
+            }
+
+            FileOutputStream(temporario, false).use { saida ->
+                saida.write(conteudo.toByteArray(Charsets.UTF_8))
+                saida.flush()
+                saida.fd.sync()
+            }
+
+            // Confere novamente o arquivo escrito antes da troca.
+            val textoGravado = temporario.readText(Charsets.UTF_8)
+            val etapasGravadas = interpretar(textoGravado)
+
+            if (etapasGravadas.size < MINIMO_CORRIDAS_VALIDAS) {
+                temporario.delete()
+                return false
+            }
+
+            // O temporário está no mesmo diretório do destino.
+            // Não apagamos o cache antigo se a troca falhar.
+            val substituiu = temporario.renameTo(destino)
+
+            if (!substituiu) {
+                temporario.delete()
+            }
+
+            substituiu
+        } catch (_: Exception) {
+            try {
+                temporario.delete()
+            } catch (_: Exception) {
+                // A limpeza não deve afetar o aplicativo.
+            }
+
+            false
+        }
     }
 
     private fun interpretar(json: String): List<MainActivity.Etapa> {
@@ -176,7 +271,8 @@ object F1CalendarApi {
                     }
                 }
 
-                if (menor != null &&
+                if (
+                    menor != null &&
                     !menor.isAfter(fim) &&
                     !menor.isBefore(fim.minusDays(4))
                 ) {
@@ -184,7 +280,9 @@ object F1CalendarApi {
                 }
 
                 val conhecido = CONHECIDOS[circuitId]
-                val pais = conhecido?.first ?: PAISES[paisIngles] ?: paisIngles
+                val pais = conhecido?.first
+                    ?: PAISES[paisIngles]
+                    ?: paisIngles
                 val cidade = conhecido?.second ?: localidade
 
                 lista.add(
@@ -206,14 +304,23 @@ object F1CalendarApi {
         }
     }
 
-    fun formatarPeriodo(inicio: LocalDate, fim: LocalDate): String {
-        fun dia(d: LocalDate) = d.dayOfMonth.toString().padStart(2, '0')
-        fun mes(d: LocalDate) = MESES[d.monthValue - 1]
+    fun formatarPeriodo(
+        inicio: LocalDate,
+        fim: LocalDate
+    ): String {
+        fun dia(d: LocalDate) =
+            d.dayOfMonth.toString().padStart(2, '0')
+
+        fun mes(d: LocalDate) =
+            MESES[d.monthValue - 1]
 
         return when {
-            inicio == fim -> "${dia(fim)} ${mes(fim)}"
+            inicio == fim ->
+                "${dia(fim)} ${mes(fim)}"
+
             inicio.monthValue == fim.monthValue ->
                 "${dia(inicio)}–${dia(fim)} ${mes(fim)}"
+
             else ->
                 "${dia(inicio)} ${mes(inicio)}–${dia(fim)} ${mes(fim)}"
         }
