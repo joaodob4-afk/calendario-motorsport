@@ -43,8 +43,13 @@ class IndyCarActivity : AppCompatActivity() {
 
         montarTela()
 
-        // Baixa o calendário mais recente para a próxima abertura.
-        IndyCarCalendarJson.atualizar(this)
+        // Baixa o calendário e atualiza a tela quando salvar com sucesso.
+IndyCarCalendarJson.atualizar(this) {
+    if (!isFinishing && !isDestroyed) {
+        carregarEvento()
+    }
+}
+
 
         carregarEvento()
     }
