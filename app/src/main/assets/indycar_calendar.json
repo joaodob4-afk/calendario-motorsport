@@ -567,6 +567,11 @@
           "horario": "12:00"
         },
         {
+          "nome": "Corrida 2",
+          "data": "30/08/2026",
+          "horario": "14:00"
+        },
+        {
           "nome": "Corrida 1",
           "data": "30/08/2026",
           "horario": "19:00"
