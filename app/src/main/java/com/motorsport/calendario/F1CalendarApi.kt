@@ -134,6 +134,11 @@ object F1CalendarApi {
     }
 
     private fun interpretar(json: String): List<MainActivity.Etapa> {
+    private fun atualizarUiSeAindaValida() {
+    if (isFinishing || isDestroyed) return
+    atualizarProximaEtapa()
+    mostrarEtapas(todasEtapas)
+    }   
         return try {
             val corridas = JSONObject(json)
                 .getJSONObject("MRData")
