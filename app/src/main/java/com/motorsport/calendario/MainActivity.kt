@@ -1567,4 +1567,4 @@ class MainActivity : AppCompatActivity() {
             .getJSONObject("RaceTable")
             .getJSONArray("Races")
     }
-}
+} 
