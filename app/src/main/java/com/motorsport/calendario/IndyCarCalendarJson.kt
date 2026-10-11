@@ -18,34 +18,42 @@ data class IndyCarSession(
 
 data class IndyCarEvent(
     val etapa: Int,
+    val nome: String,
     val circuito: String,
+    val local: String,
     val pais: String,
     val inicio: String,
     val fim: String,
-    val nome: String = "",
-    val local: String = "",
-    val sessoes: List<IndyCarSession> = emptyList()
+    val sessoes: List<IndyCarSession>
 )
 
 object IndyCarCalendarJson {
 
     private const val URL_JSON =
-        "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
+        "https://raw.githubusercontent.com/joaodob4-afk/" +
+        "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
 
     private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
+    /**
+     * Prioridade: cache baixado do GitHub > JSON embutido no APK.
+     * Sem nenhum dos dois, devolve lista vazia. Nunca lança exceção.
+     */
     fun carregar(context: Context): List<IndyCarEvent> {
-        val json = lerCache(context) ?: lerAsset(context)
+        val json = lerCache(context) ?: lerAsset(context) ?: return emptyList()
 
-        val eventosJson = try {
-            if (json != null) interpretar(json) else emptyList()
+        return try {
+            interpretar(json).sortedBy { it.etapa }
         } catch (_: Exception) {
             emptyList()
         }
-
-        return eventosJson.sortedBy { it.etapa }
     }
 
+    /**
+     * Baixa o JSON mais recente em segundo plano e guarda em cache.
+     * O novo calendário passa a valer na próxima leitura (carregar).
+     * Se estiver sem internet ou o arquivo vier inválido, nada muda.
+     */
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
         val app = context.applicationContext
 
@@ -63,6 +71,7 @@ object IndyCarCalendarJson {
                         .bufferedReader()
                         .use { it.readText() }
 
+                    // Só aceita se for um calendário válido.
                     if (interpretar(texto).isNotEmpty()) {
                         val destino = File(app.filesDir, ARQUIVO_CACHE)
                         val temporario = File(app.filesDir, "$ARQUIVO_CACHE.tmp")
@@ -83,6 +92,7 @@ object IndyCarCalendarJson {
         }.start()
     }
 
+    /** Converte os eventos da IndyCar para o formato da lista da tela inicial. */
     fun comoEtapas(eventos: List<IndyCarEvent>): List<MainActivity.Etapa> {
         val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val lista = mutableListOf<MainActivity.Etapa>()
@@ -92,10 +102,15 @@ object IndyCarCalendarJson {
                 val inicio = LocalDate.parse(evento.inicio, formato)
                 val fim = LocalDate.parse(evento.fim, formato)
 
+                // A lista da tela inicial usa "Abu Dhabi" para a bandeira.
+                val pais =
+                    if (evento.pais == "Emirados Árabes Unidos") "Abu Dhabi"
+                    else evento.pais
+
                 lista.add(
                     MainActivity.Etapa(
                         categoria = "IndyCar",
-                        pais = evento.pais,
+                        pais = pais,
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
@@ -115,10 +130,11 @@ object IndyCarCalendarJson {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
             if (!arquivo.exists()) return null
 
+            // Se o app foi atualizado depois do cache, o JSON do APK
+            // pode ser mais novo: ignora o cache antigo.
             val instalado = context.packageManager
                 .getPackageInfo(context.packageName, 0)
                 .lastUpdateTime
-
             if (arquivo.lastModified() < instalado) return null
 
             val texto = arquivo.readText()
@@ -130,7 +146,8 @@ object IndyCarCalendarJson {
 
     private fun lerAsset(context: Context): String? {
         return try {
-            context.assets.open("indycar_calendar.json")
+            context.assets
+                .open("indycar_calendar.json")
                 .bufferedReader()
                 .use { it.readText() }
         } catch (_: Exception) {
@@ -139,45 +156,40 @@ object IndyCarCalendarJson {
     }
 
     private fun interpretar(json: String): List<IndyCarEvent> {
-        return try {
-            val etapas = JSONObject(json).getJSONArray("etapas")
-            val eventos = mutableListOf<IndyCarEvent>()
+        val etapas = JSONObject(json).getJSONArray("etapas")
+        val eventos = mutableListOf<IndyCarEvent>()
 
-            for (i in 0 until etapas.length()) {
-                val etapa = etapas.getJSONObject(i)
-                val sessoesJson = etapa.optJSONArray("sessoes")
-                val sessoes = mutableListOf<IndyCarSession>()
+        for (i in 0 until etapas.length()) {
+            val etapa = etapas.getJSONObject(i)
+            val sessoesJson = etapa.getJSONArray("sessoes")
+            val sessoes = mutableListOf<IndyCarSession>()
 
-                if (sessoesJson != null) {
-                    for (j in 0 until sessoesJson.length()) {
-                        val sessao = sessoesJson.getJSONObject(j)
-                        sessoes.add(
-                            IndyCarSession(
-                                nome = sessao.getString("nome"),
-                                data = sessao.getString("data"),
-                                horario = sessao.optString("horario", "A confirmar")
-                            )
-                        )
-                    }
-                }
+            for (j in 0 until sessoesJson.length()) {
+                val sessao = sessoesJson.getJSONObject(j)
 
-                eventos.add(
-                    IndyCarEvent(
-                        etapa = etapa.getInt("etapa"),
-                        circuito = etapa.getString("circuito"),
-                        pais = etapa.getString("pais"),
-                        inicio = etapa.getString("inicio"),
-                        fim = etapa.getString("fim"),
-                        nome = etapa.optString("nome", ""),
-                        local = etapa.optString("local", ""),
-                        sessoes = sessoes
+                sessoes.add(
+                    IndyCarSession(
+                        nome = sessao.getString("nome"),
+                        data = sessao.getString("data"),
+                        horario = sessao.optString("horario", "A confirmar")
                     )
                 )
             }
 
-            eventos
-        } catch (_: Exception) {
-            emptyList()
+            eventos.add(
+                IndyCarEvent(
+                    etapa = etapa.getInt("etapa"),
+                    nome = etapa.optString("nome", etapa.getString("circuito")),
+                    circuito = etapa.getString("circuito"),
+                    local = etapa.optString("local", ""),
+                    pais = etapa.getString("pais"),
+                    inicio = etapa.getString("inicio"),
+                    fim = etapa.getString("fim"),
+                    sessoes = sessoes
+                )
+            )
         }
+
+        return eventos
     }
 }
