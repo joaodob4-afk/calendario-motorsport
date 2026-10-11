@@ -3,12 +3,15 @@ package com.motorsport.calendario
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.util.AtomicFile
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 
 object F3CalendarJson {
 
@@ -17,71 +20,161 @@ object F3CalendarJson {
 
     private const val ARQUIVO_CACHE = "f3_calendar_cache.json"
 
+    // O calendário atual possui nove etapas.
+    // Cinco é o mínimo de segurança para rejeitar respostas muito incompletas.
+    private const val MINIMO_ETAPAS_VALIDAS = 5
+
+    private val formatoData = DateTimeFormatter
+        .ofPattern("dd/MM/uuuu")
+        .withResolverStyle(ResolverStyle.STRICT)
+
     fun carregar(context: Context): List<F3Event> {
         val json = lerCache(context) ?: lerAsset(context)
 
-        val eventosJson = try {
-            if (json != null) interpretar(json) else emptyList()
-        } catch (_: Exception) {
+        val eventosJson = if (json != null) {
+            interpretar(json)
+        } else {
             emptyList()
         }
 
+        // Mantém a regra original: só usa o JSON sozinho quando
+        // contém pelo menos dez etapas; caso contrário, combina
+        // com o calendário local de reserva.
         if (eventosJson.size >= 10) {
             return eventosJson.sortedBy { it.etapa }
         }
 
         val combinados = F3Calendar.eventos
-            .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
-            eventosJson
+            .filterNot { local ->
+                eventosJson.any { remoto ->
+                    remoto.etapa == local.etapa
+                }
+            } + eventosJson
 
         return combinados.sortedBy { it.etapa }
     }
 
-    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
+    fun atualizar(
+        context: Context,
+        aoTerminar: (() -> Unit)? = null
+    ) {
         val app = context.applicationContext
 
         Thread {
             var gravou = false
+            var conexao: HttpURLConnection? = null
 
             try {
-                val conexao = URL(URL_JSON).openConnection() as HttpURLConnection
+                conexao = URL(URL_JSON)
+                    .openConnection() as HttpURLConnection
+
                 conexao.connectTimeout = 10000
                 conexao.readTimeout = 10000
-                conexao.setRequestProperty("Cache-Control", "no-cache")
+                conexao.requestMethod = "GET"
+                conexao.setRequestProperty(
+                    "Cache-Control",
+                    "no-cache"
+                )
+                conexao.setRequestProperty(
+                    "Accept",
+                    "application/json"
+                )
 
-                if (conexao.responseCode == 200) {
+                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
                     val texto = conexao.inputStream
-                        .bufferedReader()
+                        .bufferedReader(Charsets.UTF_8)
                         .use { it.readText() }
 
-                    if (interpretar(texto).isNotEmpty()) {
-                        val destino = File(app.filesDir, ARQUIVO_CACHE)
-                        val temporario = File(app.filesDir, "$ARQUIVO_CACHE.tmp")
-                        temporario.writeText(texto)
-                        gravou = temporario.renameTo(destino) ||
-                            run { destino.writeText(texto); true }
+                    val eventos = interpretar(texto)
+
+                    if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
+                        gravou = gravarCacheSeguro(app, texto)
                     }
                 }
-
-                conexao.disconnect()
             } catch (_: Exception) {
-                // Sem internet ou erro: continua com o que já existe.
+                // Falha de rede ou dados inválidos:
+                // mantém o cache anterior e o calendário local.
+            } finally {
+                try {
+                    conexao?.disconnect()
+                } catch (_: Exception) {
+                    // Não deixa uma falha ao fechar afetar o aplicativo.
+                }
             }
 
             if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post { aoTerminar() }
+                Handler(Looper.getMainLooper()).post {
+                    try {
+                        aoTerminar()
+                    } catch (_: Exception) {
+                        // A gravação do cache já foi concluída.
+                    }
+                }
             }
         }.start()
     }
 
-    fun comoEtapas(eventos: List<F3Event>): List<MainActivity.Etapa> {
-        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    /**
+     * AtomicFile protege o cache anterior caso a gravação falhe.
+     * O conteúdo é validado antes e depois da escrita.
+     */
+    private fun gravarCacheSeguro(
+        context: Context,
+        conteudo: String
+    ): Boolean {
+        val eventos = interpretar(conteudo)
+
+        if (eventos.size < MINIMO_ETAPAS_VALIDAS) {
+            return false
+        }
+
+        val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+        val cacheAtomico = AtomicFile(arquivo)
+
+        var saida: FileOutputStream? = null
+
+        return try {
+            saida = cacheAtomico.startWrite()
+
+            saida.write(conteudo.toByteArray(Charsets.UTF_8))
+            saida.flush()
+            saida.fd.sync()
+
+            // Confirma a gravação antes de finalizar.
+            val textoGravado = saida.fd
+            cacheAtomico.finishWrite(saida)
+            saida = null
+
+            // Confere o arquivo definitivo depois da troca.
+            val verificado = cacheAtomico.openRead()
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
+
+            interpretar(verificado).size >= MINIMO_ETAPAS_VALIDAS
+        } catch (_: Exception) {
+            try {
+                if (saida != null) {
+                    cacheAtomico.failWrite(saida)
+                }
+            } catch (_: Exception) {
+                // A falha na recuperação não deve fechar o aplicativo.
+            }
+
+            false
+        }
+    }
+
+    fun comoEtapas(
+        eventos: List<F3Event>
+    ): List<MainActivity.Etapa> {
         val lista = mutableListOf<MainActivity.Etapa>()
 
         for (evento in eventos) {
             try {
-                val inicio = LocalDate.parse(evento.inicio, formato)
-                val fim = LocalDate.parse(evento.fim, formato)
+                val inicio = LocalDate.parse(evento.inicio, formatoData)
+                val fim = LocalDate.parse(evento.fim, formatoData)
+
+                if (fim.isBefore(inicio)) continue
 
                 lista.add(
                     MainActivity.Etapa(
@@ -94,7 +187,7 @@ object F3CalendarJson {
                     )
                 )
             } catch (_: Exception) {
-                // Ignora etapa com data inválida.
+                // Ignora somente etapas com datas inválidas.
             }
         }
 
@@ -104,16 +197,29 @@ object F3CalendarJson {
     private fun lerCache(context: Context): String? {
         return try {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+
             if (!arquivo.exists()) return null
 
             val instalado = context.packageManager
                 .getPackageInfo(context.packageName, 0)
                 .lastUpdateTime
 
-            if (arquivo.lastModified() < instalado) return null
+            if (arquivo.lastModified() < instalado) {
+                return null
+            }
 
-            val texto = arquivo.readText()
-            if (interpretar(texto).isEmpty()) null else texto
+            val texto = AtomicFile(arquivo)
+                .openRead()
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
+
+            val eventos = interpretar(texto)
+
+            if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
+                texto
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }
@@ -121,9 +227,12 @@ object F3CalendarJson {
 
     private fun lerAsset(context: Context): String? {
         return try {
-            context.assets.open("f3_calendar.json")
-                .bufferedReader()
+            val texto = context.assets
+                .open("f3_calendar.json")
+                .bufferedReader(Charsets.UTF_8)
                 .use { it.readText() }
+
+            if (interpretar(texto).isNotEmpty()) texto else null
         } catch (_: Exception) {
             null
         }
@@ -131,38 +240,93 @@ object F3CalendarJson {
 
     private fun interpretar(json: String): List<F3Event> {
         return try {
-            val etapas = JSONObject(json).getJSONArray("etapas")
+            val raiz = JSONObject(json)
+
+            // Evita aceitar acidentalmente um JSON de outra categoria.
+            if (raiz.optString("categoria") != "F3") {
+                return emptyList()
+            }
+
+            val etapas = raiz.getJSONArray("etapas")
+
+            if (etapas.length() < MINIMO_ETAPAS_VALIDAS) {
+                return emptyList()
+            }
+
             val eventos = mutableListOf<F3Event>()
+            val numerosEtapas = mutableSetOf<Int>()
 
             for (i in 0 until etapas.length()) {
                 val etapa = etapas.getJSONObject(i)
+
+                val numero = etapa.getInt("etapa")
+                val circuito = etapa.getString("circuito").trim()
+                val pais = etapa.getString("pais").trim()
+                val inicioTexto = etapa.getString("inicio")
+                val fimTexto = etapa.getString("fim")
+
+                if (numero <= 0 || !numerosEtapas.add(numero)) {
+                    return emptyList()
+                }
+
+                if (circuito.isBlank() || pais.isBlank()) {
+                    return emptyList()
+                }
+
+                val inicio = LocalDate.parse(inicioTexto, formatoData)
+                val fim = LocalDate.parse(fimTexto, formatoData)
+
+                if (fim.isBefore(inicio)) {
+                    return emptyList()
+                }
+
                 val sessoesJson = etapa.getJSONArray("sessoes")
+
+                if (sessoesJson.length() == 0) {
+                    return emptyList()
+                }
+
                 val sessoes = mutableListOf<F3Session>()
 
                 for (j in 0 until sessoesJson.length()) {
                     val sessao = sessoesJson.getJSONObject(j)
+
+                    val nome = sessao.getString("nome").trim()
+                    val data = sessao.getString("data")
+                    val horario = sessao.optString(
+                        "horario",
+                        "A confirmar"
+                    ).ifBlank { "A confirmar" }
+
+                    if (nome.isBlank()) {
+                        return emptyList()
+                    }
+
+                    // Confere o formato da data sem alterar o valor original.
+                    LocalDate.parse(data, formatoData)
+
                     sessoes.add(
                         F3Session(
-                            nome = sessao.getString("nome"),
-                            data = sessao.getString("data"),
-                            horario = sessao.optString("horario", "A confirmar")
+                            nome = nome,
+                            data = data,
+                            horario = horario
                         )
                     )
                 }
 
                 eventos.add(
                     F3Event(
-                        etapa = etapa.getInt("etapa"),
-                        circuito = etapa.getString("circuito"),
-                        pais = etapa.getString("pais"),
-                        inicio = etapa.getString("inicio"),
-                        fim = etapa.getString("fim"),
+                        etapa = numero,
+                        circuito = circuito,
+                        pais = pais,
+                        inicio = inicioTexto,
+                        fim = fimTexto,
                         sessoes = sessoes
                     )
                 )
             }
 
-            eventos
+            eventos.sortedBy { it.etapa }
         } catch (_: Exception) {
             emptyList()
         }
