@@ -13,15 +13,10 @@ import java.time.format.DateTimeFormatter
 object F2CalendarJson {
 
     private const val URL_JSON =
-        "https://raw.githubusercontent.com/joaodob4-afk/" +
-        "calendario-motorsport/main/app/src/main/assets/f2_calendar.json"
+        "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/f2_calendar.json"
 
     private const val ARQUIVO_CACHE = "f2_calendar_cache.json"
 
-    /**
-     * Prioridade: cache baixado do GitHub > JSON embutido no APK >
-     * calendário fixo no código. Nunca lança exceção.
-     */
     fun carregar(context: Context): List<F2Event> {
         val json = lerCache(context) ?: lerAsset(context)
 
@@ -31,8 +26,6 @@ object F2CalendarJson {
             emptyList()
         }
 
-        // JSON completo: usa só ele (assim etapas removidas do calendário
-        // não sobram do calendário fixo). JSON parcial: completa com o fixo.
         if (eventosJson.size >= 10) {
             return eventosJson.sortedBy { it.etapa }
         }
@@ -44,11 +37,6 @@ object F2CalendarJson {
         return combinados.sortedBy { it.etapa }
     }
 
-    /**
-     * Baixa o JSON mais recente em segundo plano e guarda em cache.
-     * O novo calendário passa a valer na próxima leitura (carregar).
-     * Se estiver sem internet ou o arquivo vier inválido, nada muda.
-     */
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
         val app = context.applicationContext
 
@@ -66,7 +54,6 @@ object F2CalendarJson {
                         .bufferedReader()
                         .use { it.readText() }
 
-                    // Só aceita se for um calendário válido.
                     if (interpretar(texto).isNotEmpty()) {
                         val destino = File(app.filesDir, ARQUIVO_CACHE)
                         val temporario = File(app.filesDir, "$ARQUIVO_CACHE.tmp")
@@ -87,7 +74,6 @@ object F2CalendarJson {
         }.start()
     }
 
-    /** Converte os eventos da F2 para o formato da lista da tela inicial. */
     fun comoEtapas(eventos: List<F2Event>): List<MainActivity.Etapa> {
         val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val lista = mutableListOf<MainActivity.Etapa>()
@@ -97,10 +83,7 @@ object F2CalendarJson {
                 val inicio = LocalDate.parse(evento.inicio, formato)
                 val fim = LocalDate.parse(evento.fim, formato)
 
-                // A lista da tela inicial usa "Abu Dhabi" para a bandeira.
-                val pais =
-                    if (evento.pais == "Emirados Árabes Unidos") "Abu Dhabi"
-                    else evento.pais
+                val pais = if (evento.pais == "Emirados Árabes Unidos") "Abu Dhabi" else evento.pais
 
                 lista.add(
                     MainActivity.Etapa(
@@ -125,11 +108,10 @@ object F2CalendarJson {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
             if (!arquivo.exists()) return null
 
-            // Se o app foi atualizado depois do cache, o JSON do APK
-            // pode ser mais novo: ignora o cache antigo.
             val instalado = context.packageManager
                 .getPackageInfo(context.packageName, 0)
                 .lastUpdateTime
+
             if (arquivo.lastModified() < instalado) return null
 
             val texto = arquivo.readText()
@@ -141,8 +123,7 @@ object F2CalendarJson {
 
     private fun lerAsset(context: Context): String? {
         return try {
-            context.assets
-                .open("f2_calendar.json")
+            context.assets.open("f2_calendar.json")
                 .bufferedReader()
                 .use { it.readText() }
         } catch (_: Exception) {
@@ -151,38 +132,42 @@ object F2CalendarJson {
     }
 
     private fun interpretar(json: String): List<F2Event> {
-        val etapas = JSONObject(json).getJSONArray("etapas")
-        val eventos = mutableListOf<F2Event>()
+        return try {
+            val etapas = JSONObject(json).getJSONArray("etapas")
+            val eventos = mutableListOf<F2Event>()
 
-        for (i in 0 until etapas.length()) {
-            val etapa = etapas.getJSONObject(i)
-            val sessoesJson = etapa.getJSONArray("sessoes")
-            val sessoes = mutableListOf<F2Session>()
+            for (i in 0 until etapas.length()) {
+                val etapa = etapas.getJSONObject(i)
+                val sessoesJson = etapa.getJSONArray("sessoes")
+                val sessoes = mutableListOf<F2Session>()
 
-            for (j in 0 until sessoesJson.length()) {
-                val sessao = sessoesJson.getJSONObject(j)
+                for (j in 0 until sessoesJson.length()) {
+                    val sessao = sessoesJson.getJSONObject(j)
 
-                sessoes.add(
-                    F2Session(
-                        nome = sessao.getString("nome"),
-                        data = sessao.getString("data"),
-                        horario = sessao.optString("horario", "A confirmar")
+                    sessoes.add(
+                        F2Session(
+                            nome = sessao.getString("nome"),
+                            data = sessao.getString("data"),
+                            horario = sessao.optString("horario", "A confirmar")
+                        )
+                    )
+                }
+
+                eventos.add(
+                    F2Event(
+                        etapa = etapa.getInt("etapa"),
+                        circuito = etapa.getString("circuito"),
+                        pais = etapa.getString("pais"),
+                        inicio = etapa.getString("inicio"),
+                        fim = etapa.getString("fim"),
+                        sessoes = sessoes
                     )
                 )
             }
 
-            eventos.add(
-                F2Event(
-                    etapa = etapa.getInt("etapa"),
-                    circuito = etapa.getString("circuito"),
-                    pais = etapa.getString("pais"),
-                    inicio = etapa.getString("inicio"),
-                    fim = etapa.getString("fim"),
-                    sessoes = sessoes
-                )
-            )
+            eventos
+        } catch (_: Exception) {
+            emptyList()
         }
-
-        return eventos
     }
 }
