@@ -10,8 +10,8 @@ import java.net.URL
 import java.time.LocalDate
 
 /**
- * Monta a lista de etapas da F1 a partir da API Jolpica (a mesma que a
- * F1Activity já usa), guarda em cache e nunca lança exceção.
+ * Monta a lista de etapas da F1 a partir da API Jolpica,
+ * guarda em cache e nunca lança exceção.
  */
 object F1CalendarApi {
 
@@ -25,7 +25,6 @@ object F1CalendarApi {
         "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
     )
 
-    // circuitId -> (país, cidade) nos nomes usados pelo app.
     private val CONHECIDOS = mapOf(
         "albert_park" to Pair("Austrália", "Melbourne"),
         "shanghai" to Pair("China", "Xangai"),
@@ -53,7 +52,6 @@ object F1CalendarApi {
         "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
     )
 
-    // País em inglês (como vem da API) -> nome usado pelo app.
     private val PAISES = mapOf(
         "Australia" to "Austrália",
         "China" to "China",
@@ -87,7 +85,6 @@ object F1CalendarApi {
         "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
     )
 
-    /** Lê o último calendário baixado. Null se não houver cache válido. */
     fun carregarCache(context: Context): List<MainActivity.Etapa>? {
         return try {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
@@ -100,10 +97,6 @@ object F1CalendarApi {
         }
     }
 
-    /**
-     * Baixa o calendário em segundo plano. Se der certo, guarda no cache
-     * e chama aoTerminar na thread principal.
-     */
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
         val app = context.applicationContext
 
@@ -139,70 +132,76 @@ object F1CalendarApi {
     }
 
     private fun interpretar(json: String): List<MainActivity.Etapa> {
-        val corridas = JSONObject(json)
-            .getJSONObject("MRData")
-            .getJSONObject("RaceTable")
-            .getJSONArray("Races")
+        return try {
+            val corridas = JSONObject(json)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
 
-        val lista = mutableListOf<MainActivity.Etapa>()
+            val lista = mutableListOf<MainActivity.Etapa>()
 
-        for (i in 0 until corridas.length()) {
-            val corrida = corridas.getJSONObject(i)
-            val circuito = corrida.getJSONObject("Circuit")
-            val circuitId = circuito.getString("circuitId")
-            val local = circuito.optJSONObject("Location")
-            val localidade = local?.optString("locality", "") ?: ""
-            val paisIngles = local?.optString("country", "") ?: ""
+            for (i in 0 until corridas.length()) {
+                val corrida = corridas.getJSONObject(i)
+                val circuito = corrida.getJSONObject("Circuit")
+                val circuitId = circuito.getString("circuitId")
+                val local = circuito.optJSONObject("Location")
+                val localidade = local?.optString("locality", "") ?: ""
+                val paisIngles = local?.optString("country", "") ?: ""
 
-            val fim = LocalDate.parse(corrida.getString("date"))
-
-            // Início do fim de semana = primeira sessão (treino/sprint/
-            // classificação). Sem dados, assume sexta (2 dias antes).
-            var inicio = fim.minusDays(2)
-            var menor: LocalDate? = null
-
-            for (chave in SESSOES) {
-                val texto = corrida.optJSONObject(chave)
-                    ?.optString("date", "") ?: ""
-
-                if (texto.isBlank()) continue
-
-                val data = try {
-                    LocalDate.parse(texto)
+                val fim = try {
+                    LocalDate.parse(corrida.getString("date"))
                 } catch (_: Exception) {
                     continue
                 }
 
-                if (menor == null || data.isBefore(menor)) {
-                    menor = data
+                var inicio = fim.minusDays(2)
+                var menor: LocalDate? = null
+
+                for (chave in SESSOES) {
+                    val texto = corrida.optJSONObject(chave)
+                        ?.optString("date", "") ?: ""
+
+                    if (texto.isBlank()) continue
+
+                    val data = try {
+                        LocalDate.parse(texto)
+                    } catch (_: Exception) {
+                        continue
+                    }
+
+                    if (menor == null || data.isBefore(menor)) {
+                        menor = data
+                    }
                 }
-            }
 
-            if (menor != null &&
-                !menor.isAfter(fim) &&
-                !menor.isBefore(fim.minusDays(4))
-            ) {
-                inicio = menor
-            }
+                if (menor != null &&
+                    !menor.isAfter(fim) &&
+                    !menor.isBefore(fim.minusDays(4))
+                ) {
+                    inicio = menor
+                }
 
-            val conhecido = CONHECIDOS[circuitId]
-            val pais = conhecido?.first ?: PAISES[paisIngles] ?: paisIngles
-            val cidade = conhecido?.second ?: localidade
+                val conhecido = CONHECIDOS[circuitId]
+                val pais = conhecido?.first ?: PAISES[paisIngles] ?: paisIngles
+                val cidade = conhecido?.second ?: localidade
 
-            lista.add(
-                MainActivity.Etapa(
-                    categoria = "F1",
-                    pais = pais,
-                    circuito = cidade,
-                    data = formatarPeriodo(inicio, fim),
-                    dataInicio = inicio.toString(),
-                    circuitId = circuitId,
-                    dataFim = fim.toString()
+                lista.add(
+                    MainActivity.Etapa(
+                        categoria = "F1",
+                        pais = pais,
+                        circuito = cidade,
+                        data = formatarPeriodo(inicio, fim),
+                        dataInicio = inicio.toString(),
+                        circuitId = circuitId,
+                        dataFim = fim.toString()
+                    )
                 )
-            )
-        }
+            }
 
-        return lista.sortedBy { it.dataInicio }
+            lista.sortedBy { it.dataInicio }
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
     fun formatarPeriodo(inicio: LocalDate, fim: LocalDate): String {
