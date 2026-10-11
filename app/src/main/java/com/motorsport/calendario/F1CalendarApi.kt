@@ -200,7 +200,7 @@ object F1CalendarApi {
                 )
             }
 
-            lista.sortedBy { it.dataInicio }
+            return lista.sortedBy { it.dataInicio }
         } catch (_: Exception) {
             emptyList()
         }
