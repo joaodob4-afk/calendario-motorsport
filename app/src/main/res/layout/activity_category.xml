@@ -15,36 +15,26 @@
         android:paddingEnd="18dp"
         android:paddingBottom="24dp">
 
-        <!-- Cabeçalho: voltar + logo + título -->
+        <!-- Cabeçalho: mesma seta e título das telas de programação -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
+            <ImageView
                 android:id="@+id/backButton"
                 android:layout_width="42dp"
                 android:layout_height="42dp"
-                android:text="‹"
-                android:textColor="#39FF14"
-                android:textSize="34sp"
-                android:textStyle="bold"
-                android:gravity="center"
+                android:src="@drawable/back_button"
+                android:scaleType="fitCenter"
+                android:paddingStart="4dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp"
                 android:contentDescription="Voltar"
                 android:clickable="true"
                 android:focusable="true" />
-
-            <ImageView
-                android:id="@+id/categoryLogo"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginStart="6dp"
-                android:layout_marginEnd="12dp"
-                android:adjustViewBounds="true"
-                android:maxWidth="96dp"
-                android:contentDescription="Logo da categoria"
-                android:scaleType="fitCenter" />
 
             <TextView
                 android:id="@+id/categoryTitle"
@@ -54,7 +44,6 @@
                 android:text="FÓRMULA 1"
                 android:textColor="#FFFFFF"
                 android:textSize="23sp"
-                android:textStyle="bold"
                 android:fontFamily="sans-serif-black"
                 android:gravity="start"
                 android:letterSpacing="0.06" />
@@ -69,63 +58,19 @@
             android:background="#39FF14" />
 
         <TextView
-            android:id="@+id/nextEventTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="PRÓXIMO EVENTO"
-            android:textColor="#39FF14"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:gravity="start"
-            android:letterSpacing="0.16"
-            android:paddingBottom="10dp" />
-
-        <!-- Cartão principal: o texto é montado pelo código (MainActivity) -->
-        <TextView
-            android:id="@+id/nextEvent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="140dp"
-            android:text="Carregando..."
-            android:textColor="#FFFFFF"
-            android:textSize="17sp"
-            android:gravity="start|center_vertical"
-            android:lineSpacingExtra="3dp"
-            android:paddingStart="22dp"
-            android:paddingTop="20dp"
-            android:paddingEnd="22dp"
-            android:paddingBottom="20dp"
-            android:background="@drawable/next_event_card"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- Botão secundário: só contorno -->
-        <TextView
             android:id="@+id/fullCalendarButton"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="16dp"
-            android:text="VER PROGRAMAÇÃO COMPLETA   ›"
+            android:layout_height="64dp"
+            android:text="VER PROGRAMAÇÃO COMPLETA"
             android:textColor="#39FF14"
-            android:textSize="14sp"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif"
             android:textStyle="bold"
             android:gravity="center"
             android:letterSpacing="0.05"
-            android:background="@drawable/category_secondary_button"
+            android:background="@drawable/next_event_card"
             android:clickable="true"
             android:focusable="true" />
-
-        <TextView
-            android:id="@+id/categoryInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="#AFAFAF"
-            android:textSize="15sp"
-            android:gravity="center"
-            android:lineSpacingExtra="5dp"
-            android:paddingTop="24dp"
-            android:paddingBottom="20dp" />
 
     </LinearLayout>
 
