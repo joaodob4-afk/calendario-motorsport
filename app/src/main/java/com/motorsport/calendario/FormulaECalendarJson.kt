@@ -22,7 +22,7 @@ data class FormulaEEvent(
     val pais: String,
     val inicio: String,
     val fim: String,
-    val sessoes: List<FormulaESession>
+    val sessoes: List<FormulaESession> = emptyList()
 )
 
 object FormulaECalendarJson {
@@ -41,15 +41,7 @@ object FormulaECalendarJson {
             emptyList()
         }
 
-        if (eventosJson.size >= 10) {
-            return eventosJson.sortedBy { it.etapa }
-        }
-
-        val combinados = FormulaECalendar.eventos
-            .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
-            eventosJson
-
-        return combinados.sortedBy { it.etapa }
+        return eventosJson.sortedBy { it.etapa }
     }
 
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
@@ -150,18 +142,20 @@ object FormulaECalendarJson {
 
             for (i in 0 until etapas.length()) {
                 val etapa = etapas.getJSONObject(i)
-                val sessoesJson = etapa.getJSONArray("sessoes")
+                val sessoesJson = etapa.optJSONArray("sessoes")
                 val sessoes = mutableListOf<FormulaESession>()
 
-                for (j in 0 until sessoesJson.length()) {
-                    val sessao = sessoesJson.getJSONObject(j)
-                    sessoes.add(
-                        FormulaESession(
-                            nome = sessao.getString("nome"),
-                            data = sessao.getString("data"),
-                            horario = sessao.optString("horario", "A confirmar")
+                if (sessoesJson != null) {
+                    for (j in 0 until sessoesJson.length()) {
+                        val sessao = sessoesJson.getJSONObject(j)
+                        sessoes.add(
+                            FormulaESession(
+                                nome = sessao.getString("nome"),
+                                data = sessao.getString("data"),
+                                horario = sessao.optString("horario", "A confirmar")
+                            )
                         )
-                    )
+                    }
                 }
 
                 eventos.add(
