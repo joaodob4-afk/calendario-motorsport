@@ -143,6 +143,16 @@ class MainActivity : AppCompatActivity() {
                         it.categoria != "IndyCar"
                 }
 
+    // ===== CORREÇÃO 1: Função segura para parse de datas =====
+    private fun parseDataSegura(data: String?): java.time.LocalDate? {
+        if (data.isNullOrBlank()) return null
+        return try {
+            java.time.LocalDate.parse(data)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -312,33 +322,27 @@ class MainActivity : AppCompatActivity() {
         mostrarEtapas(todasEtapas)
     }
 
-    // Último dia da etapa (sem dataFim, assume fim de semana de 3 dias).
+    // ===== CORREÇÃO 2: Proteção defensiva em fimDaEtapa =====
     private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate {
-        val inicio = java.time.LocalDate.parse(etapa.dataInicio)
+        val inicio = parseDataSegura(etapa.dataInicio) ?: java.time.LocalDate.now()
 
         return try {
-            if (etapa.dataFim.isNotBlank()) {
-                java.time.LocalDate.parse(etapa.dataFim)
-            } else {
-                inicio.plusDays(2)
-            }
+            val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
+            if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
         } catch (_: Exception) {
             inicio.plusDays(2)
         }
     }
 
+    // ===== CORREÇÃO 3: Proteção em atualizarProximaEtapa =====
     private fun atualizarProximaEtapa() {
         val hoje = java.time.LocalDate.now()
 
         val proxima =
             todasEtapas
-                .filter {
-                    !fimDaEtapa(it).isBefore(hoje)
-                }
+                .filter { !fimDaEtapa(it).isBefore(hoje) }
                 .minByOrNull {
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    )
+                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
                 }
 
         if (proxima == null) return
@@ -394,9 +398,7 @@ class MainActivity : AppCompatActivity() {
         data.text = proxima.data
 
         val dataInicio =
-            java.time.LocalDate.parse(
-                proxima.dataInicio
-            )
+            parseDataSegura(proxima.dataInicio) ?: hoje
 
         val dias =
             java.time.temporal.ChronoUnit.DAYS.between(
@@ -487,18 +489,15 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // ===== CORREÇÃO 4: Proteção em mostrarEtapas =====
     private fun mostrarEtapas(etapas: List<Etapa>) {
         val hoje = java.time.LocalDate.now()
 
         val proximaEtapa =
             todasEtapas
-                .filter {
-                    !fimDaEtapa(it).isBefore(hoje)
-                }
+                .filter { !fimDaEtapa(it).isBefore(hoje) }
                 .minByOrNull {
-                    java.time.LocalDate.parse(
-                        it.dataInicio
-                    )
+                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
                 }
 
         val etapasVisiveis =
@@ -513,9 +512,7 @@ class MainActivity : AppCompatActivity() {
 
         val etapasOrdenadas =
             etapasVisiveis.sortedBy {
-                java.time.LocalDate.parse(
-                    it.dataInicio
-                )
+                parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
             }
 
         listaEtapas.removeAllViews()
@@ -651,16 +648,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ===== CORREÇÃO 5: Proteção em statusEtapa =====
     private fun statusEtapa(
         etapa: Etapa,
         etapasOrdenadas: List<Etapa>
     ): String {
         val hoje = java.time.LocalDate.now()
 
-        val inicioEtapa =
-            java.time.LocalDate.parse(
-                etapa.dataInicio
-            )
+        val inicioEtapa = parseDataSegura(etapa.dataInicio) ?: return "AGENDADA"
 
         if (fimDaEtapa(etapa).isBefore(hoje)) {
             return "FINALIZADA"
