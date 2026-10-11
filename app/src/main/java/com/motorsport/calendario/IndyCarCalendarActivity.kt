@@ -1,195 +1,385 @@
 package com.motorsport.calendario
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import org.json.JSONObject
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
+import android.os.Bundle
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
 
-data class IndyCarSession(
-    val nome: String,
-    val data: String,
-    val horario: String
-)
+class IndyCarCalendarActivity : AppCompatActivity() {
 
-data class IndyCarEvent(
-    val etapa: Int,
-    val nome: String,
-    val circuito: String,
-    val local: String,
-    val pais: String,
-    val inicio: String,
-    val fim: String,
-    val sessoes: List<IndyCarSession>
-)
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+        super.onCreate(savedInstanceState)
 
-object IndyCarCalendarJson {
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
 
-    private const val URL_JSON =
-        "https://raw.githubusercontent.com/joaodob4-afk/" +
-        "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
 
-    private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
+                override fun handleOnBackPressed() {
+                    voltarParaTelaAnterior()
+                }
+            }
+        )
 
-    /**
-     * Prioridade: cache baixado do GitHub > JSON embutido no APK.
-     * Sem nenhum dos dois, devolve lista vazia. Nunca lança exceção.
-     */
-    fun carregar(context: Context): List<IndyCarEvent> {
-        val json = lerCache(context) ?: lerAsset(context) ?: return emptyList()
+        val eventos = IndyCarCalendarJson.carregar(this)
 
-        return try {
-            interpretar(json).sortedBy { it.etapa }
-        } catch (_: Exception) {
-            emptyList()
-        }
-    }
+        val layout =
+            LinearLayout(this).apply {
 
-    /**
-     * Baixa o JSON mais recente em segundo plano e guarda em cache.
-     * O novo calendário passa a valer na próxima leitura (carregar).
-     * Se estiver sem internet ou o arquivo vier inválido, nada muda.
-     */
-    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
-        val app = context.applicationContext
+                orientation =
+                    LinearLayout.VERTICAL
 
-        Thread {
-            var gravou = false
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
 
-            try {
-                val conexao = URL(URL_JSON).openConnection() as HttpURLConnection
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.setRequestProperty("Cache-Control", "no-cache")
+                setBackgroundColor(
+                    Color.rgb(
+                        7,
+                        26,
+                        45
+                    )
+                )
+            }
 
-                if (conexao.responseCode == 200) {
-                    val texto = conexao.inputStream
-                        .bufferedReader()
-                        .use { it.readText() }
+        val voltarTopo =
+            criarBotaoVoltar()
 
-                    // Só aceita se for um calendário válido.
-                    if (interpretar(texto).isNotEmpty()) {
-                        val destino = File(app.filesDir, ARQUIVO_CACHE)
-                        val temporario = File(app.filesDir, "$ARQUIVO_CACHE.tmp")
-                        temporario.writeText(texto)
-                        gravou = temporario.renameTo(destino) ||
-                            run { destino.writeText(texto); true }
-                    }
+        val parametrosTopo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosTopo.gravity =
+            Gravity.LEFT
+
+        parametrosTopo.setMargins(
+            0,
+            0,
+            0,
+            10
+        )
+
+        layout.addView(
+            voltarTopo,
+            parametrosTopo
+        )
+
+        val titulo =
+            TextView(this).apply {
+
+                text =
+                    "INDYCAR\n\n" +
+                    "CALENDÁRIO ${descreverTemporada(eventos)}"
+
+                textSize = 27f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                letterSpacing = 0.04f
+
+                setPadding(
+                    0,
+                    10,
+                    0,
+                    28
+                )
+            }
+
+        layout.addView(
+            titulo
+        )
+
+        if (eventos.isEmpty()) {
+            val aviso =
+                TextView(this).apply {
+
+                    text =
+                        "O calendário da IndyCar ainda não foi carregado.\n\n" +
+                        "Abra o app com internet e tente novamente."
+
+                    textSize = 17f
+
+                    setTextColor(
+                        Color.LTGRAY
+                    )
+
+                    gravity =
+                        Gravity.CENTER
+
+                    setPadding(
+                        0,
+                        20,
+                        0,
+                        20
+                    )
                 }
 
-                conexao.disconnect()
-            } catch (_: Exception) {
-                // Sem internet ou erro: continua com o que já existe.
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post { aoTerminar() }
-            }
-        }.start()
-    }
-
-    /** Converte os eventos da IndyCar para o formato da lista da tela inicial. */
-    fun comoEtapas(eventos: List<IndyCarEvent>): List<MainActivity.Etapa> {
-        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        val lista = mutableListOf<MainActivity.Etapa>()
-
-        for (evento in eventos) {
-            try {
-                val inicio = LocalDate.parse(evento.inicio, formato)
-                val fim = LocalDate.parse(evento.fim, formato)
-
-                // A lista da tela inicial usa "Abu Dhabi" para a bandeira.
-                val pais =
-                    if (evento.pais == "Emirados Árabes Unidos") "Abu Dhabi"
-                    else evento.pais
-
-                lista.add(
-                    MainActivity.Etapa(
-                        categoria = "IndyCar",
-                        pais = pais,
-                        circuito = evento.circuito,
-                        data = F1CalendarApi.formatarPeriodo(inicio, fim),
-                        dataInicio = inicio.toString(),
-                        dataFim = fim.toString()
-                    )
-                )
-            } catch (_: Exception) {
-                // Ignora etapa com data inválida.
-            }
-        }
-
-        return lista.sortedBy { it.dataInicio }
-    }
-
-    private fun lerCache(context: Context): String? {
-        return try {
-            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-            if (!arquivo.exists()) return null
-
-            // Se o app foi atualizado depois do cache, o JSON do APK
-            // pode ser mais novo: ignora o cache antigo.
-            val instalado = context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .lastUpdateTime
-            if (arquivo.lastModified() < instalado) return null
-
-            val texto = arquivo.readText()
-            if (interpretar(texto).isEmpty()) null else texto
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun lerAsset(context: Context): String? {
-        return try {
-            context.assets
-                .open("indycar_calendar.json")
-                .bufferedReader()
-                .use { it.readText() }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun interpretar(json: String): List<IndyCarEvent> {
-        val etapas = JSONObject(json).getJSONArray("etapas")
-        val eventos = mutableListOf<IndyCarEvent>()
-
-        for (i in 0 until etapas.length()) {
-            val etapa = etapas.getJSONObject(i)
-            val sessoesJson = etapa.getJSONArray("sessoes")
-            val sessoes = mutableListOf<IndyCarSession>()
-
-            for (j in 0 until sessoesJson.length()) {
-                val sessao = sessoesJson.getJSONObject(j)
-
-                sessoes.add(
-                    IndyCarSession(
-                        nome = sessao.getString("nome"),
-                        data = sessao.getString("data"),
-                        horario = sessao.optString("horario", "A confirmar")
-                    )
-                )
-            }
-
-            eventos.add(
-                IndyCarEvent(
-                    etapa = etapa.getInt("etapa"),
-                    nome = etapa.optString("nome", etapa.getString("circuito")),
-                    circuito = etapa.getString("circuito"),
-                    local = etapa.optString("local", ""),
-                    pais = etapa.getString("pais"),
-                    inicio = etapa.getString("inicio"),
-                    fim = etapa.getString("fim"),
-                    sessoes = sessoes
-                )
+            layout.addView(
+                aviso
             )
         }
 
-        return eventos
+        for (evento in eventos) {
+            adicionarEtapa(
+                layout,
+                evento
+            )
+        }
+
+        val voltarFundo =
+            criarBotaoVoltar()
+
+        val parametrosFundo =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametrosFundo.gravity =
+            Gravity.LEFT
+
+        parametrosFundo.setMargins(
+            0,
+            24,
+            0,
+            20
+        )
+
+        layout.addView(
+            voltarFundo,
+            parametrosFundo
+        )
+
+        val scroll =
+            ScrollView(this).apply {
+                addView(layout)
+            }
+
+        setContentView(
+            scroll
+        )
+    }
+
+    // Ex.: eventos de 2026 a 2027 -> "2026/27".
+    private fun descreverTemporada(
+        eventos: List<IndyCarEvent>
+    ): String {
+        val anoInicio = eventos.firstOrNull()?.inicio?.takeLast(4)
+        val anoFim = eventos.lastOrNull()?.fim?.takeLast(4)
+
+        if (anoInicio == null || anoFim == null) return ""
+
+        return if (anoInicio == anoFim) {
+            anoInicio
+        } else {
+            "$anoInicio/${anoFim.takeLast(2)}"
+        }
+    }
+
+    private fun criarBotaoVoltar(): TextView {
+
+        return TextView(this).apply {
+
+            text =
+                "‹  VOLTAR"
+
+            textSize = 15f
+
+            setTextColor(
+                Color.rgb(
+                    143,
+                    166,
+                    186
+                )
+            )
+
+            setTypeface(
+                null,
+                Typeface.BOLD
+            )
+
+            gravity =
+                Gravity.LEFT
+
+            setPadding(
+                0,
+                8,
+                0,
+                8
+            )
+
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+                voltarParaTelaAnterior()
+            }
+        }
+    }
+
+    private fun voltarParaTelaAnterior() {
+
+        finish()
+
+        overridePendingTransition(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
+        )
+    }
+
+    private fun adicionarEtapa(
+        layout: LinearLayout,
+        evento: IndyCarEvent
+    ) {
+
+        val bandeira =
+            obterBandeira(evento.pais)
+
+        val datas =
+            if (evento.inicio == evento.fim) {
+                evento.inicio
+            } else {
+                "${evento.inicio} – ${evento.fim}"
+            }
+
+        val corridas = ""
+
+        val localTexto =
+            if (evento.local.isNotBlank()) evento.local else evento.pais
+
+        val card =
+            TextView(this).apply {
+
+                text =
+                    "🏎 ${evento.nome}\n\n" +
+                    "$bandeira $localTexto\n\n" +
+                    "📅 $datas" +
+                    corridas
+
+                textSize = 17f
+
+                setTextColor(
+                    Color.WHITE
+                )
+
+                setTypeface(
+                    null,
+                    Typeface.BOLD
+                )
+
+                gravity =
+                    Gravity.CENTER
+
+                setPadding(
+                    20,
+                    20,
+                    20,
+                    20
+                )
+
+                background =
+                    getDrawable(
+                        R.drawable.rounded_card
+                    )
+
+                isClickable = true
+                isFocusable = true
+
+                setOnClickListener {
+
+                    abrirEtapa(
+                        evento
+                    )
+                }
+            }
+
+        val parametros =
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+
+        parametros.setMargins(
+            0,
+            6,
+            0,
+            6
+        )
+
+        layout.addView(
+            card,
+            parametros
+        )
+    }
+
+    private fun obterBandeira(pais: String): String {
+        return when (pais.trim()) {
+            "Arábia Saudita" -> "🇸🇦"
+            "México" -> "🇲🇽"
+            "Estados Unidos" -> "🇺🇸"
+            "Canadá" -> "🇨🇦"
+            "Brasil" -> "🇧🇷"
+            "Alemanha" -> "🇩🇪"
+            "Mônaco" -> "🇲🇨"
+            "Reino Unido" -> "🇬🇧"
+            "Holanda" -> "🇳🇱"
+            "Espanha" -> "🇪🇸"
+            "China" -> "🇨🇳"
+            "Japão" -> "🇯🇵"
+            "Itália" -> "🇮🇹"
+            else -> "🏳️"
+        }
+    }
+
+    private fun abrirEtapa(
+        evento: IndyCarEvent
+    ) {
+
+        val intent =
+            Intent(
+                this,
+                IndyCarActivity::class.java
+            )
+
+        intent.putExtra(
+            "ETAPA",
+            evento.etapa
+        )
+
+        startActivity(
+            intent
+        )
+
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
     }
 }
