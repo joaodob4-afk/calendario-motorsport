@@ -10,6 +10,21 @@ import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+data class FormulaESession(
+    val nome: String,
+    val data: String,
+    val horario: String
+)
+
+data class FormulaEEvent(
+    val etapa: Int,
+    val circuito: String,
+    val pais: String,
+    val inicio: String,
+    val fim: String,
+    val sessoes: List<FormulaESession>
+)
+
 object FormulaECalendarJson {
 
     private const val URL_JSON =
