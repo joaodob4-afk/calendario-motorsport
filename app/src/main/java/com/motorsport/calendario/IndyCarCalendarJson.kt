@@ -11,6 +11,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
 data class IndyCarSession(
@@ -40,12 +42,17 @@ object IndyCarCalendarJson {
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
 
+    private val formatoData: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ROOT)
+            .withResolverStyle(ResolverStyle.STRICT)
+
     /**
      * Prioridade: cache válido > JSON embutido no APK.
-     * Sem nenhum dos dois, devolve lista vazia.
+     * Se nenhum deles for válido, devolve lista vazia.
      */
     fun carregar(context: Context): List<IndyCarEvent> {
-        val json = lerCache(context) ?: lerAsset(context) ?: return emptyList()
+        val json = lerCache(context) ?: lerAsset(context)
+            ?: return emptyList()
 
         return try {
             interpretar(json).sortedBy { it.etapa }
@@ -57,14 +64,13 @@ object IndyCarCalendarJson {
     /**
      * Baixa o calendário em segundo plano.
      *
-     * Proteções:
-     * - Impede atualizações simultâneas.
-     * - Valida o JSON antes de gravar.
-     * - Usa AtomicFile para preservar o cache anterior
-     *   se a gravação for interrompida.
-     * - Mantém o cache existente em caso de falha.
+     * Só grava o JSON depois de validar todos os eventos.
+     * Usa AtomicFile para proteger o cache anterior.
      */
-    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
+    fun atualizar(
+        context: Context,
+        aoTerminar: (() -> Unit)? = null
+    ) {
         val app = context.applicationContext
 
         if (!atualizacaoEmAndamento.compareAndSet(false, true)) {
@@ -78,9 +84,12 @@ object IndyCarCalendarJson {
             var saida: FileOutputStream? = null
 
             try {
-                conexao = URL(URL_JSON).openConnection() as HttpURLConnection
+                conexao = URL(URL_JSON)
+                    .openConnection() as HttpURLConnection
+
                 conexao.connectTimeout = 10000
                 conexao.readTimeout = 10000
+                conexao.requestMethod = "GET"
                 conexao.setRequestProperty("Cache-Control", "no-cache")
 
                 if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
@@ -88,38 +97,36 @@ object IndyCarCalendarJson {
                         .bufferedReader(Charsets.UTF_8)
                         .use { it.readText() }
 
-                    val eventos = interpretar(texto)
+                    // Se qualquer dado obrigatório for inválido,
+                    // interpretar lança uma exceção e o cache não muda.
+                    interpretar(texto)
 
-                    if (eventos.isNotEmpty()) {
-                        val destino = File(app.filesDir, ARQUIVO_CACHE)
-                        arquivoAtomic = AtomicFile(destino)
+                    val destino = File(app.filesDir, ARQUIVO_CACHE)
+                    arquivoAtomic = AtomicFile(destino)
 
-                        saida = arquivoAtomic.startWrite()
+                    saida = arquivoAtomic.startWrite()
+                    saida.write(texto.toByteArray(Charsets.UTF_8))
+                    saida.flush()
 
-                        saida.write(texto.toByteArray(Charsets.UTF_8))
-                        saida.flush()
-
-                        arquivoAtomic.finishWrite(saida)
-                        saida = null
-
-                        gravou = true
-                    }
+                    arquivoAtomic.finishWrite(saida)
+                    saida = null
+                    gravou = true
                 }
             } catch (_: Exception) {
-                // Se a gravação começou, tenta preservar o cache anterior.
+                // Tenta restaurar o arquivo anterior se a gravação falhar.
                 try {
                     if (saida != null) {
                         arquivoAtomic?.failWrite(saida)
                         saida = null
                     }
                 } catch (_: Exception) {
-                    // Não substitui o erro original nem encerra o app.
+                    // Mantém a falha isolada para não encerrar o aplicativo.
                 }
             } finally {
                 try {
                     conexao?.disconnect()
                 } catch (_: Exception) {
-                    // A falha ao encerrar a conexão não deve encerrar o app.
+                    // Ignora falhas ao encerrar a conexão.
                 }
 
                 atualizacaoEmAndamento.set(false)
@@ -133,15 +140,16 @@ object IndyCarCalendarJson {
         }.start()
     }
 
-    /** Converte os eventos para o formato da lista da tela inicial. */
-    fun comoEtapas(eventos: List<IndyCarEvent>): List<MainActivity.Etapa> {
-        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    /** Converte os eventos para o formato usado pela tela inicial. */
+    fun comoEtapas(
+        eventos: List<IndyCarEvent>
+    ): List<MainActivity.Etapa> {
         val lista = mutableListOf<MainActivity.Etapa>()
 
         for (evento in eventos) {
             try {
-                val inicio = LocalDate.parse(evento.inicio, formato)
-                val fim = LocalDate.parse(evento.fim, formato)
+                val inicio = LocalDate.parse(evento.inicio, formatoData)
+                val fim = LocalDate.parse(evento.fim, formatoData)
 
                 if (fim.isBefore(inicio)) continue
 
@@ -163,7 +171,7 @@ object IndyCarCalendarJson {
                     )
                 )
             } catch (_: Exception) {
-                // Ignora etapas com datas inválidas.
+                // Ignora apenas a etapa que não puder ser convertida.
             }
         }
 
@@ -176,16 +184,19 @@ object IndyCarCalendarJson {
 
             if (!arquivo.exists()) return null
 
-            // Ignora cache anterior à instalação/atualização do aplicativo.
+            // Evita reutilizar um cache anterior à atualização do APK.
             val instalado = context.packageManager
                 .getPackageInfo(context.packageName, 0)
                 .lastUpdateTime
 
             if (arquivo.lastModified() < instalado) return null
 
-            val texto = arquivo.readText(Charsets.UTF_8)
+            val texto = AtomicFile(arquivo).openRead()
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
 
-            if (interpretar(texto).isEmpty()) null else texto
+            interpretar(texto)
+            texto
         } catch (_: Exception) {
             null
         }
@@ -193,51 +204,179 @@ object IndyCarCalendarJson {
 
     private fun lerAsset(context: Context): String? {
         return try {
-            context.assets
+            val texto = context.assets
                 .open("indycar_calendar.json")
                 .bufferedReader(Charsets.UTF_8)
                 .use { it.readText() }
-                .also { interpretar(it) }
+
+            interpretar(texto)
+            texto
         } catch (_: Exception) {
             null
         }
     }
 
+    /**
+     * Interpreta e valida o calendário inteiro.
+     * Lança uma exceção se encontrar dados inválidos.
+     */
     private fun interpretar(json: String): List<IndyCarEvent> {
-        val etapas = JSONObject(json).getJSONArray("etapas")
+        val raiz = JSONObject(json)
+
+        require(raiz.optInt("temporada", 0) > 0) {
+            "Temporada ausente ou inválida."
+        }
+
+        require(
+            raiz.optString("categoria")
+                .equals("IndyCar", ignoreCase = true)
+        ) {
+            "Categoria inválida."
+        }
+
+        val etapas = raiz.optJSONArray("etapas")
+            ?: throw IllegalArgumentException("Lista de etapas ausente.")
+
+        require(etapas.length() > 0) {
+            "O calendário não contém etapas."
+        }
+
         val eventos = mutableListOf<IndyCarEvent>()
+        val numerosEtapas = mutableSetOf<Int>()
 
         for (i in 0 until etapas.length()) {
-            val etapa = etapas.getJSONObject(i)
-            val sessoesJson = etapa.getJSONArray("sessoes")
+            val etapaJson = etapas.getJSONObject(i)
+
+            val numero = etapaJson.getInt("etapa")
+
+            require(numero > 0) {
+                "Número de etapa inválido."
+            }
+
+            require(numerosEtapas.add(numero)) {
+                "Número de etapa duplicado: $numero."
+            }
+
+            val circuito = textoObrigatorio(etapaJson, "circuito")
+            val nome = textoOpcional(etapaJson, "nome")
+                .ifBlank { circuito }
+            val local = textoOpcional(etapaJson, "local")
+            val pais = textoObrigatorio(etapaJson, "pais")
+            val inicioTexto = textoObrigatorio(etapaJson, "inicio")
+            val fimTexto = textoObrigatorio(etapaJson, "fim")
+
+            val inicio = analisarData(inicioTexto)
+            val fim = analisarData(fimTexto)
+
+            require(!fim.isBefore(inicio)) {
+                "Data final anterior à inicial na etapa $numero."
+            }
+
+            val sessoesJson = etapaJson.optJSONArray("sessoes")
+                ?: throw IllegalArgumentException(
+                    "Sessões ausentes na etapa $numero."
+                )
+
+            require(sessoesJson.length() > 0) {
+                "Etapa $numero sem sessões."
+            }
+
             val sessoes = mutableListOf<IndyCarSession>()
 
             for (j in 0 until sessoesJson.length()) {
-                val sessao = sessoesJson.getJSONObject(j)
+                val sessaoJson = sessoesJson.getJSONObject(j)
+
+                val nomeSessao = textoObrigatorio(
+                    sessaoJson,
+                    "nome"
+                )
+
+                val dataSessaoTexto = textoObrigatorio(
+                    sessaoJson,
+                    "data"
+                )
+
+                val dataSessao = analisarData(dataSessaoTexto)
+
+                require(
+                    !dataSessao.isBefore(inicio) &&
+                        !dataSessao.isAfter(fim)
+                ) {
+                    "Data de sessão fora do período da etapa $numero."
+                }
+
+                val horario = textoOpcional(
+                    sessaoJson,
+                    "horario"
+                ).ifBlank { "A confirmar" }
+
+                require(horarioValido(horario)) {
+                    "Horário inválido na etapa $numero: $horario."
+                }
 
                 sessoes.add(
                     IndyCarSession(
-                        nome = sessao.getString("nome"),
-                        data = sessao.getString("data"),
-                        horario = sessao.optString("horario", "A confirmar")
+                        nome = nomeSessao,
+                        data = dataSessaoTexto,
+                        horario = horario
                     )
                 )
             }
 
             eventos.add(
                 IndyCarEvent(
-                    etapa = etapa.getInt("etapa"),
-                    nome = etapa.optString("nome", etapa.getString("circuito")),
-                    circuito = etapa.getString("circuito"),
-                    local = etapa.optString("local", ""),
-                    pais = etapa.getString("pais"),
-                    inicio = etapa.getString("inicio"),
-                    fim = etapa.getString("fim"),
+                    etapa = numero,
+                    nome = nome,
+                    circuito = circuito,
+                    local = local,
+                    pais = pais,
+                    inicio = inicioTexto,
+                    fim = fimTexto,
                     sessoes = sessoes
                 )
             )
         }
 
         return eventos
+    }
+
+    private fun textoObrigatorio(
+        objeto: JSONObject,
+        campo: String
+    ): String {
+        val valor = objeto.optString(campo, "").trim()
+
+        require(valor.isNotEmpty() && valor != "null") {
+            "Campo obrigatório ausente ou vazio: $campo."
+        }
+
+        return valor
+    }
+
+    private fun textoOpcional(
+        objeto: JSONObject,
+        campo: String
+    ): String {
+        if (!objeto.has(campo) || objeto.isNull(campo)) {
+            return ""
+        }
+
+        return objeto.optString(campo, "").trim()
+    }
+
+    private fun analisarData(texto: String): LocalDate {
+        return LocalDate.parse(texto, formatoData)
+    }
+
+    private fun horarioValido(horario: String): Boolean {
+        if (
+            horario.equals("A confirmar", ignoreCase = true) ||
+            horario.equals("TBA", ignoreCase = true)
+        ) {
+            return true
+        }
+
+        return Regex("""^(?:[01]\d|2[0-3]):[0-5]\d$""")
+            .matches(horario)
     }
 }
