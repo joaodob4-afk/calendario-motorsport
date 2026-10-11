@@ -25,6 +25,7 @@ object F1CalendarApi {
         "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
     )
 
+    // circuitId -> (país, cidade) nos nomes usados pelo app.
     private val CONHECIDOS = mapOf(
         "albert_park" to Pair("Austrália", "Melbourne"),
         "shanghai" to Pair("China", "Xangai"),
@@ -52,6 +53,7 @@ object F1CalendarApi {
         "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
     )
 
+    // País em inglês (como vem da API) -> nome usado pelo app.
     private val PAISES = mapOf(
         "Australia" to "Austrália",
         "China" to "China",
