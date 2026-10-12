@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - integracao-cache-indycar
+      - audit/validacao-calendarios-f2-f3
 
   workflow_dispatch:
 
