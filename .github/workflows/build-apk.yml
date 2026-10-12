@@ -45,7 +45,18 @@ jobs:
       - name: Executar testes automatizados
         run: gradle testDebugUnitTest
 
-      - name: Gerar APK
+      - name: Preparar chave de assinatura
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/calendario-motorsport.jks"
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/calendario-motorsport.jks" >> "$GITHUB_ENV"
+
+      - name: Gerar APK assinado
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         run: gradle assembleDebug
 
       - name: Disponibilizar APK
