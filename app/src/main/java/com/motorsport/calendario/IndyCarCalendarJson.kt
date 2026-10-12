@@ -33,7 +33,6 @@ data class IndyCarEvent(
 )
 
 object IndyCarCalendarJson {
-
     private const val URL_JSON =
         "https://raw.githubusercontent.com/joaodob4-afk/" +
         "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
@@ -86,7 +85,6 @@ object IndyCarCalendarJson {
             try {
                 conexao = URL(URL_JSON)
                     .openConnection() as HttpURLConnection
-
                 conexao.connectTimeout = 10000
                 conexao.readTimeout = 10000
                 conexao.requestMethod = "GET"
@@ -107,7 +105,6 @@ object IndyCarCalendarJson {
                     saida = arquivoAtomic.startWrite()
                     saida.write(texto.toByteArray(Charsets.UTF_8))
                     saida.flush()
-
                     arquivoAtomic.finishWrite(saida)
                     saida = null
                     gravou = true
@@ -128,7 +125,6 @@ object IndyCarCalendarJson {
                 } catch (_: Exception) {
                     // Ignora falhas ao encerrar a conexão.
                 }
-
                 atualizacaoEmAndamento.set(false)
             }
 
@@ -183,13 +179,6 @@ object IndyCarCalendarJson {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
 
             if (!arquivo.exists()) return null
-
-            // Evita reutilizar um cache anterior à atualização do APK.
-            val instalado = context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .lastUpdateTime
-
-            if (arquivo.lastModified() < instalado) return null
 
             val texto = AtomicFile(arquivo).openRead()
                 .bufferedReader(Charsets.UTF_8)
@@ -248,7 +237,6 @@ object IndyCarCalendarJson {
             val etapaJson = etapas.getJSONObject(i)
 
             val numero = etapaJson.getInt("etapa")
-
             require(numero > 0) {
                 "Número de etapa inválido."
             }
