@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+def signingKeyPath = System.getenv("SIGNING_KEYSTORE_PATH")
+
 android {
     namespace 'com.motorsport.calendario'
     compileSdk 35
@@ -13,6 +15,25 @@ android {
         targetSdk 35
         versionCode 1
         versionName '1.0'
+    }
+
+    if (signingKeyPath != null && !signingKeyPath.isEmpty()) {
+        signingConfigs {
+            permanent {
+                storeFile file(signingKeyPath)
+                storePassword System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            if (signingKeyPath != null && !signingKeyPath.isEmpty()) {
+                signingConfig signingConfigs.permanent
+            }
+        }
     }
 
     compileOptions {
