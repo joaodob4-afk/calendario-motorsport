@@ -1,4 +1,3 @@
-
 package com.motorsport.calendario
 
 import android.content.Context
@@ -203,15 +202,7 @@ object F2CalendarJson {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
 
             if (!arquivo.exists()) return null
-
-            val instalado = context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .lastUpdateTime
-
-            if (arquivo.lastModified() < instalado) {
-                return null
-            }
-
+                
             val cacheAtomico = AtomicFile(arquivo)
 
             val texto = cacheAtomico.openRead()
