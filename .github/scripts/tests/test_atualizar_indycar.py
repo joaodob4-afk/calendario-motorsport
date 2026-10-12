@@ -1,5 +1,7 @@
 """Testes de regressão offline para o atualizador da IndyCar."""
 import importlib.util
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -50,6 +52,47 @@ class AtualizadorIndyCarTest(unittest.TestCase):
 
     def test_html_sem_bloco_de_programacao_nao_inventa_sessoes(self):
         self.assertEqual(indycar.extrair_sessoes("<html>Sem programação</html>", 2026), [])
+
+    def test_recusa_reduzir_calendario_existente(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar",
+                "etapas": [
+                    {"etapa": n, "sessoes": [{"nome": "Corrida"}]}
+                    for n in range(1, 18)
+                ],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "arquivo atual tem 17"):
+                indycar.validar_nao_reduzir_calendario(
+                    [{"etapa": n} for n in range(1, 11)], arquivo
+                )
+
+    def test_permite_calendario_com_mesma_ou_maior_quantidade(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar",
+                "etapas": [
+                    {"etapa": n, "sessoes": [{"nome": "Corrida"}]}
+                    for n in range(1, 11)
+                ],
+            }), encoding="utf-8")
+            indycar.validar_nao_reduzir_calendario(
+                [{"etapa": n} for n in range(1, 11)], arquivo
+            )
+            indycar.validar_nao_reduzir_calendario(
+                [{"etapa": n} for n in range(1, 12)], arquivo
+            )
+
+    def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text('{"categoria":"IndyCar","etapas":[]}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "estrutura do calendário anterior inválida"):
+                indycar.validar_nao_reduzir_calendario(
+                    [{"etapa": n} for n in range(1, 11)], arquivo
+                )
 
 
 if __name__ == "__main__":
