@@ -130,7 +130,7 @@ object FormulaECalendarJson {
         texto: String
     ): Boolean {
         return try {
-            val novosEventos = interpretar(texto)
+            interpretar(texto)
             val novaRaiz = JSONObject(texto)
             val novaTemporada = novaRaiz.optString("temporada").trim()
             val novasEtapas = novaRaiz.getJSONArray("etapas").length()
