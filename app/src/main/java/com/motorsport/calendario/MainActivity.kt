@@ -768,8 +768,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirEventoF1PelaEtapa(etapa: Etapa) {
+        val dataCorrida = fimDaEtapa(etapa).toString()
+        val localizacao = JSONObject().apply {
+            put("locality", etapa.circuito)
+            put("country", etapa.pais)
+        }
+        val circuito = JSONObject().apply {
+            put("circuitId", etapa.circuitId)
+            put("circuitName", etapa.circuito)
+            put("Location", localizacao)
+        }
+        val corrida = JSONObject().apply {
+            put("season", dataCorrida.take(4))
+            put("raceName", etapa.circuito + " Grand Prix")
+            put("date", dataCorrida)
+            put("Circuit", circuito)
+        }
+
         val intent = Intent(this, F1Activity::class.java)
         intent.putExtra("CIRCUIT_ID_F1", etapa.circuitId)
+        intent.putExtra("RACE", corrida.toString())
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
