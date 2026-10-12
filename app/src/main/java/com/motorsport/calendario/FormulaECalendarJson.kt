@@ -37,6 +37,8 @@ object FormulaECalendarJson {
 
     private const val ARQUIVO_CACHE = "fe_calendar_cache.json"
 
+    private val cacheLock = Any()
+
     // Os mínimos fixos se aplicam apenas à temporada 2026/27.
     private data class LimitesTemporada(val etapas: Int, val rodadas: Int)
 
@@ -100,9 +102,8 @@ object FormulaECalendarJson {
                         .bufferedReader(StandardCharsets.UTF_8)
                         .use { it.readText() }
 
-                    // A validação aplica os limites da temporada, se conhecidos.
-                    interpretar(texto)
-                    gravou = gravarCacheSeguro(app, texto)
+                    // Valida o calendário e preserva cache mais completo da mesma temporada.
+                    gravou = gravarCacheSeValido(app, texto)
                 }
             } catch (_: Exception) {
                 // Sem internet, JSON inválido ou falha de gravação:
@@ -117,6 +118,53 @@ object FormulaECalendarJson {
                 }
             }
         }.start()
+    }
+
+    /**
+     * Valida o calendário antes de gravar e impede que uma resposta parcial
+     * da mesma temporada substitua um cache com mais etapas.
+     * Uma temporada diferente pode ter legitimamente outra quantidade de etapas.
+     */
+    internal fun gravarCacheSeValido(
+        context: Context,
+        texto: String
+    ): Boolean {
+        return try {
+            interpretar(texto)
+            val novaRaiz = JSONObject(texto)
+            val novaTemporada = novaRaiz.optString("temporada").trim()
+            val novasEtapas = novaRaiz.getJSONArray("etapas").length()
+
+            synchronized(cacheLock) {
+                val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+                val atomico = AtomicFile(arquivo)
+                val cacheAtual = try {
+                    atomico.openRead().bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (cacheAtual != null) {
+                    val eventosAtuais = try {
+                        interpretar(cacheAtual)
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (eventosAtuais != null) {
+                        val raizAtual = JSONObject(cacheAtual)
+                        val temporadaAtual = raizAtual.optString("temporada").trim()
+                        val etapasAtuais = raizAtual.getJSONArray("etapas").length()
+                        if (novaTemporada == temporadaAtual && novasEtapas < etapasAtuais) {
+                            return false
+                        }
+                    }
+                }
+
+                gravarCacheSeguro(context, texto)
+            }
+        } catch (_: Exception) {
+            false
+        }
     }
 
     /**
