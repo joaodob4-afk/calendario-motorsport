@@ -149,7 +149,7 @@ class F3Activity : AppCompatActivity() {
         )
 
         val tituloTela = TextView(this).apply {
-            text = "FÓRMULA 2"
+            text = "FÓRMULA 3"
             textSize = 23f
             setTextColor(branco)
             typeface = Typeface.create(
