@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - integracao-cache-indycar
+      - fix/f1-calendar-offline-cache
 
   workflow_dispatch:
 
