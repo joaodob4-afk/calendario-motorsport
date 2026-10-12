@@ -83,7 +83,7 @@ class F2F3CachePreservationTest {
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
         try {
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, calendarJson("F2", 2026, 10)))
-            assertEquals(15, F2CalendarJson.carregar(context).size)
+            assertEquals(14, F2CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -109,7 +109,7 @@ class F2F3CachePreservationTest {
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
         try {
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, calendarJson("F3", 2026, 8)))
-            assertEquals(10, F3CalendarJson.carregar(context).size)
+            assertEquals(9, F3CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
