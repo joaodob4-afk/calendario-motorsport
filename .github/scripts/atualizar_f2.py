@@ -131,11 +131,25 @@ def traduzir_sessoes(subs):
     return final
 
 
+def validar_sessoes_sem_conflito(slug, sessoes):
+    """Falha se duas sessões da etapa começarem no mesmo instante."""
+    instantes = {}
+    for nome, dt in sessoes:
+        sessao_anterior = instantes.get(dt)
+        if sessao_anterior is not None:
+            raise ValueError(
+                f"{slug}: {sessao_anterior!r} e {nome!r} começam "
+                f"no mesmo instante ({dt.isoformat()})"
+            )
+        instantes[dt] = nome
+
+
 def montar_etapa(slug, html):
     if slug not in CIRCUITOS:
         raise ValueError(f"Circuito não mapeado: {slug}")
     circuito, pais, fuso = CIRCUITOS[slug]
     sessoes = traduzir_sessoes(sub_eventos(html))
+    validar_sessoes_sem_conflito(slug, sessoes)
 
     nomes = [n for n, _ in sessoes]
     if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
