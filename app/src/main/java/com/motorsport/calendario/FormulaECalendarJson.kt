@@ -184,17 +184,7 @@ object FormulaECalendarJson {
         return try {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
             if (!arquivo.exists()) return null
-
-            // Preserva o comportamento original: um cache anterior
-            // à instalação/atualização do app não tem prioridade.
-            val instalado = context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .lastUpdateTime
-
-            if (arquivo.lastModified() < instalado) {
-                return null
-            }
-
+            
             val atomico = AtomicFile(arquivo)
             val texto = atomico.openRead()
                 .bufferedReader(StandardCharsets.UTF_8)
