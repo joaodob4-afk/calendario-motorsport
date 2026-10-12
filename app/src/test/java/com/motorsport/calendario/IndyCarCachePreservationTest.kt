@@ -17,191 +17,200 @@ import java.io.IOException
 @Config(sdk = [28])
 class IndyCarCachePreservationTest {
 
-    private fun jsonValido(): String {
-        return """
+private fun jsonComEtapas(quantidade: Int): String {
+    val etapas = (1..quantidade).joinToString(",\n") { numero ->
+        """
+        {
+          "etapa": $numero,
+          "nome": "Etapa de teste $numero",
+          "circuito": "Circuito de teste $numero",
+          "local": "Cidade de teste",
+          "pais": "Brasil",
+          "inicio": "01/05/2026",
+          "fim": "03/05/2026",
+          "sessoes": [
             {
-              "temporada": 2026,
-              "categoria": "IndyCar",
-              "etapas": [
-                {
-                  "etapa": 1,
-                  "nome": "Etapa de teste",
-                  "circuito": "Circuito de teste",
-                  "local": "Cidade de teste",
-                  "pais": "Brasil",
-                  "inicio": "01/05/2026",
-                  "fim": "03/05/2026",
-                  "sessoes": [
-                    {
-                      "nome": "Corrida",
-                      "data": "02/05/2026",
-                      "horario": "12:30"
-                    }
-                  ]
-                }
-              ]
+              "nome": "Corrida",
+              "data": "02/05/2026",
+              "horario": "12:30"
             }
+          ]
+        }
         """.trimIndent()
     }
 
-    private fun prepararArquivos(
-        context: Context
-    ): Pair<File, File> {
-        val arquivoCache = File(
-            context.filesDir,
-            "indycar_calendar_cache.json"
+    return """
+        {
+          "temporada": 2026,
+          "categoria": "IndyCar",
+          "etapas": [
+            $etapas
+          ]
+        }
+    """.trimIndent()
+}
+
+private fun jsonValido(): String = jsonComEtapas(10)
+
+private fun prepararArquivos(
+    context: Context
+): Pair<File, File> {
+    val arquivoCache = File(
+        context.filesDir,
+        "indycar_calendar_cache.json"
+    )
+
+    val arquivoBackup = File(
+        arquivoCache.parentFile,
+        "${arquivoCache.name}.bak"
+    )
+
+    arquivoCache.delete()
+    arquivoBackup.delete()
+
+    return Pair(arquivoCache, arquivoBackup)
+}
+
+@Test
+fun jsonInvalidoNaoSubstituiCacheValido() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) =
+        prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonValido()
         )
 
-        val arquivoBackup = File(
-            arquivoCache.parentFile,
-            "${arquivoCache.name}.bak"
-        )
+        assertTrue(arquivoCache.exists())
 
+        val conteudoOriginal = arquivoCache.readText()
+
+        val jsonInvalido = """
+            {
+              "temporada": 2026,
+              "categoria": "IndyCar",
+              "etapas": []
+            }
+        """.trimIndent()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            IndyCarCalendarJson.gravarCacheSeValido(
+                context,
+                jsonInvalido
+            )
+        }
+
+        assertEquals(
+            conteudoOriginal,
+            arquivoCache.readText()
+        )
+    } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
-
-        return Pair(arquivoCache, arquivoBackup)
     }
+}
 
-    @Test
-    fun jsonInvalidoNaoSubstituiCacheValido() {
-        val context = RuntimeEnvironment.getApplication()
-        val (arquivoCache, arquivoBackup) =
-            prepararArquivos(context)
+@Test
+fun falhaControladaNaGravacaoPreservaCacheAnterior() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) =
+        prepararArquivos(context)
 
-        try {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonValido()
-            )
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonValido()
+        )
 
-            assertTrue(arquivoCache.exists())
+        val conteudoOriginal = arquivoCache.readText()
+        val atomicFile = AtomicFile(arquivoCache)
 
-            val conteudoOriginal = arquivoCache.readText()
+        val jsonNovoIncompleto =
+            """{"temporada":2027,"etapas":["INCOMPLETO"]}"""
 
-            val jsonInvalido = """
-                {
-                  "temporada": 2026,
-                  "categoria": "IndyCar",
-                  "etapas": []
-                }
-            """.trimIndent()
+        assertThrows(IOException::class.java) {
+            IndyCarCalendarJson.gravarAtomicamente(
+                atomicFile,
+                jsonNovoIncompleto
+            ) { saida, bytes ->
+                saida.write(
+                    bytes,
+                    0,
+                    bytes.size / 2
+                )
 
-            assertThrows(IllegalArgumentException::class.java) {
-                IndyCarCalendarJson.gravarCacheSeValido(
-                    context,
-                    jsonInvalido
+                throw IOException(
+                    "Falha de escrita simulada"
                 )
             }
-
-            assertEquals(
-                conteudoOriginal,
-                arquivoCache.readText()
-            )
-        } finally {
-            arquivoCache.delete()
-            arquivoBackup.delete()
         }
-    }
 
-    @Test
-    fun falhaControladaNaGravacaoPreservaCacheAnterior() {
-        val context = RuntimeEnvironment.getApplication()
-        val (arquivoCache, arquivoBackup) =
-            prepararArquivos(context)
+        val conteudoRecuperado = AtomicFile(arquivoCache)
+            .openRead()
+            .bufferedReader(Charsets.UTF_8)
+            .use { it.readText() }
+
+        assertEquals(
+            conteudoOriginal,
+            conteudoRecuperado
+        )
+
+        assertEquals(
+            conteudoOriginal,
+            arquivoCache.readText()
+        )
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
+@Test
+fun recuperaCacheValidoAposGravacaoInterrompida() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) =
+        prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonValido()
+        )
+
+        val conteudoOriginal = arquivoCache.readText()
+        val atomicFile = AtomicFile(arquivoCache)
+        val escrita = atomicFile.startWrite()
 
         try {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonValido()
+            escrita.write(
+                """{"temporada":2026,"etapas":["INCOMPLETO"]}"""
+                    .toByteArray(Charsets.UTF_8)
             )
-
-            val conteudoOriginal = arquivoCache.readText()
-            val atomicFile = AtomicFile(arquivoCache)
-
-            val jsonNovoIncompleto =
-                """{"temporada":2027,"etapas":["INCOMPLETO"]}"""
-
-            assertThrows(IOException::class.java) {
-                IndyCarCalendarJson.gravarAtomicamente(
-                    atomicFile,
-                    jsonNovoIncompleto
-                ) { saida, bytes ->
-                    saida.write(
-                        bytes,
-                        0,
-                        bytes.size / 2
-                    )
-
-                    throw IOException(
-                        "Falha de escrita simulada"
-                    )
-                }
-            }
-
-            val conteudoRecuperado = AtomicFile(arquivoCache)
-                .openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            assertEquals(
-                conteudoOriginal,
-                conteudoRecuperado
-            )
-
-            assertEquals(
-                conteudoOriginal,
-                arquivoCache.readText()
-            )
+            escrita.flush()
         } finally {
-            arquivoCache.delete()
-            arquivoBackup.delete()
+            escrita.close()
         }
+
+        val conteudoRecuperado = AtomicFile(arquivoCache)
+            .openRead()
+            .bufferedReader(Charsets.UTF_8)
+            .use { it.readText() }
+
+        assertEquals(
+            conteudoOriginal,
+            conteudoRecuperado
+        )
+
+        assertEquals(
+            conteudoOriginal,
+            arquivoCache.readText()
+        )
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
     }
+}
 
-    @Test
-    fun recuperaCacheValidoAposGravacaoInterrompida() {
-        val context = RuntimeEnvironment.getApplication()
-        val (arquivoCache, arquivoBackup) =
-            prepararArquivos(context)
-
-        try {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonValido()
-            )
-
-            val conteudoOriginal = arquivoCache.readText()
-            val atomicFile = AtomicFile(arquivoCache)
-            val escrita = atomicFile.startWrite()
-
-            try {
-                escrita.write(
-                    """{"temporada":2026,"etapas":["INCOMPLETO"]}"""
-                        .toByteArray(Charsets.UTF_8)
-                )
-                escrita.flush()
-            } finally {
-                escrita.close()
-            }
-
-            val conteudoRecuperado = AtomicFile(arquivoCache)
-                .openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            assertEquals(
-                conteudoOriginal,
-                conteudoRecuperado
-            )
-
-            assertEquals(
-                conteudoOriginal,
-                arquivoCache.readText()
-            )
-        } finally {
-            arquivoCache.delete()
-            arquivoBackup.delete()
-        }
-    }
 }
