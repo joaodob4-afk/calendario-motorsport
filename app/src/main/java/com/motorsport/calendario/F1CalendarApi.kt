@@ -471,7 +471,92 @@ object F1CalendarApi {
                 return total
             }
 
-            corridasComSessoes(corridasNovas) >= corridasComSessoes(corridasAtuais)
+            if (corridasComSessoes(corridasNovas) < corridasComSessoes(corridasAtuais)) {
+                return false
+            }
+
+            fun valorConhecido(valor: String): Boolean {
+                val normalizado = valor.trim()
+                return normalizado.isNotEmpty() &&
+                    !normalizado.equals("null", ignoreCase = true) &&
+                    !normalizado.equals("A confirmar", ignoreCase = true)
+            }
+
+            val novasPorCircuito = mutableMapOf<String, JSONObject>()
+            val novasPorCircuitoERound = mutableMapOf<String, JSONObject>()
+            val novasPorRound = mutableMapOf<String, JSONObject>()
+            for (i in 0 until corridasNovas.length()) {
+                val corrida = corridasNovas.optJSONObject(i) ?: return false
+                val circuitId = corrida.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")
+                    ?.trim()
+                    .orEmpty()
+                val round = corrida.optString("round", "").trim()
+                if (circuitId.isNotBlank()) {
+                    novasPorCircuito[circuitId] = corrida
+                    if (round.isNotBlank()) {
+                        novasPorCircuitoERound["$circuitId|$round"] = corrida
+                    }
+                }
+                if (round.isNotBlank()) {
+                    novasPorRound[round] = corrida
+                }
+            }
+
+            for (i in 0 until corridasAtuais.length()) {
+                val atual = corridasAtuais.optJSONObject(i) ?: return false
+                val circuitId = atual.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")
+                    ?.trim()
+                    .orEmpty()
+                val round = atual.optString("round", "").trim()
+                val nova = (
+                    if (circuitId.isNotBlank() && round.isNotBlank()) {
+                        novasPorCircuitoERound["$circuitId|$round"]
+                    } else {
+                        null
+                    }
+                ) ?: (
+                    if (circuitId.isNotBlank()) novasPorCircuito[circuitId] else null
+                ) ?: (
+                    if (round.isNotBlank()) novasPorRound[round] else null
+                ) ?: return false
+
+                // Preserve datas e horários básicos já conhecidos da corrida.
+                if (
+                    valorConhecido(atual.optString("date", "")) &&
+                    !valorConhecido(nova.optString("date", ""))
+                ) {
+                    return false
+                }
+                if (
+                    valorConhecido(atual.optString("time", "")) &&
+                    !valorConhecido(nova.optString("time", ""))
+                ) {
+                    return false
+                }
+
+                // Uma resposta parcial não pode retirar ou esvaziar uma
+                // sessão específica que já estava salva para esta corrida.
+                for (nomeSessao in SESSOES) {
+                    val sessaoAtual = atual.optJSONObject(nomeSessao) ?: continue
+                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: return false
+                    if (
+                        valorConhecido(sessaoAtual.optString("date", "")) &&
+                        !valorConhecido(sessaoNova.optString("date", ""))
+                    ) {
+                        return false
+                    }
+                    if (
+                        valorConhecido(sessaoAtual.optString("time", "")) &&
+                        !valorConhecido(sessaoNova.optString("time", ""))
+                    ) {
+                        return false
+                    }
+                }
+            }
+
+            true
         } catch (_: Exception) {
             // Se o cache existente estiver corrompido, permite recuperá-lo.
             true
