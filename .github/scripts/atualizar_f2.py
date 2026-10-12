@@ -224,8 +224,21 @@ def main():
     if SAIDA.exists():
         try:
             anterior = json.loads(SAIDA.read_text(encoding="utf-8"))
-            etapas_anteriores = anterior.get("etapas", [])
-            if isinstance(etapas_anteriores, list) and len(etapas) < len(etapas_anteriores):
+            if (
+                not isinstance(anterior, dict)
+                or not isinstance(anterior.get("etapas"), list)
+                or not anterior["etapas"]
+                or any(
+                    not isinstance(etapa, dict)
+                    or not isinstance(etapa.get("sessoes"), list)
+                    or not etapa.get("etapa")
+                    for etapa in anterior["etapas"]
+                )
+            ):
+                raise ValueError("estrutura do calendário anterior inválida")
+
+            etapas_anteriores = anterior["etapas"]
+            if len(etapas) < len(etapas_anteriores):
                 print(
                     f"ERRO: novo calendário tem {len(etapas)} etapas, "
                     f"mas o arquivo atual tem {len(etapas_anteriores)}. Nada foi alterado."
