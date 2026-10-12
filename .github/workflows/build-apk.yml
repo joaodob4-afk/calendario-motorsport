@@ -33,6 +33,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Testar atualizador da IndyCar sem rede
+        run: python -m unittest discover -s .github/scripts/tests -v
+
       - name: Consultar calendário oficial da F2
         run: python .github/scripts/atualizar_f2.py
 
