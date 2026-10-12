@@ -35,8 +35,12 @@ class F2Activity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Baixa o calendário F2 mais recente em segundo plano.
-        F2CalendarJson.atualizar(this)
+        // Atualiza os detalhes assim que o calendário novo for salvo.
+        F2CalendarJson.atualizar(this) {
+            if (!isFinishing && !isDestroyed) {
+                carregarEvento()
+            }
+        }
 
         overridePendingTransition(
             R.anim.slide_in_right,
@@ -54,11 +58,17 @@ class F2Activity : AppCompatActivity() {
 
         montarTela()
 
-        // Carrega o JSON e usa o calendário local como reserva.
+        carregarEvento()
+    }
+
+    private fun carregarEvento() {
+        if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
+
+        conteudo.removeAllViews()
+
+        // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
         val eventos = F2CalendarJson.carregar(this)
         val proximaEtapa = obterProximaEtapa(eventos)
-
-        // Usa a etapa que o usuário tocou; sem escolha, usa a próxima.
         val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
         val evento = eventos.find { it.etapa == etapaEscolhida }
             ?: proximaEtapa
@@ -74,7 +84,6 @@ class F2Activity : AppCompatActivity() {
                 verde,
                 true
             )
-
             adicionarTexto(
                 "Não foi possível encontrar uma próxima etapa no calendário.",
                 14f,
