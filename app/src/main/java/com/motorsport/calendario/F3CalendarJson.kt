@@ -30,28 +30,34 @@ object F3CalendarJson {
 
     fun carregar(context: Context): List<F3Event> {
         val json = lerCache(context) ?: lerAsset(context)
+        val eventosJson = json?.let { interpretar(it) }.orEmpty()
+        val temporadaJson = json?.let {
+            try {
+                JSONObject(it).optInt("temporada", 0)
+            } catch (_: Exception) {
+                0
+            }
+        } ?: 0
+        val temporadaFallback = F3Calendar.eventos.firstOrNull()
+            ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
 
-        val eventosJson = if (json != null) {
-            interpretar(json)
-        } else {
-            emptyList()
+        // Só completa etapas ausentes com o fallback da mesma temporada.
+        // Uma temporada nova pode ter legitimamente outra quantidade de etapas.
+        if (eventosJson.isNotEmpty() &&
+            temporadaJson > 0 &&
+            temporadaJson == temporadaFallback
+        ) {
+            val combinados = F3Calendar.eventos
+                .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
+                eventosJson
+            return combinados.sortedBy { it.etapa }
         }
 
-        // Mantém a regra original: só usa o JSON sozinho quando
-        // contém pelo menos dez etapas; caso contrário, combina
-        // com o calendário local de reserva.
-        if (eventosJson.size >= 9) {
+        if (eventosJson.isNotEmpty()) {
             return eventosJson.sortedBy { it.etapa }
         }
 
-        val combinados = F3Calendar.eventos
-            .filterNot { local ->
-                eventosJson.any { remoto ->
-                    remoto.etapa == local.etapa
-                }
-            } + eventosJson
-
-        return combinados.sortedBy { it.etapa }
+        return F3Calendar.eventos.sortedBy { it.etapa }
     }
 
     fun atualizar(
