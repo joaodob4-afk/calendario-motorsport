@@ -164,6 +164,30 @@ object F3CalendarJson {
                 ) {
                     return false
                 }
+
+                // Na mesma temporada, não aceite uma atualização que perca
+                // sessões existentes ou substitua um horário conhecido por
+                // "A confirmar". Isso evita degradar os detalhes offline.
+                if (eventosAtuais != null) {
+                    val novosPorEtapa = eventosNovos.associateBy { it.etapa }
+                    for (atual in eventosAtuais) {
+                        val novo = novosPorEtapa[atual.etapa] ?: return false
+                        val novasSessoes = novo.sessoes.associateBy { it.nome }
+                        for (sessaoAtual in atual.sessoes) {
+                            val sessaoNova = novasSessoes[sessaoAtual.nome]
+                                ?: return false
+                            val horarioAtual = sessaoAtual.horario.trim()
+                            val horarioNovo = sessaoNova.horario.trim()
+                            if (
+                                horarioAtual.isNotBlank() &&
+                                !horarioAtual.equals("A confirmar", ignoreCase = true) &&
+                                horarioNovo.equals("A confirmar", ignoreCase = true)
+                            ) {
+                                return false
+                            }
+                        }
+                    }
+                }
             }
 
             saida = cacheAtomico.startWrite()
