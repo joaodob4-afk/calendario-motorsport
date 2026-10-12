@@ -1,6 +1,7 @@
 package com.motorsport.calendario
 
 import android.content.Intent
+import java.io.File
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Bundle
@@ -160,6 +161,9 @@ class F1CalendarActivity : AppCompatActivity() {
         setContentView(
             scroll
         )
+
+        // Atualiza o cache em segundo plano; a tela pode abrir usando os dados salvos.
+        F1CalendarApi.atualizar(this)
 
         carregarCalendario(
             layout,
@@ -591,44 +595,65 @@ class F1CalendarActivity : AppCompatActivity() {
         )
     }
 
-    private fun buscarCorridasF1():
-        JSONArray {
+    private fun buscarCorridasF1(): JSONArray {
+        // Primeiro tenta o JSON bruto salvo pela F1CalendarApi.
+        // Isso mantém os detalhes das corridas disponíveis sem internet.
+        val arquivoCache = File(filesDir, "f1_races_cache.json")
+        if (arquivoCache.isFile) {
+            try {
+                val jsonCache = JSONObject(
+                    arquivoCache.readText(Charsets.UTF_8)
+                )
+                val corridasCache = jsonCache
+                    .getJSONObject("MRData")
+                    .getJSONObject("RaceTable")
+                    .getJSONArray("Races")
 
-        val url =
-            URL(
-                "https://api.jolpi.ca/ergast/f1/current/races/"
-            )
-
-        val connection =
-            url.openConnection()
-                    as HttpURLConnection
-
-        connection.requestMethod =
-            "GET"
-
-        connection.connectTimeout =
-            15000
-
-        connection.readTimeout =
-            15000
-
-        connection.setRequestProperty(
-            "User-Agent",
-            "CalendarioMotorsport/1.0"
-        )
-
-        val resposta =
-            connection.inputStream
-                .bufferedReader()
-                .use {
-                    it.readText()
+                if (corridasCache.length() >= 5) {
+                    return corridasCache
                 }
+            } catch (_: Exception) {
+                // Cache ausente/corrompido: tenta a rede abaixo.
+            }
+        }
 
-        connection.disconnect()
+        var connection: HttpURLConnection? = null
+        try {
+            val url = URL(
+                "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
+            )
+            connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
+            connection.setRequestProperty(
+                "User-Agent",
+                "CalendarioMotorsport/1.0"
+            )
+            connection.setRequestProperty("Accept", "application/json")
 
-        return JSONObject(resposta)
-            .getJSONObject("MRData")
-            .getJSONObject("RaceTable")
-            .getJSONArray("Races")
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                throw java.io.IOException(
+                    "Resposta HTTP ${connection.responseCode}"
+                )
+            }
+
+            val resposta = connection.inputStream
+                .bufferedReader(Charsets.UTF_8)
+                .use { it.readText() }
+
+            val corridas = JSONObject(resposta)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+
+            if (corridas.length() < 5) {
+                throw java.io.IOException("Calendário recebido está incompleto")
+            }
+
+            return corridas
+        } finally {
+            connection?.disconnect()
+        }
     }
 }
