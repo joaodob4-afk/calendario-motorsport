@@ -36,8 +36,22 @@ object FormulaECalendarJson {
         "calendario-motorsport/main/app/src/main/assets/fe_calendar.json"
 
     private const val ARQUIVO_CACHE = "fe_calendar_cache.json"
-    private const val MINIMO_ETAPAS_VALIDAS = 13
-    private const val MINIMO_RODADAS_VALIDAS = 21
+
+    // Os mínimos fixos se aplicam apenas à temporada 2026/27.
+    private data class LimitesTemporada(val etapas: Int, val rodadas: Int)
+
+    private fun limitesDaTemporada(temporada: String): LimitesTemporada? =
+        when (temporada.trim()) {
+            "2026/27" -> LimitesTemporada(etapas = 13, rodadas = 21)
+            else -> null
+        }
+
+    private val regexNumeroRodada = Regex("""(?i)\bRodada\s+(\d+)\b""")
+
+    private fun numeroDaRodada(nome: String): Int? {
+        if (!nome.contains("corrida", ignoreCase = true)) return null
+        return regexNumeroRodada.find(nome)?.groupValues?.getOrNull(1)?.toIntOrNull()
+    }
 
     private val formatoData: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu")
@@ -86,11 +100,9 @@ object FormulaECalendarJson {
                         .bufferedReader(StandardCharsets.UTF_8)
                         .use { it.readText() }
 
-                    val eventos = interpretar(texto)
-
-                    if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                        gravou = gravarCacheSeguro(app, texto)
-                    }
+                    // A validação aplica os limites da temporada, se conhecidos.
+                    interpretar(texto)
+                    gravou = gravarCacheSeguro(app, texto)
                 }
             } catch (_: Exception) {
                 // Sem internet, JSON inválido ou falha de gravação:
@@ -191,13 +203,8 @@ object FormulaECalendarJson {
                 .bufferedReader(StandardCharsets.UTF_8)
                 .use { it.readText() }
 
-            val eventos = interpretar(texto)
-
-            if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                texto
-            } else {
-                null
-            }
+            interpretar(texto)
+            texto
         } catch (_: Exception) {
             null
         }
@@ -210,13 +217,8 @@ object FormulaECalendarJson {
                 .bufferedReader(StandardCharsets.UTF_8)
                 .use { it.readText() }
 
-            val eventos = interpretar(texto)
-
-            if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                texto
-            } else {
-                null
-            }
+            interpretar(texto)
+            texto
         } catch (_: Exception) {
             null
         }
@@ -233,13 +235,20 @@ object FormulaECalendarJson {
             "Categoria inválida"
         }
 
+        val temporada = raiz.optString("temporada").trim()
+        val limites = limitesDaTemporada(temporada)
         val etapas = raiz.getJSONArray("etapas")
-        require(etapas.length() >= MINIMO_ETAPAS_VALIDAS) {
-            "Calendário incompleto"
+
+        require(etapas.length() > 0) { "Calendário sem etapas" }
+        if (limites != null) {
+            require(etapas.length() >= limites.etapas) {
+                "Calendário incompleto para a temporada $temporada"
+            }
         }
 
         val eventos = mutableListOf<FormulaEEvent>()
         val numerosEtapas = mutableSetOf<Int>()
+        val numerosRodadas = mutableSetOf<Int>()
 
         for (i in 0 until etapas.length()) {
             val etapa = etapas.getJSONObject(i)
@@ -270,6 +279,7 @@ object FormulaECalendarJson {
             }
 
             val sessoes = mutableListOf<FormulaESession>()
+            var corridasNestaEtapa = 0
 
             for (j in 0 until sessoesJson.length()) {
                 val sessao = sessoesJson.getJSONObject(j)
@@ -282,6 +292,16 @@ object FormulaECalendarJson {
                 ).trim().ifBlank { "A confirmar" }
 
                 require(nome.isNotBlank()) { "Sessão sem nome" }
+
+                // Contabiliza apenas corridas identificadas como "Rodada N".
+                val numeroRodada = numeroDaRodada(nome)
+                if (numeroRodada != null) {
+                    require(numeroRodada > 0) { "Número de rodada inválido" }
+                    require(numerosRodadas.add(numeroRodada)) {
+                        "Número de rodada repetido"
+                    }
+                    corridasNestaEtapa++
+                }
 
                 // Confirma que a data da sessão existe e está no
                 // intervalo da etapa, sem alterar a data original.
@@ -303,6 +323,10 @@ object FormulaECalendarJson {
                 )
             }
 
+            require(corridasNestaEtapa > 0) {
+                "Etapa sem sessão de corrida identificável"
+            }
+
             eventos.add(
                 FormulaEEvent(
                     etapa = numero,
@@ -315,9 +339,11 @@ object FormulaECalendarJson {
             )
         }
 
-        val totalRodadas = eventos.sumOf { it.sessoes.size }
-        require(totalRodadas >= MINIMO_RODADAS_VALIDAS) {
-            "Calendário incompleto: menos de $MINIMO_RODADAS_VALIDAS rodadas"
+        if (limites != null) {
+            require(numerosRodadas.size >= limites.rodadas) {
+                "Calendário incompleto para a temporada $temporada: " +
+                    "menos de ${limites.rodadas} rodadas identificadas"
+            }
         }
 
         return eventos
