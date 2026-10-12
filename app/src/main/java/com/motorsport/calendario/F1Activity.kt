@@ -203,36 +203,62 @@ class F1Activity : AppCompatActivity() {
         val corridaTexto = intent.getStringExtra("RACE")
         val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
 
-        var selecionada: JSONObject? = null
+        // A tela inicial pode enviar apenas um resumo da etapa, sem sessões.
+        // Quando há circuito selecionado, prioriza o cache completo antes do resumo.
+        if (!circuitId.isNullOrBlank()) {
+            val jsonCache = F1CalendarApi.corridaJsonDoCache(this, circuitId)
+            if (!jsonCache.isNullOrBlank()) {
+                try {
+                    val corridaCache = JSONObject(jsonCache)
+                    val temSessoes = listOf(
+                        "FirstPractice", "SecondPractice", "ThirdPractice",
+                        "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
+                    ).any { corridaCache.has(it) && corridaCache.optJSONObject(it) != null }
 
-        if (!corridaTexto.isNullOrBlank()) {
-            selecionada = try {
-                JSONObject(corridaTexto)
-            } catch (_: Exception) {
-                null
+                    if (temSessoes || corridaTexto.isNullOrBlank()) {
+                        corridaEhProxima = false
+                        return corridaCache
+                    }
+                } catch (_: Exception) {
+                    // Cache inválido: tenta os outros caminhos.
+                }
             }
         }
 
-        val proxima = try {
-            buscarProximaCorrida()
-        } catch (e: Exception) {
-            if (selecionada != null) null else throw e
+        // Usa o objeto recebido diretamente apenas se ele já tiver sessões,
+        // ou se não houver um circuito para procurar uma versão mais completa.
+        if (!corridaTexto.isNullOrBlank()) {
+            try {
+                val corridaRecebida = JSONObject(corridaTexto)
+                val temSessoes = listOf(
+                    "FirstPractice", "SecondPractice", "ThirdPractice",
+                    "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
+                ).any { corridaRecebida.has(it) && corridaRecebida.optJSONObject(it) != null }
+
+                if (temSessoes || circuitId.isNullOrBlank()) {
+                    corridaEhProxima = false
+                    return corridaRecebida
+                }
+            } catch (_: Exception) {
+                // Tenta a fonte online.
+            }
         }
 
-        if (selecionada == null && !circuitId.isNullOrBlank()) {
-            selecionada = buscarCorridaPorCircuito(circuitId)
+        if (!circuitId.isNullOrBlank()) {
+            val selecionada = try {
+                buscarCorridaPorCircuito(circuitId)
+            } catch (_: Exception) {
+                null
+            }
+
+            if (selecionada != null) {
+                corridaEhProxima = false
+                return selecionada
+            }
         }
 
-        if (selecionada == null) {
-            corridaEhProxima = true
-            return proxima
-        }
-
-        corridaEhProxima =
-            proxima != null &&
-            selecionada.optString("round") == proxima.optString("round")
-
-        return selecionada
+        corridaEhProxima = true
+        return buscarProximaCorrida()
     }
 
     private fun buscarCorridaPorCircuito(circuitId: String): JSONObject? {

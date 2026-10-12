@@ -4,6 +4,7 @@ package com.motorsport.calendario
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -113,6 +114,39 @@ object F1CalendarApi {
         }
     }
 
+    /**
+     * Retorna o JSON de uma corrida específica usando o cache local.
+     * Assim a tela de detalhes pode funcionar sem conexão.
+     */
+    fun corridaJsonDoCache(context: Context, circuitId: String): String? {
+        if (circuitId.isBlank()) return null
+
+        return try {
+            val arquivo = File(
+                context.applicationContext.filesDir,
+                ARQUIVO_CACHE
+            )
+            if (!arquivo.isFile) return null
+
+            val corridas = JSONObject(arquivo.readText(Charsets.UTF_8))
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+
+            for (i in 0 until corridas.length()) {
+                val corrida = corridas.getJSONObject(i)
+                val id = corrida.optJSONObject("Circuit")
+                    ?.optString("circuitId", "") ?: ""
+                if (id.equals(circuitId, ignoreCase = true)) {
+                    return corrida.toString()
+                }
+            }
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun atualizar(
         context: Context,
         aoTerminar: (() -> Unit)? = null
@@ -124,40 +158,29 @@ object F1CalendarApi {
             var conexao: HttpURLConnection? = null
 
             try {
-                conexao = URL(URL_API)
-                    .openConnection() as HttpURLConnection
-
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.requestMethod = "GET"
-                conexao.setRequestProperty(
-                    "Accept",
-                    "application/json"
-                )
-
-                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
-                    val texto = conexao.inputStream
-                        .bufferedReader(Charsets.UTF_8)
-                        .use { it.readText() }
-
-                    val etapas = interpretar(texto)
-
-                    if (etapas.size >= MINIMO_CORRIDAS_VALIDAS) {
-                        gravou = gravarCacheSeguro(
-                            app.filesDir,
-                            texto
-                        )
+                // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
+                val ano = java.time.LocalDate.now().year
+                val normalizado = try {
+                    val detalhado = baixarTexto(
+                        "https://api.jolpi.ca/f1/alpha/schedules/$ano/"
+                    )
+                    normalizarProgramacaoDetalhada(detalhado)
+                } catch (_: Exception) {
+                    null
+                }
+                if (normalizado != null &&
+                    interpretar(normalizado).size >= MINIMO_CORRIDAS_VALIDAS
+                ) {
+                    gravou = gravarCacheSeguro(app.filesDir, normalizado)
+                } else {
+                    // Compatibilidade: se o endpoint detalhado falhar, mantém o calendário básico.
+                    val basico = baixarTexto(URL_API)
+                    if (interpretar(basico).size >= MINIMO_CORRIDAS_VALIDAS) {
+                        gravou = gravarCacheSeguro(app.filesDir, basico)
                     }
                 }
             } catch (_: Exception) {
-                // Sem internet ou resposta inválida:
-                // preserva o cache anterior.
-            } finally {
-                try {
-                    conexao?.disconnect()
-                } catch (_: Exception) {
-                    // Evita que uma falha ao fechar afete o app.
-                }
+                // Sem internet ou resposta inválida: preserva o cache anterior.
             }
 
             if (gravou && aoTerminar != null) {
@@ -170,6 +193,145 @@ object F1CalendarApi {
                 }
             }
         }.start()
+    }
+
+    private fun baixarTexto(endereco: String): String {
+        var conexao: HttpURLConnection? = null
+        try {
+            conexao = URL(endereco).openConnection() as HttpURLConnection
+            conexao.connectTimeout = 10000
+            conexao.readTimeout = 10000
+            conexao.requestMethod = "GET"
+            conexao.setRequestProperty("User-Agent", "CalendarioMotorsport/1.0")
+            conexao.setRequestProperty("Accept", "application/json")
+            if (conexao.responseCode != HttpURLConnection.HTTP_OK) {
+                throw java.io.IOException("HTTP ${conexao.responseCode}")
+            }
+            return conexao.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        } finally {
+            conexao?.disconnect()
+        }
+    }
+
+    /**
+     * Converte o endpoint alpha (data.events[].schedule[]) para o formato
+     * Ergast já consumido pelas telas de calendário e detalhes.
+     */
+    private fun normalizarProgramacaoDetalhada(texto: String): String? {
+        return try {
+            val raiz = JSONObject(texto).getJSONObject("data")
+            val eventos = raiz.getJSONArray("events")
+            val corridas = JSONArray()
+
+            for (i in 0 until eventos.length()) {
+                val evento = eventos.getJSONObject(i)
+                val round = evento.optJSONObject("round") ?: continue
+                val circuito = evento.optJSONObject("circuit") ?: continue
+                val agenda = evento.optJSONArray("schedule") ?: JSONArray()
+                val sessões = JSONObject()
+
+                var dataCorrida = ""
+                var horaCorrida = ""
+                for (j in 0 until agenda.length()) {
+                    val sessao = agenda.optJSONObject(j) ?: continue
+                    val codigo = sessao.optString("code", "").uppercase()
+                    val timestamp = sessao.optString("timestamp", "")
+                    if (timestamp.isBlank() || timestamp == "null") continue
+                    val instante = try {
+                        java.time.OffsetDateTime.parse(timestamp)
+                            .withOffsetSameInstant(java.time.ZoneOffset.UTC)
+                    } catch (_: Exception) {
+                        try {
+                            java.time.Instant.parse(timestamp).atOffset(java.time.ZoneOffset.UTC)
+                        } catch (_: Exception) {
+                            continue
+                        }
+                    }
+                    val data = instante.toLocalDate().toString()
+                    val hora = instante.toLocalTime().toString().take(8) + "Z"
+                    val campo = when (codigo) {
+                        "FP1" -> "FirstPractice"
+                        "FP2" -> "SecondPractice"
+                        "FP3" -> "ThirdPractice"
+                        "Q" -> "Qualifying"
+                        "SQ" -> "SprintQualifying"
+                        "SR", "S" -> "Sprint"
+                        "R" -> {
+                            dataCorrida = data
+                            horaCorrida = hora
+                            null
+                        }
+                        else -> null
+                    }
+                    if (campo != null) {
+                        sessões.put(campo, JSONObject().put("date", data).put("time", hora))
+                    }
+                }
+                if (dataCorrida.isBlank()) {
+                    val primeira = agenda.optJSONObject(0)
+                    val timestamp = primeira?.optString("timestamp", "") ?: ""
+                    if (timestamp.isNotBlank() && timestamp != "null") {
+                        dataCorrida = try {
+                            java.time.OffsetDateTime.parse(timestamp)
+                                .withOffsetSameInstant(java.time.ZoneOffset.UTC)
+                                .toLocalDate().toString()
+                        } catch (_: Exception) {
+                            try { java.time.Instant.parse(timestamp).toString().substring(0, 10) }
+                            catch (_: Exception) { "" }
+                        }
+                    }
+                }
+                if (dataCorrida.isBlank()) continue
+                val local = JSONObject()
+                    .put("locality", circuito.optString("locality", ""))
+                    .put("country", circuito.optString("country", ""))
+                val circuitoErgast = JSONObject()
+                    .put("circuitId", circuito.optString("id", "round_${i + 1}"))
+                    .put("circuitName", circuito.optString("name", "Circuito"))
+                    .put("Location", local)
+                val corrida = JSONObject()
+                    .put("season", raiz.optInt("year", java.time.LocalDate.now().year).toString())
+                    .put("round", round.optInt("number", i + 1).toString())
+                    .put("raceName", round.optString("name", "Grande Prêmio"))
+                    .put("Circuit", circuitoErgast)
+                    .put("date", dataCorrida)
+                if (horaCorrida.isNotBlank()) corrida.put("time", horaCorrida)
+                val nomes = sessões.keys()
+                while (nomes.hasNext()) {
+                    val nome = nomes.next()
+                    corrida.put(nome, sessões.getJSONObject(nome))
+                }
+                corridas.put(corrida)
+            }
+            if (corridas.length() < MINIMO_CORRIDAS_VALIDAS) return null
+            JSONObject().put("MRData", JSONObject()
+                .put("series", "f1")
+                .put("RaceTable", JSONObject()
+                    .put("season", raiz.optInt("year", java.time.LocalDate.now().year).toString())
+                    .put("Races", corridas)))
+                .toString()
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Salva o JSON completo do calendário recebido pela tela, preservando
+     * os campos de todas as sessões para consulta offline.
+     */
+    fun salvarCalendarioCompleto(context: Context, json: String): Boolean {
+        return try {
+            val corridas = JSONObject(json)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+            if (corridas.length() < MINIMO_CORRIDAS_VALIDAS) {
+                return false
+            }
+            gravarCacheSeguro(context.applicationContext.filesDir, json)
+        } catch (_: Exception) {
+            false
+        }
     }
 
     /**

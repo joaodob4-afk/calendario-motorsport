@@ -31,6 +31,7 @@ MESES = {
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
 PREFIXO = "NTT INDYCAR SERIES - "
+MINIMO_ETAPAS_VALIDAS = 10
 
 
 def baixar(url):
@@ -253,8 +254,8 @@ def main():
         return 1
 
     print("Etapas encontradas:", len(cartoes))
-    if len(cartoes) < 5:
-        print("ERRO: poucas etapas. Nada foi alterado.")
+    if len(cartoes) < MINIMO_ETAPAS_VALIDAS:
+        print(f"ERRO: calendário incompleto ({len(cartoes)} etapas; mínimo {MINIMO_ETAPAS_VALIDAS}). Nada foi alterado.")
         return 1
 
     etapas = []
