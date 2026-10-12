@@ -113,6 +113,39 @@ object F1CalendarApi {
         }
     }
 
+    /**
+     * Retorna o JSON de uma corrida específica usando o cache local.
+     * Assim a tela de detalhes pode funcionar sem conexão.
+     */
+    fun corridaJsonDoCache(context: Context, circuitId: String): String? {
+        if (circuitId.isBlank()) return null
+
+        return try {
+            val arquivo = File(
+                context.applicationContext.filesDir,
+                ARQUIVO_CACHE
+            )
+            if (!arquivo.isFile) return null
+
+            val corridas = JSONObject(arquivo.readText(Charsets.UTF_8))
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+
+            for (i in 0 until corridas.length()) {
+                val corrida = corridas.getJSONObject(i)
+                val id = corrida.optJSONObject("Circuit")
+                    ?.optString("circuitId", "") ?: ""
+                if (id.equals(circuitId, ignoreCase = true)) {
+                    return corrida.toString()
+                }
+            }
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun atualizar(
         context: Context,
         aoTerminar: (() -> Unit)? = null
