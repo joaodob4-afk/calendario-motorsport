@@ -132,12 +132,24 @@ object IndyCarCalendarJson {
         context: Context,
         texto: String
     ) {
-        // A validação acontece antes de tocar no arquivo existente.
+        // Valida antes de tocar no arquivo existente.
         interpretar(texto)
 
         val destino = File(context.filesDir, ARQUIVO_CACHE)
-        val atomic = AtomicFile(destino)
+        gravarAtomicamente(AtomicFile(destino), texto)
+    }
 
+    /**
+     * Grava o cache atomicamente.
+     * Permite injetar uma falha de escrita nos testes.
+     */
+    internal fun gravarAtomicamente(
+        atomic: AtomicFile,
+        texto: String,
+        escrever: (FileOutputStream, ByteArray) -> Unit = { saida, bytes ->
+            saida.write(bytes)
+        }
+    ) {
         synchronized(cacheLock) {
             var saida: FileOutputStream? = null
 
@@ -145,11 +157,12 @@ object IndyCarCalendarJson {
                 val arquivoTemporario = atomic.startWrite()
                 saida = arquivoTemporario
 
-                arquivoTemporario.write(
+                escrever(
+                    arquivoTemporario,
                     texto.toByteArray(Charsets.UTF_8)
                 )
-                arquivoTemporario.flush()
 
+                arquivoTemporario.flush()
                 atomic.finishWrite(arquivoTemporario)
                 saida = null
             } catch (e: Exception) {
