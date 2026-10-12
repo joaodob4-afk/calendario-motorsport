@@ -60,6 +60,66 @@ object F3CalendarJson {
         return F3Calendar.eventos.sortedBy { it.etapa }
     }
 
+    fun atualizar(
+        context: Context,
+        aoTerminar: (() -> Unit)? = null
+    ) {
+        val app = context.applicationContext
+
+        Thread {
+            var gravou = false
+            var conexao: HttpURLConnection? = null
+
+            try {
+                conexao = URL(URL_JSON)
+                    .openConnection() as HttpURLConnection
+
+                conexao.connectTimeout = 10000
+                conexao.readTimeout = 10000
+                conexao.requestMethod = "GET"
+                conexao.setRequestProperty(
+                    "Cache-Control",
+                    "no-cache"
+                )
+                conexao.setRequestProperty(
+                    "Accept",
+                    "application/json"
+                )
+
+                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
+                    val texto = conexao.inputStream
+                        .bufferedReader(Charsets.UTF_8)
+                        .use { it.readText() }
+
+                    val eventos = interpretar(texto)
+
+                    if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
+                        gravou = gravarCacheSeguro(app, texto)
+                    }
+                }
+            } catch (_: Exception) {
+                // Falha de rede ou dados inválidos:
+                // mantém o cache anterior e o calendário local.
+            } finally {
+                try {
+                    conexao?.disconnect()
+                } catch (_: Exception) {
+                    // Não deixa uma falha ao fechar afetar o aplicativo.
+                }
+            }
+
+            if (gravou && aoTerminar != null) {
+                Handler(Looper.getMainLooper()).post {
+                    try {
+                        aoTerminar()
+                    } catch (_: Exception) {
+                        // A gravação do cache já foi concluída.
+                    }
+                }
+            }
+        }.start()
+    }
+
     /**
      * AtomicFile protege o cache anterior caso a gravação falhe.
      * O conteúdo é validado antes e depois da escrita.
