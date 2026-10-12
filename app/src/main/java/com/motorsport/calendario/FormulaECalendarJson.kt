@@ -130,7 +130,7 @@ object FormulaECalendarJson {
         texto: String
     ): Boolean {
         return try {
-            interpretar(texto)
+            val eventosNovos = interpretar(texto)
             val novaRaiz = JSONObject(texto)
             val novaTemporada = novaRaiz.optString("temporada").trim()
             val novasEtapas = novaRaiz.getJSONArray("etapas").length()
@@ -156,6 +156,28 @@ object FormulaECalendarJson {
                         val etapasAtuais = raizAtual.getJSONArray("etapas").length()
                         if (novaTemporada == temporadaAtual && novasEtapas < etapasAtuais) {
                             return false
+                        }
+
+                        // Preserva detalhes offline de cada etapa da mesma temporada.
+                        if (novaTemporada == temporadaAtual) {
+                            val novosPorEtapa = eventosNovos.associateBy { it.etapa }
+                            for (atual in eventosAtuais) {
+                                val novo = novosPorEtapa[atual.etapa] ?: return false
+                                val novasSessoes = novo.sessoes.associateBy { it.nome }
+                                for (sessaoAtual in atual.sessoes) {
+                                    val sessaoNova = novasSessoes[sessaoAtual.nome]
+                                        ?: return false
+                                    val horarioAtual = sessaoAtual.horario.trim()
+                                    val horarioNovo = sessaoNova.horario.trim()
+                                    if (
+                                        horarioAtual.isNotBlank() &&
+                                        !horarioAtual.equals("A confirmar", ignoreCase = true) &&
+                                        horarioNovo.equals("A confirmar", ignoreCase = true)
+                                    ) {
+                                        return false
+                                    }
+                                }
+                            }
                         }
                     }
                 }

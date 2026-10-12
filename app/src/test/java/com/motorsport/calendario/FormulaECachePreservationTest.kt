@@ -16,13 +16,13 @@ import java.io.File
 @Config(sdk = [28])
 class FormulaECachePreservationTest {
 
-    private fun jsonComEtapas(quantidade: Int, temporada: String = "2026/27"): String {
+    private fun jsonComEtapas(quantidade: Int, temporada: String = "2026/27", horario: String = "A confirmar", removerSegundaCorridaPrimeiraEtapa: Boolean = false): String {
         var rodada = 1
         val etapas = (1..quantidade).joinToString(",\n") { numero ->
-            val quantidadeCorridas = if (numero <= 8 && quantidade >= 13) 2 else 1
+            val quantidadeCorridas = if (numero == 1 && removerSegundaCorridaPrimeiraEtapa) 1 else if (numero <= 8 && quantidade >= 13) 2 else 1
             val sessoes = (1..quantidadeCorridas).joinToString(",\n") {
                 val nome = "Corrida (Rodada ${rodada++})"
-                """{"nome":"$nome","data":"18/12/2026","horario":"A confirmar"}"""
+                """{"nome":"$nome","data":"18/12/2026","horario":"$horario"}"""
             }
             """
             {
@@ -68,6 +68,60 @@ class FormulaECachePreservationTest {
             assertFalse(FormulaECalendarJson.gravarCacheSeValido(context, jsonComEtapas(13)))
             assertEquals(original, AtomicFile(arquivo).openRead().bufferedReader().use { it.readText() })
             assertEquals(15, FormulaECalendarJson.carregar(context).size)
+        } finally {
+            limpar(context)
+        }
+    }
+
+    @Test
+    fun horarioConhecidoNaoPodeVirarAConfirmar() {
+        val context = RuntimeEnvironment.getApplication()
+        limpar(context)
+        val arquivo = cacheFile(context)
+
+        try {
+            assertTrue(
+                FormulaECalendarJson.gravarCacheSeValido(
+                    context,
+                    jsonComEtapas(15, horario = "19:30")
+                )
+            )
+            val original = arquivo.readText()
+
+            assertFalse(
+                FormulaECalendarJson.gravarCacheSeValido(
+                    context,
+                    jsonComEtapas(15, horario = "A confirmar")
+                )
+            )
+            assertEquals(original, AtomicFile(arquivo).openRead().bufferedReader().use { it.readText() })
+        } finally {
+            limpar(context)
+        }
+    }
+
+    @Test
+    fun sessaoRemovidaNaoSubstituiCache() {
+        val context = RuntimeEnvironment.getApplication()
+        limpar(context)
+        val arquivo = cacheFile(context)
+
+        try {
+            assertTrue(
+                FormulaECalendarJson.gravarCacheSeValido(
+                    context,
+                    jsonComEtapas(15)
+                )
+            )
+            val original = arquivo.readText()
+
+            assertFalse(
+                FormulaECalendarJson.gravarCacheSeValido(
+                    context,
+                    jsonComEtapas(15, removerSegundaCorridaPrimeiraEtapa = true)
+                )
+            )
+            assertEquals(original, AtomicFile(arquivo).openRead().bufferedReader().use { it.readText() })
         } finally {
             limpar(context)
         }

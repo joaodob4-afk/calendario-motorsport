@@ -17,8 +17,20 @@ import java.io.IOException
 @Config(sdk = [28])
 class IndyCarCachePreservationTest {
 
-private fun jsonComEtapas(quantidade: Int): String {
+private fun jsonComEtapas(
+    quantidade: Int,
+    temporada: Int = 2026,
+    horario: String = "12:30",
+    incluirTreino: Boolean = false
+): String {
     val etapas = (1..quantidade).joinToString(",\n") { numero ->
+        val treino = if (incluirTreino) """
+            {
+              "nome": "Treino",
+              "data": "01/05/$temporada",
+              "horario": "11:30"
+            },
+        """.trimIndent() + "\n" else ""
         """
         {
           "etapa": $numero,
@@ -26,13 +38,14 @@ private fun jsonComEtapas(quantidade: Int): String {
           "circuito": "Circuito de teste $numero",
           "local": "Cidade de teste",
           "pais": "Brasil",
-          "inicio": "01/05/2026",
-          "fim": "03/05/2026",
+          "inicio": "01/05/$temporada",
+          "fim": "03/05/$temporada",
           "sessoes": [
+            $treino
             {
               "nome": "Corrida",
-              "data": "02/05/2026",
-              "horario": "12:30"
+              "data": "02/05/$temporada",
+              "horario": "$horario"
             }
           ]
         }
@@ -41,7 +54,7 @@ private fun jsonComEtapas(quantidade: Int): String {
 
     return """
         {
-          "temporada": 2026,
+          "temporada": $temporada,
           "categoria": "IndyCar",
           "etapas": [
             $etapas
@@ -207,6 +220,72 @@ fun recuperaCacheValidoAposGravacaoInterrompida() {
             conteudoOriginal,
             arquivoCache.readText()
         )
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
+@Test
+fun sessaoRemovidaNaMesmaTemporadaNaoSubstituiCache() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) = prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18, incluirTreino = true)
+        )
+        val original = arquivoCache.readText()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            IndyCarCalendarJson.gravarCacheSeValido(
+                context,
+                jsonComEtapas(18)
+            )
+        }
+        assertEquals(original, arquivoCache.readText())
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
+@Test
+fun horarioConhecidoNaoPodeVirarAConfirmar() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) = prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18)
+        )
+        val original = arquivoCache.readText()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            IndyCarCalendarJson.gravarCacheSeValido(
+                context,
+                jsonComEtapas(18, horario = "A confirmar")
+            )
+        }
+        assertEquals(original, arquivoCache.readText())
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
+@Test
+fun temporadaNovaPodeTerQuantidadeDiferenteDeEtapas() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) = prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(context, jsonComEtapas(18, temporada = 2026))
+        IndyCarCalendarJson.gravarCacheSeValido(context, jsonComEtapas(10, temporada = 2027))
+
+        assertEquals(10, IndyCarCalendarJson.carregar(context).size)
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
