@@ -301,8 +301,9 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
 
     for etapa_atual in anterior["etapas"]:
         nome_atual = str(etapa_atual.get("nome", "")).strip().casefold()
-        etapa_nova = etapas_por_nome.get(nome_atual) if nome_atual else None
-        if etapa_nova is None:
+        if nome_atual:
+            etapa_nova = etapas_por_nome.get(nome_atual)
+        else:
             etapa_nova = etapas_por_numero.get(etapa_atual.get("etapa"))
         if etapa_nova is None:
             raise ValueError(
