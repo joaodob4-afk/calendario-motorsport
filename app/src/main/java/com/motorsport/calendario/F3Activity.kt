@@ -233,7 +233,7 @@ class F3Activity : AppCompatActivity() {
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            "FÓRMULA 2",
+            "FÓRMULA 3",
             28f,
             branco,
             true
