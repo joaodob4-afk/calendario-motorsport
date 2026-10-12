@@ -175,7 +175,12 @@ object F1CalendarApi {
                 } else {
                     // Compatibilidade: se o endpoint detalhado falhar, mantém o calendário básico.
                     val basico = baixarTexto(URL_API)
-                    if (interpretar(basico).size >= MINIMO_CORRIDAS_VALIDAS) {
+                    if (
+                        interpretar(basico).size >= MINIMO_CORRIDAS_VALIDAS &&
+                        !cacheDaTemporadaTemSessoes(app, ano)
+                    ) {
+                        // Não substitui um cache detalhado da mesma temporada por
+                        // um calendário básico, que apagaria treinos e classificação offline.
                         gravou = gravarCacheSeguro(app.filesDir, basico)
                     }
                 }
@@ -193,6 +198,34 @@ object F1CalendarApi {
                 }
             }
         }.start()
+    }
+
+    /**
+     * Detecta se já existe cache da temporada atual com programação de sessões.
+     * O endpoint básico não deve apagar esses horários se o endpoint detalhado falhar.
+     */
+    private fun cacheDaTemporadaTemSessoes(context: Context, ano: Int): Boolean {
+        return try {
+            val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE)
+            if (!arquivo.isFile) return false
+
+            val tabela = JSONObject(arquivo.readText(Charsets.UTF_8))
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+
+            if (tabela.optString("season", "") != ano.toString()) return false
+
+            val corridas = tabela.getJSONArray("Races")
+            for (i in 0 until corridas.length()) {
+                val corrida = corridas.getJSONObject(i)
+                for (sessao in SESSOES) {
+                    if (corrida.optJSONObject(sessao) != null) return true
+                }
+            }
+            false
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun baixarTexto(endereco: String): String {
