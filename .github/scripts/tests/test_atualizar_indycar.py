@@ -65,7 +65,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             }), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "arquivo atual tem 17"):
                 indycar.validar_nao_reduzir_calendario(
-                    [{"etapa": n} for n in range(1, 11)], arquivo
+                    [{"etapa": n, "sessoes": [{"nome": "Corrida"}]} for n in range(1, 11)], arquivo
                 )
 
     def test_permite_calendario_com_mesma_ou_maior_quantidade(self):
@@ -79,11 +79,62 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 ],
             }), encoding="utf-8")
             indycar.validar_nao_reduzir_calendario(
-                [{"etapa": n} for n in range(1, 11)], arquivo
+                [{"etapa": n, "sessoes": [{"nome": "Corrida"}]} for n in range(1, 11)], arquivo
             )
             indycar.validar_nao_reduzir_calendario(
-                [{"etapa": n} for n in range(1, 12)], arquivo
+                [{"etapa": n, "sessoes": [{"nome": "Corrida"}]} for n in range(1, 12)], arquivo
             )
+
+
+    def test_recusa_remover_sessao_conhecida_na_mesma_temporada(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar", "temporada": 2026,
+                "etapas": [{
+                    "etapa": 1, "nome": "Grande Prêmio de teste",
+                    "sessoes": [
+                        {"nome": "Treino Livre 1", "data": "01/05/2026", "horario": "11:00"},
+                        {"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"},
+                    ],
+                }],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "sessão 'Treino Livre 1'.*ausente"):
+                indycar.validar_nao_reduzir_calendario([{
+                    "etapa": 1, "nome": "Grande Prêmio de teste",
+                    "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}],
+                }], arquivo, temporada_nova=2026)
+
+    def test_recusa_perder_horario_conhecido_na_mesma_temporada(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar", "temporada": 2026,
+                "etapas": [{
+                    "etapa": 1, "nome": "Grande Prêmio de teste",
+                    "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}],
+                }],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "horário conhecido removido"):
+                indycar.validar_nao_reduzir_calendario([{
+                    "etapa": 1, "nome": "Grande Prêmio de teste",
+                    "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "A confirmar"}],
+                }], arquivo, temporada_nova=2026)
+
+    def test_temporada_nova_permite_menos_etapas(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar", "temporada": 2026,
+                "etapas": [
+                    {"etapa": n, "nome": f"Etapa {n}", "sessoes": [{"nome": "Corrida", "horario": "16:00"}]}
+                    for n in range(1, 18)
+                ],
+            }), encoding="utf-8")
+            indycar.validar_nao_reduzir_calendario([
+                {"etapa": n, "nome": f"Nova etapa {n}", "sessoes": [{"nome": "Corrida", "horario": "A confirmar"}]}
+                for n in range(1, 11)
+            ], arquivo, temporada_nova=2027)
 
     def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
         with tempfile.TemporaryDirectory() as pasta:
