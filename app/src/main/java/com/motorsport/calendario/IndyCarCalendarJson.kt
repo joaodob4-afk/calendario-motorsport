@@ -33,15 +33,19 @@ data class IndyCarEvent(
 )
 
 object IndyCarCalendarJson {
+
     private const val URL_JSON =
         "https://raw.githubusercontent.com/joaodob4-afk/" +
-        "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
+        "calendario-motorsport/teste-cache-indycar/app/src/main/assets/indycar_calendar.json"
 
-    private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
+    private const val ARQUIVO_CACHE =
+        "indycar_calendar_cache_teste.json"
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
-// Coordena todas as leituras e gravações do cache.
-private val cacheLock = Any()
+
+    // Coordena todas as leituras, gravações e recuperações do cache.
+    private val cacheLock = Any()
+
     private val formatoData: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ROOT)
             .withResolverStyle(ResolverStyle.STRICT)
@@ -64,8 +68,9 @@ private val cacheLock = Any()
     /**
      * Baixa o calendário em segundo plano.
      *
-     * Só grava o JSON depois de validar todos os eventos.
-     * Usa AtomicFile para proteger o cache anterior.
+     * Valida todos os eventos antes de gravar.
+     * Usa AtomicFile e um bloqueio compartilhado para
+     * proteger a leitura e a gravação do cache.
      */
     fun atualizar(
         context: Context,
@@ -80,12 +85,11 @@ private val cacheLock = Any()
         Thread {
             var gravou = false
             var conexao: HttpURLConnection? = null
-            var arquivoAtomic: AtomicFile? = null
-            var saida: FileOutputStream? = null
 
             try {
                 conexao = URL(URL_JSON)
                     .openConnection() as HttpURLConnection
+
                 conexao.connectTimeout = 10000
                 conexao.readTimeout = 10000
                 conexao.requestMethod = "GET"
@@ -96,36 +100,19 @@ private val cacheLock = Any()
                         .bufferedReader(Charsets.UTF_8)
                         .use { it.readText() }
 
-                    // Se qualquer dado obrigatório for inválido,
-                    // interpretar lança uma exceção e o cache não muda.
-                    interpretar(texto)
-
-                    val destino = File(app.filesDir, ARQUIVO_CACHE)
-                    arquivoAtomic = AtomicFile(destino)
-
-                    saida = arquivoAtomic.startWrite()
-                    saida.write(texto.toByteArray(Charsets.UTF_8))
-                    saida.flush()
-                    arquivoAtomic.finishWrite(saida)
-                    saida = null
+                    // Valida o JSON e só então substitui o cache.
+                    gravarCacheSeValido(app, texto)
                     gravou = true
                 }
             } catch (_: Exception) {
-                // Tenta restaurar o arquivo anterior se a gravação falhar.
-                try {
-                    if (saida != null) {
-                        arquivoAtomic?.failWrite(saida)
-                        saida = null
-                    }
-                } catch (_: Exception) {
-                    // Mantém a falha isolada para não encerrar o aplicativo.
-                }
+                // Falhas de rede, validação ou gravação não derrubam o app.
             } finally {
                 try {
                     conexao?.disconnect()
                 } catch (_: Exception) {
                     // Ignora falhas ao encerrar a conexão.
                 }
+
                 atualizacaoEmAndamento.set(false)
             }
 
@@ -135,6 +122,52 @@ private val cacheLock = Any()
                 }
             }
         }.start()
+    }
+
+    /**
+     * Valida o JSON antes de substituir o cache.
+     * Se a validação falhar, o arquivo existente não é alterado.
+     * A visibilidade internal permite testar esse comportamento.
+     */
+    internal fun gravarCacheSeValido(
+        context: Context,
+        texto: String
+    ) {
+        // A validação acontece antes de tocar no arquivo existente.
+        interpretar(texto)
+
+        val destino = File(context.filesDir, ARQUIVO_CACHE)
+        val atomic = AtomicFile(destino)
+
+        synchronized(cacheLock) {
+            var saida: FileOutputStream? = null
+
+            try {
+                val arquivoTemporario = atomic.startWrite()
+                saida = arquivoTemporario
+
+                arquivoTemporario.write(
+                    texto.toByteArray(Charsets.UTF_8)
+                )
+                arquivoTemporario.flush()
+
+                atomic.finishWrite(arquivoTemporario)
+                saida = null
+            } catch (e: Exception) {
+                val escritaPendente = saida
+                saida = null
+
+                if (escritaPendente != null) {
+                    try {
+                        atomic.failWrite(escritaPendente)
+                    } catch (_: Exception) {
+                        // Evita que uma falha de recuperação derrube o app.
+                    }
+                }
+
+                throw e
+            }
+        }
     }
 
     /** Converte os eventos para o formato usado pela tela inicial. */
@@ -175,20 +208,27 @@ private val cacheLock = Any()
         return lista.sortedBy { it.dataInicio }
     }
 
+    /**
+     * Lê o cache de forma sincronizada.
+     * O AtomicFile tenta recuperar o backup antes de entregar o conteúdo.
+     */
     private fun lerCache(context: Context): String? {
-        return try {
-            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+        return synchronized(cacheLock) {
+            try {
+                val arquivo = File(context.filesDir, ARQUIVO_CACHE)
+                val atomic = AtomicFile(arquivo)
 
-            if (!arquivo.exists()) return null
+                val texto = atomic.openRead()
+                    .bufferedReader(Charsets.UTF_8)
+                    .use { it.readText() }
 
-            val texto = AtomicFile(arquivo).openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
+                // Rejeita cache vazio, incompleto ou inválido.
+                interpretar(texto)
 
-            interpretar(texto)
-            texto
-        } catch (_: Exception) {
-            null
+                texto
+            } catch (_: Exception) {
+                null
+            }
         }
     }
 
@@ -238,6 +278,7 @@ private val cacheLock = Any()
             val etapaJson = etapas.getJSONObject(i)
 
             val numero = etapaJson.getInt("etapa")
+
             require(numero > 0) {
                 "Número de etapa inválido."
             }
