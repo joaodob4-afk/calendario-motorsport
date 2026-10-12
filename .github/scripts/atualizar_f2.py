@@ -165,14 +165,31 @@ def montar_etapa(slug, html):
         raise ValueError(f"Circuito não mapeado: {slug}")
     circuito, pais, fuso = CIRCUITOS[slug]
     sessoes = traduzir_sessoes(sub_eventos(html))
-    validar_horarios_exibidos(slug, sessoes)
-    validar_sessoes_sem_conflito(slug, sessoes)
+    local = ZoneInfo(fuso)
+
+    # O site oficial ainda publica os horários de Yas Marina como meia-noite
+    # local (placeholder), inclusive com sessões diferentes no mesmo instante.
+    # Nessa situação, preservamos as datas locais do evento e não inventamos horas.
+    horarios_pendentes = (
+        slug == "yas-marina"
+        and bool(sessoes)
+        and all(
+            dt.astimezone(local).hour == 0
+            and dt.astimezone(local).minute == 0
+            for _, dt in sessoes
+        )
+    )
+
+    if horarios_pendentes:
+        print(f"{slug}: horários oficiais ainda não publicados; usando A confirmar")
+    else:
+        validar_horarios_exibidos(slug, sessoes)
+        validar_sessoes_sem_conflito(slug, sessoes)
 
     nomes = [n for n, _ in sessoes]
     if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
         raise ValueError(f"{slug}: sessões incompletas {nomes}")
 
-    local = ZoneInfo(fuso)
     fmt = "%d/%m/%Y"
     return {
         "_inicio_utc": sessoes[0][1],
@@ -183,8 +200,8 @@ def montar_etapa(slug, html):
         "sessoes": [
             {
                 "nome": nome,
-                "data": dt.astimezone(BRASILIA).strftime(fmt),
-                "horario": dt.astimezone(BRASILIA).strftime("%H:%M"),
+                "data": (dt.astimezone(local) if horarios_pendentes else dt.astimezone(BRASILIA)).strftime(fmt),
+                "horario": "A confirmar" if horarios_pendentes else dt.astimezone(BRASILIA).strftime("%H:%M"),
             }
             for nome, dt in sessoes
         ],
