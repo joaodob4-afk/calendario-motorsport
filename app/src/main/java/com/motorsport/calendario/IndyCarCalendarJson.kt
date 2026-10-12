@@ -36,10 +36,9 @@ object IndyCarCalendarJson {
 
     private const val URL_JSON =
         "https://raw.githubusercontent.com/joaodob4-afk/" +
-        "calendario-motorsport/teste-cache-indycar/app/src/main/assets/indycar_calendar.json"
+        "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
 
-    private const val ARQUIVO_CACHE =
-        "indycar_calendar_cache_teste.json"
+    private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
 
