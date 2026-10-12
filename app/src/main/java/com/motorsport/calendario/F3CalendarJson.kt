@@ -40,7 +40,7 @@ object F3CalendarJson {
         // Mantém a regra original: só usa o JSON sozinho quando
         // contém pelo menos dez etapas; caso contrário, combina
         // com o calendário local de reserva.
-        if (eventosJson.size >= 10) {
+        if (eventosJson.size >= 9) {
             return eventosJson.sortedBy { it.etapa }
         }
 
@@ -199,15 +199,7 @@ object F3CalendarJson {
             val arquivo = File(context.filesDir, ARQUIVO_CACHE)
 
             if (!arquivo.exists()) return null
-
-            val instalado = context.packageManager
-                .getPackageInfo(context.packageName, 0)
-                .lastUpdateTime
-
-            if (arquivo.lastModified() < instalado) {
-                return null
-            }
-
+                
             val texto = AtomicFile(arquivo)
                 .openRead()
                 .bufferedReader(Charsets.UTF_8)
