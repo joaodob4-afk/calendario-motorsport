@@ -121,7 +121,7 @@ object F2CalendarJson {
      * Grava usando AtomicFile para preservar o cache anterior
      * caso a escrita ou a finalização falhe.
      */
-    private fun gravarCacheSeguro(
+    internal fun gravarCacheSeguro(
         context: Context,
         conteudo: String
     ): Boolean {
@@ -131,19 +131,48 @@ object F2CalendarJson {
         var saida: java.io.FileOutputStream? = null
 
         return try {
-            // Validação imediatamente antes de gravar.
-            val eventos = interpretar(conteudo)
+            val eventosNovos = interpretar(conteudo)
 
-            if (eventos.size < MINIMO_ETAPAS_VALIDAS) {
+            if (eventosNovos.size < MINIMO_ETAPAS_VALIDAS) {
                 return false
             }
 
-            saida = cacheAtomico.startWrite()
+            // Só compara calendários da mesma temporada: a quantidade de etapas
+            // pode mudar legitimamente quando uma nova temporada é publicada.
+            val temporadaNova = JSONObject(conteudo).optInt("temporada", 0)
+            if (temporadaNova > 0) {
+                val eventosAtuais = try {
+                    val textoAtual = cacheAtomico.openRead()
+                        .bufferedReader(Charsets.UTF_8)
+                        .use { it.readText() }
+                    val temporadaAtual = JSONObject(textoAtual)
+                        .optInt("temporada", 0)
+                    val atuais = interpretar(textoAtual)
 
+                    if (
+                        temporadaAtual == temporadaNova &&
+                        atuais.size >= MINIMO_ETAPAS_VALIDAS
+                    ) {
+                        atuais
+                    } else {
+                        null
+                    }
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (
+                    eventosAtuais != null &&
+                    eventosNovos.size < eventosAtuais.size
+                ) {
+                    return false
+                }
+            }
+
+            saida = cacheAtomico.startWrite()
             saida.write(conteudo.toByteArray(Charsets.UTF_8))
             saida.flush()
             saida.fd.sync()
-
             cacheAtomico.finishWrite(saida)
             saida = null
 
@@ -160,7 +189,6 @@ object F2CalendarJson {
             false
         }
     }
-
     fun comoEtapas(eventos: List<F2Event>): List<MainActivity.Etapa> {
         val lista = mutableListOf<MainActivity.Etapa>()
 
