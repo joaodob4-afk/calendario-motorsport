@@ -160,10 +160,14 @@ object F1CalendarApi {
             try {
                 // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
                 val ano = java.time.LocalDate.now().year
-                val detalhado = baixarTexto(
-                    "https://api.jolpi.ca/f1/alpha/schedules/$ano/"
-                )
-                val normalizado = normalizarProgramacaoDetalhada(detalhado)
+                val normalizado = try {
+                    val detalhado = baixarTexto(
+                        "https://api.jolpi.ca/f1/alpha/schedules/$ano/"
+                    )
+                    normalizarProgramacaoDetalhada(detalhado)
+                } catch (_: Exception) {
+                    null
+                }
                 if (normalizado != null &&
                     interpretar(normalizado).size >= MINIMO_CORRIDAS_VALIDAS
                 ) {
@@ -235,9 +239,13 @@ object F1CalendarApi {
                     if (timestamp.isBlank() || timestamp == "null") continue
                     val instante = try {
                         java.time.OffsetDateTime.parse(timestamp)
+                            .withOffsetSameInstant(java.time.ZoneOffset.UTC)
                     } catch (_: Exception) {
-                        try { java.time.Instant.parse(timestamp).atOffset(java.time.ZoneOffset.UTC) }
-                        catch (_: Exception) { continue }
+                        try {
+                            java.time.Instant.parse(timestamp).atOffset(java.time.ZoneOffset.UTC)
+                        } catch (_: Exception) {
+                            continue
+                        }
                     }
                     val data = instante.toLocalDate().toString()
                     val hora = instante.toLocalTime().toString().take(8) + "Z"
