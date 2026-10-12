@@ -26,6 +26,9 @@ object F1CalendarApi {
     private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
     private const val MINIMO_CORRIDAS_VALIDAS = 5
 
+    // Serializa atualizações que podem ser disparadas por mais de uma tela.
+    private val cacheLock = Any()
+
     private val MESES = arrayOf(
         "JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
         "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
@@ -372,20 +375,32 @@ object F1CalendarApi {
      * Só substitui o cache quando a gravação temporária está completa.
      * Se a substituição falhar, preserva o cache anterior.
      */
-    private fun gravarCacheSeguro(
+    /**
+     * Grava o cache com proteção contra respostas parciais da mesma temporada.
+     * Também evita que o calendário básico apague sessões detalhadas já salvas.
+     */
+    internal fun gravarCacheSeguro(
         diretorio: File,
         conteudo: String
-    ): Boolean {
+    ): Boolean = synchronized(cacheLock) {
         val destino = File(diretorio, ARQUIVO_CACHE)
         val temporario = File(diretorio, ARQUIVO_TEMPORARIO)
 
-        return try {
+        try {
             if (!diretorio.exists() && !diretorio.mkdirs()) {
-                return false
+                return@synchronized false
+            }
+            if (!diretorio.isDirectory) {
+                return@synchronized false
             }
 
-            if (!diretorio.isDirectory) {
-                return false
+            // Valida antes de criar ou substituir qualquer arquivo.
+            if (interpretar(conteudo).size < MINIMO_CORRIDAS_VALIDAS) {
+                return@synchronized false
+            }
+            if (!podeSubstituirCache(destino, conteudo)) {
+                temporario.delete()
+                return@synchronized false
             }
 
             FileOutputStream(temporario, false).use { saida ->
@@ -396,21 +411,17 @@ object F1CalendarApi {
 
             // Confere novamente o arquivo escrito antes da troca.
             val textoGravado = temporario.readText(Charsets.UTF_8)
-            val etapasGravadas = interpretar(textoGravado)
-
-            if (etapasGravadas.size < MINIMO_CORRIDAS_VALIDAS) {
+            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS ||
+                !podeSubstituirCache(destino, textoGravado)
+            ) {
                 temporario.delete()
-                return false
+                return@synchronized false
             }
 
-            // O temporário está no mesmo diretório do destino.
-            // Não apagamos o cache antigo se a troca falhar.
+            // O arquivo temporário fica no mesmo diretório; se a troca falhar,
+            // o cache antigo permanece disponível.
             val substituiu = temporario.renameTo(destino)
-
-            if (!substituiu) {
-                temporario.delete()
-            }
-
+            if (!substituiu) temporario.delete()
             substituiu
         } catch (_: Exception) {
             try {
@@ -418,8 +429,52 @@ object F1CalendarApi {
             } catch (_: Exception) {
                 // A limpeza não deve afetar o aplicativo.
             }
-
             false
+        }
+    }
+
+    /**
+     * Não reduz o calendário nem remove sessões já presentes quando a temporada
+     * é a mesma. Temporadas diferentes podem ter legitimamente outra quantidade.
+     */
+    private fun podeSubstituirCache(destino: File, novoTexto: String): Boolean {
+        if (!destino.isFile) return true
+
+        return try {
+            val atual = JSONObject(destino.readText(Charsets.UTF_8))
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+            val novo = JSONObject(novoTexto)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+
+            val temporadaAtual = atual.optString("season", "").trim()
+            val temporadaNova = novo.optString("season", "").trim()
+            if (temporadaAtual.isBlank() || temporadaNova.isBlank() ||
+                temporadaAtual != temporadaNova
+            ) {
+                return true
+            }
+
+            val corridasAtuais = atual.getJSONArray("Races")
+            val corridasNovas = novo.getJSONArray("Races")
+            if (corridasNovas.length() < corridasAtuais.length()) {
+                return false
+            }
+
+            fun corridasComSessoes(corridas: JSONArray): Int {
+                var total = 0
+                for (i in 0 until corridas.length()) {
+                    val corrida = corridas.optJSONObject(i) ?: continue
+                    if (SESSOES.any { corrida.optJSONObject(it) != null }) total++
+                }
+                return total
+            }
+
+            corridasComSessoes(corridasNovas) >= corridasComSessoes(corridasAtuais)
+        } catch (_: Exception) {
+            // Se o cache existente estiver corrompido, permite recuperá-lo.
+            true
         }
     }
 
