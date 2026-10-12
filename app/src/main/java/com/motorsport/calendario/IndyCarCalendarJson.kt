@@ -40,7 +40,8 @@ object IndyCarCalendarJson {
     private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
-
+// Coordena todas as leituras e gravações do cache.
+private val cacheLock = Any()
     private val formatoData: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ROOT)
             .withResolverStyle(ResolverStyle.STRICT)
