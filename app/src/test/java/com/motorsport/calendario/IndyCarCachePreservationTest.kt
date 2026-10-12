@@ -213,4 +213,44 @@ fun recuperaCacheValidoAposGravacaoInterrompida() {
     }
 }
 
+@Test
+fun calendarioMenorNaoSubstituiCacheMaisCompleto() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) =
+        prepararArquivos(context)
+
+    try {
+        // Salva um calendário com 18 etapas.
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18)
+        )
+
+        val conteudoOriginal = arquivoCache.readText()
+
+        // Tem 10 etapas, portanto passa pelo mínimo geral,
+        // mas não pode substituir o cache de 18 etapas.
+        assertThrows(IllegalArgumentException::class.java) {
+            IndyCarCalendarJson.gravarCacheSeValido(
+                context,
+                jsonComEtapas(10)
+            )
+        }
+
+        assertEquals(
+            conteudoOriginal,
+            arquivoCache.readText()
+        )
+
+        // Confirma que o calendário original continua válido.
+        assertEquals(
+            18,
+            IndyCarCalendarJson.carregar(context).size
+        )
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
 }
