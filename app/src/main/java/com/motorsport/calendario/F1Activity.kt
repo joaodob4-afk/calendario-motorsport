@@ -203,28 +203,48 @@ class F1Activity : AppCompatActivity() {
         val corridaTexto = intent.getStringExtra("RACE")
         val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
 
-        // Se a tela recebeu a corrida completa, não precisa de rede.
+        // A tela inicial pode enviar apenas um resumo da etapa, sem sessões.
+        // Quando há circuito selecionado, prioriza o cache completo antes do resumo.
+        if (!circuitId.isNullOrBlank()) {
+            val jsonCache = F1CalendarApi.corridaJsonDoCache(this, circuitId)
+            if (!jsonCache.isNullOrBlank()) {
+                try {
+                    val corridaCache = JSONObject(jsonCache)
+                    val temSessoes = listOf(
+                        "FirstPractice", "SecondPractice", "ThirdPractice",
+                        "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
+                    ).any { corridaCache.has(it) && corridaCache.optJSONObject(it) != null }
+
+                    if (temSessoes || corridaTexto.isNullOrBlank()) {
+                        corridaEhProxima = false
+                        return corridaCache
+                    }
+                } catch (_: Exception) {
+                    // Cache inválido: tenta os outros caminhos.
+                }
+            }
+        }
+
+        // Usa o objeto recebido diretamente apenas se ele já tiver sessões,
+        // ou se não houver um circuito para procurar uma versão mais completa.
         if (!corridaTexto.isNullOrBlank()) {
             try {
-                corridaEhProxima = false
-                return JSONObject(corridaTexto)
+                val corridaRecebida = JSONObject(corridaTexto)
+                val temSessoes = listOf(
+                    "FirstPractice", "SecondPractice", "ThirdPractice",
+                    "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
+                ).any { corridaRecebida.has(it) && corridaRecebida.optJSONObject(it) != null }
+
+                if (temSessoes || circuitId.isNullOrBlank()) {
+                    corridaEhProxima = false
+                    return corridaRecebida
+                }
             } catch (_: Exception) {
-                // Tenta o cache e, por último, a rede.
+                // Tenta a fonte online.
             }
         }
 
         if (!circuitId.isNullOrBlank()) {
-            // Primeiro procura a etapa no cache local para abrir offline.
-            val jsonCache = F1CalendarApi.corridaJsonDoCache(this, circuitId)
-            if (!jsonCache.isNullOrBlank()) {
-                try {
-                    corridaEhProxima = false
-                    return JSONObject(jsonCache)
-                } catch (_: Exception) {
-                    // Cache inválido: tenta a fonte online.
-                }
-            }
-
             val selecionada = try {
                 buscarCorridaPorCircuito(circuitId)
             } catch (_: Exception) {
