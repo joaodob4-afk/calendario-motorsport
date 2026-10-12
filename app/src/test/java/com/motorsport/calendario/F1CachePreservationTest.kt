@@ -19,15 +19,26 @@ class F1CachePreservationTest {
     private fun jsonComCorridas(
         quantidade: Int,
         temporada: String = "2026",
-        comSessoes: Boolean = false
+        comSessoes: Boolean = false,
+        omitirFirstPractice: Boolean = false,
+        omitirHorarioFirstPractice: Boolean = false
     ): String {
         val corridas = (1..quantidade).joinToString(",\n") { numero ->
             val dia = numero.toString().padStart(2, '0')
             val sessoes = if (comSessoes) {
+                val treino = when {
+                    omitirFirstPractice -> ""
+                    omitirHorarioFirstPractice -> """
+                        ,"FirstPractice":{"date":"$temporada-03-$dia"}
+                    """
+                    else -> """
+                        ,"FirstPractice":{"date":"$temporada-03-$dia","time":"10:00:00Z"}
+                    """
+                }
+                val classificacao = """
+                    ,"Qualifying":{"date":"$temporada-03-$dia","time":"14:00:00Z"}
                 """
-                ,"FirstPractice":{"date":"$temporada-03-$dia","time":"10:00:00Z"}
-                ,"Qualifying":{"date":"$temporada-03-$dia","time":"14:00:00Z"}
-                """
+                treino + classificacao
             } else {
                 ""
             }
@@ -127,6 +138,68 @@ class F1CachePreservationTest {
                 )
             )
 
+            assertEquals(original, arquivo.readText())
+        } finally {
+            limpar(context)
+        }
+    }
+
+    @Test
+    fun removerSessaoIndividualNaoSubstituiCache() {
+        val context = RuntimeEnvironment.getApplication()
+        limpar(context)
+        val arquivo = cacheFile(context)
+
+        try {
+            assertTrue(
+                F1CalendarApi.gravarCacheSeguro(
+                    context.filesDir,
+                    jsonComCorridas(20, comSessoes = true)
+                )
+            )
+            val original = arquivo.readText()
+
+            assertFalse(
+                F1CalendarApi.gravarCacheSeguro(
+                    context.filesDir,
+                    jsonComCorridas(
+                        20,
+                        comSessoes = true,
+                        omitirFirstPractice = true
+                    )
+                )
+            )
+            assertEquals(original, arquivo.readText())
+        } finally {
+            limpar(context)
+        }
+    }
+
+    @Test
+    fun horarioDeSessaoIndividualNaoPodeSumirDoCache() {
+        val context = RuntimeEnvironment.getApplication()
+        limpar(context)
+        val arquivo = cacheFile(context)
+
+        try {
+            assertTrue(
+                F1CalendarApi.gravarCacheSeguro(
+                    context.filesDir,
+                    jsonComCorridas(20, comSessoes = true)
+                )
+            )
+            val original = arquivo.readText()
+
+            assertFalse(
+                F1CalendarApi.gravarCacheSeguro(
+                    context.filesDir,
+                    jsonComCorridas(
+                        20,
+                        comSessoes = true,
+                        omitirHorarioFirstPractice = true
+                    )
+                )
+            )
             assertEquals(original, arquivo.readText())
         } finally {
             limpar(context)
