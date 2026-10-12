@@ -403,23 +403,23 @@
       "sessoes": [
         {
           "nome": "Treino Livre",
-          "data": "03/12/2026",
-          "horario": "17:00"
+          "data": "04/12/2026",
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação",
-          "data": "03/12/2026",
-          "horario": "17:00"
+          "data": "04/12/2026",
+          "horario": "A confirmar"
         },
         {
           "nome": "Corrida Sprint",
-          "data": "04/12/2026",
-          "horario": "17:00"
+          "data": "05/12/2026",
+          "horario": "A confirmar"
         },
         {
           "nome": "Corrida Feature",
-          "data": "05/12/2026",
-          "horario": "17:00"
+          "data": "06/12/2026",
+          "horario": "A confirmar"
         }
       ]
     }

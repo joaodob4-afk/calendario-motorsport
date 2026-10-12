@@ -132,11 +132,28 @@ def traduzir_sessoes(subs):
     return final
 
 
+
+def validar_horarios_exibidos(slug, sessoes):
+    """Rejeita sessões distintas que ficam com a mesma data/hora exibida em Brasília."""
+    vistos = {}
+    for nome, instante in sessoes:
+        local = instante.astimezone(BRASILIA)
+        chave = (local.strftime("%d/%m/%Y"), local.strftime("%H:%M"))
+        anterior = vistos.get(chave)
+        if anterior is not None:
+            raise ValueError(
+                f"{slug}: {anterior!r} e {nome!r} aparecem no mesmo "
+                f"horário de Brasília ({chave[0]} {chave[1]})"
+            )
+        vistos[chave] = nome
+
+
 def montar_etapa(slug, html):
     if slug not in CIRCUITOS:
         raise ValueError(f"Circuito não mapeado: {slug}")
     circuito, pais, fuso = CIRCUITOS[slug]
     sessoes = traduzir_sessoes(sub_eventos(html))
+    validar_horarios_exibidos(slug, sessoes)
 
     nomes = [n for n, _ in sessoes]
     if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
@@ -165,7 +182,7 @@ def main():
     print("Consultando páginas oficiais da F3...")
     slugs = listar_slugs(baixar(URL))
     print("Etapas encontradas:", len(slugs))
-    if len(slugs) < 6:
+    if len(slugs) < 9:
         print("ERRO: poucas etapas encontradas. Nada foi alterado.")
         return 1
 
@@ -190,6 +207,33 @@ def main():
 
     novo = {"temporada": 2026, "categoria": "F3", "etapas": etapas}
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
+
+    if SAIDA.exists():
+        try:
+            anterior = json.loads(SAIDA.read_text(encoding="utf-8"))
+            if (
+                not isinstance(anterior, dict)
+                or not isinstance(anterior.get("etapas"), list)
+                or not anterior["etapas"]
+                or any(
+                    not isinstance(etapa, dict)
+                    or not isinstance(etapa.get("sessoes"), list)
+                    or not etapa.get("etapa")
+                    for etapa in anterior["etapas"]
+                )
+            ):
+                raise ValueError("estrutura do calendário anterior inválida")
+
+            etapas_anteriores = anterior["etapas"]
+            if len(etapas) < len(etapas_anteriores):
+                print(
+                    f"ERRO: novo calendário tem {len(etapas)} etapas, "
+                    f"mas o arquivo atual tem {len(etapas_anteriores)}. Nada foi alterado."
+                )
+                return 1
+        except (OSError, ValueError, AttributeError) as e:
+            print(f"ERRO: não foi possível validar o calendário anterior ({e}). Nada foi alterado.")
+            return 1
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
         print("Sem mudanças no calendário.")

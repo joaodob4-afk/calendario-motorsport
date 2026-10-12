@@ -1,11 +1,16 @@
 name: Gerar APK
 
 on:
+  pull_request:
+    branches:
+      - main
+
   push:
     branches:
       - main
       - integracao-cache-indycar
       - fix/f1-calendar-offline-cache
+      - audit/validacao-calendarios-f2-f3
 
   workflow_dispatch:
 
@@ -29,7 +34,6 @@ jobs:
           python-version: '3.x'
 
       - name: Consultar calendário oficial da F2
-        continue-on-error: true
         run: python .github/scripts/atualizar_f2.py
 
       - name: Configurar Java 17
