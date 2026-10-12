@@ -128,16 +128,43 @@ object IndyCarCalendarJson {
      * Se a validação falhar, o arquivo existente não é alterado.
      * A visibilidade internal permite testar esse comportamento.
      */
+    
     internal fun gravarCacheSeValido(
-        context: Context,
-        texto: String
-    ) {
-        // Valida antes de tocar no arquivo existente.
-        interpretar(texto)
+    context: Context,
+    texto: String
+) {
+    // Valida o calendário recebido antes de tocar no cache.
+    val novosEventos = interpretar(texto)
 
+    synchronized(cacheLock) {
         val destino = File(context.filesDir, ARQUIVO_CACHE)
-        gravarAtomicamente(AtomicFile(destino), texto)
+        val atomic = AtomicFile(destino)
+
+        // Se houver um cache válido, não permita que um calendário
+        // menor substitua o calendário mais completo.
+        val eventosAtuais = try {
+            atomic.openRead()
+                .bufferedReader(Charsets.UTF_8)
+                .use { leitor ->
+                    interpretar(leitor.readText())
+                }
+        } catch (_: Exception) {
+            null
+        }
+
+        if (eventosAtuais != null) {
+            require(novosEventos.size >= eventosAtuais.size) {
+                "Atualização incompleta: recebidas " +
+                    "${novosEventos.size} etapas, mas o cache atual " +
+                    "possui ${eventosAtuais.size}."
+            }
+        }
+
+        // Só grava depois de todas as validações.
+        gravarAtomicamente(atomic, texto)
     }
+}
+
 
     /**
      * Grava o cache atomicamente.
