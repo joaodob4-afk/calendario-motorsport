@@ -30,88 +30,34 @@ object F3CalendarJson {
 
     fun carregar(context: Context): List<F3Event> {
         val json = lerCache(context) ?: lerAsset(context)
+        val eventosJson = json?.let { interpretar(it) }.orEmpty()
+        val temporadaJson = json?.let {
+            try {
+                JSONObject(it).optInt("temporada", 0)
+            } catch (_: Exception) {
+                0
+            }
+        } ?: 0
+        val temporadaFallback = F3Calendar.eventos.firstOrNull()
+            ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
 
-        val eventosJson = if (json != null) {
-            interpretar(json)
-        } else {
-            emptyList()
+        // Só completa etapas ausentes com o fallback da mesma temporada.
+        // Uma temporada nova pode ter legitimamente outra quantidade de etapas.
+        if (eventosJson.isNotEmpty() &&
+            temporadaJson > 0 &&
+            temporadaJson == temporadaFallback
+        ) {
+            val combinados = F3Calendar.eventos
+                .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
+                eventosJson
+            return combinados.sortedBy { it.etapa }
         }
 
-        // Mantém a regra original: só usa o JSON sozinho quando
-        // contém pelo menos dez etapas; caso contrário, combina
-        // com o calendário local de reserva.
-        if (eventosJson.size >= 9) {
+        if (eventosJson.isNotEmpty()) {
             return eventosJson.sortedBy { it.etapa }
         }
 
-        val combinados = F3Calendar.eventos
-            .filterNot { local ->
-                eventosJson.any { remoto ->
-                    remoto.etapa == local.etapa
-                }
-            } + eventosJson
-
-        return combinados.sortedBy { it.etapa }
-    }
-
-    fun atualizar(
-        context: Context,
-        aoTerminar: (() -> Unit)? = null
-    ) {
-        val app = context.applicationContext
-
-        Thread {
-            var gravou = false
-            var conexao: HttpURLConnection? = null
-
-            try {
-                conexao = URL(URL_JSON)
-                    .openConnection() as HttpURLConnection
-
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.requestMethod = "GET"
-                conexao.setRequestProperty(
-                    "Cache-Control",
-                    "no-cache"
-                )
-                conexao.setRequestProperty(
-                    "Accept",
-                    "application/json"
-                )
-
-                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
-                    val texto = conexao.inputStream
-                        .bufferedReader(Charsets.UTF_8)
-                        .use { it.readText() }
-
-                    val eventos = interpretar(texto)
-
-                    if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                        gravou = gravarCacheSeguro(app, texto)
-                    }
-                }
-            } catch (_: Exception) {
-                // Falha de rede ou dados inválidos:
-                // mantém o cache anterior e o calendário local.
-            } finally {
-                try {
-                    conexao?.disconnect()
-                } catch (_: Exception) {
-                    // Não deixa uma falha ao fechar afetar o aplicativo.
-                }
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post {
-                    try {
-                        aoTerminar()
-                    } catch (_: Exception) {
-                        // A gravação do cache já foi concluída.
-                    }
-                }
-            }
-        }.start()
+        return F3Calendar.eventos.sortedBy { it.etapa }
     }
 
     /**
