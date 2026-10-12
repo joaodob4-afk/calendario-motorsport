@@ -272,8 +272,13 @@ object F1CalendarApi {
                     val timestamp = primeira?.optString("timestamp", "") ?: ""
                     if (timestamp.isNotBlank() && timestamp != "null") {
                         dataCorrida = try {
-                            java.time.OffsetDateTime.parse(timestamp).toLocalDate().toString()
-                        } catch (_: Exception) { "" }
+                            java.time.OffsetDateTime.parse(timestamp)
+                                .withOffsetSameInstant(java.time.ZoneOffset.UTC)
+                                .toLocalDate().toString()
+                        } catch (_: Exception) {
+                            try { java.time.Instant.parse(timestamp).toString().substring(0, 10) }
+                            catch (_: Exception) { "" }
+                        }
                     }
                 }
                 if (dataCorrida.isBlank()) continue
