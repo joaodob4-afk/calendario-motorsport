@@ -244,8 +244,12 @@ def montar_etapa(cartao, html_evento):
     }
 
 
-def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA):
-    """Impede que uma extração parcial substitua um calendário mais completo."""
+def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
+    """Impede perda de etapas, sessões e horários ao atualizar a mesma temporada.
+
+    Uma temporada diferente pode legitimamente ter outra quantidade de etapas.
+    temporada_nova=None mantém o comportamento conservador para chamadas antigas.
+    """
     arquivo = Path(arquivo)
     if not arquivo.exists():
         return
@@ -270,11 +274,78 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA):
             f"não foi possível validar o calendário anterior ({e}). Nada foi alterado."
         ) from e
 
+    temporada_atual = anterior.get("temporada")
+    if (
+        temporada_nova is not None
+        and temporada_atual is not None
+        and str(temporada_nova) != str(temporada_atual)
+    ):
+        return
+
+    etapas_por_nome = {
+        str(etapa.get("nome", "")).strip().casefold(): etapa
+        for etapa in etapas_novas
+        if str(etapa.get("nome", "")).strip()
+    }
+    etapas_por_numero = {
+        etapa.get("etapa"): etapa
+        for etapa in etapas_novas
+        if etapa.get("etapa") is not None
+    }
+
     if len(etapas_novas) < len(anterior["etapas"]):
         raise ValueError(
             f"novo calendário tem {len(etapas_novas)} etapas, mas o arquivo "
             f"atual tem {len(anterior['etapas'])}. Nada foi alterado."
         )
+
+    for etapa_atual in anterior["etapas"]:
+        nome_atual = str(etapa_atual.get("nome", "")).strip().casefold()
+        etapa_nova = etapas_por_nome.get(nome_atual) if nome_atual else None
+        if etapa_nova is None:
+            etapa_nova = etapas_por_numero.get(etapa_atual.get("etapa"))
+        if etapa_nova is None:
+            raise ValueError(
+                f"atualização incompleta: etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}' ausente. "
+                "Nada foi alterado."
+            )
+
+        sessoes_novas = {
+            str(sessao.get("nome", "")).strip().casefold(): sessao
+            for sessao in etapa_nova.get("sessoes", [])
+            if isinstance(sessao, dict) and str(sessao.get("nome", "")).strip()
+        }
+        for sessao_atual in etapa_atual["sessoes"]:
+            if not isinstance(sessao_atual, dict):
+                raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
+            nome_sessao = str(sessao_atual.get("nome", "")).strip()
+            sessao_nova = sessoes_novas.get(nome_sessao.casefold())
+            if sessao_nova is None:
+                raise ValueError(
+                    f"atualização incompleta: sessão '{nome_sessao}' da etapa "
+                    f"'{etapa_atual.get('nome', etapa_atual.get('etapa'))}' ausente. Nada foi alterado."
+                )
+
+            horario_atual = str(sessao_atual.get("horario", "")).strip()
+            horario_novo = str(sessao_nova.get("horario", "")).strip()
+            horario_conhecido = horario_atual and horario_atual.casefold() not in (
+                "a confirmar", "tbd", "tba"
+            )
+            if horario_conhecido and horario_novo.casefold() in ("", "a confirmar", "tbd", "tba"):
+                raise ValueError(
+                    f"atualização incompleta: horário conhecido removido da sessão "
+                    f"'{nome_sessao}' da etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}'. "
+                    "Nada foi alterado."
+                )
+
+            data_atual = str(sessao_atual.get("data", "")).strip()
+            data_nova = str(sessao_nova.get("data", "")).strip()
+            if data_atual and not data_nova:
+                raise ValueError(
+                    f"atualização incompleta: data conhecida removida da sessão "
+                    f"'{nome_sessao}' da etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}'. "
+                    "Nada foi alterado."
+                )
 
 
 def main():
@@ -316,7 +387,7 @@ def main():
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     try:
-        validar_nao_reduzir_calendario(saida)
+        validar_nao_reduzir_calendario(saida, temporada_nova=ano)
     except ValueError as e:
         print("ERRO:", e)
         return 1
