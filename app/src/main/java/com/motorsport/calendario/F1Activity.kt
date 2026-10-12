@@ -203,36 +203,42 @@ class F1Activity : AppCompatActivity() {
         val corridaTexto = intent.getStringExtra("RACE")
         val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
 
-        var selecionada: JSONObject? = null
-
+        // Se a tela recebeu a corrida completa, não precisa de rede.
         if (!corridaTexto.isNullOrBlank()) {
-            selecionada = try {
-                JSONObject(corridaTexto)
+            try {
+                corridaEhProxima = false
+                return JSONObject(corridaTexto)
             } catch (_: Exception) {
-                null
+                // Tenta o cache e, por último, a rede.
             }
         }
 
-        val proxima = try {
-            buscarProximaCorrida()
-        } catch (e: Exception) {
-            if (selecionada != null) null else throw e
+        if (!circuitId.isNullOrBlank()) {
+            // Primeiro procura a etapa no cache local para abrir offline.
+            val jsonCache = F1CalendarApi.corridaJsonDoCache(this, circuitId)
+            if (!jsonCache.isNullOrBlank()) {
+                try {
+                    corridaEhProxima = false
+                    return JSONObject(jsonCache)
+                } catch (_: Exception) {
+                    // Cache inválido: tenta a fonte online.
+                }
+            }
+
+            val selecionada = try {
+                buscarCorridaPorCircuito(circuitId)
+            } catch (_: Exception) {
+                null
+            }
+
+            if (selecionada != null) {
+                corridaEhProxima = false
+                return selecionada
+            }
         }
 
-        if (selecionada == null && !circuitId.isNullOrBlank()) {
-            selecionada = buscarCorridaPorCircuito(circuitId)
-        }
-
-        if (selecionada == null) {
-            corridaEhProxima = true
-            return proxima
-        }
-
-        corridaEhProxima =
-            proxima != null &&
-            selecionada.optString("round") == proxima.optString("round")
-
-        return selecionada
+        corridaEhProxima = true
+        return buscarProximaCorrida()
     }
 
     private fun buscarCorridaPorCircuito(circuitId: String): JSONObject? {
