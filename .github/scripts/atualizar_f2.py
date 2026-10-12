@@ -144,11 +144,28 @@ def validar_sessoes_sem_conflito(slug, sessoes):
         instantes[dt] = nome
 
 
+
+def validar_horarios_exibidos(slug, sessoes):
+    """Rejeita sessões distintas que ficam com a mesma data/hora exibida em Brasília."""
+    vistos = {}
+    for nome, instante in sessoes:
+        local = instante.astimezone(BRASILIA)
+        chave = (local.strftime("%d/%m/%Y"), local.strftime("%H:%M"))
+        anterior = vistos.get(chave)
+        if anterior is not None:
+            raise ValueError(
+                f"{slug}: {anterior!r} e {nome!r} aparecem no mesmo "
+                f"horário de Brasília ({chave[0]} {chave[1]})"
+            )
+        vistos[chave] = nome
+
+
 def montar_etapa(slug, html):
     if slug not in CIRCUITOS:
         raise ValueError(f"Circuito não mapeado: {slug}")
     circuito, pais, fuso = CIRCUITOS[slug]
     sessoes = traduzir_sessoes(sub_eventos(html))
+    validar_horarios_exibidos(slug, sessoes)
     validar_sessoes_sem_conflito(slug, sessoes)
 
     nomes = [n for n, _ in sessoes]
@@ -203,6 +220,20 @@ def main():
 
     novo = {"temporada": 2026, "categoria": "F2", "etapas": etapas}
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
+
+    if SAIDA.exists():
+        try:
+            anterior = json.loads(SAIDA.read_text(encoding="utf-8"))
+            etapas_anteriores = anterior.get("etapas", [])
+            if isinstance(etapas_anteriores, list) and len(etapas) < len(etapas_anteriores):
+                print(
+                    f"ERRO: novo calendário tem {len(etapas)} etapas, "
+                    f"mas o arquivo atual tem {len(etapas_anteriores)}. Nada foi alterado."
+                )
+                return 1
+        except (OSError, ValueError, AttributeError) as e:
+            print(f"ERRO: não foi possível validar o calendário anterior ({e}). Nada foi alterado.")
+            return 1
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
         print("Sem mudanças no calendário.")
