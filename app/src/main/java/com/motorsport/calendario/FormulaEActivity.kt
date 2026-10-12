@@ -227,6 +227,22 @@ class FormulaEActivity : AppCompatActivity() {
                 12f,
                 cinza,
                 false
+            ).setPadding(0, 0, 0, dp(5))
+
+            adicionarTexto(
+                "Este evento terá os dois formatos: E-PrixUnleashed (sprint de 30 min) " +
+                    "e E-Prix (corrida de 45 min). A ordem de cada formato por data " +
+                    "será confirmada na programação oficial.",
+                13f,
+                cinza,
+                false
+            ).setPadding(0, 0, 0, dp(12))
+        } else {
+            adicionarTexto(
+                "Formato da corrida: E-Prix (45 min).",
+                13f,
+                cinza,
+                false
             ).setPadding(0, 0, 0, dp(12))
         }
 
