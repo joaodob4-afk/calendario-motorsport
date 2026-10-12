@@ -36,7 +36,8 @@ object FormulaECalendarJson {
         "calendario-motorsport/main/app/src/main/assets/fe_calendar.json"
 
     private const val ARQUIVO_CACHE = "fe_calendar_cache.json"
-    private const val MINIMO_ETAPAS_VALIDAS = 5
+    private const val MINIMO_ETAPAS_VALIDAS = 13
+    private const val MINIMO_RODADAS_VALIDAS = 21
 
     private val formatoData: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu")
@@ -312,6 +313,11 @@ object FormulaECalendarJson {
                     sessoes = sessoes
                 )
             )
+        }
+
+        val totalRodadas = eventos.sumOf { it.sessoes.size }
+        require(totalRodadas >= MINIMO_RODADAS_VALIDAS) {
+            "Calendário incompleto: menos de $MINIMO_RODADAS_VALIDAS rodadas"
         }
 
         return eventos
