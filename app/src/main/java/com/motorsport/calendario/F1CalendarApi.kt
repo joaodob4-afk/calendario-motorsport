@@ -206,6 +206,25 @@ object F1CalendarApi {
     }
 
     /**
+     * Salva o JSON completo do calendário recebido pela tela, preservando
+     * os campos de todas as sessões para consulta offline.
+     */
+    fun salvarCalendarioCompleto(context: Context, json: String): Boolean {
+        return try {
+            val corridas = JSONObject(json)
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+            if (corridas.length() < MINIMO_CORRIDAS_VALIDAS) {
+                return false
+            }
+            gravarCacheSeguro(context.applicationContext.filesDir, json)
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
      * Escreve primeiro em um arquivo temporário no mesmo diretório.
      * Só substitui o cache quando a gravação temporária está completa.
      * Se a substituição falhar, preserva o cache anterior.
