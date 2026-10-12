@@ -651,8 +651,8 @@ class F1CalendarActivity : AppCompatActivity() {
                 throw java.io.IOException("Calendário recebido está incompleto")
             }
 
-            // Persiste a resposta original, com os campos de todas as sessões.
-            F1CalendarApi.salvarCalendarioCompleto(this, resposta)
+            // A atualização em segundo plano da F1CalendarApi busca a programação
+            // detalhada; não substituímos esse cache com a resposta básica desta tela.
 
             return corridas
         } catch (erro: Exception) {
