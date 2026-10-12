@@ -63,7 +63,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                     for n in range(1, 18)
                 ],
             }), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "tem 17 etapas"):
+            with self.assertRaisesRegex(ValueError, "arquivo atual tem 17"):
                 indycar.validar_nao_reduzir_calendario(
                     [{"etapa": n} for n in range(1, 11)], arquivo
                 )
