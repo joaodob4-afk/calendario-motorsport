@@ -24,7 +24,7 @@ object F1CalendarApi {
 
     private const val ARQUIVO_CACHE = "f1_races_cache.json"
     private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
-    private const val MINIMO_CORRIDAS_VALIDAS = 5
+    private const val MINIMO_CORRIDAS_VALIDAS = 1
 
     // Serializa atualizações que podem ser disparadas por mais de uma tela.
     private val cacheLock = Any()
@@ -437,6 +437,12 @@ object F1CalendarApi {
      * Não reduz o calendário nem remove sessões já presentes quando a temporada
      * é a mesma. Temporadas diferentes podem ter legitimamente outra quantidade.
      */
+    /**
+     * Aceita o calendário válido publicado pela fonte, mesmo quando ela adiciona,
+     * remove ou altera corridas e sessões. Preserva valores conhecidos apenas para
+     * campos que continuam existindo na nova programação, mas vieram sem valor.
+     * A validação estrutural é feita por interpretar() antes da gravação.
+     */
     private fun podeSubstituirCache(destino: File, novoTexto: String): Boolean {
         if (!destino.isFile) return true
 
@@ -447,118 +453,58 @@ object F1CalendarApi {
             val novo = JSONObject(novoTexto)
                 .getJSONObject("MRData")
                 .getJSONObject("RaceTable")
-
-            val temporadaAtual = atual.optString("season", "").trim()
-            val temporadaNova = novo.optString("season", "").trim()
-            if (temporadaAtual.isBlank() || temporadaNova.isBlank() ||
-                temporadaAtual != temporadaNova
-            ) {
-                return true
-            }
-
             val corridasAtuais = atual.getJSONArray("Races")
             val corridasNovas = novo.getJSONArray("Races")
-            if (corridasNovas.length() < corridasAtuais.length()) {
-                return false
+
+            fun conhecido(valor: String): Boolean {
+                val v = valor.trim()
+                return v.isNotEmpty() &&
+                    !v.equals("null", ignoreCase = true) &&
+                    !v.equals("A confirmar", ignoreCase = true) &&
+                    !v.equals("TBD", ignoreCase = true) &&
+                    !v.equals("TBA", ignoreCase = true)
             }
 
-            fun corridasComSessoes(corridas: JSONArray): Int {
-                var total = 0
-                for (i in 0 until corridas.length()) {
-                    val corrida = corridas.optJSONObject(i) ?: continue
-                    if (SESSOES.any { corrida.optJSONObject(it) != null }) total++
-                }
-                return total
-            }
-
-            if (corridasComSessoes(corridasNovas) < corridasComSessoes(corridasAtuais)) {
-                return false
-            }
-
-            fun valorConhecido(valor: String): Boolean {
-                val normalizado = valor.trim()
-                return normalizado.isNotEmpty() &&
-                    !normalizado.equals("null", ignoreCase = true) &&
-                    !normalizado.equals("A confirmar", ignoreCase = true)
-            }
-
-            val novasPorCircuito = mutableMapOf<String, JSONObject>()
-            val novasPorCircuitoERound = mutableMapOf<String, JSONObject>()
-            val novasPorRound = mutableMapOf<String, JSONObject>()
-            for (i in 0 until corridasNovas.length()) {
-                val corrida = corridasNovas.optJSONObject(i) ?: return false
-                val circuitId = corrida.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")
-                    ?.trim()
-                    .orEmpty()
-                val round = corrida.optString("round", "").trim()
-                if (circuitId.isNotBlank()) {
-                    novasPorCircuito[circuitId] = corrida
-                    if (round.isNotBlank()) {
-                        novasPorCircuitoERound["$circuitId|$round"] = corrida
-                    }
-                }
-                if (round.isNotBlank()) {
-                    novasPorRound[round] = corrida
-                }
-            }
-
+            val antigasPorCircuito = mutableMapOf<String, JSONObject>()
             for (i in 0 until corridasAtuais.length()) {
-                val atual = corridasAtuais.optJSONObject(i) ?: return false
-                val circuitId = atual.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")
-                    ?.trim()
-                    .orEmpty()
-                val round = atual.optString("round", "").trim()
-                val nova = (
-                    if (circuitId.isNotBlank() && round.isNotBlank()) {
-                        novasPorCircuitoERound["$circuitId|$round"]
-                    } else {
-                        null
+                val corrida = corridasAtuais.optJSONObject(i) ?: continue
+                val id = corrida.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")?.trim().orEmpty()
+                if (id.isNotBlank()) antigasPorCircuito[id] = corrida
+            }
+
+            // A lista nova é a autoridade: não reintroduz corridas nem sessões
+            // que a fonte tenha removido e não exige que a contagem seja igual.
+            for (i in 0 until corridasNovas.length()) {
+                val corridaNova = corridasNovas.optJSONObject(i) ?: return false
+                val id = corridaNova.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")?.trim().orEmpty()
+                val corridaAntiga = antigasPorCircuito[id] ?: continue
+
+                for (campo in listOf("date", "time")) {
+                    if (!conhecido(corridaNova.optString(campo, "")) &&
+                        conhecido(corridaAntiga.optString(campo, ""))) {
+                        corridaNova.put(campo, corridaAntiga.optString(campo))
                     }
-                ) ?: (
-                    if (circuitId.isNotBlank()) novasPorCircuito[circuitId] else null
-                ) ?: (
-                    if (round.isNotBlank()) novasPorRound[round] else null
-                ) ?: return false
-
-                // Preserve datas e horários básicos já conhecidos da corrida.
-                if (
-                    valorConhecido(atual.optString("date", "")) &&
-                    !valorConhecido(nova.optString("date", ""))
-                ) {
-                    return false
-                }
-                if (
-                    valorConhecido(atual.optString("time", "")) &&
-                    !valorConhecido(nova.optString("time", ""))
-                ) {
-                    return false
                 }
 
-                // Uma resposta parcial não pode retirar ou esvaziar uma
-                // sessão específica que já estava salva para esta corrida.
+                // Só preserva o horário de uma sessão se a fonte ainda a publica,
+                // mas deixa seus campos temporariamente vazios. Sessão removida
+                // da resposta oficial não é restaurada do cache.
                 for (nomeSessao in SESSOES) {
-                    val sessaoAtual = atual.optJSONObject(nomeSessao) ?: continue
-                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: return false
-                    if (
-                        valorConhecido(sessaoAtual.optString("date", "")) &&
-                        !valorConhecido(sessaoNova.optString("date", ""))
-                    ) {
-                        return false
-                    }
-                    if (
-                        valorConhecido(sessaoAtual.optString("time", "")) &&
-                        !valorConhecido(sessaoNova.optString("time", ""))
-                    ) {
-                        return false
+                    val sessaoNova = corridaNova.optJSONObject(nomeSessao) ?: continue
+                    val sessaoAntiga = corridaAntiga.optJSONObject(nomeSessao) ?: continue
+                    for (campo in listOf("date", "time")) {
+                        if (!conhecido(sessaoNova.optString(campo, "")) &&
+                            conhecido(sessaoAntiga.optString(campo, ""))) {
+                            sessaoNova.put(campo, sessaoAntiga.optString(campo))
+                        }
                     }
                 }
             }
-
             true
         } catch (_: Exception) {
-            // Se o cache existente estiver corrompido, permite recuperá-lo.
+            // Cache anterior inválido não deve impedir a recuperação.
             true
         }
     }
