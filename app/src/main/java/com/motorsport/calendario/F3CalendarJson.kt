@@ -31,16 +31,6 @@ object F3CalendarJson {
     fun carregar(context: Context): List<F3Event> {
         val json = lerCache(context) ?: lerAsset(context)
         val eventosJson = json?.let { interpretar(it) }.orEmpty()
-        val temporadaJson = json?.let {
-            try {
-                JSONObject(it).optInt("temporada", 0)
-            } catch (_: Exception) {
-                0
-            }
-        } ?: 0
-        val temporadaFallback = F3Calendar.eventos.firstOrNull()
-            ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
-
         // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
         // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
         // removidas ou associar o circuito errado depois de uma renumeração.
