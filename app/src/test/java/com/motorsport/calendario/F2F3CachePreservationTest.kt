@@ -55,22 +55,20 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f2CalendarioMenorDaMesmaTemporadaNaoSubstituiCache() {
+    fun f2AceitaReducaoDeEtapasNaMesmaTemporada() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
 
         try {
             val completo = calendarJson("F2", 2026, 14)
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, completo))
-            val original = cache.readText()
-
-            assertFalse(
+            assertTrue(
                 F2CalendarJson.gravarCacheSeguro(
                     context,
                     calendarJson("F2", 2026, 10)
                 )
             )
-            assertEquals(original, cache.readText())
+            assertEquals(10, F2CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -78,12 +76,12 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f2CompletaEtapasAusentesComFallbackDaMesmaTemporada() {
+    fun f2NaoRessuscitaEtapasAusentesNoCalendarioOficial() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
         try {
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, calendarJson("F2", 2026, 10)))
-            assertEquals(14, F2CalendarJson.carregar(context).size)
+            assertEquals(10, F2CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -104,12 +102,12 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f3CompletaEtapasAusentesComFallbackDaMesmaTemporada() {
+    fun f3NaoRessuscitaEtapasAusentesNoCalendarioOficial() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
         try {
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, calendarJson("F3", 2026, 8)))
-            assertEquals(9, F3CalendarJson.carregar(context).size)
+            assertEquals(8, F3CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -156,22 +154,20 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f3CalendarioMenorDaMesmaTemporadaNaoSubstituiCache() {
+    fun f3AceitaReducaoDeEtapasNaMesmaTemporada() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
 
         try {
             val completo = calendarJson("F3", 2026, 9)
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, completo))
-            val original = cache.readText()
-
-            assertFalse(
+            assertTrue(
                 F3CalendarJson.gravarCacheSeguro(
                     context,
                     calendarJson("F3", 2026, 5)
                 )
             )
-            assertEquals(original, cache.readText())
+            assertEquals(5, F3CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -179,20 +175,19 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f2AtualizacaoQueRemoveSessaoNaoSubstituiCache() {
+    fun f2AceitaRemocaoOuRenomeacaoOficialDeSessao() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
 
         try {
             val completo = calendarJson("F2", 2026, 14)
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, completo))
-            val original = cache.readText()
-
             val semSessaoExistente = calendarJson("F2", 2026, 14)
                 .replace("\"nome\": \"Corrida\"", "\"nome\": \"Treino\"")
 
-            assertFalse(F2CalendarJson.gravarCacheSeguro(context, semSessaoExistente))
-            assertEquals(original, cache.readText())
+            assertTrue(F2CalendarJson.gravarCacheSeguro(context, semSessaoExistente))
+            assertTrue(cache.readText().contains("\"nome\": \"Treino\""))
+            assertFalse(cache.readText().contains("\"nome\": \"Corrida\""))
         } finally {
             cache.delete()
             backup.delete()

@@ -291,8 +291,8 @@ def main():
     print("Consultando páginas oficiais da F2...")
     slugs = listar_slugs(baixar(URL))
     print("Etapas encontradas:", len(slugs))
-    if len(slugs) < 10:
-        print("ERRO: poucas etapas encontradas. Nada foi alterado.")
+    if not slugs:
+        print("ERRO: nenhuma etapa encontrada. Nada foi alterado.")
         return 1
 
     etapas = []

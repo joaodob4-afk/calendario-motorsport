@@ -20,9 +20,9 @@ object F3CalendarJson {
 
     private const val ARQUIVO_CACHE = "f3_calendar_cache.json"
 
-    // O calendário atual possui nove etapas.
-    // Cinco é o mínimo de segurança para rejeitar respostas muito incompletas.
-    private const val MINIMO_ETAPAS_VALIDAS = 5
+    // A validação estrutural de cada etapa protege contra JSON incompleto;
+    // não impomos uma quantidade fixa de etapas, que pode mudar oficialmente.
+    private const val MINIMO_ETAPAS_VALIDAS = 1
 
     private val formatoData = DateTimeFormatter
         .ofPattern("dd/MM/uuuu")
@@ -31,28 +31,9 @@ object F3CalendarJson {
     fun carregar(context: Context): List<F3Event> {
         val json = lerCache(context) ?: lerAsset(context)
         val eventosJson = json?.let { interpretar(it) }.orEmpty()
-        val temporadaJson = json?.let {
-            try {
-                JSONObject(it).optInt("temporada", 0)
-            } catch (_: Exception) {
-                0
-            }
-        } ?: 0
-        val temporadaFallback = F3Calendar.eventos.firstOrNull()
-            ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
-
-        // Só completa etapas ausentes com o fallback da mesma temporada.
-        // Uma temporada nova pode ter legitimamente outra quantidade de etapas.
-        if (eventosJson.isNotEmpty() &&
-            temporadaJson > 0 &&
-            temporadaJson == temporadaFallback
-        ) {
-            val combinados = F3Calendar.eventos
-                .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
-                eventosJson
-            return combinados.sortedBy { it.etapa }
-        }
-
+        // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
+        // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
+        // removidas ou associar o circuito errado depois de uma renumeração.
         if (eventosJson.isNotEmpty()) {
             return eventosJson.sortedBy { it.etapa }
         }
@@ -164,24 +145,23 @@ object F3CalendarJson {
                     null
                 }
 
-                if (
-                    eventosAtuais != null &&
-                    eventosNovos.size < eventosAtuais.size
-                ) {
-                    return false
-                }
-
-                // Na mesma temporada, não aceite uma atualização que perca
-                // sessões existentes ou substitua um horário conhecido por
-                // "A confirmar". Isso evita degradar os detalhes offline.
+                // Na mesma temporada, compara por circuito (não pelo número da etapa).
+                // Etapas/sessões ausentes podem ter sido removidas ou renomeadas oficialmente;
+                // não as ressuscita. Só bloqueia a perda de um horário ainda representado
+                // pela mesma sessão, pois isso degradaria os detalhes offline.
                 if (eventosAtuais != null) {
-                    val novosPorEtapa = eventosNovos.associateBy { it.etapa }
+                    val novosPorCircuito = eventosNovos.associateBy {
+                        it.circuito.trim().lowercase()
+                    }
                     for (atual in eventosAtuais) {
-                        val novo = novosPorEtapa[atual.etapa] ?: return false
-                        val novasSessoes = novo.sessoes.associateBy { it.nome }
+                        val novo = novosPorCircuito[atual.circuito.trim().lowercase()]
+                            ?: continue
+                        val novasSessoes = novo.sessoes.associateBy {
+                            it.nome.trim().lowercase()
+                        }
                         for (sessaoAtual in atual.sessoes) {
-                            val sessaoNova = novasSessoes[sessaoAtual.nome]
-                                ?: return false
+                            val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase()]
+                                ?: continue
                             val horarioAtual = sessaoAtual.horario.trim()
                             val horarioNovo = sessaoNova.horario.trim()
                             if (
