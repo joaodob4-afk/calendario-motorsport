@@ -5,11 +5,14 @@
 
         <item name="android:fontFamily">sans</item>
 
-        <item name="android:windowBackground">#071A2D</item>
+        <item name="android:windowBackground">#000000</item>
 
         <item name="android:colorAccent">#E10600</item>
 
-        <item name="android:navigationBarColor">#071A2D</item>
+        <!-- A barra de navegação do sistema acompanha o fundo preto do app. -->
+        <item name="android:navigationBarColor">#000000</item>
+
+        <item name="android:navigationBarDividerColor">#000000</item>
 
         <item name="android:statusBarColor">#071A2D</item>
 
