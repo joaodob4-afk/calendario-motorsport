@@ -27,22 +27,12 @@ object F2CalendarJson {
 
     /**
      * Mantém a mesma interface pública utilizada pelas telas existentes.
-     * Prioriza o cache válido, depois o JSON incluído no APK e, por fim,
-     * combina os dados disponíveis com o calendário de reserva.
+     * Prioriza o cache válido e depois o JSON incluído no APK.
+     * Usa o calendário de reserva somente quando os JSONs não são válidos.
      */
     fun carregar(context: Context): List<F2Event> {
         val json = lerCache(context) ?: lerAsset(context)
         val eventosJson = json?.let { interpretar(it) }.orEmpty()
-        val temporadaJson = json?.let {
-            try {
-                JSONObject(it).optInt("temporada", 0)
-            } catch (_: Exception) {
-                0
-            }
-        } ?: 0
-        val temporadaFallback = F2Calendar.eventos.firstOrNull()
-            ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
-
         // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
         // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
         // removidas ou associar o circuito errado depois de uma renumeração.
