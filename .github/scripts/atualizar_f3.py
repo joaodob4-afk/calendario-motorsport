@@ -14,13 +14,16 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula3.com"
-URL = BASE + "/en/racing/2026"
+TEMPORADAS_PREFERIDAS = (2027, 2026)
 SAIDA = Path("app/src/main/assets/f3_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 # slug do site -> (circuito, pais, fuso local do circuito)
 CIRCUITOS = {
     "sakhir": ("Sakhir", "Bahrein", "Asia/Bahrain"),
+    "jeddah": ("Jeddah", "Arábia Saudita", "Asia/Riyadh"),
+    "istanbul": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
+    "istanbul-park": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
     "melbourne": ("Melbourne", "Austrália", "Australia/Melbourne"),
     "miami-gardens": ("Miami", "Estados Unidos", "America/New_York"),
     "montreal": ("Montreal", "Canadá", "America/Toronto"),
@@ -48,8 +51,9 @@ def baixar(url):
 
 
 class LinksParser(HTMLParser):
-    def __init__(self):
+    def __init__(self, temporada):
         super().__init__()
+        self.temporada = temporada
         self.links = set()
 
     def handle_starttag(self, tag, attrs):
@@ -57,15 +61,30 @@ class LinksParser(HTMLParser):
             return
         for nome, valor in attrs:
             if nome.lower() == "href" and valor:
-                m = re.search(r"/en/racing/2026/([^/?#]+)", valor)
+                m = re.search(rf"/en/racing/{self.temporada}/([^/?#]+)", valor)
                 if m:
                     self.links.add(m.group(1))
 
 
-def listar_slugs(html):
-    p = LinksParser()
+def listar_slugs(html, temporada=2026):
+    p = LinksParser(temporada)
     p.feed(html)
     return sorted(p.links)
+
+
+def descobrir_calendario():
+    """Usa a próxima temporada quando a página oficial de etapas estiver publicada."""
+    for temporada in TEMPORADAS_PREFERIDAS:
+        try:
+            html = baixar(f"{BASE}/en/racing/{temporada}")
+        except Exception as erro:
+            print(f"Calendário {temporada} indisponível: {erro}")
+            continue
+        slugs = listar_slugs(html, temporada)
+        if slugs:
+            return temporada, slugs
+        print(f"Calendário {temporada} ainda não publicado como página de etapas.")
+    return None, []
 
 
 def sub_eventos(html):
@@ -259,7 +278,8 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
 
 def main():
     print("Consultando páginas oficiais da F3...")
-    slugs = listar_slugs(baixar(URL))
+    temporada, slugs = descobrir_calendario()
+    print("Temporada selecionada:", temporada)
     print("Etapas encontradas:", len(slugs))
     if not slugs:
         print("ERRO: nenhuma etapa encontrada. Nada foi alterado.")
@@ -268,7 +288,7 @@ def main():
     etapas = []
     for slug in slugs:
         try:
-            etapas.append(montar_etapa(slug, baixar(f"{BASE}/en/racing/2026/{slug}")))
+            etapas.append(montar_etapa(slug, baixar(f"{BASE}/en/racing/{temporada}/{slug}")))
             print("OK  ", slug)
         except Exception as e:
             print("ERRO", slug, "->", e)
@@ -284,7 +304,7 @@ def main():
         for e in etapas
     ]
 
-    novo = {"temporada": 2026, "categoria": "F3", "etapas": etapas}
+    novo = {"temporada": temporada, "categoria": "F3", "etapas": etapas}
     try:
         novo["etapas"] = preservar_sessoes_conhecidas(
             novo["etapas"], temporada_nova=novo["temporada"]
