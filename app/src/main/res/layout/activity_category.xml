@@ -56,12 +56,13 @@
             android:layout_height="3dp"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="24dp"
-            android:background="#39FF14" />
+            android:background="#E10600" />
 
         <!-- Cartão informativo seguindo o padrão dos cartões dos detalhes -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/categoryInfoCard"
             android:orientation="vertical"
             android:padding="18dp"
             android:background="@drawable/rounded_card">
@@ -69,6 +70,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/categoryEyebrow"
                 android:text="CENTRAL DA CATEGORIA"
                 android:textColor="#8FA6BA"
                 android:textSize="12sp"
@@ -103,6 +105,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="10dp"
+            android:id="@+id/calendarSectionTitle"
             android:text="CALENDÁRIO"
             android:textColor="#8FA6BA"
             android:textSize="12sp"
@@ -115,7 +118,7 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:text="VER PROGRAMAÇÃO COMPLETA"
-            android:textColor="#39FF14"
+            android:textColor="#E10600"
             android:textSize="15sp"
             android:fontFamily="sans-serif"
             android:textStyle="bold"
