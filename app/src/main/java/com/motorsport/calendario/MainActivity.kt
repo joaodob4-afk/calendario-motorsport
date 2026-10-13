@@ -560,14 +560,8 @@ class MainActivity : AppCompatActivity() {
             else -> "FÓRMULA E"
         }
 
-        // A página mantém o visual escuro dos detalhes, com identidade por categoria.
-        val corCategoria = when (categoria) {
-            "F1" -> android.graphics.Color.rgb(225, 6, 0)
-            "F2" -> android.graphics.Color.rgb(0, 144, 255)
-            "F3" -> android.graphics.Color.rgb(139, 92, 246)
-            "IndyCar" -> android.graphics.Color.rgb(0, 102, 204)
-            else -> android.graphics.Color.rgb(0, 220, 190)
-        }
+        // Todas as categorias usam a identidade visual padrão verde fluorescente.
+        val corCategoria = android.graphics.Color.rgb(57, 255, 20)
 
         findViewById<android.view.View>(R.id.categoryAccentLine)
             .setBackgroundColor(corCategoria)
