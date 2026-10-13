@@ -39,15 +39,6 @@ object FormulaECalendarJson {
 
     private val cacheLock = Any()
 
-    // Os mínimos fixos se aplicam apenas à temporada 2026/27.
-    private data class LimitesTemporada(val etapas: Int, val rodadas: Int)
-
-    private fun limitesDaTemporada(temporada: String): LimitesTemporada? =
-        when (temporada.trim()) {
-            "2026/27" -> LimitesTemporada(etapas = 13, rodadas = 21)
-            else -> null
-        }
-
     private val regexNumeroRodada = Regex("""(?i)\bRodada\s+(\d+)\b""")
 
     private fun numeroDaRodada(nome: String): Int? {
@@ -133,7 +124,6 @@ object FormulaECalendarJson {
             val eventosNovos = interpretar(texto)
             val novaRaiz = JSONObject(texto)
             val novaTemporada = novaRaiz.optString("temporada").trim()
-            val novasEtapas = novaRaiz.getJSONArray("etapas").length()
 
             synchronized(cacheLock) {
                 val arquivo = File(context.filesDir, ARQUIVO_CACHE)
@@ -153,20 +143,23 @@ object FormulaECalendarJson {
                     if (eventosAtuais != null) {
                         val raizAtual = JSONObject(cacheAtual)
                         val temporadaAtual = raizAtual.optString("temporada").trim()
-                        val etapasAtuais = raizAtual.getJSONArray("etapas").length()
-                        if (novaTemporada == temporadaAtual && novasEtapas < etapasAtuais) {
-                            return false
-                        }
-
-                        // Preserva detalhes offline de cada etapa da mesma temporada.
+                        // A quantidade oficial pode aumentar ou diminuir na mesma temporada.
+                        // Preserva horários apenas para eventos/sessões que continuam publicados.
                         if (novaTemporada == temporadaAtual) {
-                            val novosPorEtapa = eventosNovos.associateBy { it.etapa }
+                            val novosPorCircuito = eventosNovos.associateBy {
+                                it.circuito.trim().lowercase()
+                            }
                             for (atual in eventosAtuais) {
-                                val novo = novosPorEtapa[atual.etapa] ?: return false
-                                val novasSessoes = novo.sessoes.associateBy { it.nome }
+                                val novo = novosPorCircuito[
+                                    atual.circuito.trim().lowercase()
+                                ] ?: continue
+                                val novasSessoes = novo.sessoes.associateBy {
+                                    it.nome.trim().lowercase()
+                                }
                                 for (sessaoAtual in atual.sessoes) {
-                                    val sessaoNova = novasSessoes[sessaoAtual.nome]
-                                        ?: return false
+                                    val sessaoNova = novasSessoes[
+                                        sessaoAtual.nome.trim().lowercase()
+                                    ] ?: continue
                                     val horarioAtual = sessaoAtual.horario.trim()
                                     val horarioNovo = sessaoNova.horario.trim()
                                     if (
@@ -305,16 +298,11 @@ object FormulaECalendarJson {
             "Categoria inválida"
         }
 
-        val temporada = raiz.optString("temporada").trim()
-        val limites = limitesDaTemporada(temporada)
         val etapas = raiz.getJSONArray("etapas")
 
+        // A fonte oficial define a quantidade de etapas e corridas da temporada.
+        // Exigimos ao menos uma etapa válida, mas nunca um total fixo.
         require(etapas.length() > 0) { "Calendário sem etapas" }
-        if (limites != null) {
-            require(etapas.length() >= limites.etapas) {
-                "Calendário incompleto para a temporada $temporada"
-            }
-        }
 
         val eventos = mutableListOf<FormulaEEvent>()
         val numerosEtapas = mutableSetOf<Int>()
@@ -407,13 +395,6 @@ object FormulaECalendarJson {
                     sessoes = sessoes
                 )
             )
-        }
-
-        if (limites != null) {
-            require(numerosRodadas.size >= limites.rodadas) {
-                "Calendário incompleto para a temporada $temporada: " +
-                    "menos de ${limites.rodadas} rodadas identificadas"
-            }
         }
 
         return eventos
