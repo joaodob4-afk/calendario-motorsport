@@ -14,7 +14,7 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
     def test_ordenacao_cronologica_e_classificacao_em_grupos(self):
         subs = [
             {"name": "Qualifying Group B", "startDate": "2026-06-05T09:29:00Z"},
-            {"name": "Race - Sprint", "startDate": "2026-06-06T08:45:00Z"},
+            {"name": "Sprint Race", "startDate": "2026-06-06T08:45:00Z"},
             {"name": "Practice", "startDate": "2026-06-04T11:25:00Z"},
             {"name": "Qualifying Group A", "startDate": "2026-06-05T09:05:00Z"},
             {"name": "Feature Race", "startDate": "2026-06-07T05:45:00Z"},
