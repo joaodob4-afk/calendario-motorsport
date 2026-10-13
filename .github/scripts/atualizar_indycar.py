@@ -31,7 +31,7 @@ MESES = {
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
 PREFIXO = "NTT INDYCAR SERIES - "
-MINIMO_ETAPAS_VALIDAS = 10
+MINIMO_ETAPAS_VALIDAS = 1
 
 
 def baixar(url):
@@ -245,10 +245,11 @@ def montar_etapa(cartao, html_evento):
 
 
 def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
-    """Impede perda de etapas, sessões e horários ao atualizar a mesma temporada.
+    """Preserva dados conhecidos sem bloquear remoções/renomeações oficiais.
 
-    Uma temporada diferente pode legitimamente ter outra quantidade de etapas.
-    temporada_nova=None mantém o comportamento conservador para chamadas antigas.
+    A identidade do circuito prevalece sobre o número da etapa, que pode mudar
+    quando o calendário oficial é reorganizado. Só preserva dados de sessões
+    que continuam existindo com o mesmo nome na mesma etapa/circuito.
     """
     arquivo = Path(arquivo)
     if not arquivo.exists():
@@ -258,7 +259,6 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
         anterior = json.loads(arquivo.read_text(encoding="utf-8"))
         if (
             not isinstance(anterior, dict)
-            or anterior.get("categoria") != "IndyCar"
             or not isinstance(anterior.get("etapas"), list)
             or not anterior["etapas"]
             or any(
@@ -282,34 +282,32 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
     ):
         return
 
-    etapas_por_nome = {
-        str(etapa.get("nome", "")).strip().casefold(): etapa
-        for etapa in etapas_novas
-        if str(etapa.get("nome", "")).strip()
-    }
-    etapas_por_numero = {
-        etapa.get("etapa"): etapa
-        for etapa in etapas_novas
-        if etapa.get("etapa") is not None
-    }
+    def identidade(etapa):
+        circuito = str(etapa.get("circuito", "")).strip().casefold()
+        if circuito:
+            return ("circuito", circuito)
+        nome = str(etapa.get("nome", "")).strip().casefold()
+        if nome:
+            return ("nome", nome)
+        return ("etapa", str(etapa.get("etapa", "")))
 
-    if len(etapas_novas) < len(anterior["etapas"]):
-        raise ValueError(
-            f"novo calendário tem {len(etapas_novas)} etapas, mas o arquivo "
-            f"atual tem {len(anterior['etapas'])}. Nada foi alterado."
-        )
+    def conhecido(valor):
+        normalizado = str(valor or "").strip().casefold()
+        return bool(normalizado) and normalizado not in {
+            "a confirmar", "tbd", "tba", "null", "none"
+        }
 
+    novas_por_identidade = {identidade(etapa): etapa for etapa in etapas_novas}
     for etapa_atual in anterior["etapas"]:
-        nome_atual = str(etapa_atual.get("nome", "")).strip().casefold()
-        if nome_atual:
-            etapa_nova = etapas_por_nome.get(nome_atual)
-        else:
-            etapa_nova = etapas_por_numero.get(etapa_atual.get("etapa"))
+        etapa_nova = novas_por_identidade.get(identidade(etapa_atual))
+        # Etapa ausente/renomeada oficialmente não deve ser recriada.
         if etapa_nova is None:
-            raise ValueError(
-                f"atualização incompleta: etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}' ausente. "
-                "Nada foi alterado."
-            )
+            continue
+
+        for campo in ("inicio", "fim"):
+            valor_atual = etapa_atual.get(campo, "")
+            if conhecido(valor_atual) and not conhecido(etapa_nova.get(campo, "")):
+                etapa_nova[campo] = valor_atual
 
         sessoes_novas = {
             str(sessao.get("nome", "")).strip().casefold(): sessao
@@ -321,32 +319,14 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
                 raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
             nome_sessao = str(sessao_atual.get("nome", "")).strip()
             sessao_nova = sessoes_novas.get(nome_sessao.casefold())
+            # Sessões removidas ou renomeadas não devem ser ressuscitadas.
             if sessao_nova is None:
-                raise ValueError(
-                    f"atualização incompleta: sessão '{nome_sessao}' da etapa "
-                    f"'{etapa_atual.get('nome', etapa_atual.get('etapa'))}' ausente. Nada foi alterado."
-                )
+                continue
 
-            horario_atual = str(sessao_atual.get("horario", "")).strip()
-            horario_novo = str(sessao_nova.get("horario", "")).strip()
-            horario_conhecido = horario_atual and horario_atual.casefold() not in (
-                "a confirmar", "tbd", "tba"
-            )
-            if horario_conhecido and horario_novo.casefold() in ("", "a confirmar", "tbd", "tba"):
-                raise ValueError(
-                    f"atualização incompleta: horário conhecido removido da sessão "
-                    f"'{nome_sessao}' da etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}'. "
-                    "Nada foi alterado."
-                )
-
-            data_atual = str(sessao_atual.get("data", "")).strip()
-            data_nova = str(sessao_nova.get("data", "")).strip()
-            if data_atual and not data_nova:
-                raise ValueError(
-                    f"atualização incompleta: data conhecida removida da sessão "
-                    f"'{nome_sessao}' da etapa '{etapa_atual.get('nome', etapa_atual.get('etapa'))}'. "
-                    "Nada foi alterado."
-                )
+            for campo in ("data", "horario"):
+                valor_atual = sessao_atual.get(campo, "")
+                if conhecido(valor_atual) and not conhecido(sessao_nova.get(campo, "")):
+                    sessao_nova[campo] = valor_atual
 
 
 def main():
