@@ -107,5 +107,47 @@ class PreservacaoFormulaETest(unittest.TestCase):
         self.assertEqual(resultado[0]["sessoes"][0]["horario"], "A confirmar")
 
 
+    def test_preserva_horario_ao_migrar_londres_para_brands_hatch(self):
+        legado = {
+            "temporada": "2026/27",
+            "categoria": "Formula E",
+            "etapas": [{
+                "etapa": 9,
+                "circuito": "Londres",
+                "pais": "Reino Unido",
+                "sessoes": [{
+                    "nome": "Corrida (Rodada 12)",
+                    "data": "29/05/2027",
+                    "horario": "15:00"
+                }]
+            }]
+        }
+        self.arquivo.write_text(json.dumps(legado), encoding="utf-8")
+        novas = [{
+            "etapa": 9,
+            "circuito": "Brands Hatch",
+            "pais": "Reino Unido",
+            "sessoes": [{
+                "nome": "Corrida (Rodada 12)",
+                "data": "29/05/2027",
+                "horario": "A confirmar"
+            }]
+        }]
+        resultado = fe.preservar_detalhes_conhecidos(novas, self.arquivo)
+        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "15:00")
+
+    def test_mapeia_london_para_brands_hatch(self):
+        dados = {
+            "itemListElement": [{
+                "item": {
+                    "name": "R12 London E-Prix",
+                    "location": {"address": {"addressCountry": "GB"}},
+                    "startDate": "2027-05-29"
+                }
+            }]
+        }
+        rodada = fe.extrair_rodadas(dados)[0]
+        self.assertEqual(rodada["cidade"], "Brands Hatch")
+
 if __name__ == "__main__":
     unittest.main()
