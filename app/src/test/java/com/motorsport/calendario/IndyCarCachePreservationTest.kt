@@ -252,7 +252,7 @@ fun sessaoRemovidaNaMesmaTemporadaPermiteAtualizacaoOficial() {
 }
 
 @Test
-fun horarioConhecidoNaoPodeVirarAConfirmar() {
+fun horarioConhecidoEhPreservadoQuandoFonteRetornaAConfirmar() {
     val context = RuntimeEnvironment.getApplication()
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
@@ -261,15 +261,14 @@ fun horarioConhecidoNaoPodeVirarAConfirmar() {
             context,
             jsonComEtapas(18)
         )
-        val original = arquivoCache.readText()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonComEtapas(18, horario = "A confirmar")
-            )
-        }
-        assertEquals(original, arquivoCache.readText())
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18, horario = "A confirmar")
+        )
+
+        val eventos = IndyCarCalendarJson.carregar(context)
+        assertEquals("12:30", eventos.first().sessoes.first { it.nome == "Corrida" }.horario)
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
