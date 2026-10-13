@@ -14,6 +14,18 @@ SPEC.loader.exec_module(indycar)
 
 
 class AtualizadorIndyCarTest(unittest.TestCase):
+    def test_aceita_qualquer_quantidade_positiva_de_etapas_da_fonte(self):
+        for quantidade in (1, 2, 9, 18, 25):
+            with self.subTest(quantidade=quantidade):
+                cartoes = {f"etapa-{n}": {} for n in range(quantidade)}
+                self.assertEqual(
+                    len(indycar.validar_cartoes_fonte(cartoes)), quantidade
+                )
+
+    def test_rejeita_fonte_sem_etapas_para_nao_apagar_calendario(self):
+        with self.assertRaisesRegex(ValueError, "Nenhuma etapa encontrada"):
+            indycar.validar_cartoes_fonte({})
+
     def test_converte_horario_et_para_brasilia_no_horario_de_verao(self):
         instante = indycar.converter_hora(2026, 5, 1, 10, 0, "AM")
         brasilia = instante.astimezone(indycar.BRASILIA)

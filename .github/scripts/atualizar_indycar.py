@@ -31,7 +31,13 @@ MESES = {
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
 PREFIXO = "NTT INDYCAR SERIES - "
-MINIMO_ETAPAS_VALIDAS = 1
+
+
+def validar_cartoes_fonte(cartoes):
+    """Aceita a quantidade publicada pela fonte, mas nunca uma lista vazia."""
+    if not cartoes:
+        raise ValueError("Nenhuma etapa encontrada na fonte oficial")
+    return cartoes
 
 
 def baixar(url):
@@ -367,16 +373,13 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
 def main():
     print("Consultando páginas oficiais da IndyCar...")
     try:
-        cartoes = extrair_cartoes(baixar(LISTA))
+        cartoes = validar_cartoes_fonte(extrair_cartoes(baixar(LISTA)))
     except Exception as e:  # noqa: BLE001
         print("ERRO:", e)
         print("Nada foi alterado.")
         return 1
 
     print("Etapas encontradas:", len(cartoes))
-    if len(cartoes) < MINIMO_ETAPAS_VALIDAS:
-        print(f"ERRO: calendário incompleto ({len(cartoes)} etapas; mínimo {MINIMO_ETAPAS_VALIDAS}). Nada foi alterado.")
-        return 1
 
     etapas = []
     for slug, cartao in cartoes.items():
