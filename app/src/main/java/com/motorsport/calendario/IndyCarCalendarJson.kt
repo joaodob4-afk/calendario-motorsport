@@ -37,7 +37,7 @@ object IndyCarCalendarJson {
     private const val URL_JSON =
         "https://raw.githubusercontent.com/joaodob4-afk/" +
         "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
-    private const val MINIMO_ETAPAS_VALIDAS = 10
+    private const val MINIMO_ETAPAS_VALIDAS = 1
     private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
