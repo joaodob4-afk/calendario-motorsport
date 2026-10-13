@@ -201,7 +201,22 @@ class F1Activity : AppCompatActivity() {
      */
     private fun buscarCorridaSelecionada(): JSONObject? {
         val corridaTexto = intent.getStringExtra("RACE")
+        // O calendário envia a corrida em "RACE"; extraímos o circuito desse
+        // objeto para localizar a versão detalhada salva, inclusive offline.
         val circuitId = intent.getStringExtra("CIRCUIT_ID_F1")
+            ?.takeIf { it.isNotBlank() }
+            ?: try {
+                if (corridaTexto.isNullOrBlank()) {
+                    null
+                } else {
+                    JSONObject(corridaTexto)
+                        .optJSONObject("Circuit")
+                        ?.optString("circuitId", "")
+                        ?.takeIf { it.isNotBlank() }
+                }
+            } catch (_: Exception) {
+                null
+            }
 
         // A tela inicial pode enviar apenas um resumo da etapa, sem sessões.
         // Quando há circuito selecionado, prioriza o cache completo antes do resumo.
