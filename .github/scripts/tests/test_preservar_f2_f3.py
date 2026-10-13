@@ -28,6 +28,7 @@ class PreservacaoF2F3Test(unittest.TestCase):
             "temporada": 2026,
             "etapas": [{
                 "etapa": 1,
+                "circuito": "Circuito A",
                 "inicio": "01/05/2026",
                 "fim": "03/05/2026",
                 "sessoes": [{
@@ -40,6 +41,7 @@ class PreservacaoF2F3Test(unittest.TestCase):
         self.arquivo.write_text(json.dumps(self.anterior), encoding="utf-8")
         self.novas = [{
             "etapa": 1,
+            "circuito": "Circuito A",
             "inicio": "",
             "fim": "A confirmar",
             "sessoes": [{
@@ -65,18 +67,26 @@ class PreservacaoF2F3Test(unittest.TestCase):
         self.assertEqual(resultado[0]["sessoes"][0]["data"], "03/05/2026")
         self.assertEqual(resultado[0]["sessoes"][0]["horario"], "10:25")
 
-    def test_f2_rejeita_sessao_conhecida_ausente(self):
+    def test_f2_aceita_remocao_oficial_de_sessao(self):
         self.novas[0]["sessoes"] = []
-        with self.assertRaisesRegex(ValueError, "sessão.*ausente"):
-            f2.preservar_sessoes_conhecidas(
-                self.novas, self.arquivo, temporada_nova=2026
-            )
+        resultado = f2.preservar_sessoes_conhecidas(
+            self.novas, self.arquivo, temporada_nova=2026
+        )
+        self.assertEqual(resultado[0]["sessoes"], [])
 
-    def test_f3_rejeita_etapa_conhecida_ausente(self):
-        with self.assertRaisesRegex(ValueError, "etapa 1 ausente"):
-            f3.preservar_sessoes_conhecidas(
-                [], self.arquivo, temporada_nova=2026
-            )
+    def test_f3_aceita_remocao_oficial_de_etapa(self):
+        resultado = f3.preservar_sessoes_conhecidas(
+            [], self.arquivo, temporada_nova=2026
+        )
+        self.assertEqual(resultado, [])
+
+    def test_preserva_dados_por_circuito_apos_renumeracao(self):
+        self.novas[0]["etapa"] = 2
+        resultado = f2.preservar_sessoes_conhecidas(
+            self.novas, self.arquivo, temporada_nova=2026
+        )
+        self.assertEqual(resultado[0]["etapa"], 2)
+        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "10:25")
 
     def test_temporada_nova_nao_reutiliza_dados_antigos(self):
         resultado = f2.preservar_sessoes_conhecidas(
