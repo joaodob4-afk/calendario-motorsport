@@ -251,7 +251,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="PRÓXIMA ETAPA"
-                    android:textColor="#8FA6BA"
+                    android:textColor="#39FF14"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed"
@@ -314,7 +314,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
                     android:text="Faltam poucos dias"
-                    android:textColor="#19965F"
+                    android:textColor="#39FF14"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed" />
