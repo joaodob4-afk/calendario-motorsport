@@ -191,6 +191,16 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             self.assertEqual(novas[0]["sessoes"][0]["horario"], "19:00")
             self.assertEqual(novas[1]["sessoes"][0]["horario"], "14:00")
 
+    def test_milwaukee_race2_mantem_sessoes_compartilhadas_do_fim_de_semana(self):
+        sessoes_compartilhadas = [
+            {"nome": "Treino Livre", "data": "28/08/2026", "horario": "19:00"},
+            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
+        ]
+        corrida2 = sessoes_compartilhadas + [
+            {"nome": "Corrida 2", "data": "30/08/2026", "horario": "14:00"}
+        ]
+        self.assertEqual([s["nome"] for s in corrida2], ["Treino Livre", "Classificação", "Corrida 2"])
+
     def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
         with tempfile.TemporaryDirectory() as pasta:
             arquivo = Path(pasta) / "indycar_calendar.json"
