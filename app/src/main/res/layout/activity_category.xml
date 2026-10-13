@@ -15,6 +15,7 @@
         android:paddingEnd="18dp"
         android:paddingBottom="24dp">
 
+        <!-- Cabeçalho: mesma seta e título das telas de programação -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -46,52 +47,22 @@
                 android:fontFamily="sans-serif-black"
                 android:gravity="start"
                 android:letterSpacing="0.06" />
+
         </LinearLayout>
 
         <View
-            android:id="@+id/categoryAccentLine"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_height="2dp"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
-            android:background="#E10600" />
-
-        <TextView
-            android:id="@+id/categorySubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TEMPORADA 2026"
-            android:textColor="#B0B0B0"
-            android:textSize="12sp"
-            android:fontFamily="sans-serif"
-            android:textStyle="bold"
-            android:letterSpacing="0.12"
-            android:layout_marginBottom="22dp" />
-
-        <TextView
-            android:id="@+id/categoryListTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ETAPAS DA TEMPORADA"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:fontFamily="sans-serif-black"
-            android:letterSpacing="0.05"
-            android:layout_marginBottom="12dp" />
-
-        <LinearLayout
-            android:id="@+id/categoryEtapas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:layout_marginBottom="26dp"
+            android:background="#39FF14" />
 
         <TextView
             android:id="@+id/fullCalendarButton"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:layout_marginTop="10dp"
             android:text="VER PROGRAMAÇÃO COMPLETA"
-            android:textColor="#E10600"
+            android:textColor="#39FF14"
             android:textSize="15sp"
             android:fontFamily="sans-serif"
             android:textStyle="bold"
@@ -102,4 +73,5 @@
             android:focusable="true" />
 
     </LinearLayout>
-</ScrollView>
+
+</ScrollView> 
