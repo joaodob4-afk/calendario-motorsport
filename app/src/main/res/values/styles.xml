@@ -14,9 +14,6 @@
 
         <item name="android:navigationBarDividerColor">#000000</item>
 
-        <!-- Evita que o Android aplique uma película clara na barra de navegação. -->
-        <item name="android:navigationBarContrastEnforced">false</item>
-
         <item name="android:statusBarColor">#071A2D</item>
 
         <item name="android:windowLightStatusBar">false</item>
