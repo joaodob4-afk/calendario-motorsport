@@ -143,6 +143,51 @@ def montar(grupos):
     return etapas
 
 
+
+def preservar_detalhes_conhecidos(etapas_novas, arquivo=SAIDA, temporada_nova="2026/27"):
+    """Impede que uma resposta parcial apague sessões, datas ou horários conhecidos."""
+    if not arquivo.exists():
+        return etapas_novas
+
+    try:
+        atual = json.loads(arquivo.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as erro:
+        raise ValueError("Não foi possível validar o calendário anterior; arquivo não alterado") from erro
+
+    if str(atual.get("temporada", "")).strip() != str(temporada_nova).strip():
+        return etapas_novas
+
+    sessoes_novas = {
+        sessao.get("nome"): sessao
+        for etapa in etapas_novas
+        for sessao in etapa.get("sessoes", [])
+        if sessao.get("nome")
+    }
+
+    def conhecido(valor):
+        normalizado = str(valor or "").strip()
+        return bool(normalizado) and normalizado.lower() not in {
+            "a confirmar", "tbd", "null", "none"
+        }
+
+    for etapa_atual in atual.get("etapas", []):
+        for sessao_atual in etapa_atual.get("sessoes", []):
+            nome = sessao_atual.get("nome", "")
+            sessao_nova = sessoes_novas.get(nome)
+            if sessao_nova is None:
+                raise ValueError(
+                    f"Atualização incompleta: sessão conhecida {nome!r} ausente. "
+                    "Calendário anterior preservado."
+                )
+
+            for campo in ("data", "horario"):
+                valor_atual = sessao_atual.get(campo, "")
+                valor_novo = sessao_nova.get(campo, "")
+                if conhecido(valor_atual) and not conhecido(valor_novo):
+                    sessao_nova[campo] = valor_atual
+
+    return etapas_novas
+
 def main():
     print("Consultando calendário oficial da Fórmula E...")
     try:
@@ -165,6 +210,15 @@ def main():
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
     novo = {"temporada": "2026/27", "categoria": "Formula E", "etapas": etapas}
+    try:
+        novo["etapas"] = preservar_detalhes_conhecidos(
+            novo["etapas"], temporada_nova=novo["temporada"]
+        )
+    except ValueError as e:
+        print("ERRO:", e)
+        print("Nada foi alterado.")
+        return 1
+
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
