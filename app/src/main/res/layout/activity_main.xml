@@ -15,102 +15,15 @@
         android:paddingTop="10dp"
         android:paddingBottom="8dp">
 
+        <!-- Os botões são criados pelo Kotlin a partir da lista de categorias -->
         <LinearLayout
+            android:id="@+id/containerCategorias"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="10dp"
-            android:paddingEnd="10dp">
-
-            <TextView
-                android:id="@+id/btnF1"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:minWidth="62dp"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:background="@drawable/category_circle"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="F1"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed" />
-
-            <TextView
-                android:id="@+id/btnF2"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:minWidth="62dp"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:background="@drawable/category_circle"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="F2"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed" />
-
-            <TextView
-                android:id="@+id/btnF3"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:minWidth="62dp"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:background="@drawable/category_circle"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="F3"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed" />
-
-            <TextView
-                android:id="@+id/btnIndyCar"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:background="@drawable/category_circle"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="IndyCar"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed" />
-
-            <TextView
-                android:id="@+id/btnFormulaE"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:gravity="center"
-                android:background="@drawable/category_circle"
-                android:clickable="true"
-                android:focusable="true"
-                android:text="Formula E"
-                android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed" />
-
-        </LinearLayout>
+            android:paddingEnd="10dp" />
     </HorizontalScrollView>
 
     <!-- Conteúdo -->
@@ -146,6 +59,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="PRÓXIMA ETAPA"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:textColor="#39FF14"
                     android:textSize="12sp"
                     android:textStyle="bold"
