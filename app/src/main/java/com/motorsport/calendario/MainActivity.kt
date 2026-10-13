@@ -229,6 +229,13 @@ class MainActivity : AppCompatActivity() {
 
         listaEtapas = findViewById(R.id.listaEtapas)
 
+        // Botões de categoria na cor que representa cada uma
+        estilizarSelo(findViewById<TextView>(R.id.btnF1), corDaCategoria("F1"), 14f)
+        estilizarSelo(findViewById<TextView>(R.id.btnF2), corDaCategoria("F2"), 14f)
+        estilizarSelo(findViewById<TextView>(R.id.btnF3), corDaCategoria("F3"), 14f)
+        estilizarSelo(findViewById<TextView>(R.id.btnIndyCar), corDaCategoria("IndyCar"), 14f)
+        estilizarSelo(findViewById<TextView>(R.id.btnFormulaE), corDaCategoria("Formula E"), 14f)
+
         findViewById<android.view.View>(R.id.btnF1).setOnClickListener {
             abrirCategoria("F1")
         }
@@ -324,7 +331,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Selo com borda e fundo suave na cor informada (categoria e contagem regressiva). */
-    private fun estilizarSelo(view: TextView, cor: Int) {
+    private fun estilizarSelo(view: TextView, cor: Int, raioDp: Float = 10f) {
         val densidade = resources.displayMetrics.density
         view.setTextColor(cor)
         view.background = android.graphics.drawable.GradientDrawable().apply {
@@ -336,7 +343,7 @@ class MainActivity : AppCompatActivity() {
                     android.graphics.Color.blue(cor)
                 )
             )
-            cornerRadius = 10f * densidade
+            cornerRadius = raioDp * densidade
             setStroke((1 * densidade).toInt().coerceAtLeast(1), cor)
         }
     }
@@ -460,7 +467,11 @@ class MainActivity : AppCompatActivity() {
             val status = statusEtapa(etapa, etapasOrdenadas)
 
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
-            chipCategoria.text = etapa.categoria.uppercase()
+            chipCategoria.text = when (etapa.categoria) {
+                "IndyCar" -> "INDY"
+                "Formula E" -> "FE"
+                else -> etapa.categoria.uppercase()
+            }
             estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
