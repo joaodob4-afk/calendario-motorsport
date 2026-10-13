@@ -209,11 +209,12 @@ def main():
         print("Nada foi alterado.")
         return 1
 
-    esperado = dados.get("numberOfItems")
-    print("Rodadas encontradas:", len(rodadas), "| esperado:", esperado)
+    print("Rodadas encontradas na fonte oficial:", len(rodadas))
 
-    if len(rodadas) < 10 or (esperado and esperado != len(rodadas)):
-        print("ERRO: quantidade de rodadas inesperada. Nada foi alterado.")
+    # A fonte oficial define a quantidade: não fixamos um mínimo nem comparamos
+    # com a temporada anterior, pois inclusões e remoções podem ser legítimas.
+    if not rodadas:
+        print("ERRO: a fonte não forneceu nenhuma rodada. Nada foi alterado.")
         return 1
 
     etapas = montar(agrupar_etapas(rodadas))

@@ -24,7 +24,7 @@ object F1CalendarApi {
 
     private const val ARQUIVO_CACHE = "f1_races_cache.json"
     private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
-    private const val MINIMO_CORRIDAS_VALIDAS = 5
+    private const val MINIMO_CORRIDAS_VALIDAS = 1
 
     // Serializa atualizações que podem ser disparadas por mais de uma tela.
     private val cacheLock = Any()
@@ -398,22 +398,21 @@ object F1CalendarApi {
             if (interpretar(conteudo).size < MINIMO_CORRIDAS_VALIDAS) {
                 return@synchronized false
             }
-            if (!podeSubstituirCache(destino, conteudo)) {
+            val conteudoFinal = mesclarCamposConhecidos(destino, conteudo)
+            if (interpretar(conteudoFinal).isEmpty()) {
                 temporario.delete()
                 return@synchronized false
             }
 
             FileOutputStream(temporario, false).use { saida ->
-                saida.write(conteudo.toByteArray(Charsets.UTF_8))
+                saida.write(conteudoFinal.toByteArray(Charsets.UTF_8))
                 saida.flush()
                 saida.fd.sync()
             }
 
             // Confere novamente o arquivo escrito antes da troca.
             val textoGravado = temporario.readText(Charsets.UTF_8)
-            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS ||
-                !podeSubstituirCache(destino, textoGravado)
-            ) {
+            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS) {
                 temporario.delete()
                 return@synchronized false
             }
@@ -437,129 +436,72 @@ object F1CalendarApi {
      * Não reduz o calendário nem remove sessões já presentes quando a temporada
      * é a mesma. Temporadas diferentes podem ter legitimamente outra quantidade.
      */
-    private fun podeSubstituirCache(destino: File, novoTexto: String): Boolean {
-        if (!destino.isFile) return true
+    /**
+     * A fonte oficial controla a lista de corridas e sessões. Mesclamos somente
+     * campos vazios de uma corrida/sessão que continua existindo, para não perder
+     * um horário conhecido quando a fonte ainda não o publicou. Corridas e sessões
+     * removidas não são recriadas; valores oficiais não vazios sempre prevalecem.
+     */
+    private fun mesclarCamposConhecidos(destino: File, novoTexto: String): String {
+        if (!destino.isFile) return novoTexto
 
         return try {
-            val atual = JSONObject(destino.readText(Charsets.UTF_8))
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-            val novo = JSONObject(novoTexto)
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
+            val raizNova = JSONObject(novoTexto)
+            val tabelaNova = raizNova.getJSONObject("MRData").getJSONObject("RaceTable")
+            val tabelaAntiga = JSONObject(destino.readText(Charsets.UTF_8))
+                .getJSONObject("MRData").getJSONObject("RaceTable")
+            val corridasNovas = tabelaNova.getJSONArray("Races")
+            val corridasAntigas = tabelaAntiga.getJSONArray("Races")
 
-            val temporadaAtual = atual.optString("season", "").trim()
-            val temporadaNova = novo.optString("season", "").trim()
-            if (temporadaAtual.isBlank() || temporadaNova.isBlank() ||
-                temporadaAtual != temporadaNova
-            ) {
-                return true
+            if (tabelaNova.optString("season", "") != tabelaAntiga.optString("season", "")) {
+                return novoTexto
             }
 
-            val corridasAtuais = atual.getJSONArray("Races")
-            val corridasNovas = novo.getJSONArray("Races")
-            if (corridasNovas.length() < corridasAtuais.length()) {
-                return false
+            fun conhecido(valor: String): Boolean {
+                val v = valor.trim()
+                return v.isNotEmpty() &&
+                    !v.equals("null", ignoreCase = true) &&
+                    !v.equals("A confirmar", ignoreCase = true) &&
+                    !v.equals("TBD", ignoreCase = true) &&
+                    !v.equals("TBA", ignoreCase = true)
             }
 
-            fun corridasComSessoes(corridas: JSONArray): Int {
-                var total = 0
-                for (i in 0 until corridas.length()) {
-                    val corrida = corridas.optJSONObject(i) ?: continue
-                    if (SESSOES.any { corrida.optJSONObject(it) != null }) total++
-                }
-                return total
+            val antigasPorCircuito = mutableMapOf<String, JSONObject>()
+            for (i in 0 until corridasAntigas.length()) {
+                val corrida = corridasAntigas.optJSONObject(i) ?: continue
+                val id = corrida.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")?.trim().orEmpty()
+                if (id.isNotBlank()) antigasPorCircuito[id] = corrida
             }
 
-            if (corridasComSessoes(corridasNovas) < corridasComSessoes(corridasAtuais)) {
-                return false
-            }
-
-            fun valorConhecido(valor: String): Boolean {
-                val normalizado = valor.trim()
-                return normalizado.isNotEmpty() &&
-                    !normalizado.equals("null", ignoreCase = true) &&
-                    !normalizado.equals("A confirmar", ignoreCase = true)
-            }
-
-            val novasPorCircuito = mutableMapOf<String, JSONObject>()
-            val novasPorCircuitoERound = mutableMapOf<String, JSONObject>()
-            val novasPorRound = mutableMapOf<String, JSONObject>()
             for (i in 0 until corridasNovas.length()) {
-                val corrida = corridasNovas.optJSONObject(i) ?: return false
-                val circuitId = corrida.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")
-                    ?.trim()
-                    .orEmpty()
-                val round = corrida.optString("round", "").trim()
-                if (circuitId.isNotBlank()) {
-                    novasPorCircuito[circuitId] = corrida
-                    if (round.isNotBlank()) {
-                        novasPorCircuitoERound["$circuitId|$round"] = corrida
+                val nova = corridasNovas.optJSONObject(i) ?: continue
+                val id = nova.optJSONObject("Circuit")
+                    ?.optString("circuitId", "")?.trim().orEmpty()
+                val antiga = antigasPorCircuito[id] ?: continue
+
+                for (campo in listOf("date", "time")) {
+                    if (!conhecido(nova.optString(campo, "")) &&
+                        conhecido(antiga.optString(campo, ""))) {
+                        nova.put(campo, antiga.optString(campo))
                     }
                 }
-                if (round.isNotBlank()) {
-                    novasPorRound[round] = corrida
-                }
-            }
 
-            for (i in 0 until corridasAtuais.length()) {
-                val atual = corridasAtuais.optJSONObject(i) ?: return false
-                val circuitId = atual.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")
-                    ?.trim()
-                    .orEmpty()
-                val round = atual.optString("round", "").trim()
-                val nova = (
-                    if (circuitId.isNotBlank() && round.isNotBlank()) {
-                        novasPorCircuitoERound["$circuitId|$round"]
-                    } else {
-                        null
-                    }
-                ) ?: (
-                    if (circuitId.isNotBlank()) novasPorCircuito[circuitId] else null
-                ) ?: (
-                    if (round.isNotBlank()) novasPorRound[round] else null
-                ) ?: return false
-
-                // Preserve datas e horários básicos já conhecidos da corrida.
-                if (
-                    valorConhecido(atual.optString("date", "")) &&
-                    !valorConhecido(nova.optString("date", ""))
-                ) {
-                    return false
-                }
-                if (
-                    valorConhecido(atual.optString("time", "")) &&
-                    !valorConhecido(nova.optString("time", ""))
-                ) {
-                    return false
-                }
-
-                // Uma resposta parcial não pode retirar ou esvaziar uma
-                // sessão específica que já estava salva para esta corrida.
                 for (nomeSessao in SESSOES) {
-                    val sessaoAtual = atual.optJSONObject(nomeSessao) ?: continue
-                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: return false
-                    if (
-                        valorConhecido(sessaoAtual.optString("date", "")) &&
-                        !valorConhecido(sessaoNova.optString("date", ""))
-                    ) {
-                        return false
-                    }
-                    if (
-                        valorConhecido(sessaoAtual.optString("time", "")) &&
-                        !valorConhecido(sessaoNova.optString("time", ""))
-                    ) {
-                        return false
+                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: continue
+                    val sessaoAntiga = antiga.optJSONObject(nomeSessao) ?: continue
+                    for (campo in listOf("date", "time")) {
+                        if (!conhecido(sessaoNova.optString(campo, "")) &&
+                            conhecido(sessaoAntiga.optString(campo, ""))) {
+                            sessaoNova.put(campo, sessaoAntiga.optString(campo))
+                        }
                     }
                 }
             }
-
-            true
+            raizNova.toString()
         } catch (_: Exception) {
-            // Se o cache existente estiver corrompido, permite recuperá-lo.
-            true
+            // Se não for possível ler o cache antigo, não bloqueia a fonte nova.
+            novoTexto
         }
     }
 

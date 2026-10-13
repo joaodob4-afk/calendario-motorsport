@@ -80,7 +80,7 @@ class F1CachePreservationTest {
     }
 
     @Test
-    fun calendarioMenorDaMesmaTemporadaNaoSubstituiCacheCompleto() {
+    fun calendarioMenorDaMesmaTemporadaSubstituiCacheQuandoFonteMuda() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -94,22 +94,22 @@ class F1CachePreservationTest {
             )
             val original = arquivo.readText()
 
-            assertFalse(
+            assertTrue(
                 F1CalendarApi.gravarCacheSeguro(
                     context.filesDir,
                     jsonComCorridas(10)
                 )
             )
 
-            assertEquals(original, arquivo.readText())
+            assertFalse(original == arquivo.readText())
             val corridas = JSONObject(arquivo.readText())
                 .getJSONObject("MRData")
                 .getJSONObject("RaceTable")
                 .getJSONArray("Races")
-            assertEquals(20, corridas.length())
+            assertEquals(10, corridas.length())
             assertTrue(
                 F1CalendarApi.corridaJsonDoCache(context, "circuito_teste_1")
-                    ?.contains("FirstPractice") == true
+                    ?.contains("FirstPractice") == false
             )
         } finally {
             limpar(context)
@@ -117,7 +117,7 @@ class F1CachePreservationTest {
     }
 
     @Test
-    fun calendarioBasicoNaoApagaSessoesDaMesmaTemporada() {
+    fun calendarioOficialPodeRemoverSessoesDaMesmaTemporada() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -131,21 +131,27 @@ class F1CachePreservationTest {
             )
             val original = arquivo.readText()
 
-            assertFalse(
+            assertTrue(
                 F1CalendarApi.gravarCacheSeguro(
                     context.filesDir,
                     jsonComCorridas(20, comSessoes = false)
                 )
             )
 
-            assertEquals(original, arquivo.readText())
+            assertFalse(original == arquivo.readText())
+            val corridas = JSONObject(arquivo.readText())
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+            assertEquals(20, corridas.length())
+            assertFalse(corridas.getJSONObject(0).has("FirstPractice"))
         } finally {
             limpar(context)
         }
     }
 
     @Test
-    fun removerSessaoIndividualNaoSubstituiCache() {
+    fun remocaoOficialDeSessaoEhAceita() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -159,7 +165,7 @@ class F1CachePreservationTest {
             )
             val original = arquivo.readText()
 
-            assertFalse(
+            assertTrue(
                 F1CalendarApi.gravarCacheSeguro(
                     context.filesDir,
                     jsonComCorridas(
@@ -169,14 +175,19 @@ class F1CachePreservationTest {
                     )
                 )
             )
-            assertEquals(original, arquivo.readText())
+            assertFalse(original == arquivo.readText())
+            val corrida = JSONObject(arquivo.readText())
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races").getJSONObject(0)
+            assertFalse(corrida.has("FirstPractice"))
         } finally {
             limpar(context)
         }
     }
 
     @Test
-    fun horarioDeSessaoIndividualNaoPodeSumirDoCache() {
+    fun sessaoAindaPublicadaPreservaHorarioSeFonteTemporariamenteOmitirHora() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -190,7 +201,7 @@ class F1CachePreservationTest {
             )
             val original = arquivo.readText()
 
-            assertFalse(
+            assertTrue(
                 F1CalendarApi.gravarCacheSeguro(
                     context.filesDir,
                     jsonComCorridas(
@@ -200,7 +211,12 @@ class F1CachePreservationTest {
                     )
                 )
             )
-            assertEquals(original, arquivo.readText())
+            assertFalse(original == arquivo.readText())
+            val corrida = JSONObject(arquivo.readText())
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races").getJSONObject(0)
+            assertEquals("10:00:00Z", corrida.getJSONObject("FirstPractice").getString("time"))
         } finally {
             limpar(context)
         }
