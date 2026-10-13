@@ -136,6 +136,7 @@ object IndyCarCalendarJson {
     // Valida o calendário recebido antes de tocar no cache.
     val novosEventos = interpretar(texto)
     val temporadaNova = JSONObject(texto).optInt("temporada", 0)
+    var textoFinal = texto
 
     synchronized(cacheLock) {
         val destino = File(context.filesDir, ARQUIVO_CACHE)
@@ -162,34 +163,44 @@ object IndyCarCalendarJson {
         if (eventosAtuais != null && cacheAtual != null) {
             val temporadaAtual = JSONObject(cacheAtual).optInt("temporada", 0)
             if (temporadaNova == temporadaAtual) {
-                val novosPorCircuito = novosEventos.associateBy {
-                    it.circuito.trim().lowercase(Locale.ROOT)
+                val raizNova = JSONObject(textoFinal)
+                val etapasJson = raizNova.getJSONArray("etapas")
+                val novasPorCircuito = mutableMapOf<String, JSONObject>()
+                for (i in 0 until etapasJson.length()) {
+                    val etapaJson = etapasJson.getJSONObject(i)
+                    novasPorCircuito[etapaJson.optString("circuito").trim().lowercase(Locale.ROOT)] = etapaJson
                 }
+
                 for (atual in eventosAtuais) {
-                    val novo = novosPorCircuito[atual.circuito.trim().lowercase(Locale.ROOT)]
+                    val novaJson = novasPorCircuito[atual.circuito.trim().lowercase(Locale.ROOT)]
                         ?: continue
-                    val novasSessoes = novo.sessoes.associateBy {
-                        it.nome.trim().lowercase(Locale.ROOT)
+                    val sessoesJson = novaJson.optJSONArray("sessoes") ?: continue
+                    val novasSessoes = mutableMapOf<String, JSONObject>()
+                    for (i in 0 until sessoesJson.length()) {
+                        val sessaoJson = sessoesJson.getJSONObject(i)
+                        novasSessoes[sessaoJson.optString("nome").trim().lowercase(Locale.ROOT)] = sessaoJson
                     }
+
                     for (sessaoAtual in atual.sessoes) {
                         val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase(Locale.ROOT)]
                             ?: continue
                         val horarioAtual = sessaoAtual.horario.trim()
-                        val horarioNovo = sessaoNova.horario.trim()
+                        val horarioNovo = sessaoNova.optString("horario").trim()
                         if (
                             horarioAtual.isNotBlank() &&
                             !horarioAtual.equals("A confirmar", ignoreCase = true) &&
                             horarioNovo.equals("A confirmar", ignoreCase = true)
                         ) {
-                            sessaoNova.horario = horarioAtual
+                            sessaoNova.put("horario", horarioAtual)
                         }
                     }
                 }
+                textoFinal = raizNova.toString(2) + "\n"
             }
         }
 
         // Só grava depois de todas as validações.
-        gravarAtomicamente(atomic, texto)
+        gravarAtomicamente(atomic, textoFinal)
     }
 }
 
