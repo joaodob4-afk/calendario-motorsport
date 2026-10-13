@@ -12,8 +12,8 @@
         android:layout_height="wrap_content"
         android:scrollbars="none"
         android:fillViewport="false"
-        android:paddingTop="18dp"
-        android:paddingBottom="12dp">
+        android:paddingTop="10dp"
+        android:paddingBottom="8dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -232,8 +232,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="10dp"
-            android:paddingBottom="20dp">
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp">
 
             <!-- Próxima etapa -->
             <LinearLayout
@@ -243,7 +243,7 @@
                 android:layout_marginStart="18dp"
                 android:layout_marginEnd="18dp"
                 android:orientation="vertical"
-                android:padding="18dp"
+                android:padding="22dp"
                 android:background="@drawable/next_event_card">
 
                 <TextView
@@ -252,7 +252,7 @@
                     android:layout_height="wrap_content"
                     android:text="PRÓXIMA ETAPA"
                     android:textColor="#39FF14"
-                    android:textSize="12sp"
+                    android:textSize="14sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed"
                     android:letterSpacing="0.08" />
@@ -281,7 +281,7 @@
                         android:layout_weight="1"
                         android:text="F1 — GP de Singapura"
                         android:textColor="#FFFFFF"
-                        android:textSize="21sp"
+                        android:textSize="28sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-condensed" />
 
@@ -304,7 +304,7 @@
                     android:layout_marginTop="12dp"
                     android:text="09–11 OUT"
                     android:textColor="#FFFFFF"
-                    android:textSize="14sp"
+                    android:textSize="17sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed" />
 
@@ -315,7 +315,7 @@
                     android:layout_marginTop="5dp"
                     android:text="Faltam poucos dias"
                     android:textColor="#39FF14"
-                    android:textSize="15sp"
+                    android:textSize="20sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed" />
 
@@ -329,7 +329,7 @@
             <!-- Barra de pesquisa -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
+                android:layout_height="58dp"
                 android:layout_marginStart="18dp"
                 android:layout_marginEnd="18dp"
                 android:orientation="horizontal"
@@ -366,7 +366,7 @@
                 android:id="@+id/listaEtapas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="22dp"
                 android:layout_marginStart="18dp"
                 android:layout_marginEnd="18dp"
                 android:orientation="vertical" />
