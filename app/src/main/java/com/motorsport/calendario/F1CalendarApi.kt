@@ -398,22 +398,21 @@ object F1CalendarApi {
             if (interpretar(conteudo).size < MINIMO_CORRIDAS_VALIDAS) {
                 return@synchronized false
             }
-            if (!podeSubstituirCache(destino, conteudo)) {
+            val conteudoFinal = mesclarCamposConhecidos(destino, conteudo)
+            if (interpretar(conteudoFinal).isEmpty()) {
                 temporario.delete()
                 return@synchronized false
             }
 
             FileOutputStream(temporario, false).use { saida ->
-                saida.write(conteudo.toByteArray(Charsets.UTF_8))
+                saida.write(conteudoFinal.toByteArray(Charsets.UTF_8))
                 saida.flush()
                 saida.fd.sync()
             }
 
             // Confere novamente o arquivo escrito antes da troca.
             val textoGravado = temporario.readText(Charsets.UTF_8)
-            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS ||
-                !podeSubstituirCache(destino, textoGravado)
-            ) {
+            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS) {
                 temporario.delete()
                 return@synchronized false
             }
@@ -438,23 +437,25 @@ object F1CalendarApi {
      * é a mesma. Temporadas diferentes podem ter legitimamente outra quantidade.
      */
     /**
-     * Aceita o calendário válido publicado pela fonte, mesmo quando ela adiciona,
-     * remove ou altera corridas e sessões. Preserva valores conhecidos apenas para
-     * campos que continuam existindo na nova programação, mas vieram sem valor.
-     * A validação estrutural é feita por interpretar() antes da gravação.
+     * A fonte oficial controla a lista de corridas e sessões. Mesclamos somente
+     * campos vazios de uma corrida/sessão que continua existindo, para não perder
+     * um horário conhecido quando a fonte ainda não o publicou. Corridas e sessões
+     * removidas não são recriadas; valores oficiais não vazios sempre prevalecem.
      */
-    private fun podeSubstituirCache(destino: File, novoTexto: String): Boolean {
-        if (!destino.isFile) return true
+    private fun mesclarCamposConhecidos(destino: File, novoTexto: String): String {
+        if (!destino.isFile) return novoTexto
 
         return try {
-            val atual = JSONObject(destino.readText(Charsets.UTF_8))
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-            val novo = JSONObject(novoTexto)
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-            val corridasAtuais = atual.getJSONArray("Races")
-            val corridasNovas = novo.getJSONArray("Races")
+            val raizNova = JSONObject(novoTexto)
+            val tabelaNova = raizNova.getJSONObject("MRData").getJSONObject("RaceTable")
+            val tabelaAntiga = JSONObject(destino.readText(Charsets.UTF_8))
+                .getJSONObject("MRData").getJSONObject("RaceTable")
+            val corridasNovas = tabelaNova.getJSONArray("Races")
+            val corridasAntigas = tabelaAntiga.getJSONArray("Races")
+
+            if (tabelaNova.optString("season", "") != tabelaAntiga.optString("season", "")) {
+                return novoTexto
+            }
 
             fun conhecido(valor: String): Boolean {
                 val v = valor.trim()
@@ -466,34 +467,29 @@ object F1CalendarApi {
             }
 
             val antigasPorCircuito = mutableMapOf<String, JSONObject>()
-            for (i in 0 until corridasAtuais.length()) {
-                val corrida = corridasAtuais.optJSONObject(i) ?: continue
+            for (i in 0 until corridasAntigas.length()) {
+                val corrida = corridasAntigas.optJSONObject(i) ?: continue
                 val id = corrida.optJSONObject("Circuit")
                     ?.optString("circuitId", "")?.trim().orEmpty()
                 if (id.isNotBlank()) antigasPorCircuito[id] = corrida
             }
 
-            // A lista nova é a autoridade: não reintroduz corridas nem sessões
-            // que a fonte tenha removido e não exige que a contagem seja igual.
             for (i in 0 until corridasNovas.length()) {
-                val corridaNova = corridasNovas.optJSONObject(i) ?: return false
-                val id = corridaNova.optJSONObject("Circuit")
+                val nova = corridasNovas.optJSONObject(i) ?: continue
+                val id = nova.optJSONObject("Circuit")
                     ?.optString("circuitId", "")?.trim().orEmpty()
-                val corridaAntiga = antigasPorCircuito[id] ?: continue
+                val antiga = antigasPorCircuito[id] ?: continue
 
                 for (campo in listOf("date", "time")) {
-                    if (!conhecido(corridaNova.optString(campo, "")) &&
-                        conhecido(corridaAntiga.optString(campo, ""))) {
-                        corridaNova.put(campo, corridaAntiga.optString(campo))
+                    if (!conhecido(nova.optString(campo, "")) &&
+                        conhecido(antiga.optString(campo, ""))) {
+                        nova.put(campo, antiga.optString(campo))
                     }
                 }
 
-                // Só preserva o horário de uma sessão se a fonte ainda a publica,
-                // mas deixa seus campos temporariamente vazios. Sessão removida
-                // da resposta oficial não é restaurada do cache.
                 for (nomeSessao in SESSOES) {
-                    val sessaoNova = corridaNova.optJSONObject(nomeSessao) ?: continue
-                    val sessaoAntiga = corridaAntiga.optJSONObject(nomeSessao) ?: continue
+                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: continue
+                    val sessaoAntiga = antiga.optJSONObject(nomeSessao) ?: continue
                     for (campo in listOf("date", "time")) {
                         if (!conhecido(sessaoNova.optString(campo, "")) &&
                             conhecido(sessaoAntiga.optString(campo, ""))) {
@@ -502,10 +498,10 @@ object F1CalendarApi {
                     }
                 }
             }
-            true
+            raizNova.toString()
         } catch (_: Exception) {
-            // Cache anterior inválido não deve impedir a recuperação.
-            true
+            // Se não for possível ler o cache antigo, não bloqueia a fonte nova.
+            novoTexto
         }
     }
 
