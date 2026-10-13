@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
@@ -13,7 +14,7 @@
 
     <!-- Coluna da data: largura fixa para alinhar todos os cards -->
     <LinearLayout
-        android:layout_width="84dp"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="start|center_vertical">
@@ -84,7 +85,7 @@
 
     <!-- Coluna da direita: categoria em destaque e status; largura fixa para alinhar -->
     <LinearLayout
-        android:layout_width="78dp"
+        android:layout_width="92dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:orientation="vertical"
@@ -95,6 +96,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
             android:paddingTop="4dp"
             android:paddingBottom="4dp"
             android:gravity="center"
@@ -103,8 +106,13 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:maxLines="1"
+            android:ellipsize="end"
             android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="0.08" />
+            android:letterSpacing="0.06"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="9sp"
+            app:autoSizeMaxTextSize="14sp"
+            app:autoSizeStepGranularity="0.5sp" />
 
         <TextView
             android:id="@+id/itemStatus"
