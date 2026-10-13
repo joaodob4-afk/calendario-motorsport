@@ -197,9 +197,30 @@ def fmt(d):
     return d.strftime("%d/%m/%Y")
 
 
+def filtrar_corrida_da_etapa(cartao, sessoes):
+    """Se a página do fim de semana lista as duas corridas, associa cada uma ao cartão correto."""
+    slug = str(cartao.get("slug", "")).casefold().replace("-", "")
+    correspondencia = re.search(r"race([12])$", slug)
+    if not correspondencia:
+        return sessoes
+
+    corrida_da_etapa = f"Corrida {correspondencia.group(1)}"
+    corridas_publicadas = {
+        nome for nome, _, _ in sessoes
+        if nome in ("Corrida 1", "Corrida 2")
+    }
+    if corridas_publicadas != {"Corrida 1", "Corrida 2"}:
+        return sessoes
+
+    return [
+        sessao for sessao in sessoes
+        if sessao[0] not in ("Corrida 1", "Corrida 2") or sessao[0] == corrida_da_etapa
+    ]
+
+
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
-    sessoes = extrair_sessoes(html_evento, ano)
+    sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
 
     if sessoes:
         dias = [datetime(ano, d[0], d[1]) for _, _, d in sessoes]
