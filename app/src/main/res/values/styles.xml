@@ -9,12 +9,12 @@
 
         <item name="android:colorAccent">#E10600</item>
 
-        <!-- A barra de navegação do sistema acompanha o fundo preto do app. -->
+        <!-- As barras do sistema acompanham o fundo preto do app. -->
         <item name="android:navigationBarColor">#000000</item>
 
         <item name="android:navigationBarDividerColor">#000000</item>
 
-        <item name="android:statusBarColor">#071A2D</item>
+        <item name="android:statusBarColor">#000000</item>
 
         <item name="android:windowLightStatusBar">false</item>
 
