@@ -1,6 +1,7 @@
 """Testes de regressão offline para a tradução de sessões da F3."""
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[3]
@@ -42,6 +43,30 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             [nome for nome, _ in sessoes],
             ["Corrida Feature 1", "Corrida Feature 2"],
         )
+
+    def test_parser_aceita_slug_de_temporada_informada(self):
+        html = '<a href="/en/racing/2027/jeddah">Jeddah</a><a href="/en/racing/2026/melbourne">Melbourne</a>'
+        self.assertEqual(f3.listar_slugs(html, 2027), ["jeddah"])
+        self.assertEqual(f3.listar_slugs(html, 2026), ["melbourne"])
+
+    def test_descobre_2027_quando_calendario_oficial_estiver_publicado(self):
+        html_2027 = '<a href="/en/racing/2027/jeddah">Jeddah</a><a href="/en/racing/2027/istanbul">Istanbul</a>'
+        with patch.object(f3, "baixar", return_value=html_2027):
+            temporada, slugs = f3.descobrir_calendario()
+        self.assertEqual(temporada, 2027)
+        self.assertEqual(slugs, ["istanbul", "jeddah"])
+
+    def test_mantem_2026_se_pagina_de_etapas_2027_nao_estiver_publicada(self):
+        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+        with patch.object(f3, "baixar", side_effect=["página sem etapas", html_2026]):
+            temporada, slugs = f3.descobrir_calendario()
+        self.assertEqual(temporada, 2026)
+        self.assertEqual(slugs, ["melbourne"])
+
+    def test_mapeia_novos_circuitos_confirmados_para_2027(self):
+        self.assertEqual(f3.CIRCUITOS["jeddah"][0], "Jeddah")
+        self.assertEqual(f3.CIRCUITOS["montreal"][0], "Montreal")
+        self.assertEqual(f3.CIRCUITOS["istanbul"][0], "Istanbul Park")
 
     def test_rejeita_duas_sessoes_no_mesmo_horario_exibido(self):
         from datetime import datetime, timezone
