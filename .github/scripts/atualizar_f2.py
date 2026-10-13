@@ -237,8 +237,12 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
     if str(anterior.get("temporada", "")).strip() != str(temporada_nova).strip():
         return etapas_novas
 
-    novas_por_numero = {etapa.get("etapa"): etapa for etapa in etapas_novas}
-    antigas = {etapa.get("etapa"): etapa for etapa in anterior["etapas"]}
+    # O circuito é mais estável que o número da etapa, que pode mudar após remoções.
+    novas_por_circuito = {
+        str(etapa.get("circuito", "")).strip().casefold(): etapa
+        for etapa in etapas_novas
+    }
+    antigas = anterior["etapas"]
 
     def conhecido(valor):
         normalizado = str(valor or "").strip().casefold()
@@ -246,12 +250,13 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
             "a confirmar", "tbd", "tba", "null", "none"
         }
 
-    for numero, etapa_atual in antigas.items():
-        etapa_nova = novas_por_numero.get(numero)
+    for etapa_atual in antigas:
+        circuito = str(etapa_atual.get("circuito", "")).strip().casefold()
+        etapa_nova = novas_por_circuito.get(circuito)
+        # Etapa ausente na fonte oficial não é recriada: pode ter sido cancelada.
         if etapa_nova is None:
-            raise ValueError(
-                f"atualização incompleta: etapa {numero} ausente. Calendário anterior preservado."
-            )
+            continue
+        numero = etapa_atual.get("etapa", "?")
 
         for campo in ("inicio", "fim"):
             valor_atual = etapa_atual.get(campo, "")
@@ -269,11 +274,9 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
                 raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
             nome = str(sessao_atual.get("nome", "")).strip()
             sessao_nova = sessoes_novas.get(nome.casefold())
+            # Sessões removidas/renomeadas oficialmente não devem ser ressuscitadas.
             if sessao_nova is None:
-                raise ValueError(
-                    f"atualização incompleta: sessão {nome!r} da etapa {numero} ausente. "
-                    "Calendário anterior preservado."
-                )
+                continue
 
             for campo in ("data", "horario"):
                 valor_atual = sessao_atual.get(campo, "")
@@ -339,13 +342,8 @@ def main():
             ):
                 raise ValueError("estrutura do calendário anterior inválida")
 
-            etapas_anteriores = anterior["etapas"]
-            if len(etapas) < len(etapas_anteriores):
-                print(
-                    f"ERRO: novo calendário tem {len(etapas)} etapas, "
-                    f"mas o arquivo atual tem {len(etapas_anteriores)}. Nada foi alterado."
-                )
-                return 1
+            # A quantidade pode diminuir por alteração oficial; o limite mínimo
+            # validado antes continua rejeitando respostas obviamente incompletas.
         except (OSError, ValueError, AttributeError) as e:
             print(f"ERRO: não foi possível validar o calendário anterior ({e}). Nada foi alterado.")
             return 1
