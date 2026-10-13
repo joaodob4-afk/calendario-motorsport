@@ -144,6 +144,17 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 for n in range(1, 11)
             ], arquivo, temporada_nova=2027)
 
+    def test_separa_corridas_de_milwaukee_quando_a_pagina_lista_as_duas(self):
+        sessoes = [
+            ("Treino Livre", indycar.converter_hora(2026, 8, 28, 6, 0, "PM"), (8, 28)),
+            ("Corrida 2", indycar.converter_hora(2026, 8, 30, 1, 0, "PM"), (8, 30)),
+            ("Corrida 1", indycar.converter_hora(2026, 8, 30, 6, 0, "PM"), (8, 30)),
+        ]
+        corrida1 = indycar.filtrar_corrida_da_etapa({"slug": "Milwaukee-Race1"}, sessoes)
+        corrida2 = indycar.filtrar_corrida_da_etapa({"slug": "Milwaukee-Race2"}, sessoes)
+        self.assertEqual([s[0] for s in corrida1], ["Treino Livre", "Corrida 1"])
+        self.assertEqual([s[0] for s in corrida2], ["Treino Livre", "Corrida 2"])
+
     def test_preserva_horarios_separados_para_duas_corridas_na_mesma_pista(self):
         with tempfile.TemporaryDirectory() as pasta:
             arquivo = Path(pasta) / "indycar_calendar.json"
