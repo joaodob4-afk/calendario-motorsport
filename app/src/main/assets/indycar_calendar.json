@@ -583,6 +583,11 @@
       "fim": "30/08/2026",
       "sessoes": [
         {
+          "nome": "Treino Livre",
+          "data": "28/08/2026",
+          "horario": "19:00"
+        },
+        {
           "nome": "Classificação",
           "data": "29/08/2026",
           "horario": "12:00"
