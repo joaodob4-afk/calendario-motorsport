@@ -548,6 +548,9 @@ class MainActivity : AppCompatActivity() {
         val titulo = findViewById<TextView>(R.id.categoryTitle)
         val calendario = findViewById<TextView>(R.id.fullCalendarButton)
         val voltar = findViewById<android.view.View>(R.id.backButton)
+        val cartaoCategoria = findViewById<LinearLayout>(R.id.categoryInfoCard)
+        val rotuloCategoria = findViewById<TextView>(R.id.categoryEyebrow)
+        val tituloCalendario = findViewById<TextView>(R.id.calendarSectionTitle)
 
         titulo.text = when (categoria) {
             "F1" -> "FÓRMULA 1"
@@ -568,6 +571,22 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<android.view.View>(R.id.categoryAccentLine)
             .setBackgroundColor(corCategoria)
+        rotuloCategoria.setTextColor(corCategoria)
+        tituloCalendario.setTextColor(corCategoria)
+        cartaoCategoria.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            setColor(android.graphics.Color.BLACK)
+            cornerRadius = 8f * resources.displayMetrics.density
+            setStroke(
+                (1 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
+                android.graphics.Color.argb(
+                    150,
+                    android.graphics.Color.red(corCategoria),
+                    android.graphics.Color.green(corCategoria),
+                    android.graphics.Color.blue(corCategoria)
+                )
+            )
+        }
         calendario.setTextColor(corCategoria)
         calendario.background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
