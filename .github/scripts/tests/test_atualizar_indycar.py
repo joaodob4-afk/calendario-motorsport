@@ -11,6 +11,11 @@ SPEC = importlib.util.spec_from_file_location("atualizar_indycar", SCRIPT)
 indycar = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(indycar)
 
+SCRIPT_FE = RAIZ / ".github" / "scripts" / "atualizar_fe.py"
+SPEC_FE = importlib.util.spec_from_file_location("atualizar_fe", SCRIPT_FE)
+formula_e = importlib.util.module_from_spec(SPEC_FE)
+SPEC_FE.loader.exec_module(formula_e)
+
 
 class AtualizadorIndyCarTest(unittest.TestCase):
     def test_converte_horario_et_para_brasilia_no_horario_de_verao(self):
@@ -144,6 +149,78 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 indycar.validar_nao_reduzir_calendario(
                     [{"etapa": n} for n in range(1, 11)], arquivo
                 )
+
+
+
+class AtualizadorFormulaETest(unittest.TestCase):
+    def test_recusa_remover_sessao_conhecida_na_mesma_temporada(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "fe_calendar.json"
+            arquivo.write_text(json.dumps({
+                "temporada": "2026/27",
+                "etapas": [{
+                    "etapa": 1,
+                    "sessoes": [
+                        {"nome": "Corrida (Rodada 1)", "data": "18/12/2026", "horario": "A confirmar"},
+                        {"nome": "Corrida (Rodada 2)", "data": "19/12/2026", "horario": "A confirmar"},
+                    ],
+                }],
+            }), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "Rodada 2.*ausente"):
+                formula_e.preservar_detalhes_conhecidos(
+                    [{"etapa": 1, "sessoes": [
+                        {"nome": "Corrida (Rodada 1)", "data": "18/12/2026", "horario": "A confirmar"},
+                    ]}],
+                    arquivo,
+                    temporada_nova="2026/27",
+                )
+
+    def test_preserva_data_e_horario_conhecidos(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "fe_calendar.json"
+            arquivo.write_text(json.dumps({
+                "temporada": "2026/27",
+                "etapas": [{
+                    "etapa": 1,
+                    "sessoes": [{
+                        "nome": "Corrida (Rodada 1)",
+                        "data": "18/12/2026",
+                        "horario": "14:00",
+                    }],
+                }],
+            }), encoding="utf-8")
+
+            novas = [{"etapa": 1, "sessoes": [{
+                "nome": "Corrida (Rodada 1)",
+                "data": "A confirmar",
+                "horario": "A confirmar",
+            }]}]
+            resultado = formula_e.preservar_detalhes_conhecidos(
+                novas, arquivo, temporada_nova="2026/27"
+            )
+            self.assertEqual(resultado[0]["sessoes"][0]["data"], "18/12/2026")
+            self.assertEqual(resultado[0]["sessoes"][0]["horario"], "14:00")
+
+    def test_temporada_nova_nao_reutiliza_sessoes_antigas(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "fe_calendar.json"
+            arquivo.write_text(json.dumps({
+                "temporada": "2026/27",
+                "etapas": [{
+                    "etapa": 1,
+                    "sessoes": [{"nome": "Corrida (Rodada 1)", "data": "18/12/2026", "horario": "14:00"}],
+                }],
+            }), encoding="utf-8")
+
+            novas = [{"etapa": 1, "sessoes": [
+                {"nome": "Corrida (Rodada 1)", "data": "20/12/2027", "horario": "A confirmar"},
+            ]}]
+            resultado = formula_e.preservar_detalhes_conhecidos(
+                novas, arquivo, temporada_nova="2027/28"
+            )
+            self.assertEqual(resultado[0]["sessoes"][0]["data"], "20/12/2027")
+            self.assertEqual(resultado[0]["sessoes"][0]["horario"], "A confirmar")
 
 
 if __name__ == "__main__":
