@@ -402,7 +402,12 @@ class MainActivity : AppCompatActivity() {
 
             val status = statusEtapa(etapa, etapasOrdenadas)
 
-            item.findViewById<TextView>(R.id.itemCategoria).text = etapa.categoria
+            val corCategoria = corCategoria(etapa.categoria)
+            item.findViewById<TextView>(R.id.itemCategoria).apply {
+                text = etapa.categoria
+                setTextColor(corCategoria)
+            }
+            item.findViewById<TextView>(R.id.itemData).setTextColor(corCategoria)
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
             val idBandeira = recursoBandeira(etapa.pais)
@@ -539,15 +544,37 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun corCategoria(categoria: String): Int {
+        return when (categoria) {
+            "F1" -> android.graphics.Color.rgb(225, 6, 0)
+            "F2" -> android.graphics.Color.rgb(0, 144, 255)
+            "F3" -> android.graphics.Color.rgb(139, 92, 246)
+            "Formula E" -> android.graphics.Color.rgb(0, 220, 190)
+            "IndyCar" -> android.graphics.Color.rgb(0, 102, 204)
+            else -> android.graphics.Color.rgb(225, 6, 0)
+        }
+    }
+
     private fun abrirCategoria(categoria: String) {
         categoriaAtual = categoria
 
         setContentView(R.layout.activity_category)
         animarEntrada()
 
+        listaEtapas = findViewById(R.id.categoryEtapas)
+
         val titulo = findViewById<TextView>(R.id.categoryTitle)
+        val subtitulo = findViewById<TextView>(R.id.categorySubtitle)
+        val tituloEtapas = findViewById<TextView>(R.id.categoryListTitle)
+        val linhaCor = findViewById<android.view.View>(R.id.categoryAccentLine)
         val calendario = findViewById<TextView>(R.id.fullCalendarButton)
         val voltar = findViewById<android.view.View>(R.id.backButton)
+        val cor = corCategoria(categoria)
+
+        linhaCor.setBackgroundColor(cor)
+        subtitulo.setTextColor(cor)
+        tituloEtapas.text = "ETAPAS • ${categoria.uppercase()}"
+        calendario.setTextColor(cor)
 
         titulo.text = when (categoria) {
             "F1" -> "FÓRMULA 1"
@@ -598,6 +625,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+        mostrarEtapas(todasEtapas.filter { it.categoria == categoria })
     }
 
     private fun definirCartaoProximo(
