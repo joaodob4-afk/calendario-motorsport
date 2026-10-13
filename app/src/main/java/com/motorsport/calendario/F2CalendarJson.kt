@@ -18,7 +18,8 @@ object F2CalendarJson {
         "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/f2_calendar.json"
 
     private const val ARQUIVO_CACHE = "f2_calendar_cache.json"
-    private const val MINIMO_ETAPAS_VALIDAS = 10
+    // O calendário pode legitimamente ter menos etapas após uma alteração oficial.
+    private const val MINIMO_ETAPAS_VALIDAS = 1
 
     private val formatoData = DateTimeFormatter
         .ofPattern("dd/MM/uuuu")
@@ -42,18 +43,9 @@ object F2CalendarJson {
         val temporadaFallback = F2Calendar.eventos.firstOrNull()
             ?.fim?.substringAfterLast('/')?.toIntOrNull() ?: 0
 
-        // Só completa etapas ausentes com o fallback da mesma temporada.
-        // Uma temporada nova pode ter legitimamente outra quantidade de etapas.
-        if (eventosJson.isNotEmpty() &&
-            temporadaJson > 0 &&
-            temporadaJson == temporadaFallback
-        ) {
-            val combinados = F2Calendar.eventos
-                .filterNot { local -> eventosJson.any { it.etapa == local.etapa } } +
-                eventosJson
-            return combinados.sortedBy { it.etapa }
-        }
-
+        // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
+        // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
+        // removidas ou associar o circuito errado depois de uma renumeração.
         if (eventosJson.isNotEmpty()) {
             return eventosJson.sortedBy { it.etapa }
         }
@@ -172,24 +164,23 @@ object F2CalendarJson {
                     null
                 }
 
-                if (
-                    eventosAtuais != null &&
-                    eventosNovos.size < eventosAtuais.size
-                ) {
-                    return false
-                }
-
-                // Na mesma temporada, não aceite uma atualização que perca
-                // sessões existentes ou substitua um horário conhecido por
-                // "A confirmar". Isso evita degradar os detalhes offline.
+                // Na mesma temporada, compara por circuito (não pelo número da etapa).
+                // Etapas/sessões ausentes podem ter sido removidas ou renomeadas oficialmente;
+                // não as ressuscita. Só bloqueia a perda de um horário ainda representado
+                // pela mesma sessão, pois isso degradaria os detalhes offline.
                 if (eventosAtuais != null) {
-                    val novosPorEtapa = eventosNovos.associateBy { it.etapa }
+                    val novosPorCircuito = eventosNovos.associateBy {
+                        it.circuito.trim().lowercase()
+                    }
                     for (atual in eventosAtuais) {
-                        val novo = novosPorEtapa[atual.etapa] ?: return false
-                        val novasSessoes = novo.sessoes.associateBy { it.nome }
+                        val novo = novosPorCircuito[atual.circuito.trim().lowercase()]
+                            ?: continue
+                        val novasSessoes = novo.sessoes.associateBy {
+                            it.nome.trim().lowercase()
+                        }
                         for (sessaoAtual in atual.sessoes) {
-                            val sessaoNova = novasSessoes[sessaoAtual.nome]
-                                ?: return false
+                            val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase()]
+                                ?: continue
                             val horarioAtual = sessaoAtual.horario.trim()
                             val horarioNovo = sessaoNova.horario.trim()
                             if (
