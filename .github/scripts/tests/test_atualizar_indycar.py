@@ -147,13 +147,15 @@ class AtualizadorIndyCarTest(unittest.TestCase):
     def test_separa_corridas_de_milwaukee_quando_a_pagina_lista_as_duas(self):
         sessoes = [
             ("Treino Livre", indycar.converter_hora(2026, 8, 28, 6, 0, "PM"), (8, 28)),
+            ("Classificação", indycar.converter_hora(2026, 8, 29, 11, 0, "AM"), (8, 29)),
             ("Corrida 2", indycar.converter_hora(2026, 8, 30, 1, 0, "PM"), (8, 30)),
             ("Corrida 1", indycar.converter_hora(2026, 8, 30, 6, 0, "PM"), (8, 30)),
         ]
         corrida1 = indycar.filtrar_corrida_da_etapa({"slug": "Milwaukee-Race1"}, sessoes)
         corrida2 = indycar.filtrar_corrida_da_etapa({"slug": "Milwaukee-Race2"}, sessoes)
-        self.assertEqual([s[0] for s in corrida1], ["Treino Livre", "Corrida 1"])
-        self.assertEqual([s[0] for s in corrida2], ["Treino Livre", "Corrida 2"])
+        esperadas = ["Treino Livre", "Classificação"]
+        self.assertEqual([s[0] for s in corrida1], esperadas + ["Corrida 1"])
+        self.assertEqual([s[0] for s in corrida2], esperadas + ["Corrida 2"])
 
     def test_preserva_horarios_separados_para_duas_corridas_na_mesma_pista(self):
         with tempfile.TemporaryDirectory() as pasta:
@@ -190,16 +192,6 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
             self.assertEqual(novas[0]["sessoes"][0]["horario"], "19:00")
             self.assertEqual(novas[1]["sessoes"][0]["horario"], "14:00")
-
-    def test_milwaukee_race2_mantem_sessoes_compartilhadas_do_fim_de_semana(self):
-        sessoes_compartilhadas = [
-            {"nome": "Treino Livre", "data": "28/08/2026", "horario": "19:00"},
-            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
-        ]
-        corrida2 = sessoes_compartilhadas + [
-            {"nome": "Corrida 2", "data": "30/08/2026", "horario": "14:00"}
-        ]
-        self.assertEqual([s["nome"] for s in corrida2], ["Treino Livre", "Classificação", "Corrida 2"])
 
     def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
         with tempfile.TemporaryDirectory() as pasta:
