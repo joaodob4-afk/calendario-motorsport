@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
@@ -286,6 +287,7 @@ class MainActivity : AppCompatActivity() {
         val circuito = findViewById<TextView>(R.id.circuitoProximaEtapa)
         val data = findViewById<TextView>(R.id.dataProximaEtapa)
         val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
+        val rotuloContador = findViewById<TextView>(R.id.contadorRotuloProximaEtapa)
 
         titulo.text = "PRÓXIMA ETAPA • ${proxima.categoria}"
         nome.text = proxima.pais
@@ -304,11 +306,11 @@ class MainActivity : AppCompatActivity() {
         val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
         val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
 
-        contador.text = when {
-            dias == 0L -> "COMEÇA HOJE"
-            dias == 1L -> "AMANHÃ"
-            dias > 1L -> "FALTAM $dias DIAS"
-            else -> "ETAPA EM ANDAMENTO"
+        when {
+            dias == 0L -> definirContador(contador, rotuloContador, "HOJE", 44f, "COMEÇA")
+            dias == 1L -> definirContador(contador, rotuloContador, "1", 60f, "DIA")
+            dias > 1L -> definirContador(contador, rotuloContador, "$dias", 60f, "DIAS")
+            else -> definirContador(contador, rotuloContador, "AGORA", 38f, "EM ANDAMENTO")
         }
 
         findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
@@ -320,6 +322,43 @@ class MainActivity : AppCompatActivity() {
                 "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
             }
         }
+    }
+
+    private fun definirContador(
+        numero: TextView,
+        rotulo: TextView,
+        valor: String,
+        tamanhoSp: Float,
+        texto: String
+    ) {
+        numero.text = valor
+        numero.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanhoSp)
+        rotulo.text = texto
+    }
+
+    /** Separa "30 OUT–01 NOV" em ("30–01", "OUT–NOV") e "06–08 NOV" em ("06–08", "NOV"). */
+    private fun partirData(data: String): Pair<String, String> {
+        val limpa = data.trim().uppercase()
+
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3})\\s*[–-]\\s*(\\d{1,2})\\s+(\\p{L}{3})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return "${g[1]}–${g[3]}" to "${g[2]}–${g[4]}"
+            }
+
+        Regex("^(\\d{1,2})\\s*[–-]\\s*(\\d{1,2})\\s+(\\p{L}{3})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return "${g[1]}–${g[2]}" to g[3]
+            }
+
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return g[1] to g[2]
+            }
+
+        return limpa to ""
     }
 
     private fun configurarBusca() {
@@ -416,7 +455,13 @@ class MainActivity : AppCompatActivity() {
 
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
-            item.findViewById<TextView>(R.id.itemData).text = etapa.data
+
+            val (dias, mes) = partirData(etapa.data)
+            item.findViewById<TextView>(R.id.itemDia).text = dias
+            val itemMes = item.findViewById<TextView>(R.id.itemMes)
+            itemMes.text = mes
+            itemMes.visibility =
+                if (mes.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = status
