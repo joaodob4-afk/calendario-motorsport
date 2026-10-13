@@ -39,20 +39,23 @@
                     android:layout_height="62dp"
                     android:background="@drawable/category_circle">
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/logo_f1"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Fórmula 1" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="F1"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-condensed" />
 
                 </FrameLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="0dp"
                     android:text="F1"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
@@ -78,20 +81,23 @@
                     android:layout_height="62dp"
                     android:background="@drawable/category_circle">
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/logo_f2"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Fórmula 2" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="F2"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-condensed" />
 
                 </FrameLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="0dp"
                     android:text="F2"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
@@ -117,20 +123,23 @@
                     android:layout_height="62dp"
                     android:background="@drawable/category_circle">
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/logo_f3"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Fórmula 3" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="F3"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-condensed" />
 
                 </FrameLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="0dp"
                     android:text="F3"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
@@ -156,20 +165,23 @@
                     android:layout_height="62dp"
                     android:background="@drawable/category_circle">
 
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="center"
-                        android:src="@drawable/logo_indycar"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="IndyCar" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="INDY"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-condensed" />
 
                 </FrameLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="0dp"
                     android:text="INDY"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
@@ -195,19 +207,23 @@
                     android:background="@drawable/category_circle"
                     android:padding="2dp">
 
-                    <ImageView
+                    <TextView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:src="@drawable/logo_formulaeinicio"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Formula E" />
+                        android:gravity="center"
+                        android:text="FE"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-condensed" />
 
                 </FrameLayout>
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="9dp"
+                    android:visibility="gone"
+                    android:layout_marginTop="0dp"
                     android:text="FE"
                     android:textColor="#FFFFFF"
                     android:textSize="14sp"
