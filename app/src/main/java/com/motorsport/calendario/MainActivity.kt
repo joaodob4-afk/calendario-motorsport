@@ -229,32 +229,7 @@ class MainActivity : AppCompatActivity() {
 
         listaEtapas = findViewById(R.id.listaEtapas)
 
-        // Botões de categoria na cor que representa cada uma
-        estilizarSelo(findViewById<TextView>(R.id.btnF1), corDaCategoria("F1"), 14f)
-        estilizarSelo(findViewById<TextView>(R.id.btnF2), corDaCategoria("F2"), 14f)
-        estilizarSelo(findViewById<TextView>(R.id.btnF3), corDaCategoria("F3"), 14f)
-        estilizarSelo(findViewById<TextView>(R.id.btnIndyCar), corDaCategoria("IndyCar"), 14f)
-        estilizarSelo(findViewById<TextView>(R.id.btnFormulaE), corDaCategoria("Formula E"), 14f)
-
-        findViewById<android.view.View>(R.id.btnF1).setOnClickListener {
-            abrirCategoria("F1")
-        }
-
-        findViewById<android.view.View>(R.id.btnF2).setOnClickListener {
-            abrirCategoria("F2")
-        }
-
-        findViewById<android.view.View>(R.id.btnF3).setOnClickListener {
-            abrirCategoria("F3")
-        }
-
-        findViewById<android.view.View>(R.id.btnIndyCar).setOnClickListener {
-            abrirCategoria("IndyCar")
-        }
-
-        findViewById<android.view.View>(R.id.btnFormulaE).setOnClickListener {
-            abrirCategoria("Formula E")
-        }
+        criarBotoesCategorias()
 
         configurarBusca()
         atualizarProximaEtapa()
@@ -373,18 +348,57 @@ class MainActivity : AppCompatActivity() {
         return limpa to ""
     }
 
-    /** Cor de destaque de cada categoria (usada no selo dos cards). */
+    private data class CategoriaInfo(val nome: String, val cor: String)
+
+    /**
+     * Lista central de categorias. Para adicionar uma nova, basta incluir uma linha aqui:
+     * o botão do topo, o selo dos cards e a cor passam a existir automaticamente.
+     * O nome pode ser longo: os botões rolam na horizontal e o selo reduz a fonte para caber.
+     */
+    private val categoriasApp = listOf(
+        CategoriaInfo("F1", "#FF3B30"),
+        CategoriaInfo("F2", "#3D9BFF"),
+        CategoriaInfo("F3", "#FF8A2B"),
+        CategoriaInfo("IndyCar", "#A58BFF"),
+        CategoriaInfo("Formula E", "#22D3EE")
+    )
+
+    /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
     private fun corDaCategoria(categoria: String): Int =
         android.graphics.Color.parseColor(
-            when (categoria) {
-                "F1" -> "#FF3B30"
-                "F2" -> "#3D9BFF"
-                "F3" -> "#FF8A2B"
-                "IndyCar" -> "#A58BFF"
-                "Formula E" -> "#22D3EE"
-                else -> "#39FF14"
-            }
+            categoriasApp.firstOrNull { it.nome == categoria }?.cor ?: "#39FF14"
         )
+
+    private fun criarBotoesCategorias() {
+        val container = findViewById<LinearLayout>(R.id.containerCategorias)
+        val densidade = resources.displayMetrics.density
+        container.removeAllViews()
+
+        for (categoria in categoriasApp) {
+            val botao = TextView(this).apply {
+                text = categoria.nome
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
+                typeface = android.graphics.Typeface.create(
+                    "sans-serif-condensed",
+                    android.graphics.Typeface.BOLD
+                )
+                gravity = android.view.Gravity.CENTER
+                maxLines = 1
+                minWidth = (62 * densidade).toInt()
+                setPadding((16 * densidade).toInt(), 0, (16 * densidade).toInt(), 0)
+                isClickable = true
+                isFocusable = true
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    (40 * densidade).toInt()
+                ).apply { marginEnd = (8 * densidade).toInt() }
+            }
+
+            estilizarSelo(botao, corDaCategoria(categoria.nome), 14f)
+            botao.setOnClickListener { abrirCategoria(categoria.nome) }
+            container.addView(botao)
+        }
+    }
 
     private fun configurarBusca() {
         val busca = findViewById<EditText>(R.id.searchEtapa)
@@ -467,11 +481,7 @@ class MainActivity : AppCompatActivity() {
             val status = statusEtapa(etapa, etapasOrdenadas)
 
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
-            chipCategoria.text = when (etapa.categoria) {
-                "IndyCar" -> "INDY"
-                "Formula E" -> "FE"
-                else -> etapa.categoria.uppercase()
-            }
+            chipCategoria.text = etapa.categoria.uppercase()
             estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
