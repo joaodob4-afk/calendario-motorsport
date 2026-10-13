@@ -281,11 +281,26 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
     ):
         return
 
-    def identidade(etapa):
+    # Algumas pistas recebem mais de uma corrida na mesma temporada
+    # (por exemplo, Milwaukee). Nesses casos, o circuito sozinho não
+    # identifica uma etapa; usamos também o nome oficial da prova.
+    contagem_circuitos = {}
+    for etapa in anterior["etapas"] + etapas_novas:
         circuito = str(etapa.get("circuito", "")).strip().casefold()
         if circuito:
-            return ("circuito", circuito)
+            contagem_circuitos[circuito] = contagem_circuitos.get(circuito, 0) + 1
+    circuitos_com_multiplas_etapas = {
+        circuito for circuito, quantidade in contagem_circuitos.items()
+        if quantidade > 2
+    }
+
+    def identidade(etapa):
+        circuito = str(etapa.get("circuito", "")).strip().casefold()
         nome = str(etapa.get("nome", "")).strip().casefold()
+        if circuito and circuito in circuitos_com_multiplas_etapas and nome:
+            return ("circuito_nome", circuito, nome)
+        if circuito:
+            return ("circuito", circuito)
         if nome:
             return ("nome", nome)
         return ("etapa", str(etapa.get("etapa", "")))
