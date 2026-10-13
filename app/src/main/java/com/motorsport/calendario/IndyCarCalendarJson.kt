@@ -37,7 +37,7 @@ object IndyCarCalendarJson {
     private const val URL_JSON =
         "https://raw.githubusercontent.com/joaodob4-afk/" +
         "calendario-motorsport/main/app/src/main/assets/indycar_calendar.json"
-    private const val MINIMO_ETAPAS_VALIDAS = 10
+    private const val MINIMO_ETAPAS_VALIDAS = 1
     private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
     private val atualizacaoEmAndamento = AtomicBoolean(false)
@@ -141,8 +141,9 @@ object IndyCarCalendarJson {
         val destino = File(context.filesDir, ARQUIVO_CACHE)
         val atomic = AtomicFile(destino)
 
-        // Se houver um cache válido, não permita que um calendário
-        // menor substitua o calendário mais completo.
+        // Uma redução de etapas/sessões pode ser uma alteração oficial.
+        // Compara por circuito, não pelo número da etapa, que pode mudar após renumeração.
+        // Só preserva horários conhecidos para sessões que continuam existindo.
         val cacheAtual = try {
             atomic.openRead()
                 .bufferedReader(Charsets.UTF_8)
@@ -161,34 +162,26 @@ object IndyCarCalendarJson {
         if (eventosAtuais != null && cacheAtual != null) {
             val temporadaAtual = JSONObject(cacheAtual).optInt("temporada", 0)
             if (temporadaNova == temporadaAtual) {
-                require(novosEventos.size >= eventosAtuais.size) {
-                    "Atualização incompleta: recebidas " +
-                        "${novosEventos.size} etapas, mas o cache atual " +
-                        "possui ${eventosAtuais.size}."
+                val novosPorCircuito = novosEventos.associateBy {
+                    it.circuito.trim().lowercase(Locale.ROOT)
                 }
-
-                val novosPorEtapa = novosEventos.associateBy { it.etapa }
                 for (atual in eventosAtuais) {
-                    val novo = novosPorEtapa[atual.etapa]
-                    require(novo != null) {
-                        "Atualização incompleta: etapa ${atual.etapa} ausente."
+                    val novo = novosPorCircuito[atual.circuito.trim().lowercase(Locale.ROOT)]
+                        ?: continue
+                    val novasSessoes = novo.sessoes.associateBy {
+                        it.nome.trim().lowercase(Locale.ROOT)
                     }
-                    val novasSessoes = novo!!.sessoes.associateBy { it.nome }
                     for (sessaoAtual in atual.sessoes) {
-                        val sessaoNova = novasSessoes[sessaoAtual.nome]
-                        require(sessaoNova != null) {
-                            "Atualização incompleta: sessão '${sessaoAtual.nome}' " +
-                                "da etapa ${atual.etapa} ausente."
-                        }
+                        val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase(Locale.ROOT)]
+                            ?: continue
                         val horarioAtual = sessaoAtual.horario.trim()
-                        val horarioNovo = sessaoNova!!.horario.trim()
-                        require(
-                            horarioAtual.isBlank() ||
-                                horarioAtual.equals("A confirmar", ignoreCase = true) ||
-                                !horarioNovo.equals("A confirmar", ignoreCase = true)
+                        val horarioNovo = sessaoNova.horario.trim()
+                        if (
+                            horarioAtual.isNotBlank() &&
+                            !horarioAtual.equals("A confirmar", ignoreCase = true) &&
+                            horarioNovo.equals("A confirmar", ignoreCase = true)
                         ) {
-                            "Atualização incompleta: horário conhecido removido " +
-                                "da sessão '${sessaoAtual.nome}' da etapa ${atual.etapa}."
+                            sessaoNova.horario = horarioAtual
                         }
                     }
                 }
