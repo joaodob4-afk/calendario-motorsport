@@ -208,6 +208,82 @@ def montar_etapa(slug, html):
     }
 
 
+
+def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=2026):
+    """Preserva dados já conhecidos se a fonte devolver campos vazios/TBD na mesma temporada."""
+    arquivo = Path(arquivo)
+    if not arquivo.exists():
+        return etapas_novas
+
+    try:
+        anterior = json.loads(arquivo.read_text(encoding="utf-8"))
+        if (
+            not isinstance(anterior, dict)
+            or not isinstance(anterior.get("etapas"), list)
+            or not anterior["etapas"]
+            or any(
+                not isinstance(etapa, dict)
+                or not isinstance(etapa.get("sessoes"), list)
+                or not etapa.get("etapa")
+                for etapa in anterior["etapas"]
+            )
+        ):
+            raise ValueError("estrutura do calendário anterior inválida")
+    except (OSError, ValueError, AttributeError) as erro:
+        raise ValueError(
+            f"não foi possível validar o calendário anterior ({erro}). Nada foi alterado."
+        ) from erro
+
+    if str(anterior.get("temporada", "")).strip() != str(temporada_nova).strip():
+        return etapas_novas
+
+    novas_por_numero = {etapa.get("etapa"): etapa for etapa in etapas_novas}
+    antigas = {etapa.get("etapa"): etapa for etapa in anterior["etapas"]}
+
+    def conhecido(valor):
+        normalizado = str(valor or "").strip().casefold()
+        return bool(normalizado) and normalizado not in {
+            "a confirmar", "tbd", "tba", "null", "none"
+        }
+
+    for numero, etapa_atual in antigas.items():
+        etapa_nova = novas_por_numero.get(numero)
+        if etapa_nova is None:
+            raise ValueError(
+                f"atualização incompleta: etapa {numero} ausente. Calendário anterior preservado."
+            )
+
+        for campo in ("inicio", "fim"):
+            valor_atual = etapa_atual.get(campo, "")
+            if conhecido(valor_atual) and not conhecido(etapa_nova.get(campo, "")):
+                etapa_nova[campo] = valor_atual
+
+        sessoes_novas = {
+            str(sessao.get("nome", "")).strip().casefold(): sessao
+            for sessao in etapa_nova.get("sessoes", [])
+            if isinstance(sessao, dict) and str(sessao.get("nome", "")).strip()
+        }
+
+        for sessao_atual in etapa_atual["sessoes"]:
+            if not isinstance(sessao_atual, dict):
+                raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
+            nome = str(sessao_atual.get("nome", "")).strip()
+            sessao_nova = sessoes_novas.get(nome.casefold())
+            if sessao_nova is None:
+                raise ValueError(
+                    f"atualização incompleta: sessão {nome!r} da etapa {numero} ausente. "
+                    "Calendário anterior preservado."
+                )
+
+            for campo in ("data", "horario"):
+                valor_atual = sessao_atual.get(campo, "")
+                valor_novo = sessao_nova.get(campo, "")
+                if conhecido(valor_atual) and not conhecido(valor_novo):
+                    sessao_nova[campo] = valor_atual
+
+    return etapas_novas
+
+
 def main():
     print("Consultando páginas oficiais da F2...")
     slugs = listar_slugs(baixar(URL))
@@ -236,6 +312,15 @@ def main():
     ]
 
     novo = {"temporada": 2026, "categoria": "F2", "etapas": etapas}
+    try:
+        novo["etapas"] = preservar_sessoes_conhecidas(
+            novo["etapas"], temporada_nova=novo["temporada"]
+        )
+    except ValueError as e:
+        print("ERRO:", e)
+        print("Nada foi alterado.")
+        return 1
+
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists():
