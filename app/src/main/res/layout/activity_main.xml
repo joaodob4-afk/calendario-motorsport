@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="#000000">
 
-    <!-- Círculos das categorias -->
+    <!-- Categorias em cápsulas -->
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,221 +20,97 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp">
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp">
 
-            <!-- F1 -->
-            <LinearLayout
+            <TextView
                 android:id="@+id/btnF1"
-                android:layout_width="68dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="14dp"
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="62dp"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:gravity="center"
+                android:background="@drawable/category_circle"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:text="F1"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed" />
 
-                <FrameLayout
-                    android:layout_width="62dp"
-                    android:layout_height="62dp"
-                    android:background="@drawable/category_circle">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="F1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-condensed" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="0dp"
-                    android:text="F1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center" />
-
-            </LinearLayout>
-
-            <!-- F2 -->
-            <LinearLayout
+            <TextView
                 android:id="@+id/btnF2"
-                android:layout_width="68dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="14dp"
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="62dp"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:gravity="center"
+                android:background="@drawable/category_circle"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:text="F2"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed" />
 
-                <FrameLayout
-                    android:layout_width="62dp"
-                    android:layout_height="62dp"
-                    android:background="@drawable/category_circle">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="F2"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-condensed" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="0dp"
-                    android:text="F2"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center" />
-
-            </LinearLayout>
-
-            <!-- F3 -->
-            <LinearLayout
+            <TextView
                 android:id="@+id/btnF3"
-                android:layout_width="68dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="14dp"
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="62dp"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:gravity="center"
+                android:background="@drawable/category_circle"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:text="F3"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed" />
 
-                <FrameLayout
-                    android:layout_width="62dp"
-                    android:layout_height="62dp"
-                    android:background="@drawable/category_circle">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="F3"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-condensed" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="0dp"
-                    android:text="F3"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center" />
-
-            </LinearLayout>
-
-            <!-- IndyCar -->
-            <LinearLayout
+            <TextView
                 android:id="@+id/btnIndyCar"
-                android:layout_width="68dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="14dp"
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:gravity="center"
+                android:background="@drawable/category_circle"
                 android:clickable="true"
-                android:focusable="true">
+                android:focusable="true"
+                android:text="IndyCar"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed" />
 
-                <FrameLayout
-                    android:layout_width="62dp"
-                    android:layout_height="62dp"
-                    android:background="@drawable/category_circle">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="INDY"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-condensed" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="0dp"
-                    android:text="INDY"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center" />
-
-            </LinearLayout>
-
-            <!-- Formula E -->
-            <LinearLayout
+            <TextView
                 android:id="@+id/btnFormulaE"
-                android:layout_width="68dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:gravity="center"
+                android:background="@drawable/category_circle"
                 android:clickable="true"
-                android:focusable="true">
-
-                <FrameLayout
-                    android:layout_width="62dp"
-                    android:layout_height="62dp"
-                    android:background="@drawable/category_circle"
-                    android:padding="2dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:text="FE"
-                        android:textColor="#FFFFFF"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:fontFamily="sans-serif-condensed" />
-
-                </FrameLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="0dp"
-                    android:text="FE"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-condensed"
-                    android:gravity="center" />
-
-            </LinearLayout>
+                android:focusable="true"
+                android:text="Formula E"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed" />
 
         </LinearLayout>
-
     </HorizontalScrollView>
 
     <!-- Conteúdo -->
@@ -248,18 +124,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="8dp"
-            android:paddingBottom="24dp">
+            android:paddingTop="6dp"
+            android:paddingBottom="20dp">
 
-            <!-- Próxima etapa -->
+            <!-- Próxima etapa: mais compacto, com respiro nas laterais -->
             <LinearLayout
                 android:id="@+id/painelProximaEtapa"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="18dp"
-                android:layout_marginEnd="18dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
                 android:orientation="vertical"
-                android:padding="22dp"
+                android:padding="12dp"
                 android:background="@drawable/next_event_card">
 
                 <TextView
@@ -268,23 +144,22 @@
                     android:layout_height="wrap_content"
                     android:text="PRÓXIMA ETAPA"
                     android:textColor="#39FF14"
-                    android:textSize="14sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed"
                     android:letterSpacing="0.08" />
 
-                <!-- Bandeira e nome da etapa -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
                         android:id="@+id/bandeiraProximaEtapa"
-                        android:layout_width="44dp"
-                        android:layout_height="29dp"
+                        android:layout_width="34dp"
+                        android:layout_height="23dp"
                         android:layout_marginEnd="6dp"
                         android:contentDescription="Bandeira da próxima etapa"
                         android:scaleType="fitCenter"
@@ -297,30 +172,29 @@
                         android:layout_weight="1"
                         android:text="F1 — GP de Singapura"
                         android:textColor="#FFFFFF"
-                        android:textSize="28sp"
+                        android:textSize="20sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-condensed" />
-
                 </LinearLayout>
 
                 <TextView
                     android:id="@+id/circuitoProximaEtapa"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
+                    android:layout_marginTop="1dp"
                     android:text="Marina Bay"
                     android:textColor="#B0C0CE"
-                    android:textSize="15sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif-condensed" />
 
                 <TextView
                     android:id="@+id/dataProximaEtapa"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="5dp"
                     android:text="09–11 OUT"
                     android:textColor="#FFFFFF"
-                    android:textSize="17sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed" />
 
@@ -328,35 +202,33 @@
                     android:id="@+id/contadorProximaEtapa"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="2dp"
                     android:text="Faltam poucos dias"
                     android:textColor="#39FF14"
-                    android:textSize="20sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     android:fontFamily="sans-serif-condensed" />
-
             </LinearLayout>
 
-            <!-- Espaço -->
             <Space
                 android:layout_width="match_parent"
-                android:layout_height="18dp" />
+                android:layout_height="14dp" />
 
             <!-- Barra de pesquisa -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:layout_marginStart="18dp"
-                android:layout_marginEnd="18dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
                 android:background="@drawable/search_bar">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:src="@drawable/ic_search"
                     android:contentDescription="Pesquisar" />
 
@@ -365,30 +237,26 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:layout_marginStart="10dp"
+                    android:layout_marginStart="8dp"
                     android:background="@android:color/transparent"
                     android:hint="Pesquisar etapa..."
                     android:textColor="#FFFFFF"
                     android:textColorHint="#8FA6BA"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:singleLine="true"
                     android:inputType="text"
                     android:fontFamily="sans-serif-condensed" />
-
             </LinearLayout>
 
-            <!-- Lista de etapas -->
+            <!-- A lista controla as margens dos cards -->
             <LinearLayout
                 android:id="@+id/listaEtapas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:layout_marginStart="18dp"
-                android:layout_marginEnd="18dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
                 android:orientation="vertical" />
-
         </LinearLayout>
-
     </ScrollView>
-
 </LinearLayout>
