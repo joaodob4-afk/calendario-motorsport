@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    android:padding="15dp"
+    android:padding="17dp"
     android:orientation="vertical"
     android:background="@drawable/rounded_card">
 
@@ -48,7 +48,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:translationX="-8dp">
@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:text="Brasil"
             android:textColor="#FFFFFF"
-            android:textSize="17sp"
+            android:textSize="23sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-condensed" />
 
@@ -80,17 +80,17 @@
         android:layout_marginTop="3dp"
         android:text="Interlagos"
         android:textColor="#B0C0CE"
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:fontFamily="sans-serif-condensed" />
 
     <TextView
         android:id="@+id/itemData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
+        android:layout_marginTop="11dp"
         android:text="06–08 NOV"
         android:textColor="#FFFFFF"
-        android:textSize="13sp"
+        android:textSize="16sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-condensed" />
 
