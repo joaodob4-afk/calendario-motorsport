@@ -3,33 +3,50 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    android:paddingStart="10dp"
-    android:paddingEnd="10dp"
-    android:paddingTop="9dp"
-    android:paddingBottom="9dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:background="@drawable/rounded_card">
 
-    <TextView
-        android:id="@+id/itemData"
-        android:layout_width="wrap_content"
+    <!-- Coluna da data: largura fixa para alinhar todos os cards -->
+    <LinearLayout
+        android:layout_width="66dp"
         android:layout_height="wrap_content"
-        android:minWidth="62dp"
-        android:layout_marginEnd="10dp"
-        android:text="06–08 NOV"
-        android:textColor="#FFFFFF"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-condensed"
-        android:gravity="start|center_vertical"
-        android:maxLines="2" />
+        android:orientation="vertical"
+        android:gravity="start|center_vertical">
+
+        <TextView
+            android:id="@+id/itemDia"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="06–08"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:fontFamily="sans-serif-condensed" />
+
+        <TextView
+            android:id="@+id/itemMes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NOV"
+            android:textColor="#39FF14"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:letterSpacing="0.06"
+            android:fontFamily="sans-serif-condensed" />
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/itemBandeira"
         android:layout_width="30dp"
         android:layout_height="20dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="10dp"
         android:scaleType="fitCenter"
         android:contentDescription="Bandeira do país" />
 
@@ -46,7 +63,7 @@
             android:layout_height="wrap_content"
             android:text="Brasil"
             android:textColor="#FFFFFF"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:ellipsize="end"
@@ -59,31 +76,32 @@
             android:layout_marginTop="1dp"
             android:text="Interlagos"
             android:textColor="#B0C0CE"
-            android:textSize="11sp"
+            android:textSize="12sp"
             android:maxLines="1"
             android:ellipsize="end"
             android:fontFamily="sans-serif-condensed" />
     </LinearLayout>
 
+    <!-- Coluna de status: largura fixa, selos sempre do mesmo tamanho -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="78dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:orientation="vertical"
-        android:gravity="end|center_vertical">
+        android:gravity="center_horizontal">
 
         <TextView
             android:id="@+id/itemStatus"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:gravity="center"
             android:text="PRÓXIMA"
             android:textColor="#FFFFFF"
-            android:textSize="8sp"
+            android:textSize="9sp"
             android:textStyle="bold"
+            android:maxLines="1"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.03"
             android:background="@drawable/status_badge" />
@@ -92,10 +110,10 @@
             android:id="@+id/itemCategoria"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="3dp"
             android:text="F1"
             android:textColor="#39FF14"
-            android:textSize="9sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.05" />
