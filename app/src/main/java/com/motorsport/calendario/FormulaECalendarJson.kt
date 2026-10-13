@@ -124,7 +124,6 @@ object FormulaECalendarJson {
             val eventosNovos = interpretar(texto)
             val novaRaiz = JSONObject(texto)
             val novaTemporada = novaRaiz.optString("temporada").trim()
-            val novasEtapas = novaRaiz.getJSONArray("etapas").length()
 
             synchronized(cacheLock) {
                 val arquivo = File(context.filesDir, ARQUIVO_CACHE)
