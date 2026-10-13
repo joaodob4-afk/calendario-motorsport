@@ -136,67 +136,59 @@ object IndyCarCalendarJson {
     // Valida o calendário recebido antes de tocar no cache.
     val novosEventos = interpretar(texto)
     val temporadaNova = JSONObject(texto).optInt("temporada", 0)
+    var textoFinal = texto
 
     synchronized(cacheLock) {
         val destino = File(context.filesDir, ARQUIVO_CACHE)
         val atomic = AtomicFile(destino)
 
-        // Se houver um cache válido, não permita que um calendário
-        // menor substitua o calendário mais completo.
+        // Remoções oficiais são permitidas. A identidade do circuito é mais estável
+        // que o número da etapa, que pode mudar após renumeração.
         val cacheAtual = try {
-            atomic.openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { leitor -> leitor.readText() }
+            atomic.openRead().bufferedReader(Charsets.UTF_8).use { it.readText() }
         } catch (_: Exception) {
             null
         }
-        val eventosAtuais = cacheAtual?.let { conteudo ->
-            try {
-                interpretar(conteudo)
-            } catch (_: Exception) {
-                null
-            }
+        val eventosAtuais = cacheAtual?.let { atual ->
+            try { interpretar(atual) } catch (_: Exception) { null }
         }
 
         if (eventosAtuais != null && cacheAtual != null) {
             val temporadaAtual = JSONObject(cacheAtual).optInt("temporada", 0)
             if (temporadaNova == temporadaAtual) {
-                require(novosEventos.size >= eventosAtuais.size) {
-                    "Atualização incompleta: recebidas " +
-                        "${novosEventos.size} etapas, mas o cache atual " +
-                        "possui ${eventosAtuais.size}."
+                val raizNova = JSONObject(textoFinal)
+                val etapasJson = raizNova.getJSONArray("etapas")
+                val novasPorCircuito = mutableMapOf<String, JSONObject>()
+                for (i in 0 until etapasJson.length()) {
+                    val etapaJson = etapasJson.getJSONObject(i)
+                    novasPorCircuito[etapaJson.optString("circuito").trim().lowercase(Locale.ROOT)] = etapaJson
                 }
 
-                val novosPorEtapa = novosEventos.associateBy { it.etapa }
                 for (atual in eventosAtuais) {
-                    val novo = novosPorEtapa[atual.etapa]
-                    require(novo != null) {
-                        "Atualização incompleta: etapa ${atual.etapa} ausente."
+                    val novaJson = novasPorCircuito[atual.circuito.trim().lowercase(Locale.ROOT)] ?: continue
+                    val sessoesJson = novaJson.optJSONArray("sessoes") ?: continue
+                    val novasSessoes = mutableMapOf<String, JSONObject>()
+                    for (i in 0 until sessoesJson.length()) {
+                        val sessaoJson = sessoesJson.getJSONObject(i)
+                        novasSessoes[sessaoJson.optString("nome").trim().lowercase(Locale.ROOT)] = sessaoJson
                     }
-                    val novasSessoes = novo!!.sessoes.associateBy { it.nome }
                     for (sessaoAtual in atual.sessoes) {
-                        val sessaoNova = novasSessoes[sessaoAtual.nome]
-                        require(sessaoNova != null) {
-                            "Atualização incompleta: sessão '${sessaoAtual.nome}' " +
-                                "da etapa ${atual.etapa} ausente."
-                        }
+                        val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase(Locale.ROOT)] ?: continue
                         val horarioAtual = sessaoAtual.horario.trim()
-                        val horarioNovo = sessaoNova!!.horario.trim()
-                        require(
-                            horarioAtual.isBlank() ||
-                                horarioAtual.equals("A confirmar", ignoreCase = true) ||
-                                !horarioNovo.equals("A confirmar", ignoreCase = true)
+                        if (horarioAtual.isNotBlank() &&
+                            !horarioAtual.equals("A confirmar", ignoreCase = true) &&
+                            sessaoNova.optString("horario").trim().equals("A confirmar", ignoreCase = true)
                         ) {
-                            "Atualização incompleta: horário conhecido removido " +
-                                "da sessão '${sessaoAtual.nome}' da etapa ${atual.etapa}."
+                            sessaoNova.put("horario", horarioAtual)
                         }
                     }
                 }
+                textoFinal = raizNova.toString(2) + "\n"
             }
         }
 
         // Só grava depois de todas as validações.
-        gravarAtomicamente(atomic, texto)
+        gravarAtomicamente(atomic, textoFinal)
     }
 }
 
