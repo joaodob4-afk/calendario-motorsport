@@ -227,7 +227,7 @@ fun recuperaCacheValidoAposGravacaoInterrompida() {
 }
 
 @Test
-fun sessaoRemovidaNaMesmaTemporadaNaoSubstituiCache() {
+fun sessaoRemovidaNaMesmaTemporadaPermiteAtualizacaoOficial() {
     val context = RuntimeEnvironment.getApplication()
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
@@ -236,15 +236,15 @@ fun sessaoRemovidaNaMesmaTemporadaNaoSubstituiCache() {
             context,
             jsonComEtapas(18, incluirTreino = true)
         )
-        val original = arquivoCache.readText()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonComEtapas(18)
-            )
-        }
-        assertEquals(original, arquivoCache.readText())
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18)
+        )
+
+        val eventos = IndyCarCalendarJson.carregar(context)
+        assertEquals(18, eventos.size)
+        assertTrue(eventos.all { evento -> evento.sessoes.none { it.nome == "Treino" } })
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
@@ -252,7 +252,7 @@ fun sessaoRemovidaNaMesmaTemporadaNaoSubstituiCache() {
 }
 
 @Test
-fun horarioConhecidoNaoPodeVirarAConfirmar() {
+fun horarioConhecidoEhPreservadoQuandoFonteRetornaAConfirmar() {
     val context = RuntimeEnvironment.getApplication()
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
@@ -261,15 +261,14 @@ fun horarioConhecidoNaoPodeVirarAConfirmar() {
             context,
             jsonComEtapas(18)
         )
-        val original = arquivoCache.readText()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonComEtapas(18, horario = "A confirmar")
-            )
-        }
-        assertEquals(original, arquivoCache.readText())
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(18, horario = "A confirmar")
+        )
+
+        val eventos = IndyCarCalendarJson.carregar(context)
+        assertEquals("12:30", eventos.first().sessoes.first { it.nome == "Corrida" }.horario)
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
@@ -293,39 +292,23 @@ fun temporadaNovaPodeTerQuantidadeDiferenteDeEtapas() {
 }
 
 @Test
-fun calendarioMenorNaoSubstituiCacheMaisCompleto() {
+fun calendarioMenorNaMesmaTemporadaPermiteRemocaoOficialDeEtapas() {
     val context = RuntimeEnvironment.getApplication()
-    val (arquivoCache, arquivoBackup) =
-        prepararArquivos(context)
+    val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        // Salva um calendário com 18 etapas.
         IndyCarCalendarJson.gravarCacheSeValido(
             context,
             jsonComEtapas(18)
         )
 
-        val conteudoOriginal = arquivoCache.readText()
-
-        // Tem 10 etapas, portanto passa pelo mínimo geral,
-        // mas não pode substituir o cache de 18 etapas.
-        assertThrows(IllegalArgumentException::class.java) {
-            IndyCarCalendarJson.gravarCacheSeValido(
-                context,
-                jsonComEtapas(10)
-            )
-        }
-
-        assertEquals(
-            conteudoOriginal,
-            arquivoCache.readText()
+        // Não exige uma quantidade fixa de etapas: a redução pode ser oficial.
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComEtapas(9)
         )
 
-        // Confirma que o calendário original continua válido.
-        assertEquals(
-            18,
-            IndyCarCalendarJson.carregar(context).size
-        )
+        assertEquals(9, IndyCarCalendarJson.carregar(context).size)
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
