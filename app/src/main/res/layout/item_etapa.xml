@@ -13,7 +13,7 @@
 
     <!-- Coluna da data: largura fixa para alinhar todos os cards -->
     <LinearLayout
-        android:layout_width="66dp"
+        android:layout_width="84dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="start|center_vertical">
@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:text="06–08"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:fontFamily="sans-serif-condensed" />
@@ -82,13 +82,29 @@
             android:fontFamily="sans-serif-condensed" />
     </LinearLayout>
 
-    <!-- Coluna de status: largura fixa, selos sempre do mesmo tamanho -->
+    <!-- Coluna da direita: categoria em destaque e status; largura fixa para alinhar -->
     <LinearLayout
         android:layout_width="78dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
         android:orientation="vertical"
         android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/itemCategoria"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:gravity="center"
+            android:text="F1"
+            android:textColor="#39FF14"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.08" />
 
         <TextView
             android:id="@+id/itemStatus"
@@ -105,17 +121,5 @@
             android:fontFamily="sans-serif-condensed"
             android:letterSpacing="0.03"
             android:background="@drawable/status_badge" />
-
-        <TextView
-            android:id="@+id/itemCategoria"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:text="F1"
-            android:textColor="#39FF14"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-condensed"
-            android:letterSpacing="0.05" />
     </LinearLayout>
 </LinearLayout>
