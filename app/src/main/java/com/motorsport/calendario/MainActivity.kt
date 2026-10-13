@@ -400,6 +400,82 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Fundo em degradê, borda sutil e faixa lateral na cor da categoria. */
+    private fun estilizarCard(item: android.view.View, cor: Int) {
+        val densidade = resources.displayMetrics.density
+
+        item.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(
+                android.graphics.Color.parseColor("#0D1B0E"),
+                android.graphics.Color.parseColor("#050A06")
+            )
+        ).apply {
+            cornerRadius = 16f * densidade
+            setStroke(
+                (1 * densidade).toInt().coerceAtLeast(1),
+                android.graphics.Color.argb(
+                    72,
+                    android.graphics.Color.red(cor),
+                    android.graphics.Color.green(cor),
+                    android.graphics.Color.blue(cor)
+                )
+            )
+        }
+
+        val raio = 15f * densidade
+        item.findViewById<android.view.View>(R.id.itemAcento).background =
+            android.graphics.drawable.GradientDrawable().apply {
+                setColor(cor)
+                cornerRadii = floatArrayOf(raio, raio, 0f, 0f, 0f, 0f, raio, raio)
+            }
+    }
+
+    /** Cabeçalho de mês: nome espaçado e uma linha fina até o fim. */
+    private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
+        val nomes = listOf(
+            "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+            "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+        )
+        val densidade = resources.displayMetrics.density
+        val anoAtual = java.time.LocalDate.now().year
+
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(
+                (8 * densidade).toInt(),
+                ((if (primeiro) 2 else 14) * densidade).toInt(),
+                (4 * densidade).toInt(),
+                (8 * densidade).toInt()
+            )
+        }
+
+        val titulo = TextView(this).apply {
+            text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
+            setTextColor(android.graphics.Color.parseColor("#7F8B97"))
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+            typeface = android.graphics.Typeface.create(
+                "sans-serif-condensed",
+                android.graphics.Typeface.BOLD
+            )
+            letterSpacing = 0.18f
+        }
+
+        val traco = android.view.View(this).apply {
+            setBackgroundColor(android.graphics.Color.parseColor("#142414"))
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                (1 * densidade).toInt().coerceAtLeast(1),
+                1f
+            ).apply { marginStart = (10 * densidade).toInt() }
+        }
+
+        linha.addView(titulo)
+        linha.addView(traco)
+        return linha
+    }
+
     private fun configurarBusca() {
         val busca = findViewById<EditText>(R.id.searchEtapa)
 
@@ -475,7 +551,18 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        var mesAnterior = -1
+
         for (etapa in etapasOrdenadas) {
+            val inicioItem = parseDataSegura(etapa.dataInicio)
+            if (inicioItem != null) {
+                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+                if (chaveMes != mesAnterior) {
+                    listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
+                    mesAnterior = chaveMes
+                }
+            }
+
             val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
             val status = statusEtapa(etapa, etapasOrdenadas)
@@ -483,6 +570,7 @@ class MainActivity : AppCompatActivity() {
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
             chipCategoria.text = etapa.categoria.uppercase()
             estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
+            estilizarCard(item, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
             val idBandeira = recursoBandeira(etapa.pais)
@@ -490,6 +578,14 @@ class MainActivity : AppCompatActivity() {
             if (idBandeira != 0) {
                 imagemBandeira.setImageResource(idBandeira)
                 imagemBandeira.visibility = android.view.View.VISIBLE
+
+                val raioBandeira = 5f * resources.displayMetrics.density
+                imagemBandeira.outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, raioBandeira)
+                    }
+                }
+                imagemBandeira.clipToOutline = true
             } else {
                 imagemBandeira.visibility = android.view.View.GONE
             }
