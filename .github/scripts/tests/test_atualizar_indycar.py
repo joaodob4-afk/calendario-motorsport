@@ -144,6 +144,42 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 for n in range(1, 11)
             ], arquivo, temporada_nova=2027)
 
+    def test_preserva_horarios_separados_para_duas_corridas_na_mesma_pista(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar", "temporada": 2026,
+                "etapas": [
+                    {
+                        "etapa": 16, "nome": "Snap-on Makers and Fixers 250",
+                        "circuito": "Milwaukee Mile",
+                        "sessoes": [{"nome": "Corrida 1", "data": "29/08/2026", "horario": "19:00"}],
+                    },
+                    {
+                        "etapa": 17, "nome": "Snap-on Milwaukee Mile 250",
+                        "circuito": "Milwaukee Mile",
+                        "sessoes": [{"nome": "Corrida 2", "data": "30/08/2026", "horario": "14:00"}],
+                    },
+                ],
+            }), encoding="utf-8")
+            novas = [
+                {
+                    "etapa": 16, "nome": "Snap-on Makers and Fixers 250",
+                    "circuito": "Milwaukee Mile",
+                    "inicio": "28/08/2026", "fim": "30/08/2026",
+                    "sessoes": [{"nome": "Corrida 1", "data": "29/08/2026", "horario": "A confirmar"}],
+                },
+                {
+                    "etapa": 17, "nome": "Snap-on Milwaukee Mile 250",
+                    "circuito": "Milwaukee Mile",
+                    "inicio": "29/08/2026", "fim": "30/08/2026",
+                    "sessoes": [{"nome": "Corrida 2", "data": "30/08/2026", "horario": "A confirmar"}],
+                },
+            ]
+            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+            self.assertEqual(novas[0]["sessoes"][0]["horario"], "19:00")
+            self.assertEqual(novas[1]["sessoes"][0]["horario"], "14:00")
+
     def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
         with tempfile.TemporaryDirectory() as pasta:
             arquivo = Path(pasta) / "indycar_calendar.json"
