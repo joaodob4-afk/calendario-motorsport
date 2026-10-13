@@ -117,7 +117,7 @@ class F1CachePreservationTest {
     }
 
     @Test
-    fun calendarioBasicoNaoApagaSessoesDaMesmaTemporada() {
+    fun calendarioOficialPodeRemoverSessoesDaMesmaTemporada() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -131,14 +131,20 @@ class F1CachePreservationTest {
             )
             val original = arquivo.readText()
 
-            assertFalse(
+            assertTrue(
                 F1CalendarApi.gravarCacheSeguro(
                     context.filesDir,
                     jsonComCorridas(20, comSessoes = false)
                 )
             )
 
-            assertEquals(original, arquivo.readText())
+            assertFalse(original == arquivo.readText())
+            val corridas = JSONObject(arquivo.readText())
+                .getJSONObject("MRData")
+                .getJSONObject("RaceTable")
+                .getJSONArray("Races")
+            assertEquals(20, corridas.length())
+            assertFalse(corridas.getJSONObject(0).has("FirstPractice"))
         } finally {
             limpar(context)
         }
