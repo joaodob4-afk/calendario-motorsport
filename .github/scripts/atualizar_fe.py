@@ -46,7 +46,7 @@ CIDADES = {
     "Mexico City": "Cidade do México",
     "Sao Paulo": "São Paulo",
     "Monaco": "Monte Carlo",
-    "London": "Londres",
+    "London": "Brands Hatch",
     "Shanghai": "Xangai",
     "Tokyo": "Tóquio",
 }
@@ -169,11 +169,17 @@ def preservar_detalhes_conhecidos(etapas_novas, arquivo=SAIDA, temporada_nova="2
             "a confirmar", "tbd", "null", "none"
         }
 
+    def normalizar_circuito(valor):
+        # Compatibilidade com o JSON anterior, que identificava Brands Hatch
+        # apenas como "Londres".
+        normalizado = str(valor or "").strip().casefold()
+        return "brands hatch" if normalizado == "londres" else normalizado
+
     sessoes_anteriores = {}
     for etapa in atual.get("etapas", []):
         for sessao in etapa.get("sessoes", []):
             chave = (
-                str(etapa.get("circuito", "")).strip().casefold(),
+                normalizar_circuito(etapa.get("circuito", "")),
                 str(etapa.get("pais", "")).strip().casefold(),
                 str(sessao.get("data", "")).strip(),
             )
