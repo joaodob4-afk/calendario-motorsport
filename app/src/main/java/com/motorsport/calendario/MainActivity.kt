@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
@@ -287,7 +286,6 @@ class MainActivity : AppCompatActivity() {
         val circuito = findViewById<TextView>(R.id.circuitoProximaEtapa)
         val data = findViewById<TextView>(R.id.dataProximaEtapa)
         val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
-        val rotuloContador = findViewById<TextView>(R.id.contadorRotuloProximaEtapa)
 
         titulo.text = "PRÓXIMA ETAPA • ${proxima.categoria}"
         nome.text = proxima.pais
@@ -306,12 +304,13 @@ class MainActivity : AppCompatActivity() {
         val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
         val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
 
-        when {
-            dias == 0L -> definirContador(contador, rotuloContador, "HOJE", 44f, "COMEÇA")
-            dias == 1L -> definirContador(contador, rotuloContador, "1", 60f, "DIA")
-            dias > 1L -> definirContador(contador, rotuloContador, "$dias", 60f, "DIAS")
-            else -> definirContador(contador, rotuloContador, "AGORA", 38f, "EM ANDAMENTO")
+        contador.text = when {
+            dias == 0L -> "COMEÇA HOJE"
+            dias == 1L -> "AMANHÃ"
+            dias > 1L -> "FALTAM $dias DIAS"
+            else -> "EM ANDAMENTO"
         }
+        estilizarSelo(contador, android.graphics.Color.parseColor("#39FF14"))
 
         findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
             when (proxima.categoria) {
@@ -324,16 +323,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun definirContador(
-        numero: TextView,
-        rotulo: TextView,
-        valor: String,
-        tamanhoSp: Float,
-        texto: String
-    ) {
-        numero.text = valor
-        numero.setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanhoSp)
-        rotulo.text = texto
+    /** Selo com borda e fundo suave na cor informada (categoria e contagem regressiva). */
+    private fun estilizarSelo(view: TextView, cor: Int) {
+        val densidade = resources.displayMetrics.density
+        view.setTextColor(cor)
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(
+                android.graphics.Color.argb(
+                    45,
+                    android.graphics.Color.red(cor),
+                    android.graphics.Color.green(cor),
+                    android.graphics.Color.blue(cor)
+                )
+            )
+            cornerRadius = 10f * densidade
+            setStroke((1 * densidade).toInt().coerceAtLeast(1), cor)
+        }
     }
 
     /** Separa "30 OUT–01 NOV" em ("30–01", "OUT–NOV") e "06–08 NOV" em ("06–08", "NOV"). */
@@ -360,6 +365,19 @@ class MainActivity : AppCompatActivity() {
 
         return limpa to ""
     }
+
+    /** Cor de destaque de cada categoria (usada no selo dos cards). */
+    private fun corDaCategoria(categoria: String): Int =
+        android.graphics.Color.parseColor(
+            when (categoria) {
+                "F1" -> "#FF3B30"
+                "F2" -> "#3D9BFF"
+                "F3" -> "#FF8A2B"
+                "IndyCar" -> "#A58BFF"
+                "Formula E" -> "#22D3EE"
+                else -> "#39FF14"
+            }
+        )
 
     private fun configurarBusca() {
         val busca = findViewById<EditText>(R.id.searchEtapa)
@@ -441,7 +459,9 @@ class MainActivity : AppCompatActivity() {
 
             val status = statusEtapa(etapa, etapasOrdenadas)
 
-            item.findViewById<TextView>(R.id.itemCategoria).text = etapa.categoria
+            val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
+            chipCategoria.text = etapa.categoria.uppercase()
+            estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
             val idBandeira = recursoBandeira(etapa.pais)
