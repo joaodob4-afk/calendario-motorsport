@@ -159,6 +159,7 @@ class FormulaEActivity : AppCompatActivity() {
         )
 
         setContentView(raiz)
+        aplicarInsetsDasBarras()
     }
 
     private fun lerData(texto: String): LocalDate? {

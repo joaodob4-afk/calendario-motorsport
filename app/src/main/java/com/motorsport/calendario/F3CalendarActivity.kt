@@ -88,7 +88,7 @@ class F3CalendarActivity : AppCompatActivity() {
 
                 text =
                     "FÓRMULA 3\n\n" +
-                    "CALENDÁRIO 2026"
+                    "CALENDÁRIO ${F3CalendarJson.carregar(this@F3CalendarActivity).firstOrNull()?.inicio?.takeLast(4) ?: java.time.LocalDate.now().year}"
 
                 textSize = 27f
 
@@ -164,6 +164,7 @@ class F3CalendarActivity : AppCompatActivity() {
         setContentView(
             scroll
         )
+        aplicarInsetsDasBarras()
     }
 
     private fun criarBotaoVoltar(): TextView {

@@ -96,7 +96,7 @@ class F1CalendarActivity : AppCompatActivity() {
 
                 text =
                     "FÓRMULA 1\n\n" +
-                    "CALENDÁRIO 2026"
+                    "CALENDÁRIO ${java.time.LocalDate.now().year}"
 
                 textSize = 27f
 
@@ -161,6 +161,7 @@ class F1CalendarActivity : AppCompatActivity() {
         setContentView(
             scroll
         )
+        aplicarInsetsDasBarras()
 
         // Atualiza o cache em segundo plano; a tela pode abrir usando os dados salvos.
         F1CalendarApi.atualizar(this)

@@ -220,6 +220,7 @@ class F2Activity : AppCompatActivity() {
         )
 
         setContentView(raiz)
+        aplicarInsetsDasBarras()
     }
 
     private fun voltar() {

@@ -190,6 +190,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         setContentView(raiz)
+        aplicarInsetsDasBarras()
     }
 
     // false quando o usuário abriu uma corrida específica (não a próxima).

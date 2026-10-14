@@ -88,7 +88,7 @@ class F2CalendarActivity : AppCompatActivity() {
 
                 text =
                     "FÓRMULA 2\n\n" +
-                    "CALENDÁRIO 2026"
+                    "CALENDÁRIO ${F2CalendarJson.carregar(this@F2CalendarActivity).firstOrNull()?.inicio?.takeLast(4) ?: java.time.LocalDate.now().year}"
 
                 textSize = 27f
 
@@ -164,6 +164,7 @@ class F2CalendarActivity : AppCompatActivity() {
         setContentView(
             scroll
         )
+        aplicarInsetsDasBarras()
     }
 
     private fun criarBotaoVoltar(): TextView {
