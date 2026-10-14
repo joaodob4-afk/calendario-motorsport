@@ -247,12 +247,18 @@ def filtrar_corrida_da_etapa(cartao, sessoes):
     ]
 
 
+def filtrar_pre_race_indianapolis(cartao, sessoes):
+    """Remove Pre-Race somente da 110th Indianapolis 500."""
+    titulo = str(cartao.get("titulo", "")).strip().casefold()
+    if titulo != "110th running of the indianapolis 500":
+        return sessoes
+    return [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
+
+
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
     sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
-    # Remoção solicitada apenas para a 110th Indianapolis 500.
-    if str(cartao.get("titulo", "")).strip().casefold() == "110th running of the indianapolis 500":
-        sessoes = [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
+    sessoes = filtrar_pre_race_indianapolis(cartao, sessoes)
 
     if sessoes:
         dias = [datetime(ano, d[0], d[1]) for _, _, d in sessoes]
