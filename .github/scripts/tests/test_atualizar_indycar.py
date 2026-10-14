@@ -267,7 +267,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         )
 
 
-    def test_permite_remover_pre_race_que_nao_e_sessao_cronometrada(self):
+    def test_pre_race_removida_do_calendario_falha_sem_excecao_especial(self):
         with tempfile.TemporaryDirectory() as pasta:
             arquivo = Path(pasta) / "indycar_calendar.json"
             arquivo.write_text(json.dumps({
@@ -286,8 +286,12 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 "circuito": "Indianapolis Motor Speedway",
                 "sessoes": [{"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"}],
             }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
+            with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
+                indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+
+    def test_parser_ignora_rotulos_pre_race_e_pre_race_show(self):
+        self.assertIsNone(indycar.traduzir("Pre-Race"))
+        self.assertIsNone(indycar.traduzir("Pre-Race Show"))
 
 
 if __name__ == "__main__":
