@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula3.com"
-TEMPORADAS_PREFERIDAS = (2027, 2026)
+TEMPORADAS_PREFERIDAS = (2026,)
 SAIDA = Path("app/src/main/assets/f3_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -73,19 +73,20 @@ def listar_slugs(html, temporada=2026):
 
 
 def descobrir_calendario():
-    """Usa a próxima temporada quando a página oficial de etapas estiver publicada."""
+    """Descobre somente a temporada atual, usando a rota oficial estável como alternativa."""
     for temporada in TEMPORADAS_PREFERIDAS:
-        try:
-            html = baixar(f"{BASE}/en/racing/{temporada}")
-        except Exception as erro:
-            print(f"Calendário {temporada} indisponível: {erro}")
-            continue
-        slugs = listar_slugs(html, temporada)
-        if slugs:
-            return temporada, slugs
+        urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
+        for url in urls:
+            try:
+                html = baixar(url)
+            except Exception as erro:
+                print(f"Calendário {temporada} indisponível em {url}: {erro}")
+                continue
+            slugs = listar_slugs(html, temporada)
+            if slugs:
+                return temporada, slugs
         print(f"Calendário {temporada} ainda não publicado como página de etapas.")
     return None, []
-
 
 def sub_eventos(html):
     """Extrai subEvent de JSON-LD simples, em lista ou dentro de @graph."""
