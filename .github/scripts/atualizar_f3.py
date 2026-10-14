@@ -73,19 +73,25 @@ def listar_slugs(html, temporada=2026):
 
 
 def descobrir_calendario():
-    """Usa a próxima temporada quando a página oficial de etapas estiver publicada."""
+    """Descobre o calendário da próxima temporada com fallback para a rota estável.
+
+    A página específica do ano pode falhar temporariamente (por exemplo, HTTP 500),
+    mesmo quando a rota /en/racing já publica links da temporada. Só aceita slugs
+    que tragam explicitamente o ano procurado e mantém a temporada atual como fallback.
+    """
     for temporada in TEMPORADAS_PREFERIDAS:
-        try:
-            html = baixar(f"{BASE}/en/racing/{temporada}")
-        except Exception as erro:
-            print(f"Calendário {temporada} indisponível: {erro}")
-            continue
-        slugs = listar_slugs(html, temporada)
-        if slugs:
-            return temporada, slugs
+        urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
+        for url in urls:
+            try:
+                html = baixar(url)
+            except Exception as erro:
+                print(f"Calendário {temporada} indisponível em {url}: {erro}")
+                continue
+            slugs = listar_slugs(html, temporada)
+            if slugs:
+                return temporada, slugs
         print(f"Calendário {temporada} ainda não publicado como página de etapas.")
     return None, []
-
 
 def sub_eventos(html):
     """Extrai subEvent de JSON-LD simples, em lista ou dentro de @graph."""
