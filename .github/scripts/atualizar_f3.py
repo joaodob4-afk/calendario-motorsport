@@ -88,19 +88,37 @@ def descobrir_calendario():
 
 
 def sub_eventos(html):
+    """Extrai subEvent de JSON-LD simples, em lista ou dentro de @graph."""
     blocos = re.findall(
         r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
-    for b in blocos:
+
+    def procurar(dados):
+        if isinstance(dados, list):
+            for item in dados:
+                resultado = procurar(item)
+                if resultado:
+                    return resultado
+        elif isinstance(dados, dict):
+            subs = dados.get("subEvent")
+            if isinstance(subs, dict):
+                return [subs]
+            if isinstance(subs, list) and subs:
+                return subs
+            grafo = dados.get("@graph")
+            if isinstance(grafo, (dict, list)):
+                return procurar(grafo)
+        return []
+
+    for bloco in blocos:
         try:
-            dados = json.loads(b)
+            dados = json.loads(bloco)
         except ValueError:
             continue
-        if isinstance(dados, dict) and dados.get("subEvent"):
-            return dados["subEvent"]
+        resultado = procurar(dados)
+        if resultado:
+            return resultado
     return []
-
-
 def parse_utc(texto):
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
