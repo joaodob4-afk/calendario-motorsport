@@ -90,7 +90,7 @@ def descobrir_calendario():
 def sub_eventos(html):
     """Extrai subEvent de JSON-LD simples, em lista ou dentro de @graph."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
 
     def procurar(dados):
