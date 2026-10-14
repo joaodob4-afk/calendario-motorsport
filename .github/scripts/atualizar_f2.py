@@ -14,7 +14,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula2.com"
-TEMPORADAS_PREFERIDAS = (2027, 2026)
+TEMPORADAS_PREFERIDAS = (2026, 2027)
+FIM_TEMPORADA_2026 = datetime(2026, 12, 7).date()
 SAIDA = Path("app/src/main/assets/f2_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -73,8 +74,13 @@ def listar_slugs(html, temporada=2026):
 
 
 def descobrir_calendario():
-    """Prefere a temporada seguinte quando a lista oficial já estiver publicada."""
-    for temporada in TEMPORADAS_PREFERIDAS:
+    """Mantém a temporada em andamento e só avança após o encerramento oficial."""
+    hoje = datetime.now(BRASILIA).date()
+    temporadas = TEMPORADAS_PREFERIDAS
+    if hoje >= FIM_TEMPORADA_2026:
+        temporadas = (2027, 2026)
+
+    for temporada in temporadas:
         try:
             html = baixar(f"{BASE}/en/racing/{temporada}")
         except Exception as erro:
