@@ -41,7 +41,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         self.assertEqual(indycar.traduzir("Practice 1"), "Treino Livre 1")
         self.assertEqual(indycar.traduzir("Qualifications"), "Classificação")
         self.assertEqual(indycar.traduzir("Race 2"), "Corrida 2")
-        self.assertIsNone(indycar.traduzir("Pre-race"))
+        self.assertEqual(indycar.traduzir("Pre-race"), "Pre-race")
 
     def test_extrai_sessao_de_html_sintetico_sem_rede(self):
         html = """
@@ -267,7 +267,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         )
 
 
-    def test_permite_remover_pre_race_que_nao_e_sessao_cronometrada(self):
+    def test_pre_race_removida_do_calendario_falha_sem_excecao_especial(self):
         with tempfile.TemporaryDirectory() as pasta:
             arquivo = Path(pasta) / "indycar_calendar.json"
             arquivo.write_text(json.dumps({
@@ -286,8 +286,20 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 "circuito": "Indianapolis Motor Speedway",
                 "sessoes": [{"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"}],
             }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
+            with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
+                indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+
+    def test_parser_preserva_pre_race_show_fora_da_indianapolis_500(self):
+        self.assertEqual(indycar.traduzir("Pre-Race Show"), "Pre-Race Show")
+        self.assertEqual(indycar.traduzir("Pre-Race"), "Pre-Race")
+
+    def test_remove_pre_race_apenas_da_110th_indianapolis_500(self):
+        sessoes = [("Pre-Race", None, (5, 24)), ("Pre-Race Show", None, (8, 23)), ("Corrida", None, (5, 24))]
+        cartao = {"titulo": "110th Running of the Indianapolis 500"}
+        filtradas = indycar.filtrar_pre_race_indianapolis(cartao, sessoes)
+        self.assertEqual([s[0] for s in filtradas], ["Pre-Race Show", "Corrida"])
+        outro_evento = indycar.filtrar_pre_race_indianapolis({"titulo": "Freedom 250 Grand Prix of Washington DC"}, sessoes)
+        self.assertEqual([s[0] for s in outro_evento], ["Pre-Race", "Pre-Race Show", "Corrida"])
 
 
 if __name__ == "__main__":

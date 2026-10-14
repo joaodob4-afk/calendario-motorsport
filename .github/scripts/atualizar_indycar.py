@@ -125,8 +125,6 @@ def converter_hora(ano, mes, dia, h, m, ampm):
 
 def traduzir(nome):
     n = nome.strip()
-    if n.lower() == "pre-race":
-        return None
     m = re.fullmatch(r"Practice (\d+)", n)
     if m:
         return f"Treino Livre {m.group(1)}"
@@ -249,9 +247,18 @@ def filtrar_corrida_da_etapa(cartao, sessoes):
     ]
 
 
+def filtrar_pre_race_indianapolis(cartao, sessoes):
+    """Remove Pre-Race somente da 110th Indianapolis 500."""
+    titulo = str(cartao.get("titulo", "")).strip().casefold()
+    if titulo != "110th running of the indianapolis 500":
+        return sessoes
+    return [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
+
+
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
     sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
+    sessoes = filtrar_pre_race_indianapolis(cartao, sessoes)
 
     if sessoes:
         dias = [datetime(ano, d[0], d[1]) for _, _, d in sessoes]
@@ -387,12 +394,6 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
                 raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
             nome_sessao = str(sessao_atual.get("nome", "")).strip()
             sessao_nova = sessoes_novas.get(nome_sessao.casefold())
-            # Pre-Race é um rótulo informativo que o atualizador descarta
-            # intencionalmente: não representa uma sessão cronometrada.
-            # Sua ausência no JSON novo não indica falha de extração.
-            if sessao_nova is None and nome_sessao.casefold() == "pre-race":
-                continue
-
             # Uma sessão anterior ausente pode indicar extração incompleta.
             # Não publica um calendário que a apagaria silenciosamente.
             if sessao_nova is None:
