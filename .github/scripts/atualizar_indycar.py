@@ -125,8 +125,8 @@ def converter_hora(ano, mes, dia, h, m, ampm):
 
 def traduzir(nome):
     n = nome.strip()
-    if n.lower() == "pre-race":
-        return None
+    if n.casefold() == "pre-race":
+        return "Pre-Race"
     m = re.fullmatch(r"Practice (\d+)", n)
     if m:
         return f"Treino Livre {m.group(1)}"
@@ -159,7 +159,7 @@ def nome_de_sessao_publicada(nome):
     return bool(re.fullmatch(
         r"(?:Practice(?: \d+)?|Qualifications?|Qualifying.*|Race(?: \d+)?|"
         r"Final Practice|High Line & Final Practice|Warmup|"
-        r"Carb Day Final Practice|Pit Stop Competition)",
+        r"Carb Day Final Practice|Pit Stop Competition|Pre-Race)",
         nome.strip(),
     ))
 
@@ -296,6 +296,27 @@ def montar_etapa(cartao, html_evento):
     }
 
 
+def sessao_substituida_por_revisao_oficial(etapa, nome_sessao, temporada):
+    """Identifica sessões provisórias removidas na revisão oficial da Indy 500 de 2026.
+
+    A chuva cancelou a classificação de sábado (16/05), e o formato final de
+    domingo passou a usar uma tentativa para todos os carros, seguida de Top 12
+    e Firestone Fast 6. As sessões provisórias de treino Final 15/Top 12 não
+    aparecem na programação oficial final e podem ser removidas sem bloquear
+    o atualizador. A exceção é restrita a essa etapa e temporada.
+    """
+    nome_etapa = str(etapa.get("nome", "")).strip().casefold()
+    nome_sessao = str(nome_sessao or "").strip().casefold()
+    return (
+        str(temporada) == "2026"
+        and nome_etapa == "110th running of the indianapolis 500"
+        and nome_sessao in {
+            "treino de classificação (final 15)",
+            "treino de classificação (top 12)",
+        }
+    )
+
+
 def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
     """Preserva dados conhecidos e bloqueia desaparecimento inesperado de sessões.
 
@@ -390,6 +411,10 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
             # Uma sessão anterior ausente pode indicar extração incompleta.
             # Não publica um calendário que a apagaria silenciosamente.
             if sessao_nova is None:
+                if sessao_substituida_por_revisao_oficial(
+                    etapa_atual, nome_sessao, temporada_atual
+                ):
+                    continue
                 raise ValueError(
                     f"etapa {etapa_atual.get('nome', identidade(etapa_atual))}: "
                     f"sessão anterior ausente na extração ({nome_sessao}). "
