@@ -331,7 +331,6 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
         # Etapa ausente na fonte oficial não é recriada: pode ter sido cancelada.
         if etapa_nova is None:
             continue
-        numero = etapa_atual.get("etapa", "?")
 
         for campo in ("inicio", "fim"):
             valor_atual = etapa_atual.get(campo, "")
