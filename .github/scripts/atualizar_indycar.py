@@ -292,10 +292,12 @@ def montar_etapa(cartao, html_evento):
 
 
 def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
-    """Preserva dados conhecidos sem bloquear remoções/renomeações oficiais.
+    """Preserva dados conhecidos e bloqueia desaparecimento inesperado de sessões.
 
-    O circuito identifica a etapa mesmo quando o número muda. Dados conhecidos
-    só são preservados para sessões que continuam existindo com o mesmo nome.
+    O circuito identifica a etapa mesmo quando o número muda. Se uma sessão
+    conhecida deixar de aparecer na extração, interrompe a atualização para
+    evitar apagar dados por falha parcial de leitura. Remoções oficiais precisam
+    ser verificadas antes de liberar uma nova atualização.
     """
     arquivo = Path(arquivo)
     if not arquivo.exists():
@@ -380,9 +382,14 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
                 raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
             nome_sessao = str(sessao_atual.get("nome", "")).strip()
             sessao_nova = sessoes_novas.get(nome_sessao.casefold())
-            # Sessões removidas/renomeadas não devem ser ressuscitadas.
+            # Uma sessão anterior ausente pode indicar extração incompleta.
+            # Não publica um calendário que a apagaria silenciosamente.
             if sessao_nova is None:
-                continue
+                raise ValueError(
+                    f"etapa {etapa_atual.get('nome', identidade(etapa_atual))}: "
+                    f"sessão anterior ausente na extração ({nome_sessao}). "
+                    "Nada foi alterado; confira a fonte oficial antes de atualizar."
+                )
 
             for campo in ("data", "horario"):
                 valor_atual = sessao_atual.get(campo, "")
