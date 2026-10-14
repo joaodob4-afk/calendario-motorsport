@@ -73,12 +73,16 @@ def listar_slugs(html, temporada=2026):
     return sorted(p.links)
 
 
+def ordem_temporadas(hoje):
+    """Mantém 2026 até o fim da temporada e depois prioriza 2027."""
+    if hoje >= FIM_TEMPORADA_2026:
+        return (2027, 2026)
+    return TEMPORADAS_PREFERIDAS
+
+
 def descobrir_calendario():
     """Mantém a temporada em andamento e só avança após o encerramento oficial."""
-    hoje = datetime.now(BRASILIA).date()
-    temporadas = TEMPORADAS_PREFERIDAS
-    if hoje >= FIM_TEMPORADA_2026:
-        temporadas = (2027, 2026)
+    temporadas = ordem_temporadas(datetime.now(BRASILIA).date())
 
     for temporada in temporadas:
         try:
