@@ -65,6 +65,45 @@ private fun jsonComEtapas(
 
 private fun jsonValido(): String = jsonComEtapas(10)
 
+private fun jsonComDuasCorridasMilwaukee(
+    horarioCorrida1: String,
+    horarioCorrida2: String
+): String = """
+    {
+      "temporada": 2026,
+      "categoria": "IndyCar",
+      "etapas": [
+        {
+          "etapa": 16,
+          "nome": "Snap-on Makers and Fixers 250",
+          "circuito": "Milwaukee Mile",
+          "local": "West Allis, Wisconsin",
+          "pais": "Estados Unidos",
+          "inicio": "28/08/2026",
+          "fim": "30/08/2026",
+          "sessoes": [
+            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
+            {"nome": "Corrida 1", "data": "30/08/2026", "horario": "$horarioCorrida1"}
+          ]
+        },
+        {
+          "etapa": 17,
+          "nome": "Snap-on Milwaukee Mile 250",
+          "circuito": "Milwaukee Mile",
+          "local": "West Allis, Wisconsin",
+          "pais": "Estados Unidos",
+          "inicio": "29/08/2026",
+          "fim": "30/08/2026",
+          "sessoes": [
+            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
+            {"nome": "Corrida 2", "data": "30/08/2026", "horario": "$horarioCorrida2"}
+          ]
+        }
+      ]
+    }
+""".trimIndent()
+
+
 private fun prepararArquivos(
     context: Context
 ): Pair<File, File> {
@@ -309,6 +348,40 @@ fun calendarioMenorNaMesmaTemporadaPermiteRemocaoOficialDeEtapas() {
         )
 
         assertEquals(9, IndyCarCalendarJson.carregar(context).size)
+    } finally {
+        arquivoCache.delete()
+        arquivoBackup.delete()
+    }
+}
+
+@Test
+fun preservaHorariosIndependentesNasDuasCorridasDeMilwaukee() {
+    val context = RuntimeEnvironment.getApplication()
+    val (arquivoCache, arquivoBackup) = prepararArquivos(context)
+
+    try {
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComDuasCorridasMilwaukee("19:00", "14:00")
+        )
+
+        IndyCarCalendarJson.gravarCacheSeValido(
+            context,
+            jsonComDuasCorridasMilwaukee("A confirmar", "A confirmar")
+        )
+
+        val eventos = IndyCarCalendarJson.carregar(context)
+        assertEquals(2, eventos.size)
+        assertEquals(
+            "19:00",
+            eventos.first { it.nome == "Snap-on Makers and Fixers 250" }
+                .sessoes.first { it.nome == "Corrida 1" }.horario
+        )
+        assertEquals(
+            "14:00",
+            eventos.first { it.nome == "Snap-on Milwaukee Mile 250" }
+                .sessoes.first { it.nome == "Corrida 2" }.horario
+        )
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()

@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - integracao-cache-indycar
+      - fix/indycar-cache-f2-validation
       - fix/f1-calendar-offline-cache
       - audit/validacao-calendarios-f2-f3
 

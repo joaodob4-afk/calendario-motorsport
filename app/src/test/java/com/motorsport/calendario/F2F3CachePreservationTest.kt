@@ -240,4 +240,29 @@ class F2F3CachePreservationTest {
             backup.delete()
         }
     }
+    @Test
+    fun f2RejeitaJsonDeOutraCategoriaSemAlterarCache() {
+        val context = RuntimeEnvironment.getApplication()
+        val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
+
+        try {
+            val original = calendarJson("F2", 2026, 14)
+            assertTrue(F2CalendarJson.gravarCacheSeguro(context, original))
+            val conteudoOriginal = cache.readText()
+
+            assertFalse(
+                F2CalendarJson.gravarCacheSeguro(
+                    context,
+                    calendarJson("F3", 2026, 9)
+                )
+            )
+
+            assertEquals(conteudoOriginal, cache.readText())
+            assertEquals(14, F2CalendarJson.carregar(context).size)
+        } finally {
+            cache.delete()
+            backup.delete()
+        }
+    }
+
 }

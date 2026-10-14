@@ -158,14 +158,23 @@ object IndyCarCalendarJson {
             if (temporadaNova == temporadaAtual) {
                 val raizNova = JSONObject(textoFinal)
                 val etapasJson = raizNova.getJSONArray("etapas")
-                val novasPorCircuito = mutableMapOf<String, JSONObject>()
+                // Um circuito pode receber mais de uma corrida na mesma temporada
+                // (por exemplo, Milwaukee). O nome do evento completa a identidade
+                // para que um evento não herde os horários do outro.
+                val novasPorIdentidade = mutableMapOf<String, JSONObject>()
                 for (i in 0 until etapasJson.length()) {
                     val etapaJson = etapasJson.getJSONObject(i)
-                    novasPorCircuito[etapaJson.optString("circuito").trim().lowercase(Locale.ROOT)] = etapaJson
+                    val circuito = etapaJson.optString("circuito")
+                        .trim().lowercase(Locale.ROOT)
+                    val nome = etapaJson.optString("nome")
+                        .trim().lowercase(Locale.ROOT)
+                    novasPorIdentidade["$circuito|$nome"] = etapaJson
                 }
 
                 for (atual in eventosAtuais) {
-                    val novaJson = novasPorCircuito[atual.circuito.trim().lowercase(Locale.ROOT)] ?: continue
+                    val circuito = atual.circuito.trim().lowercase(Locale.ROOT)
+                    val nome = atual.nome.trim().lowercase(Locale.ROOT)
+                    val novaJson = novasPorIdentidade["$circuito|$nome"] ?: continue
                     val sessoesJson = novaJson.optJSONArray("sessoes") ?: continue
                     val novasSessoes = mutableMapOf<String, JSONObject>()
                     for (i in 0 until sessoesJson.length()) {
