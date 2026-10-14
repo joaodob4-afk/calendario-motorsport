@@ -39,6 +39,38 @@ class DescobertaItemListJsonLdTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ItemList"):
             fe.lista_do_calendario(html)
 
+    def test_rejeita_numero_de_rodada_duplicado(self):
+        dados = {"itemListElement": [
+            {"item": {"name": "R1 Sao Paulo E-Prix", "startDate": "2027-01-01",
+                      "location": {"address": {"addressCountry": "BR"}}}},
+            {"item": {"name": "R1 Mexico City E-Prix", "startDate": "2027-01-15",
+                      "location": {"address": {"addressCountry": "MX"}}}},
+        ]}
+        with self.assertRaisesRegex(ValueError, "Rodada duplicada"):
+            fe.extrair_rodadas(dados)
+
+    def test_rejeita_pais_ausente(self):
+        dados = {"itemListElement": [
+            {"item": {"name": "R1 Sao Paulo E-Prix", "startDate": "2027-01-01"}}
+        ]}
+        with self.assertRaisesRegex(ValueError, "País ausente"):
+            fe.extrair_rodadas(dados)
+
+    def test_rejeita_data_invalida(self):
+        dados = {"itemListElement": [
+            {"item": {"name": "R1 Sao Paulo E-Prix", "startDate": "data-invalida",
+                      "location": {"address": {"addressCountry": "BR"}}}}
+        ]}
+        with self.assertRaisesRegex(ValueError, "Data inválida"):
+            fe.extrair_rodadas(dados)
+
+    def test_traduz_berlin_para_berlim(self):
+        dados = {"itemListElement": [
+            {"item": {"name": "R1 Berlin E-Prix", "startDate": "2027-01-01",
+                      "location": {"address": {"addressCountry": "DE"}}}}
+        ]}
+        self.assertEqual(fe.extrair_rodadas(dados)[0]["cidade"], "Berlim")
+
 
 if __name__ == "__main__":
     unittest.main()
