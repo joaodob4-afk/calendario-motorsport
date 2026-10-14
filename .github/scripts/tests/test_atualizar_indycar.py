@@ -143,7 +143,9 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                 "etapa": 2, "nome": "Grande Prêmio de teste", "circuito": "Pista teste",
                 "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}],
             }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+            with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
+                indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+            # A validação falha antes de o atualizador gravar o JSON novo.
             self.assertEqual(novas[0]["etapa"], 2)
             self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
 
