@@ -225,6 +225,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun mostrarMenu() {
         setContentView(R.layout.activity_main)
+        aplicarInsetsDasBarras()
         animarEntrada()
 
         listaEtapas = findViewById(R.id.listaEtapas)
@@ -757,6 +758,7 @@ class MainActivity : AppCompatActivity() {
         categoriaAtual = categoria
 
         setContentView(R.layout.activity_category)
+        aplicarInsetsDasBarras()
         animarEntrada()
 
         val titulo = findViewById<TextView>(R.id.categoryTitle)

@@ -185,6 +185,7 @@ class IndyCarCalendarActivity : AppCompatActivity() {
         setContentView(
             scroll
         )
+        aplicarInsetsDasBarras()
     }
 
     // Ex.: eventos de 2026 a 2027 -> "2026/27".

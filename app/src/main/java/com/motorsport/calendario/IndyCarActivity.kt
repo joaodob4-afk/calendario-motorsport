@@ -164,6 +164,7 @@ IndyCarCalendarJson.atualizar(this) {
         )
 
         setContentView(raiz)
+        aplicarInsetsDasBarras()
     }
 
     private fun lerData(texto: String): LocalDate? {
