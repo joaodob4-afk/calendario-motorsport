@@ -417,11 +417,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Fundo em degradê, borda sutil e marcador lateral na cor da categoria. */
+    /** Fundo em degradê, borda sutil e marcador lateral (fora do card) na cor da categoria. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
         val densidade = resources.displayMetrics.density
 
-        item.background = android.graphics.drawable.GradientDrawable(
+        item.findViewById<android.view.View>(R.id.itemCartao).background = android.graphics.drawable.GradientDrawable(
             android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
             intArrayOf(
                 android.graphics.Color.parseColor("#0D1B0E"),
@@ -443,7 +443,9 @@ class MainActivity : AppCompatActivity() {
         item.findViewById<android.view.View>(R.id.itemAcento).background =
             android.graphics.drawable.GradientDrawable().apply {
                 setColor(cor)
-                cornerRadius = 2f * densidade
+                // arredondado só por fora; o lado que encosta no card fica reto
+                val raio = 3f * densidade
+                cornerRadii = floatArrayOf(raio, raio, 0f, 0f, 0f, 0f, raio, raio)
             }
     }
 
@@ -588,10 +590,10 @@ class MainActivity : AppCompatActivity() {
 
             val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
-            val escalaFonte = resources.configuration.fontScale.coerceIn(1f, 1.25f)
+            // Só a coluna da data acompanha a fonte do sistema (até 10%); o resto se ajusta sozinho
+            val escalaFonte = resources.configuration.fontScale.coerceIn(1f, 1.1f)
             if (escalaFonte > 1f) {
-                ajustarLargura(item.findViewById(R.id.colunaData), 70f, escalaFonte)
-                ajustarLargura(item.findViewById(R.id.colunaStatus), 88f, escalaFonte)
+                ajustarLargura(item.findViewById(R.id.colunaData), 66f, escalaFonte)
             }
 
             val status = statusEtapa(etapa, etapasOrdenadas)
