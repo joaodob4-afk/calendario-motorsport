@@ -229,25 +229,7 @@ class MainActivity : AppCompatActivity() {
 
         listaEtapas = findViewById(R.id.listaEtapas)
 
-        findViewById<android.view.View>(R.id.btnF1).setOnClickListener {
-            abrirCategoria("F1")
-        }
-
-        findViewById<android.view.View>(R.id.btnF2).setOnClickListener {
-            abrirCategoria("F2")
-        }
-
-        findViewById<android.view.View>(R.id.btnF3).setOnClickListener {
-            abrirCategoria("F3")
-        }
-
-        findViewById<android.view.View>(R.id.btnIndyCar).setOnClickListener {
-            abrirCategoria("IndyCar")
-        }
-
-        findViewById<android.view.View>(R.id.btnFormulaE).setOnClickListener {
-            abrirCategoria("Formula E")
-        }
+        criarBotoesCategorias()
 
         configurarBusca()
         atualizarProximaEtapa()
@@ -308,8 +290,9 @@ class MainActivity : AppCompatActivity() {
             dias == 0L -> "COMEÇA HOJE"
             dias == 1L -> "AMANHÃ"
             dias > 1L -> "FALTAM $dias DIAS"
-            else -> "ETAPA EM ANDAMENTO"
+            else -> "EM ANDAMENTO"
         }
+        estilizarSelo(contador, getColor(R.color.verde_neon))
 
         findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
             when (proxima.categoria) {
@@ -320,6 +303,202 @@ class MainActivity : AppCompatActivity() {
                 "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
             }
         }
+    }
+
+    /** Selo com borda e fundo suave na cor informada (categoria e contagem regressiva). */
+    private fun estilizarSelo(view: TextView, cor: Int, raioDp: Float = 10f) {
+        val densidade = resources.displayMetrics.density
+        view.setTextColor(cor)
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(
+                android.graphics.Color.argb(
+                    45,
+                    android.graphics.Color.red(cor),
+                    android.graphics.Color.green(cor),
+                    android.graphics.Color.blue(cor)
+                )
+            )
+            cornerRadius = raioDp * densidade
+            setStroke((1 * densidade).toInt().coerceAtLeast(1), cor)
+        }
+    }
+
+    /** Separa "30 OUT–01 NOV" em ("30–01", "OUT–NOV") e "06–08 NOV" em ("06–08", "NOV"). */
+    private fun partirData(data: String): Pair<String, String> {
+        val limpa = data.trim().uppercase()
+
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return "${g[1]}–${g[3]}" to "${g[2]}–${g[4]}"
+            }
+
+        Regex("^(\\d{1,2})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return "${g[1]}–${g[2]}" to g[3]
+            }
+
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})$")
+            .matchEntire(limpa)?.let {
+                val g = it.groupValues
+                return g[1] to g[2]
+            }
+
+        return limpa to ""
+    }
+
+    private data class CategoriaInfo(
+        val nome: String,
+        val cor: String,
+        /** Texto curto para o selo dos cards (opcional), útil para nomes muito longos. */
+        val abreviacao: String? = null
+    )
+
+    /**
+     * Lista central de categorias. Para adicionar uma nova, basta incluir uma linha aqui:
+     * o botão do topo, o selo dos cards e a cor passam a existir automaticamente.
+     * O nome pode ser longo: os botões rolam na horizontal e o selo reduz a fonte para caber.
+     */
+    private val categoriasApp = listOf(
+        CategoriaInfo("F1", "#FF3B30"),
+        CategoriaInfo("F2", "#3D9BFF"),
+        CategoriaInfo("F3", "#FF8A2B"),
+        CategoriaInfo("IndyCar", "#A58BFF"),
+        CategoriaInfo("Formula E", "#22D3EE")
+    )
+
+    /** Minúsculas e sem acentos: "Fórmula E" e "formula e" são tratados como iguais. */
+    private fun normalizar(texto: String): String =
+        java.text.Normalizer.normalize(texto.trim(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "")
+            .lowercase()
+
+    private fun infoDaCategoria(categoria: String): CategoriaInfo? =
+        categoriasApp.firstOrNull { normalizar(it.nome) == normalizar(categoria) }
+
+    /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
+    private fun corDaCategoria(categoria: String): Int =
+        infoDaCategoria(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
+            ?: getColor(R.color.verde_neon)
+
+    /** Texto do selo nos cards: abreviação, quando existir, ou o nome completo. */
+    private fun rotuloDoSelo(categoria: String): String =
+        (infoDaCategoria(categoria)?.abreviacao ?: categoria).uppercase()
+
+    private fun criarBotoesCategorias() {
+        val container = findViewById<LinearLayout>(R.id.containerCategorias)
+        val densidade = resources.displayMetrics.density
+        container.removeAllViews()
+
+        for (categoria in categoriasApp) {
+            val botao = TextView(this).apply {
+                text = categoria.nome
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
+                typeface = android.graphics.Typeface.create(
+                    "sans-serif-condensed",
+                    android.graphics.Typeface.BOLD
+                )
+                gravity = android.view.Gravity.CENTER
+                maxLines = 1
+                minWidth = (62 * densidade).toInt()
+                setPadding((16 * densidade).toInt(), 0, (16 * densidade).toInt(), 0)
+                isClickable = true
+                isFocusable = true
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    (40 * densidade).toInt()
+                ).apply { marginEnd = (8 * densidade).toInt() }
+            }
+
+            estilizarSelo(botao, corDaCategoria(categoria.nome), 14f)
+            botao.setOnClickListener { abrirCategoria(categoria.nome) }
+            container.addView(botao)
+        }
+    }
+
+    /** Fundo em degradê, borda sutil e marcador lateral (fora do card) na cor da categoria. */
+    private fun estilizarCard(item: android.view.View, cor: Int) {
+        val densidade = resources.displayMetrics.density
+
+        item.findViewById<android.view.View>(R.id.itemCartao).background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(
+                android.graphics.Color.parseColor("#0D1B0E"),
+                android.graphics.Color.parseColor("#050A06")
+            )
+        ).apply {
+            cornerRadius = 16f * densidade
+            setStroke(
+                (1 * densidade).toInt().coerceAtLeast(1),
+                android.graphics.Color.argb(
+                    72,
+                    android.graphics.Color.red(cor),
+                    android.graphics.Color.green(cor),
+                    android.graphics.Color.blue(cor)
+                )
+            )
+        }
+
+        item.findViewById<android.view.View>(R.id.itemAcento).background =
+            android.graphics.drawable.GradientDrawable().apply {
+                setColor(cor)
+                // arredondado só por fora; o lado que encosta no card fica reto
+                val raio = 3f * densidade
+                cornerRadii = floatArrayOf(raio, raio, 0f, 0f, 0f, 0f, raio, raio)
+            }
+    }
+
+    /** Cabeçalho de mês: nome espaçado e uma linha fina até o fim. */
+    private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
+        val nomes = listOf(
+            "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+            "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+        )
+        val densidade = resources.displayMetrics.density
+        val anoAtual = java.time.LocalDate.now().year
+
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(
+                (8 * densidade).toInt(),
+                ((if (primeiro) 2 else 14) * densidade).toInt(),
+                (4 * densidade).toInt(),
+                (8 * densidade).toInt()
+            )
+        }
+
+        val titulo = TextView(this).apply {
+            text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
+            setTextColor(android.graphics.Color.parseColor("#7F8B97"))
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+            typeface = android.graphics.Typeface.create(
+                "sans-serif-condensed",
+                android.graphics.Typeface.BOLD
+            )
+            letterSpacing = 0.18f
+        }
+
+        val traco = android.view.View(this).apply {
+            setBackgroundColor(android.graphics.Color.parseColor("#142414"))
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                (1 * densidade).toInt().coerceAtLeast(1),
+                1f
+            ).apply { marginStart = (10 * densidade).toInt() }
+        }
+
+        linha.addView(titulo)
+        linha.addView(traco)
+        return linha
+    }
+
+    /** Mantém as colunas fixas (alinhadas), mas proporcionais à fonte do sistema. */
+    private fun ajustarLargura(view: android.view.View, baseDp: Float, escala: Float) {
+        val parametros = view.layoutParams
+        parametros.width = (baseDp * escala * resources.displayMetrics.density).toInt()
+        view.layoutParams = parametros
     }
 
     private fun configurarBusca() {
@@ -333,7 +512,7 @@ class MainActivity : AppCompatActivity() {
                     handlerPesquisa.removeCallbacks(it)
                 }
 
-                val texto = s?.toString()?.trim()?.lowercase() ?: ""
+                val texto = normalizar(s?.toString() ?: "")
 
                 pesquisaRunnable = Runnable {
                     if (texto.isEmpty()) {
@@ -342,10 +521,10 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     val filtradas = todasEtapas.filter {
-                        it.categoria.lowercase().contains(texto) ||
-                            it.pais.lowercase().contains(texto) ||
-                            it.circuito.lowercase().contains(texto) ||
-                            it.data.lowercase().contains(texto)
+                        normalizar(it.categoria).contains(texto) ||
+                            normalizar(it.pais).contains(texto) ||
+                            normalizar(it.circuito).contains(texto) ||
+                            normalizar(it.data).contains(texto)
                     }
 
                     mostrarEtapas(filtradas)
@@ -397,12 +576,32 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        var mesAnterior = -1
+
         for (etapa in etapasOrdenadas) {
+            val inicioItem = parseDataSegura(etapa.dataInicio)
+            if (inicioItem != null) {
+                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+                if (chaveMes != mesAnterior) {
+                    listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
+                    mesAnterior = chaveMes
+                }
+            }
+
             val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
+
+            // Só a coluna da data acompanha a fonte do sistema (até 10%); o resto se ajusta sozinho
+            val escalaFonte = resources.configuration.fontScale.coerceIn(1f, 1.1f)
+            if (escalaFonte > 1f) {
+                ajustarLargura(item.findViewById(R.id.colunaData), 66f, escalaFonte)
+            }
 
             val status = statusEtapa(etapa, etapasOrdenadas)
 
-            item.findViewById<TextView>(R.id.itemCategoria).text = etapa.categoria
+            val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
+            chipCategoria.text = rotuloDoSelo(etapa.categoria)
+            estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
+            estilizarCard(item, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
             val idBandeira = recursoBandeira(etapa.pais)
@@ -410,13 +609,28 @@ class MainActivity : AppCompatActivity() {
             if (idBandeira != 0) {
                 imagemBandeira.setImageResource(idBandeira)
                 imagemBandeira.visibility = android.view.View.VISIBLE
+
+                val raioBandeira = 5f * resources.displayMetrics.density
+                imagemBandeira.outlineProvider = object : android.view.ViewOutlineProvider() {
+                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, raioBandeira)
+                    }
+                }
+                imagemBandeira.clipToOutline = true
             } else {
-                imagemBandeira.visibility = android.view.View.GONE
+                // INVISIBLE mantém o espaço da bandeira e o texto continua alinhado
+                imagemBandeira.visibility = android.view.View.INVISIBLE
             }
 
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
-            item.findViewById<TextView>(R.id.itemData).text = etapa.data
+
+            val (dias, mes) = partirData(etapa.data)
+            item.findViewById<TextView>(R.id.itemDia).text = dias
+            val itemMes = item.findViewById<TextView>(R.id.itemMes)
+            itemMes.text = mes
+            itemMes.visibility =
+                if (mes.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = status
