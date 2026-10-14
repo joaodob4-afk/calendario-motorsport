@@ -56,7 +56,7 @@
             android:layout_height="3dp"
             android:layout_marginTop="12dp"
             android:layout_marginBottom="24dp"
-            android:background="#39FF14" />
+            android:background="@color/verde_neon" />
 
         <!-- Cartão informativo seguindo o padrão dos cartões dos detalhes -->
         <LinearLayout
@@ -118,7 +118,7 @@
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:text="VER PROGRAMAÇÃO COMPLETA"
-            android:textColor="#39FF14"
+            android:textColor="@color/verde_neon"
             android:textSize="15sp"
             android:fontFamily="sans-serif"
             android:textStyle="bold"
