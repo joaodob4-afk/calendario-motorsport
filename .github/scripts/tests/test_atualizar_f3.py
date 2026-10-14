@@ -56,9 +56,23 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(temporada, 2027)
         self.assertEqual(slugs, ["istanbul", "jeddah"])
 
+    def test_descobre_2027_pela_rota_estavel_se_url_do_ano_falhar(self):
+        from unittest.mock import patch
+        html_2027 = '<a href="/en/racing/2027/jeddah">Jeddah</a><a href="/en/racing/2027/istanbul">Istanbul</a>'
+        with patch.object(
+            f3, "baixar",
+            side_effect=[RuntimeError("HTTP 500"), html_2027],
+        ):
+            temporada, slugs = f3.descobrir_calendario()
+        self.assertEqual(temporada, 2027)
+        self.assertEqual(slugs, ["istanbul", "jeddah"])
+
     def test_mantem_2026_se_pagina_de_etapas_2027_nao_estiver_publicada(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
-        with patch.object(f3, "baixar", side_effect=["página sem etapas", html_2026]):
+        with patch.object(
+            f3, "baixar",
+            side_effect=["página sem etapas", "página sem etapas", html_2026],
+        ):
             temporada, slugs = f3.descobrir_calendario()
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne"])
