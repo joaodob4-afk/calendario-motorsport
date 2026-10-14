@@ -49,6 +49,7 @@ CIDADES = {
     "London": "Brands Hatch",
     "Shanghai": "Xangai",
     "Tokyo": "Tóquio",
+    "Berlin": "Berlim",
 }
 
 
@@ -93,23 +94,40 @@ def lista_do_calendario(html):
     raise ValueError("ItemList do calendário não encontrado")
 def extrair_rodadas(dados):
     rodadas = []
+    numeros_vistos = set()
     for el in dados["itemListElement"]:
-        item = el["item"]
-        nome = item["name"]
-        m = re.match(r"R(\d+)\s+(.+?)\s+E-Prix", nome)
+        item = el.get("item") if isinstance(el, dict) else None
+        if not isinstance(item, dict):
+            raise ValueError("Item de rodada ausente ou inválido")
+
+        nome = item.get("name")
+        m = re.match(r"R(\d+)\s+(.+?)\s+E-Prix", nome or "")
         if not m:
             raise ValueError(f"Nome de rodada inesperado: {nome!r}")
+
+        numero = int(m.group(1))
+        if numero in numeros_vistos:
+            raise ValueError(f"Rodada duplicada na fonte oficial: R{numero}")
+        numeros_vistos.add(numero)
 
         endereco = (item.get("location") or {}).get("address") or {}
         cidade = m.group(2).strip()
         pais_codigo = endereco.get("addressCountry", "")
+        pais = PAISES.get(pais_codigo, pais_codigo)
+        if not pais:
+            raise ValueError(f"País ausente na rodada R{numero}: {nome!r}")
+
+        try:
+            data_evento = date.fromisoformat(item["startDate"])
+        except (KeyError, TypeError, ValueError) as erro:
+            raise ValueError(f"Data inválida na rodada R{numero}: {item.get('startDate')!r}") from erro
 
         rodadas.append(
             {
-                "rodada": int(m.group(1)),
+                "rodada": numero,
                 "cidade": CIDADES.get(cidade, cidade),
-                "pais": PAISES.get(pais_codigo, pais_codigo),
-                "data": date.fromisoformat(item["startDate"]),
+                "pais": pais,
+                "data": data_evento,
             }
         )
 
