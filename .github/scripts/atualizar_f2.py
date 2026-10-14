@@ -402,28 +402,6 @@ def main():
 
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
-    if SAIDA.exists():
-        try:
-            anterior = json.loads(SAIDA.read_text(encoding="utf-8"))
-            if (
-                not isinstance(anterior, dict)
-                or not isinstance(anterior.get("etapas"), list)
-                or not anterior["etapas"]
-                or any(
-                    not isinstance(etapa, dict)
-                    or not isinstance(etapa.get("sessoes"), list)
-                    or not etapa.get("etapa")
-                    for etapa in anterior["etapas"]
-                )
-            ):
-                raise ValueError("estrutura do calendário anterior inválida")
-
-            # A quantidade pode diminuir por alteração oficial; o limite mínimo
-            # validado antes continua rejeitando respostas obviamente incompletas.
-        except (OSError, ValueError, AttributeError) as e:
-            print(f"ERRO: não foi possível validar o calendário anterior ({e}). Nada foi alterado.")
-            return 1
-
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
         print("Sem mudanças no calendário.")
         return 0
