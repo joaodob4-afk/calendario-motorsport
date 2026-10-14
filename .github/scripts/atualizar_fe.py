@@ -64,7 +64,7 @@ def baixar(url):
 def lista_do_calendario(html):
     """Localiza ItemList em JSON-LD raiz, lista ou dentro de @graph."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
 
     def procurar(dados):
