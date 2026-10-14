@@ -77,5 +77,41 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             )
 
 
+    def test_extrai_sessoes_de_jsonld_em_lista(self):
+        html = '''<script type="application/ld+json">[
+          {"@type":"WebPage","name":"Página"},
+          {"@type":"Event","subEvent":[
+            {"name":"Practice","startDate":"2026-06-04T11:25:00Z"},
+            {"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}
+          ]}
+        ]</script>'''
+        self.assertEqual(
+            f3.sub_eventos(html),
+            [
+                {"name": "Practice", "startDate": "2026-06-04T11:25:00Z"},
+                {"name": "Feature Race", "startDate": "2026-06-07T05:45:00Z"},
+            ],
+        )
+
+    def test_extrai_sessoes_de_jsonld_em_graph(self):
+        html = '''<script type="application/ld+json">{"@graph":[
+          {"@type":"WebSite","name":"F3"},
+          {"@type":"Event","subEvent":[
+            {"name":"Practice","startDate":"2026-06-04T11:25:00Z"}
+          ]}
+        ]}</script>'''
+        self.assertEqual(
+            f3.sub_eventos(html),
+            [{"name": "Practice", "startDate": "2026-06-04T11:25:00Z"}],
+        )
+
+    def test_ignora_jsonld_invalido_e_continua_procurando(self):
+        html = '''<script type="application/ld+json">{inválido}</script>
+        <script type="application/ld+json">{"subEvent":[
+          {"name":"Practice","startDate":"2026-06-04T11:25:00Z"}
+        ]}</script>'''
+        self.assertEqual(len(f3.sub_eventos(html)), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
