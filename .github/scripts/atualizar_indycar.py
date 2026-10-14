@@ -387,6 +387,12 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
                 raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
             nome_sessao = str(sessao_atual.get("nome", "")).strip()
             sessao_nova = sessoes_novas.get(nome_sessao.casefold())
+            # Pre-Race é um rótulo informativo que o atualizador descarta
+            # intencionalmente: não representa uma sessão cronometrada.
+            # Sua ausência no JSON novo não indica falha de extração.
+            if sessao_nova is None and nome_sessao.casefold() == "pre-race":
+                continue
+
             # Uma sessão anterior ausente pode indicar extração incompleta.
             # Não publica um calendário que a apagaria silenciosamente.
             if sessao_nova is None:
