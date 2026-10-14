@@ -68,7 +68,9 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
     def test_mantem_2026_se_calendario_2027_ainda_nao_tiver_etapas(self):
         from unittest.mock import patch
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
-        with patch.object(f2, "baixar", side_effect=["página sem etapas", html_2026]):
+        with patch.object(f2, "ordem_temporadas", return_value=(2027, 2026)), patch.object(
+            f2, "baixar", side_effect=["página sem etapas", html_2026]
+        ):
             temporada, slugs = f2.descobrir_calendario()
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne"])
