@@ -42,13 +42,18 @@ CIRCUITOS = {
 }
 
 
-def baixar(url):
+def baixar_com_url(url):
+    """Baixa a página e devolve também a URL final após redirecionamentos."""
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
     )
     with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
+        return r.read().decode("utf-8", errors="replace"), r.geturl()
+
+
+def baixar(url):
+    return baixar_com_url(url)[0]
 
 
 class LinksParser(HTMLParser):
@@ -81,18 +86,35 @@ def ordem_temporadas(hoje):
 
 
 def descobrir_calendario():
-    """Mantém a temporada em andamento e só avança após o encerramento oficial."""
+    """Descobre calendários por URL oficial estável e usa rotas por ano como fallback.
+
+    A rota /en/racing pode redirecionar para a temporada publicada no site.
+    Só aceitamos a página se o ano final corresponder à temporada procurada,
+    evitando trocar de temporada antes da hora.
+    """
     temporadas = ordem_temporadas(datetime.now(BRASILIA).date())
 
     for temporada in temporadas:
-        try:
-            html = baixar(f"{BASE}/en/racing/{temporada}")
-        except Exception as erro:
-            print(f"Calendário F2 {temporada} indisponível: {erro}")
-            continue
-        slugs = listar_slugs(html, temporada)
-        if slugs:
-            return temporada, slugs
+        urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
+        visitadas = set()
+        for url in urls:
+            if url in visitadas:
+                continue
+            visitadas.add(url)
+            try:
+                html, url_final = baixar_com_url(url)
+            except Exception as erro:
+                print(f"Calendário F2 {temporada} indisponível em {url}: {erro}")
+                continue
+
+            # O endereço final após redirect é a autoridade para identificar o ano.
+            ano_url = re.search(r"/en/racing/(\\d{4})(?:/|$)", url_final)
+            if not ano_url or int(ano_url.group(1)) != temporada:
+                continue
+
+            slugs = listar_slugs(html, temporada)
+            if slugs:
+                return temporada, slugs
         print(f"Calendário F2 {temporada} ainda não publicado como página de etapas.")
     return None, []
 
