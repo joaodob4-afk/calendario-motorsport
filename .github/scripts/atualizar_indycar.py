@@ -125,8 +125,6 @@ def converter_hora(ano, mes, dia, h, m, ampm):
 
 def traduzir(nome):
     n = nome.strip()
-    if n.casefold().startswith("pre-race"):
-        return None
     m = re.fullmatch(r"Practice (\d+)", n)
     if m:
         return f"Treino Livre {m.group(1)}"
@@ -252,6 +250,9 @@ def filtrar_corrida_da_etapa(cartao, sessoes):
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
     sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
+    # Remoção solicitada apenas para a 110th Indianapolis 500.
+    if str(cartao.get("titulo", "")).strip().casefold() == "110th running of the indianapolis 500":
+        sessoes = [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
 
     if sessoes:
         dias = [datetime(ano, d[0], d[1]) for _, _, d in sessoes]
