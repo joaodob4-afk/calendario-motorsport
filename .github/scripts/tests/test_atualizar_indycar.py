@@ -289,9 +289,15 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
                 indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
 
-    def test_parser_ignora_rotulos_pre_race_e_pre_race_show(self):
-        self.assertIsNone(indycar.traduzir("Pre-Race"))
-        self.assertIsNone(indycar.traduzir("Pre-Race Show"))
+    def test_parser_preserva_pre_race_show_fora_da_indianapolis_500(self):
+        self.assertEqual(indycar.traduzir("Pre-Race Show"), "Pre-Race Show")
+        self.assertEqual(indycar.traduzir("Pre-Race"), "Pre-Race")
+
+    def test_remove_pre_race_apenas_da_110th_indianapolis_500(self):
+        sessoes = [("Pre-Race", None, (5, 24)), ("Pre-Race Show", None, (8, 23)), ("Corrida", None, (5, 24))]
+        cartao = {"titulo": "110th Running of the Indianapolis 500"}
+        filtradas = [s for s in sessoes if not (cartao["titulo"].casefold() == "110th running of the indianapolis 500" and s[0].casefold() == "pre-race")]
+        self.assertEqual([s[0] for s in filtradas], ["Pre-Race Show", "Corrida"])
 
 
 if __name__ == "__main__":
