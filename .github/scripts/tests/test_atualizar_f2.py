@@ -52,7 +52,9 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
             '<a href="/en/racing/2027/istanbul">Istanbul</a>'
         )
         with patch.object(f2, "ordem_temporadas", return_value=(2027, 2026)), patch.object(
-            f2, "baixar", return_value=html_2027
+            f2,
+            "baixar_com_url",
+            return_value=(html_2027, "https://www.fiaformula2.com/en/racing/2027"),
         ):
             temporada, slugs = f2.descobrir_calendario()
         self.assertEqual(temporada, 2027)
@@ -85,7 +87,13 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         from unittest.mock import patch
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
         with patch.object(f2, "ordem_temporadas", return_value=(2027, 2026)), patch.object(
-            f2, "baixar", side_effect=["página sem etapas", html_2026]
+            f2,
+            "baixar_com_url",
+            side_effect=[
+                ("página sem etapas", "https://www.fiaformula2.com/en/racing/2027"),
+                (html_2026, "https://www.fiaformula2.com/en/racing/2026"),
+                (html_2026, "https://www.fiaformula2.com/en/racing/2026"),
+            ],
         ):
             temporada, slugs = f2.descobrir_calendario()
         self.assertEqual(temporada, 2026)
