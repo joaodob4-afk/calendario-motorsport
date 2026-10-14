@@ -143,6 +143,8 @@ def traduzir(nome):
         return "Treino Livre"
     if n == "Final Practice":
         return "Treino Final"
+    if n == "High Line & Final Practice":
+        return "Treino Final (High Line)"
     if n == "Warmup":
         return "Warm-up"
     if n == "Carb Day Final Practice":
@@ -150,6 +152,16 @@ def traduzir(nome):
     if n == "Pit Stop Competition":
         return "Competição de Pit Stop"
     return n
+
+
+def nome_de_sessao_publicada(nome):
+    """Reconhece rótulos de sessão da página oficial mesmo sem o prefixo da série."""
+    return bool(re.fullmatch(
+        r"(?:Practice(?: \d+)?|Qualifications?|Qualifying.*|Race(?: \d+)?|"
+        r"Final Practice|High Line & Final Practice|Warmup|"
+        r"Carb Day Final Practice|Pit Stop Competition)",
+        nome.strip(),
+    ))
 
 
 def extrair_sessoes(html, ano):
@@ -179,10 +191,18 @@ def extrair_sessoes(html, ano):
             desc = linhas[i + 1]
             mp = re.match(r"^(?:NTT )?INDYCAR SERIES\s*[-–]\s*(.+)$", desc)
             if mp:
-                nome = traduzir(mp.group(1))
-                if nome:
-                    dt = converter_hora(ano, dia[0], dia[1], int(mh.group(1)), int(mh.group(2)), mh.group(3))
-                    sessoes.append((nome, dt, dia))
+                nome_bruto = mp.group(1)
+            elif nome_de_sessao_publicada(desc):
+                # Algumas páginas oficiais exibem os rótulos sem o prefixo da série.
+                nome_bruto = desc
+            else:
+                i += 1
+                continue
+
+            nome = traduzir(nome_bruto)
+            if nome:
+                dt = converter_hora(ano, dia[0], dia[1], int(mh.group(1)), int(mh.group(2)), mh.group(3))
+                sessoes.append((nome, dt, dia))
             i += 2
             continue
         i += 1
