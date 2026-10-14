@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cores principais do app: altere aqui e todas as telas acompanham -->
+    <color name="verde_neon">#39FF14</color>
+    <color name="verde_borda">#1C5413</color>
+    <color name="cinza_texto">#93A0AD</color>
+</resources>
