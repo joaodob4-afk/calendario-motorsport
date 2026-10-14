@@ -108,7 +108,7 @@ def descobrir_calendario():
                 continue
 
             # O endereço final após redirect é a autoridade para identificar o ano.
-            ano_url = re.search(r"/en/racing/(\\d{4})(?:/|$)", url_final)
+            ano_url = re.search(r"/en/racing/(\d{4})(?:/|$)", url_final)
             if not ano_url or int(ano_url.group(1)) != temporada:
                 continue
 
