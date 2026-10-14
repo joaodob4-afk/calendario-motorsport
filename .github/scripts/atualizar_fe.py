@@ -62,19 +62,35 @@ def baixar(url):
 
 
 def lista_do_calendario(html):
+    """Localiza ItemList em JSON-LD raiz, lista ou dentro de @graph."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
-    for b in blocos:
+
+    def procurar(dados):
+        if isinstance(dados, list):
+            for item in dados:
+                resultado = procurar(item)
+                if resultado is not None:
+                    return resultado
+        elif isinstance(dados, dict):
+            elementos = dados.get("itemListElement")
+            if isinstance(elementos, list) and elementos:
+                return dados
+            grafo = dados.get("@graph")
+            if isinstance(grafo, (dict, list)):
+                return procurar(grafo)
+        return None
+
+    for bloco in blocos:
         try:
-            dados = json.loads(b)
+            dados = json.loads(bloco)
         except ValueError:
             continue
-        if isinstance(dados, dict) and dados.get("itemListElement"):
-            return dados
+        resultado = procurar(dados)
+        if resultado is not None:
+            return resultado
     raise ValueError("ItemList do calendário não encontrado")
-
-
 def extrair_rodadas(dados):
     rodadas = []
     for el in dados["itemListElement"]:
