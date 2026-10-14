@@ -1,4 +1,4 @@
-"""Testes de regressão offline para a tradução de sessões da F2."""
+"""Testes offline de regressão para descoberta de calendário e sessões da F2."""
 import importlib.util
 import unittest
 from pathlib import Path
