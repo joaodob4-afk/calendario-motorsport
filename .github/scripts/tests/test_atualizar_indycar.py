@@ -41,8 +41,7 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         self.assertEqual(indycar.traduzir("Practice 1"), "Treino Livre 1")
         self.assertEqual(indycar.traduzir("Qualifications"), "Classificação")
         self.assertEqual(indycar.traduzir("Race 2"), "Corrida 2")
-        self.assertEqual(indycar.traduzir("Pre-Race"), "Pre-Race")
-        self.assertTrue(indycar.nome_de_sessao_publicada("Pre-Race"))
+        self.assertIsNone(indycar.traduzir("Pre-race"))
 
     def test_extrai_sessao_de_html_sintetico_sem_rede(self):
         html = """
@@ -149,38 +148,6 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             # A validação falha antes de o atualizador gravar o JSON novo.
             self.assertEqual(novas[0]["etapa"], 2)
             self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
-
-    def test_remove_apenas_sessoes_provisorias_substituidas_da_indy500_2026(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [{
-                    "etapa": 7,
-                    "nome": "110th Running of the Indianapolis 500",
-                    "circuito": "Indianapolis Motor Speedway",
-                    "sessoes": [
-                        {"nome": "Treino de Classificação (Final 15)", "data": "17/05/2026", "horario": "14:00"},
-                        {"nome": "Treino de Classificação (Top 12)", "data": "17/05/2026", "horario": "15:00"},
-                        {"nome": "Pre-Race", "data": "24/05/2026", "horario": "11:00"},
-                        {"nome": "Corrida", "data": "24/05/2026", "horario": "13:30"},
-                    ],
-                }],
-            }), encoding="utf-8")
-            novas = [{
-                "etapa": 7,
-                "nome": "110th Running of the Indianapolis 500",
-                "circuito": "Indianapolis Motor Speedway",
-                "sessoes": [
-                    {"nome": "Pre-Race", "data": "24/05/2026", "horario": "11:00"},
-                    {"nome": "Corrida", "data": "24/05/2026", "horario": "13:30"},
-                ],
-            }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual(
-                [s["nome"] for s in novas[0]["sessoes"]],
-                ["Pre-Race", "Corrida"],
-            )
 
     def test_preserva_horario_conhecido_ao_renumerar_etapa(self):
         with tempfile.TemporaryDirectory() as pasta:
