@@ -8,11 +8,6 @@ on:
   push:
     branches:
       - main
-      - integracao-cache-indycar
-      - fix/indycar-cache-f2-validation
-      - fix/f1-calendar-offline-cache
-      - fix/uae-flag-alias
-      - audit/validacao-calendarios-f2-f3
 
   workflow_dispatch:
 
