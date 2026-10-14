@@ -107,9 +107,12 @@ def descobrir_calendario():
                 print(f"Calendário F2 {temporada} indisponível em {url}: {erro}")
                 continue
 
-            # O endereço final após redirect é a autoridade para identificar o ano.
+            # Se a URL final expõe um ano, ele precisa coincidir com o alvo.
+            # Algumas versões do site podem trocar a rota por uma URL canônica
+            # sem ano; nesse caso, os links das etapas precisam carregar
+            # explicitamente o ano solicitado, sem depender do endereço final.
             ano_url = re.search(r"/en/racing/(\d{4})(?:/|$)", url_final)
-            if not ano_url or int(ano_url.group(1)) != temporada:
+            if ano_url and int(ano_url.group(1)) != temporada:
                 continue
 
             slugs = listar_slugs(html, temporada)

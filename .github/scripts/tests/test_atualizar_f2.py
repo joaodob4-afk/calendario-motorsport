@@ -114,5 +114,21 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
             )
 
 
+    def test_aceita_url_canonica_sem_ano_quando_links_identificam_temporada(self):
+        from unittest.mock import patch
+        html_2027 = (
+            '<a href="/en/racing/2027/sakhir">Sakhir</a>'
+            '<a href="/en/racing/2027/istanbul">Istanbul</a>'
+            '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+        )
+        with patch.object(f2, "ordem_temporadas", return_value=(2027,)), patch.object(
+            f2,
+            "baixar_com_url",
+            return_value=(html_2027, "https://www.fiaformula2.com/en/racing"),
+        ):
+            temporada, slugs = f2.descobrir_calendario()
+        self.assertEqual(temporada, 2027)
+        self.assertEqual(slugs, ["istanbul", "sakhir"])
+
 if __name__ == "__main__":
     unittest.main()
