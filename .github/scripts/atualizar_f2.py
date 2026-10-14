@@ -14,12 +14,15 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula2.com"
-URL = BASE + "/en/racing/2026"
+TEMPORADAS_PREFERIDAS = (2026, 2027)
+FIM_TEMPORADA_2026 = datetime(2026, 12, 7).date()
 SAIDA = Path("app/src/main/assets/f2_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 # slug do site -> (circuito, pais, fuso local do circuito)
 CIRCUITOS = {
+    "sakhir": ("Sakhir", "Bahrein", "Asia/Bahrain"),
+    "jeddah": ("Jeddah", "Arábia Saudita", "Asia/Riyadh"),
     "melbourne": ("Melbourne", "Austrália", "Australia/Melbourne"),
     "miami-gardens": ("Miami", "Estados Unidos", "America/New_York"),
     "montreal": ("Montreal", "Canadá", "America/Toronto"),
@@ -32,23 +35,31 @@ CIRCUITOS = {
     "monza": ("Monza", "Itália", "Europe/Rome"),
     "madrid": ("Madrid", "Espanha", "Europe/Madrid"),
     "baku": ("Baku City Circuit", "Azerbaijão", "Asia/Baku"),
+    "istanbul": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
+    "mexico-city": ("Cidade do México", "México", "America/Mexico_City"),
     "lusail": ("Lusail", "Catar", "Asia/Qatar"),
     "yas-marina": ("Yas Marina", "Emirados Árabes Unidos", "Asia/Dubai"),
 }
 
 
-def baixar(url):
+def baixar_com_url(url):
+    """Baixa a página e devolve também a URL final após redirecionamentos."""
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
     )
     with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
+        return r.read().decode("utf-8", errors="replace"), r.geturl()
+
+
+def baixar(url):
+    return baixar_com_url(url)[0]
 
 
 class LinksParser(HTMLParser):
-    def __init__(self):
+    def __init__(self, temporada):
         super().__init__()
+        self.temporada = temporada
         self.links = set()
 
     def handle_starttag(self, tag, attrs):
@@ -56,15 +67,56 @@ class LinksParser(HTMLParser):
             return
         for nome, valor in attrs:
             if nome.lower() == "href" and valor:
-                m = re.search(r"/en/racing/2026/([^/?#]+)", valor)
+                m = re.search(rf"/en/racing/{self.temporada}/([^/?#]+)", valor)
                 if m:
                     self.links.add(m.group(1))
 
 
-def listar_slugs(html):
-    p = LinksParser()
+def listar_slugs(html, temporada=2026):
+    p = LinksParser(temporada)
     p.feed(html)
     return sorted(p.links)
+
+
+def ordem_temporadas(hoje):
+    """Mantém 2026 até o fim da temporada e depois prioriza 2027."""
+    if hoje >= FIM_TEMPORADA_2026:
+        return (2027, 2026)
+    return TEMPORADAS_PREFERIDAS
+
+
+def descobrir_calendario():
+    """Descobre calendários por URL oficial estável e usa rotas por ano como fallback.
+
+    A rota /en/racing pode redirecionar para a temporada publicada no site.
+    Só aceitamos a página se o ano final corresponder à temporada procurada,
+    evitando trocar de temporada antes da hora.
+    """
+    temporadas = ordem_temporadas(datetime.now(BRASILIA).date())
+
+    for temporada in temporadas:
+        urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
+        visitadas = set()
+        for url in urls:
+            if url in visitadas:
+                continue
+            visitadas.add(url)
+            try:
+                html, url_final = baixar_com_url(url)
+            except Exception as erro:
+                print(f"Calendário F2 {temporada} indisponível em {url}: {erro}")
+                continue
+
+            # O endereço final após redirect é a autoridade para identificar o ano.
+            ano_url = re.search(r"/en/racing/(\d{4})(?:/|$)", url_final)
+            if not ano_url or int(ano_url.group(1)) != temporada:
+                continue
+
+            slugs = listar_slugs(html, temporada)
+            if slugs:
+                return temporada, slugs
+        print(f"Calendário F2 {temporada} ainda não publicado como página de etapas.")
+    return None, []
 
 
 def sub_eventos(html):
@@ -289,7 +341,8 @@ def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=202
 
 def main():
     print("Consultando páginas oficiais da F2...")
-    slugs = listar_slugs(baixar(URL))
+    temporada, slugs = descobrir_calendario()
+    print("Temporada selecionada:", temporada)
     print("Etapas encontradas:", len(slugs))
     if not slugs:
         print("ERRO: nenhuma etapa encontrada. Nada foi alterado.")
@@ -298,7 +351,7 @@ def main():
     etapas = []
     for slug in slugs:
         try:
-            etapas.append(montar_etapa(slug, baixar(f"{BASE}/en/racing/2026/{slug}")))
+            etapas.append(montar_etapa(slug, baixar(f"{BASE}/en/racing/{temporada}/{slug}")))
             print("OK  ", slug)
         except Exception as e:
             print("ERRO", slug, "->", e)
@@ -314,7 +367,7 @@ def main():
         for e in etapas
     ]
 
-    novo = {"temporada": 2026, "categoria": "F2", "etapas": etapas}
+    novo = {"temporada": temporada, "categoria": "F2", "etapas": etapas}
     try:
         novo["etapas"] = preservar_sessoes_conhecidas(
             novo["etapas"], temporada_nova=novo["temporada"]
