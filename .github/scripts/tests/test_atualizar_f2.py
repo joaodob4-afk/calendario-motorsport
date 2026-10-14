@@ -114,6 +114,30 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
             )
 
 
+    def test_extrai_subevent_de_lista_jsonld(self):
+        html = (
+            '<script type="application/ld+json">'
+            '[{"@type":"WebPage"},{"@type":"Event","subEvent":'
+            '[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"}]}]'
+            '</script>'
+        )
+        self.assertEqual(f2.sub_eventos(html), [
+            {"name": "Practice", "startDate": "2026-03-06T00:00:00Z"}
+        ])
+
+    def test_extrai_subevent_de_grafo_jsonld_aninhado(self):
+        html = (
+            '<script type="application/ld+json">'
+            '{"@context":"https://schema.org","@graph":['
+            '{"@type":"WebPage","name":"Calendário"},'
+            '{"@type":"Event","subEvent":['
+            '{"name":"Qualifying","startDate":"2026-03-06T03:55:00Z"}]}]}'
+            '</script>'
+        )
+        self.assertEqual(f2.sub_eventos(html), [
+            {"name": "Qualifying", "startDate": "2026-03-06T03:55:00Z"}
+        ])
+
     def test_aceita_url_canonica_sem_ano_quando_links_identificam_temporada(self):
         from unittest.mock import patch
         html_2027 = (
