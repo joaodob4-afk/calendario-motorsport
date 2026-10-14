@@ -63,6 +63,29 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             "01/05/2026 11:00",
         )
 
+    def test_extrai_programacao_oficial_sem_prefixo_da_serie(self):
+        html = """
+        <main>
+          <div>Download Weekend Schedule</div>
+          <div>Friday, Mar 6</div>
+          <div>10:00AM ET</div><div>Practice 1</div>
+          <div>2:00PM ET</div><div>Qualifications</div>
+          <div>4:30PM ET</div><div>High Line &amp; Final Practice</div>
+          <div>Saturday, Mar 7</div>
+          <div>3:00PM ET</div><div>Race</div>
+          <div>Find Local Radio Station</div>
+        </main>
+        """
+        sessoes = indycar.extrair_sessoes(html, 2026)
+        self.assertEqual(
+            [s[0] for s in sessoes],
+            ["Treino Livre 1", "Classificação", "Treino Final (High Line)", "Corrida"],
+        )
+        self.assertEqual(
+            [s[1].astimezone(indycar.BRASILIA).strftime("%d/%m/%Y %H:%M") for s in sessoes],
+            ["06/03/2026 12:00", "06/03/2026 16:00", "06/03/2026 18:30", "07/03/2026 17:00"],
+        )
+
     def test_html_sem_bloco_de_programacao_nao_inventa_sessoes(self):
         self.assertEqual(indycar.extrair_sessoes("<html>Sem programação</html>", 2026), [])
 
