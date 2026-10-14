@@ -718,7 +718,7 @@ class MainActivity : AppCompatActivity() {
             "Catar" -> "flag_qa"
             "China" -> "flag_cn"
             "Alemanha" -> "flag_de"
-            "Abu Dhabi" -> "flag_ae"
+            "Abu Dhabi", "Emirados Árabes Unidos" -> "flag_ae"
             else -> return 0
         }
 
@@ -748,7 +748,7 @@ class MainActivity : AppCompatActivity() {
             "Catar" -> "🇶🇦"
             "China" -> "🇨🇳"
             "Alemanha" -> "🇩🇪"
-            "Abu Dhabi" -> "🇦🇪"
+            "Abu Dhabi", "Emirados Árabes Unidos" -> "🇦🇪"
             else -> "🌐"
         }
     }
