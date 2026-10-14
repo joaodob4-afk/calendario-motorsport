@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula3.com"
-TEMPORADAS_PREFERIDAS = (2027, 2026)
+TEMPORADAS_PREFERIDAS = (2026,)
 SAIDA = Path("app/src/main/assets/f3_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -73,12 +73,7 @@ def listar_slugs(html, temporada=2026):
 
 
 def descobrir_calendario():
-    """Descobre o calendário da próxima temporada com fallback para a rota estável.
-
-    A página específica do ano pode falhar temporariamente (por exemplo, HTTP 500),
-    mesmo quando a rota /en/racing já publica links da temporada. Só aceita slugs
-    que tragam explicitamente o ano procurado e mantém a temporada atual como fallback.
-    """
+    """Descobre somente a temporada atual, usando a rota oficial estável como alternativa."""
     for temporada in TEMPORADAS_PREFERIDAS:
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
         for url in urls:
