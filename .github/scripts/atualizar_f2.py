@@ -123,16 +123,36 @@ def descobrir_calendario():
 
 
 def sub_eventos(html):
+    """Extrai subEvent de JSON-LD em objeto, lista ou grafo @graph."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
-    for b in blocos:
+
+    def procurar(dados):
+        if isinstance(dados, dict):
+            eventos = dados.get("subEvent")
+            if isinstance(eventos, list) and eventos:
+                return eventos
+            # JSON-LD pode envolver a entidade em @graph ou em objetos aninhados.
+            for valor in dados.values():
+                encontrados = procurar(valor)
+                if encontrados:
+                    return encontrados
+        elif isinstance(dados, list):
+            for item in dados:
+                encontrados = procurar(item)
+                if encontrados:
+                    return encontrados
+        return []
+
+    for bloco in blocos:
         try:
-            dados = json.loads(b)
+            dados = json.loads(bloco)
         except ValueError:
             continue
-        if isinstance(dados, dict) and dados.get("subEvent"):
-            return dados["subEvent"]
+        eventos = procurar(dados)
+        if eventos:
+            return eventos
     return []
 
 
