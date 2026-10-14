@@ -51,11 +51,20 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
             '<a href="/en/racing/2027/sakhir">Sakhir</a>'
             '<a href="/en/racing/2027/istanbul">Istanbul</a>'
         )
-        with patch.object(f2, "baixar", return_value=html_2027):
+        with patch.object(f2, "ordem_temporadas", return_value=(2027, 2026)), patch.object(
+            f2, "baixar", return_value=html_2027
+        ):
             temporada, slugs = f2.descobrir_calendario()
         self.assertEqual(temporada, 2027)
         self.assertEqual(slugs, ["istanbul", "sakhir"])
 
+    def test_prioriza_2026_ate_o_fim_da_temporada(self):
+        from datetime import date
+        self.assertEqual(f2.ordem_temporadas(date(2026, 10, 14)), (2026, 2027))
+
+    def test_prioriza_2027_depois_do_fim_da_temporada(self):
+        from datetime import date
+        self.assertEqual(f2.ordem_temporadas(date(2026, 12, 7)), (2027, 2026))
     def test_mantem_2026_se_calendario_2027_ainda_nao_tiver_etapas(self):
         from unittest.mock import patch
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
