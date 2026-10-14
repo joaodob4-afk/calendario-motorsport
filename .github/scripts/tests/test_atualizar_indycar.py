@@ -241,5 +241,31 @@ class AtualizadorIndyCarTest(unittest.TestCase):
 
 
 
+    def test_extrai_programacao_do_layout_atual_toggle_schedule(self):
+        html = """
+        <main>
+          <h2>Schedule</h2>
+          <button>Toggle Schedule</button>
+          <div>Friday, Mar 6</div>
+          <div>10:00AM ET</div><div>Practice 1</div>
+          <div>2:00PM ET</div><div>Qualifications</div>
+          <div>4:30PM ET</div><div>High Line &amp; Final Practice</div>
+          <div>Saturday, Mar 7</div>
+          <div>3:00PM ET</div><div>Race</div>
+          <button>Toggle Event Details</button>
+          <div>Event Details</div>
+        </main>
+        """
+        sessoes = indycar.extrair_sessoes(html, 2026)
+        self.assertEqual(
+            [s[0] for s in sessoes],
+            ["Treino Livre 1", "Classificação", "Treino Final (High Line)", "Corrida"],
+        )
+        self.assertEqual(
+            [s[1].astimezone(indycar.BRASILIA).strftime("%d/%m/%Y %H:%M") for s in sessoes],
+            ["06/03/2026 12:00", "06/03/2026 16:00", "06/03/2026 18:30", "07/03/2026 17:00"],
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

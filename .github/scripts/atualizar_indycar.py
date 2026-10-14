@@ -167,11 +167,16 @@ def nome_de_sessao_publicada(nome):
 def extrair_sessoes(html, ano):
     linhas = linhas_de_texto(html)
 
-    ini = next((i for i, l in enumerate(linhas) if l == "Download Weekend Schedule"), None)
+    # O site oficial passou a usar "Toggle Schedule" nas páginas atuais;
+    # versões antigas usavam "Download Weekend Schedule". Aceitamos ambos.
+    ini = next((
+        i for i, l in enumerate(linhas)
+        if l in ("Download Weekend Schedule", "Toggle Schedule")
+    ), None)
     if ini is None:
         return []
     fim = next(
-        (i for i, l in enumerate(linhas[ini:], start=ini) if l in ("Find Local Radio Station", "Event Details")),
+        (i for i, l in enumerate(linhas[ini:], start=ini) if l in ("Find Local Radio Station", "Toggle Event Details", "Event Details")),
         len(linhas),
     )
 
