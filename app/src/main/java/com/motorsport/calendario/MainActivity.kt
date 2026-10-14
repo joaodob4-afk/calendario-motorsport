@@ -292,7 +292,7 @@ class MainActivity : AppCompatActivity() {
             dias > 1L -> "FALTAM $dias DIAS"
             else -> "EM ANDAMENTO"
         }
-        estilizarSelo(contador, android.graphics.Color.parseColor("#39FF14"))
+        estilizarSelo(contador, getColor(R.color.verde_neon))
 
         findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
             when (proxima.categoria) {
@@ -327,19 +327,19 @@ class MainActivity : AppCompatActivity() {
     private fun partirData(data: String): Pair<String, String> {
         val limpa = data.trim().uppercase()
 
-        Regex("^(\\d{1,2})\\s+(\\p{L}{3})\\s*[–-]\\s*(\\d{1,2})\\s+(\\p{L}{3})$")
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
             .matchEntire(limpa)?.let {
                 val g = it.groupValues
                 return "${g[1]}–${g[3]}" to "${g[2]}–${g[4]}"
             }
 
-        Regex("^(\\d{1,2})\\s*[–-]\\s*(\\d{1,2})\\s+(\\p{L}{3})$")
+        Regex("^(\\d{1,2})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
             .matchEntire(limpa)?.let {
                 val g = it.groupValues
                 return "${g[1]}–${g[2]}" to g[3]
             }
 
-        Regex("^(\\d{1,2})\\s+(\\p{L}{3})$")
+        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})$")
             .matchEntire(limpa)?.let {
                 val g = it.groupValues
                 return g[1] to g[2]
@@ -348,7 +348,12 @@ class MainActivity : AppCompatActivity() {
         return limpa to ""
     }
 
-    private data class CategoriaInfo(val nome: String, val cor: String)
+    private data class CategoriaInfo(
+        val nome: String,
+        val cor: String,
+        /** Texto curto para o selo dos cards (opcional), útil para nomes muito longos. */
+        val abreviacao: String? = null
+    )
 
     /**
      * Lista central de categorias. Para adicionar uma nova, basta incluir uma linha aqui:
@@ -363,11 +368,23 @@ class MainActivity : AppCompatActivity() {
         CategoriaInfo("Formula E", "#22D3EE")
     )
 
+    /** Minúsculas e sem acentos: "Fórmula E" e "formula e" são tratados como iguais. */
+    private fun normalizar(texto: String): String =
+        java.text.Normalizer.normalize(texto.trim(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "")
+            .lowercase()
+
+    private fun infoDaCategoria(categoria: String): CategoriaInfo? =
+        categoriasApp.firstOrNull { normalizar(it.nome) == normalizar(categoria) }
+
     /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
     private fun corDaCategoria(categoria: String): Int =
-        android.graphics.Color.parseColor(
-            categoriasApp.firstOrNull { it.nome == categoria }?.cor ?: "#39FF14"
-        )
+        infoDaCategoria(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
+            ?: getColor(R.color.verde_neon)
+
+    /** Texto do selo nos cards: abreviação, quando existir, ou o nome completo. */
+    private fun rotuloDoSelo(categoria: String): String =
+        (infoDaCategoria(categoria)?.abreviacao ?: categoria).uppercase()
 
     private fun criarBotoesCategorias() {
         val container = findViewById<LinearLayout>(R.id.containerCategorias)
@@ -400,7 +417,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Fundo em degradê, borda sutil e faixa lateral na cor da categoria. */
+    /** Fundo em degradê, borda sutil e marcador lateral na cor da categoria. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
         val densidade = resources.displayMetrics.density
 
@@ -423,11 +440,10 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        val raio = 15f * densidade
         item.findViewById<android.view.View>(R.id.itemAcento).background =
             android.graphics.drawable.GradientDrawable().apply {
                 setColor(cor)
-                cornerRadii = floatArrayOf(raio, raio, 0f, 0f, 0f, 0f, raio, raio)
+                cornerRadius = 2f * densidade
             }
     }
 
@@ -476,6 +492,13 @@ class MainActivity : AppCompatActivity() {
         return linha
     }
 
+    /** Mantém as colunas fixas (alinhadas), mas proporcionais à fonte do sistema. */
+    private fun ajustarLargura(view: android.view.View, baseDp: Float, escala: Float) {
+        val parametros = view.layoutParams
+        parametros.width = (baseDp * escala * resources.displayMetrics.density).toInt()
+        view.layoutParams = parametros
+    }
+
     private fun configurarBusca() {
         val busca = findViewById<EditText>(R.id.searchEtapa)
 
@@ -487,7 +510,7 @@ class MainActivity : AppCompatActivity() {
                     handlerPesquisa.removeCallbacks(it)
                 }
 
-                val texto = s?.toString()?.trim()?.lowercase() ?: ""
+                val texto = normalizar(s?.toString() ?: "")
 
                 pesquisaRunnable = Runnable {
                     if (texto.isEmpty()) {
@@ -496,10 +519,10 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     val filtradas = todasEtapas.filter {
-                        it.categoria.lowercase().contains(texto) ||
-                            it.pais.lowercase().contains(texto) ||
-                            it.circuito.lowercase().contains(texto) ||
-                            it.data.lowercase().contains(texto)
+                        normalizar(it.categoria).contains(texto) ||
+                            normalizar(it.pais).contains(texto) ||
+                            normalizar(it.circuito).contains(texto) ||
+                            normalizar(it.data).contains(texto)
                     }
 
                     mostrarEtapas(filtradas)
@@ -565,10 +588,16 @@ class MainActivity : AppCompatActivity() {
 
             val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
+            val escalaFonte = resources.configuration.fontScale.coerceIn(1f, 1.25f)
+            if (escalaFonte > 1f) {
+                ajustarLargura(item.findViewById(R.id.colunaData), 70f, escalaFonte)
+                ajustarLargura(item.findViewById(R.id.colunaStatus), 88f, escalaFonte)
+            }
+
             val status = statusEtapa(etapa, etapasOrdenadas)
 
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
-            chipCategoria.text = etapa.categoria.uppercase()
+            chipCategoria.text = rotuloDoSelo(etapa.categoria)
             estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
             estilizarCard(item, corDaCategoria(etapa.categoria))
 
@@ -587,7 +616,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 imagemBandeira.clipToOutline = true
             } else {
-                imagemBandeira.visibility = android.view.View.GONE
+                // INVISIBLE mantém o espaço da bandeira e o texto continua alinhado
+                imagemBandeira.visibility = android.view.View.INVISIBLE
             }
 
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
