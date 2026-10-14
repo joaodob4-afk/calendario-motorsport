@@ -37,6 +37,39 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
             ["Corrida Sprint", "Corrida Feature 1", "Corrida Feature 2"],
         )
 
+    def test_parser_aceita_slug_da_temporada_informada(self):
+        html = (
+            '<a href="/en/racing/2027/sakhir">Sakhir</a>'
+            '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+        )
+        self.assertEqual(f2.listar_slugs(html, 2027), ["sakhir"])
+        self.assertEqual(f2.listar_slugs(html, 2026), ["melbourne"])
+
+    def test_descobre_2027_quando_calendario_oficial_esta_publicado(self):
+        from unittest.mock import patch
+        html_2027 = (
+            '<a href="/en/racing/2027/sakhir">Sakhir</a>'
+            '<a href="/en/racing/2027/istanbul">Istanbul</a>'
+        )
+        with patch.object(f2, "baixar", return_value=html_2027):
+            temporada, slugs = f2.descobrir_calendario()
+        self.assertEqual(temporada, 2027)
+        self.assertEqual(slugs, ["istanbul", "sakhir"])
+
+    def test_mantem_2026_se_calendario_2027_ainda_nao_tiver_etapas(self):
+        from unittest.mock import patch
+        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+        with patch.object(f2, "baixar", side_effect=["página sem etapas", html_2026]):
+            temporada, slugs = f2.descobrir_calendario()
+        self.assertEqual(temporada, 2026)
+        self.assertEqual(slugs, ["melbourne"])
+
+    def test_mapeia_circuitos_novos_confirmados_para_2027(self):
+        self.assertEqual(f2.CIRCUITOS["sakhir"][0], "Sakhir")
+        self.assertEqual(f2.CIRCUITOS["jeddah"][0], "Jeddah")
+        self.assertEqual(f2.CIRCUITOS["istanbul"][0], "Istanbul Park")
+        self.assertEqual(f2.CIRCUITOS["mexico-city"][0], "Cidade do México")
+
     def test_rejeita_duas_sessoes_no_mesmo_instante(self):
         from datetime import datetime, timezone
         instante = datetime(2026, 9, 25, 10, 0, tzinfo=timezone.utc)
