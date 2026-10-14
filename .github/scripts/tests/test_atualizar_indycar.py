@@ -267,5 +267,28 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         )
 
 
+    def test_permite_remover_pre_race_que_nao_e_sessao_cronometrada(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "indycar_calendar.json"
+            arquivo.write_text(json.dumps({
+                "categoria": "IndyCar", "temporada": 2026,
+                "etapas": [{
+                    "etapa": 1, "nome": "110th Running of the Indianapolis 500",
+                    "circuito": "Indianapolis Motor Speedway",
+                    "sessoes": [
+                        {"nome": "Pre-Race", "data": "24/05/2026", "horario": "12:00"},
+                        {"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"},
+                    ],
+                }],
+            }), encoding="utf-8")
+            novas = [{
+                "etapa": 1, "nome": "110th Running of the Indianapolis 500",
+                "circuito": "Indianapolis Motor Speedway",
+                "sessoes": [{"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"}],
+            }]
+            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
+            self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
+
+
 if __name__ == "__main__":
     unittest.main()
