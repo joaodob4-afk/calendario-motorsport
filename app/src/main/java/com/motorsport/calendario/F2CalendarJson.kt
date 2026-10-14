@@ -285,6 +285,9 @@ object F2CalendarJson {
     private fun interpretar(json: String): List<F2Event> {
         return try {
             val raiz = JSONObject(json)
+            if (!raiz.optString("categoria").trim().equals("F2", ignoreCase = true)) {
+                return emptyList()
+            }
             val etapas = raiz.getJSONArray("etapas")
 
             if (etapas.length() < MINIMO_ETAPAS_VALIDAS) {
