@@ -89,12 +89,15 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f2NaoMisturaFallbackAntigoComTemporadaNova() {
+    fun f2IgnoraCacheFuturoEAceitaAssetAtual() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
         try {
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, calendarJson("F2", 2027, 10)))
-            assertEquals(10, F2CalendarJson.carregar(context).size)
+            val etapasDoAsset = context.assets.open("f2_calendar.json").bufferedReader().use {
+                org.json.JSONObject(it.readText()).getJSONArray("etapas").length()
+            }
+            assertEquals(etapasDoAsset, F2CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -115,12 +118,15 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f3NaoMisturaFallbackAntigoComTemporadaNova() {
+    fun f3IgnoraCacheFuturoEAceitaAssetAtual() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
         try {
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, calendarJson("F3", 2027, 5)))
-            assertEquals(5, F3CalendarJson.carregar(context).size)
+            val etapasDoAsset = context.assets.open("f3_calendar.json").bufferedReader().use {
+                org.json.JSONObject(it.readText()).getJSONArray("etapas").length()
+            }
+            assertEquals(etapasDoAsset, F3CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()

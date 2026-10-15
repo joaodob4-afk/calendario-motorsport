@@ -7,7 +7,11 @@ package com.motorsport.calendario
 internal object CalendarioJsonTemporada {
     private val anoNoJson = Regex("\"temporada\"\\s*:\\s*\"?(\\d{4})")
 
-    fun selecionar(cache: String?, asset: String?): String? {
+    fun selecionar(
+        cache: String?,
+        asset: String?,
+        permitirCacheDeTemporadaMaisNova: Boolean = true
+    ): String? {
         if (cache.isNullOrBlank()) return asset
         if (asset.isNullOrBlank()) return cache
 
@@ -17,6 +21,7 @@ internal object CalendarioJsonTemporada {
         return when {
             anoCache == null -> asset
             anoAsset == null -> cache
+            anoCache > anoAsset && !permitirCacheDeTemporadaMaisNova -> asset
             anoCache >= anoAsset -> cache
             else -> asset
         }
