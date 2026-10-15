@@ -137,71 +137,10 @@ object IndyCarCalendarJson {
     texto: String
 ) {
     // Valida o calendário recebido antes de tocar no cache.
-    val novosEventos = interpretar(texto)
-    val temporadaNova = JSONObject(texto).optInt("temporada", 0)
-    var textoFinal = texto
-
+    interpretar(texto)
     synchronized(cacheLock) {
         val destino = File(context.filesDir, ARQUIVO_CACHE)
-        val atomic = AtomicFile(destino)
-
-        // Remoções oficiais são permitidas. A identidade do circuito é mais estável
-        // que o número da etapa, que pode mudar após renumeração.
-        val cacheAtual = try {
-            atomic.openRead().bufferedReader(Charsets.UTF_8).use { it.readText() }
-        } catch (e: Exception) {
-            registrarFalha("IndyCarCalendarJson.gravarCacheSeValido", e)
-            null
-        }
-        val eventosAtuais = cacheAtual?.let { atual ->
-            try { interpretar(atual) } catch (e: Exception) { registrarFalha("IndyCarCalendarJson.gravarCacheSeValido", e); null }
-        }
-
-        if (eventosAtuais != null && cacheAtual != null) {
-            val temporadaAtual = JSONObject(cacheAtual).optInt("temporada", 0)
-            if (temporadaNova == temporadaAtual) {
-                val raizNova = JSONObject(textoFinal)
-                val etapasJson = raizNova.getJSONArray("etapas")
-                // Um circuito pode receber mais de uma corrida na mesma temporada
-                // (por exemplo, Milwaukee). O nome do evento completa a identidade
-                // para que um evento não herde os horários do outro.
-                val novasPorIdentidade = mutableMapOf<String, JSONObject>()
-                for (i in 0 until etapasJson.length()) {
-                    val etapaJson = etapasJson.getJSONObject(i)
-                    val circuito = etapaJson.optString("circuito")
-                        .trim().lowercase(Locale.ROOT)
-                    val nome = etapaJson.optString("nome")
-                        .trim().lowercase(Locale.ROOT)
-                    novasPorIdentidade["$circuito|$nome"] = etapaJson
-                }
-
-                for (atual in eventosAtuais) {
-                    val circuito = atual.circuito.trim().lowercase(Locale.ROOT)
-                    val nome = atual.nome.trim().lowercase(Locale.ROOT)
-                    val novaJson = novasPorIdentidade["$circuito|$nome"] ?: continue
-                    val sessoesJson = novaJson.optJSONArray("sessoes") ?: continue
-                    val novasSessoes = mutableMapOf<String, JSONObject>()
-                    for (i in 0 until sessoesJson.length()) {
-                        val sessaoJson = sessoesJson.getJSONObject(i)
-                        novasSessoes[sessaoJson.optString("nome").trim().lowercase(Locale.ROOT)] = sessaoJson
-                    }
-                    for (sessaoAtual in atual.sessoes) {
-                        val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase(Locale.ROOT)] ?: continue
-                        val horarioAtual = sessaoAtual.horario.trim()
-                        if (horarioAtual.isNotBlank() &&
-                            !horarioAtual.equals("A confirmar", ignoreCase = true) &&
-                            sessaoNova.optString("horario").trim().equals("A confirmar", ignoreCase = true)
-                        ) {
-                            sessaoNova.put("horario", horarioAtual)
-                        }
-                    }
-                }
-                textoFinal = raizNova.toString(2) + "\n"
-            }
-        }
-
-        // Só grava depois de todas as validações.
-        gravarAtomicamente(atomic, textoFinal)
+        gravarAtomicamente(AtomicFile(destino), texto)
     }
 }
 
