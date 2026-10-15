@@ -62,14 +62,37 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         etapa = f2.montar_etapa("sakhir", html)
         self.assertEqual([s["nome"] for s in etapa["sessoes"]], ["Treino Livre", "Corrida Feature"])
 
-    def test_rejeita_duas_sessoes_no_mesmo_instante(self):
+    def test_avisa_sem_recusar_duas_sessoes_no_mesmo_instante(self):
         from datetime import datetime, timezone
         instante = datetime(2026, 9, 25, 10, 0, tzinfo=timezone.utc)
-        with self.assertRaisesRegex(ValueError, "começam no mesmo instante"):
-            f2.validar_sessoes_sem_conflito(
-                "baku", [("Corrida Sprint", instante), ("Corrida Feature", instante)]
-            )
+        avisos = f2.avisos_de_horario(
+            "baku", [("Corrida Sprint", instante), ("Corrida Feature", instante)]
+        )
+        self.assertEqual(len(avisos), 1)
+        self.assertIn("mesmo horário de Brasília", avisos[0])
 
+    def test_sessoes_no_mesmo_horario_nao_impedem_a_atualizacao(self):
+        html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"},{"name":"Qualifying","startDate":"2026-03-06T00:00:00Z"}]}</script>'
+        etapa = f2.montar_etapa("sakhir", html)
+        self.assertEqual(len(etapa["sessoes"]), 2)
+
+    def test_sessao_desconhecida_mantem_o_nome_original(self):
+        subs = [
+            {"name": "Practice", "startDate": "2026-03-06T00:00:00Z"},
+            {"name": "Pit Lane Walk", "startDate": "2026-03-06T05:00:00Z"},
+        ]
+        self.assertEqual(
+            [nome for nome, _ in f2.traduzir_sessoes(subs)],
+            ["Treino Livre", "Pit Lane Walk"],
+        )
+
+    def test_etapa_sem_sessoes_continua_sendo_recusada(self):
+        with self.assertRaisesRegex(ValueError, "nenhuma sessão encontrada"):
+            f2.montar_etapa("sakhir", "<html></html>")
+
+    def test_circuito_nao_mapeado_continua_sendo_recusado(self):
+        with self.assertRaisesRegex(ValueError, "Circuito não mapeado"):
+            f2.montar_etapa("circuito-inexistente", "<html></html>")
 
     def test_extrai_subevent_de_lista_jsonld(self):
         html = (

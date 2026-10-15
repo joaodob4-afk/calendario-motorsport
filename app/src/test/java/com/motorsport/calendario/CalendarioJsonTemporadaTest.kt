@@ -18,13 +18,9 @@ class CalendarioJsonTemporadaTest {
     }
 
     @Test
-    fun f2f3UsamAssetQuandoCacheEDeTemporadaFutura() {
-        assertEquals(
-            json("2026"),
-            CalendarioJsonTemporada.selecionar(
-                json("2027"), json("2026"), permitirCacheDeTemporadaMaisNova = false
-            )
-        )
+    fun cacheDeTemporadaMaisNovaVenceOAssetEmTodasAsCategorias() {
+        // Vale também para F2 e F3: na virada de temporada o app não fica preso ao APK antigo.
+        assertEquals(json("2028"), CalendarioJsonTemporada.selecionar(json("2028"), json("2026")))
     }
 
     @Test

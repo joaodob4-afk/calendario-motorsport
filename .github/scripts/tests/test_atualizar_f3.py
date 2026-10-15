@@ -79,14 +79,28 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         etapa = f3.montar_etapa("sakhir", html)
         self.assertEqual([s["nome"] for s in etapa["sessoes"]], ["Treino Livre", "Corrida Feature"])
 
-    def test_rejeita_duas_sessoes_no_mesmo_horario_exibido(self):
+    def test_avisa_sem_recusar_duas_sessoes_no_mesmo_horario_exibido(self):
         from datetime import datetime, timezone
         instante = datetime(2026, 9, 11, 12, 0, tzinfo=timezone.utc)
-        with self.assertRaisesRegex(ValueError, "mesmo horário de Brasília"):
-            f3.validar_horarios_exibidos(
-                "madrid", [("Classificação 1", instante), ("Classificação 2", instante)]
-            )
+        avisos = f3.avisos_de_horario(
+            "madrid", [("Classificação 1", instante), ("Classificação 2", instante)]
+        )
+        self.assertEqual(len(avisos), 1)
+        self.assertIn("mesmo horário de Brasília", avisos[0])
 
+    def test_sessao_desconhecida_mantem_o_nome_original(self):
+        subs = [
+            {"name": "Practice", "startDate": "2026-06-04T11:25:00Z"},
+            {"name": "Autograph Session", "startDate": "2026-06-04T15:00:00Z"},
+        ]
+        self.assertEqual(
+            [nome for nome, _ in f3.traduzir_sessoes(subs)],
+            ["Treino Livre", "Autograph Session"],
+        )
+
+    def test_etapa_sem_sessoes_continua_sendo_recusada(self):
+        with self.assertRaisesRegex(ValueError, "nenhuma sessão encontrada"):
+            f3.montar_etapa("sakhir", "<html></html>")
 
     def test_extrai_sessoes_de_jsonld_em_lista(self):
         html = '''<script type="application/ld+json">[
