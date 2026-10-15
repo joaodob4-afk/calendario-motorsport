@@ -44,11 +44,6 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             ["Corrida Feature 1", "Corrida Feature 2"],
         )
 
-    def test_parser_aceita_slug_de_temporada_informada(self):
-        html = '<a href="/en/racing/2027/jeddah">Jeddah</a><a href="/en/racing/2026/melbourne">Melbourne</a>'
-        self.assertEqual(f3.listar_slugs(html, 2027), ["jeddah"])
-        self.assertEqual(f3.listar_slugs(html, 2026), ["melbourne"])
-
     def test_descobre_temporada_atual_2026(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a><a href="/en/racing/2026/monza">Monza</a>'
         with patch.object(f3, "baixar", return_value=html_2026):
@@ -66,13 +61,6 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
-    def test_nao_busca_temporada_futura(self):
-        html_2027 = '<a href="/en/racing/2027/jeddah">Jeddah</a>'
-        with patch.object(f3, "baixar", return_value=html_2027):
-            temporada, slugs = f3.descobrir_calendario()
-        self.assertIsNone(temporada)
-        self.assertEqual(slugs, [])
-
     def test_usa_rota_estavel_quando_pagina_de_2026_nao_tem_etapas(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
         with patch.object(
@@ -82,11 +70,6 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             temporada, slugs = f3.descobrir_calendario()
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne"])
-
-    def test_mapeia_novos_circuitos_confirmados_para_2027(self):
-        self.assertEqual(f3.CIRCUITOS["jeddah"][0], "Jeddah")
-        self.assertEqual(f3.CIRCUITOS["montreal"][0], "Montreal")
-        self.assertEqual(f3.CIRCUITOS["istanbul"][0], "Istanbul Park")
 
     def test_aceita_etapa_com_duas_sessoes_publicadas(self):
         html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'

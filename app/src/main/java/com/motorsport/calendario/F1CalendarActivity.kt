@@ -612,7 +612,7 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
                     .getJSONObject("RaceTable")
                     .getJSONArray("Races")
 
-                if (corridasCache.length() >= 5) {
+                if (corridasCache.length() > 0) {
                     return corridasCache
                 }
             } catch (e: Exception) {
@@ -651,8 +651,8 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
                 .getJSONObject("RaceTable")
                 .getJSONArray("Races")
 
-            if (corridas.length() < 5) {
-                throw java.io.IOException("Calendário recebido está incompleto")
+            if (corridas.length() == 0) {
+                throw java.io.IOException("Calendário recebido não contém etapas")
             }
 
             // A atualização em segundo plano da F1CalendarApi busca a programação
@@ -661,67 +661,11 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
             return corridas
         } catch (e: Exception) {
             registrarFalha("F1CalendarActivity.buscarCorridasF1", e)
-            // Se não houver cache nem internet, usa o calendário fixo
-            // incluído no app para que a primeira abertura também funcione offline.
-            return criarCalendarioReserva()
+            // Sem cache nem rede, não inventa um calendário desatualizado.
+            return JSONArray()
         } finally {
             connection?.disconnect()
         }
     }
 
-    private fun criarCalendarioReserva(): JSONArray {
-        data class EtapaReserva(
-            val nome: String,
-            val data: String,
-            val circuitoId: String,
-            val circuito: String,
-            val cidade: String,
-            val pais: String
-        )
-
-        val etapas = listOf(
-            EtapaReserva("Australian Grand Prix", "2026-03-08", "albert_park", "Albert Park Grand Prix Circuit", "Melbourne", "Australia"),
-            EtapaReserva("Chinese Grand Prix", "2026-03-15", "shanghai", "Shanghai International Circuit", "Shanghai", "China"),
-            EtapaReserva("Japanese Grand Prix", "2026-03-29", "suzuka", "Suzuka International Racing Course", "Suzuka", "Japan"),
-            EtapaReserva("Miami Grand Prix", "2026-05-03", "miami", "Miami International Autodrome", "Miami", "USA"),
-            EtapaReserva("Canadian Grand Prix", "2026-05-24", "villeneuve", "Circuit Gilles-Villeneuve", "Montreal", "Canada"),
-            EtapaReserva("Monaco Grand Prix", "2026-06-07", "monaco", "Circuit de Monaco", "Monte Carlo", "Monaco"),
-            EtapaReserva("Spanish Grand Prix", "2026-06-14", "catalunya", "Circuit de Barcelona-Catalunya", "Barcelona", "Spain"),
-            EtapaReserva("Austrian Grand Prix", "2026-06-28", "red_bull_ring", "Red Bull Ring", "Spielberg", "Austria"),
-            EtapaReserva("British Grand Prix", "2026-07-05", "silverstone", "Silverstone Circuit", "Silverstone", "UK"),
-            EtapaReserva("Belgian Grand Prix", "2026-07-19", "spa", "Circuit de Spa-Francorchamps", "Spa", "Belgium"),
-            EtapaReserva("Hungarian Grand Prix", "2026-07-26", "hungaroring", "Hungaroring", "Budapest", "Hungary"),
-            EtapaReserva("Dutch Grand Prix", "2026-08-23", "zandvoort", "Circuit Zandvoort", "Zandvoort", "Netherlands"),
-            EtapaReserva("Italian Grand Prix", "2026-09-06", "monza", "Autodromo Nazionale Monza", "Monza", "Italy"),
-            EtapaReserva("Spanish Grand Prix", "2026-09-13", "madring", "Madring", "Madrid", "Spain"),
-            EtapaReserva("Azerbaijan Grand Prix", "2026-09-26", "baku", "Baku City Circuit", "Baku", "Azerbaijan"),
-            EtapaReserva("Singapore Grand Prix", "2026-10-11", "marina_bay", "Marina Bay Street Circuit", "Marina Bay", "Singapore"),
-            EtapaReserva("United States Grand Prix", "2026-10-25", "americas", "Circuit of The Americas", "Austin", "USA"),
-            EtapaReserva("Mexico City Grand Prix", "2026-11-01", "rodriguez", "Autodromo Hermanos Rodriguez", "Mexico City", "Mexico"),
-            EtapaReserva("Sao Paulo Grand Prix", "2026-11-08", "interlagos", "Autodromo Jose Carlos Pace", "Sao Paulo", "Brazil"),
-            EtapaReserva("Las Vegas Grand Prix", "2026-11-21", "vegas", "Las Vegas Strip Circuit", "Las Vegas", "USA"),
-            EtapaReserva("Qatar Grand Prix", "2026-11-29", "losail", "Lusail International Circuit", "Lusail", "Qatar"),
-            EtapaReserva("Abu Dhabi Grand Prix", "2026-12-06", "yas_marina", "Yas Marina Circuit", "Abu Dhabi", "UAE")
-        )
-
-        val corridas = JSONArray()
-        for ((indice, etapa) in etapas.withIndex()) {
-            val localizacao = JSONObject()
-                .put("locality", etapa.cidade)
-                .put("country", etapa.pais)
-            val circuito = JSONObject()
-                .put("circuitId", etapa.circuitoId)
-                .put("circuitName", etapa.circuito)
-                .put("Location", localizacao)
-            corridas.put(
-                JSONObject()
-                    .put("season", "2026")
-                    .put("round", (indice + 1).toString())
-                    .put("raceName", etapa.nome)
-                    .put("Circuit", circuito)
-                    .put("date", etapa.data)
-            )
-        }
-        return corridas
-    }
 }
