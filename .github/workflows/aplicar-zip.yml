@@ -1,16 +1,13 @@
 name: Aplicar zip de mudanças
 
+# Roda sozinho quando o arquivo testes.zip é enviado para um branch (menos o main).
+# Extrai o zip por cima do projeto, apaga o zip e faz commit no mesmo branch.
 on:
-  workflow_dispatch:
-    inputs:
-      arquivo:
-        description: 'Nome do zip que está na raiz do repositório'
-        required: true
-        default: 'testes.zip'
-      branch:
-        description: 'Branch que será criado com as mudanças'
-        required: true
-        default: 'testes'
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'testes.zip'
 
 permissions:
   contents: write
@@ -18,23 +15,19 @@ permissions:
 jobs:
   aplicar:
     runs-on: ubuntu-latest
-    env:
-      ZIP: ${{ inputs.arquivo }}
-      BRANCH: ${{ inputs.branch }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Extrair o zip por cima do projeto
         run: |
-          test -f "$ZIP" || { echo "ERRO: $ZIP não está na raiz do repositório."; exit 1; }
-          unzip -o "$ZIP"
-          rm "$ZIP"
+          test -f testes.zip || { echo "ERRO: testes.zip não está na raiz do repositório."; exit 1; }
+          unzip -o testes.zip
+          rm testes.zip
 
-      - name: Criar o branch e enviar
+      - name: Enviar para o mesmo branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
           git add -A
-          git commit -m "Aplicar mudanças de $ZIP"
-          git push origin "$BRANCH"
+          git commit -m "Aplicar mudanças de testes.zip"
+          git push
