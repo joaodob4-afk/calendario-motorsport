@@ -180,7 +180,9 @@ def traduzir_sessoes(subs):
             else:
                 pt = "Corrida Sprint" if corridas.index(idx) == 0 else "Corrida Feature"
         else:
-            raise ValueError(f"Sessão desconhecida: {nome!r}")
+            # Nome novo no site: mantém o texto original em vez de recusar a atualização.
+            print(f"AVISO: sessão desconhecida {nome!r}; mantendo o nome original")
+            pt = nome or "Sessão"
         resultado.append((pt, dt))
 
     # Nomes repetidos na mesma etapa ganham número (ex.: Feature 1 e 2).
@@ -197,33 +199,24 @@ def traduzir_sessoes(subs):
     return final
 
 
-def validar_sessoes_sem_conflito(slug, sessoes):
-    """Falha se duas sessões da etapa começarem no mesmo instante."""
-    instantes = {}
-    for nome, dt in sessoes:
-        sessao_anterior = instantes.get(dt)
-        if sessao_anterior is not None:
-            raise ValueError(
-                f"{slug}: {sessao_anterior!r} e {nome!r} começam "
-                f"no mesmo instante ({dt.isoformat()})"
-            )
-        instantes[dt] = nome
+def avisos_de_horario(slug, sessoes):
+    """Lista (sem recusar a atualização) sessões com o mesmo dia e horário em Brasília.
 
-
-
-def validar_horarios_exibidos(slug, sessoes):
-    """Rejeita sessões distintas que ficam com a mesma data/hora exibida em Brasília."""
+    Não é um erro: o app apenas mostra as duas sessões. Serve de alerta no log.
+    """
     vistos = {}
+    avisos = []
     for nome, instante in sessoes:
         local = instante.astimezone(BRASILIA)
         chave = (local.strftime("%d/%m/%Y"), local.strftime("%H:%M"))
         anterior = vistos.get(chave)
         if anterior is not None:
-            raise ValueError(
+            avisos.append(
                 f"{slug}: {anterior!r} e {nome!r} aparecem no mesmo "
                 f"horário de Brasília ({chave[0]} {chave[1]})"
             )
         vistos[chave] = nome
+    return avisos
 
 
 def montar_etapa(slug, html):
@@ -249,8 +242,8 @@ def montar_etapa(slug, html):
     if horarios_pendentes:
         print(f"{slug}: horários oficiais ainda não publicados; usando A confirmar")
     else:
-        validar_horarios_exibidos(slug, sessoes)
-        validar_sessoes_sem_conflito(slug, sessoes)
+        for aviso in avisos_de_horario(slug, sessoes):
+            print("AVISO", aviso)
 
     if not sessoes:
         raise ValueError(f"{slug}: nenhuma sessão encontrada")

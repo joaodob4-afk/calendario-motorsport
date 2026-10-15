@@ -89,15 +89,13 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f2IgnoraCacheFuturoEAceitaAssetAtual() {
+    fun f2UsaCacheDaTemporadaMaisNova() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f2_calendar_cache.json")
         try {
+            // Na virada de temporada o calendário baixado vale mais que o JSON do APK antigo.
             assertTrue(F2CalendarJson.gravarCacheSeguro(context, calendarJson("F2", 2027, 10)))
-            val etapasDoAsset = context.assets.open("f2_calendar.json").bufferedReader().use {
-                org.json.JSONObject(it.readText()).getJSONArray("etapas").length()
-            }
-            assertEquals(etapasDoAsset, F2CalendarJson.carregar(context).size)
+            assertEquals(10, F2CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
@@ -118,15 +116,12 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f3IgnoraCacheFuturoEAceitaAssetAtual() {
+    fun f3UsaCacheDaTemporadaMaisNova() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
         try {
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, calendarJson("F3", 2027, 5)))
-            val etapasDoAsset = context.assets.open("f3_calendar.json").bufferedReader().use {
-                org.json.JSONObject(it.readText()).getJSONArray("etapas").length()
-            }
-            assertEquals(etapasDoAsset, F3CalendarJson.carregar(context).size)
+            assertEquals(5, F3CalendarJson.carregar(context).size)
         } finally {
             cache.delete()
             backup.delete()
