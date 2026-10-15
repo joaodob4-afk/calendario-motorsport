@@ -71,6 +71,24 @@ class DescobertaItemListJsonLdTest(unittest.TestCase):
         ]}
         self.assertEqual(fe.extrair_rodadas(dados)[0]["cidade"], "Berlim")
 
+    def test_rotulo_temporada_com_dois_anos(self):
+        rodadas = [
+            {"data": fe.date(2026, 12, 5)},
+            {"data": fe.date(2027, 1, 10)},
+        ]
+        self.assertEqual(fe.rotulo_temporada(rodadas), "2026/27")
+
+    def test_rotulo_temporada_com_um_ano(self):
+        rodadas = [
+            {"data": fe.date(2028, 3, 1)},
+            {"data": fe.date(2028, 4, 1)},
+        ]
+        self.assertEqual(fe.rotulo_temporada(rodadas), "2028")
+
+    def test_rotulo_temporada_rejeita_lista_vazia(self):
+        with self.assertRaisesRegex(ValueError, "Não há datas"):
+            fe.rotulo_temporada([])
+
 
 if __name__ == "__main__":
     unittest.main()
