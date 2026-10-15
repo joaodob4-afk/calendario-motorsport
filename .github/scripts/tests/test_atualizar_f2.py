@@ -76,12 +76,9 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         self.assertEqual(temporada, 2027)
         self.assertEqual(slugs, ["sakhir"])
 
-    def test_prioriza_2026_ate_o_fim_da_temporada(self):
+    def test_prioriza_2027_enquanto_temporada_oficial_mais_recente(self):
         from datetime import date
-        self.assertEqual(f2.ordem_temporadas(date(2026, 10, 14)), (2026, 2027))
-
-    def test_prioriza_2027_depois_do_fim_da_temporada(self):
-        from datetime import date
+        self.assertEqual(f2.ordem_temporadas(date(2026, 10, 14)), (2027, 2026))
         self.assertEqual(f2.ordem_temporadas(date(2026, 12, 7)), (2027, 2026))
     def test_mantem_2026_se_calendario_2027_ainda_nao_tiver_etapas(self):
         from unittest.mock import patch
