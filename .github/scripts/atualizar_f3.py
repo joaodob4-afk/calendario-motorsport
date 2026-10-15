@@ -322,15 +322,6 @@ def main():
     ]
 
     novo = {"temporada": temporada, "categoria": "F3", "etapas": etapas}
-    try:
-        novo["etapas"] = preservar_sessoes_conhecidas(
-            novo["etapas"], temporada_nova=novo["temporada"]
-        )
-    except ValueError as e:
-        print("ERRO:", e)
-        print("Nada foi alterado.")
-        return 1
-
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
