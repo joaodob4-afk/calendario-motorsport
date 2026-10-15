@@ -195,20 +195,18 @@ class F2F3CachePreservationTest {
     }
 
     @Test
-    fun f3HorarioConhecidoNaoPodeVirarAConfirmar() {
+    fun f3RefleteHorarioAtualDaFonteMesmoQuandoViraAConfirmar() {
         val context = RuntimeEnvironment.getApplication()
         val (cache, backup) = prepareCache(context, "f3_calendar_cache.json")
 
         try {
             val completo = calendarJson("F3", 2026, 9)
             assertTrue(F3CalendarJson.gravarCacheSeguro(context, completo))
-            val original = cache.readText()
-
             val semHorario = calendarJson("F3", 2026, 9)
                 .replace("\"horario\": \"12:30\"", "\"horario\": \"A confirmar\"")
 
-            assertFalse(F3CalendarJson.gravarCacheSeguro(context, semHorario))
-            assertEquals(original, cache.readText())
+            assertTrue(F3CalendarJson.gravarCacheSeguro(context, semHorario))
+            assertTrue(cache.readText().contains("\"horario\": \"A confirmar\""))
         } finally {
             cache.delete()
             backup.delete()
