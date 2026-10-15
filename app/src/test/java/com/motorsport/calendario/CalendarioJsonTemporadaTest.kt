@@ -18,6 +18,16 @@ class CalendarioJsonTemporadaTest {
     }
 
     @Test
+    fun f2f3UsamAssetQuandoCacheEDeTemporadaFutura() {
+        assertEquals(
+            json("2026"),
+            CalendarioJsonTemporada.selecionar(
+                json("2027"), json("2026"), permitirCacheDeTemporadaMaisNova = false
+            )
+        )
+    }
+
+    @Test
     fun preservaCacheDaMesmaTemporada() {
         assertEquals(json("2026/27"), CalendarioJsonTemporada.selecionar(json("2026/27"), json("2026/27")))
     }
