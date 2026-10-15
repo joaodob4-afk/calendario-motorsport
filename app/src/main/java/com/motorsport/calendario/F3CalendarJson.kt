@@ -29,7 +29,7 @@ object F3CalendarJson {
         .withResolverStyle(ResolverStyle.STRICT)
 
     fun carregar(context: Context): List<F3Event> {
-        val json = lerCache(context) ?: lerAsset(context)
+        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
         val eventosJson = json?.let { interpretar(it) }.orEmpty()
         // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
         // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
