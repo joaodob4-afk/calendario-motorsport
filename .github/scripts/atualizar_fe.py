@@ -262,15 +262,6 @@ def main():
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
     novo = {"temporada": "2026/27", "categoria": "Formula E", "etapas": etapas}
-    try:
-        novo["etapas"] = preservar_detalhes_conhecidos(
-            novo["etapas"], temporada_nova=novo["temporada"]
-        )
-    except ValueError as e:
-        print("ERRO:", e)
-        print("Nada foi alterado.")
-        return 1
-
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
