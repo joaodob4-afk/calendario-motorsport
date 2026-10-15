@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula2.com"
-TEMPORADAS_PREFERIDAS = (2026, 2027)
+TEMPORADAS_PREFERIDAS = (2027, 2026)
 FIM_TEMPORADA_2026 = datetime(2026, 12, 7).date()
 SAIDA = Path("app/src/main/assets/f2_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
@@ -79,9 +79,7 @@ def listar_slugs(html, temporada=2026):
 
 
 def ordem_temporadas(hoje):
-    """Mantém 2026 até o fim da temporada e depois prioriza 2027."""
-    if hoje >= FIM_TEMPORADA_2026:
-        return (2027, 2026)
+    """Prioriza a temporada mais recente publicada, com fallback para 2026."""
     return TEMPORADAS_PREFERIDAS
 
 
