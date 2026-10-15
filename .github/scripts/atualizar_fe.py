@@ -178,67 +178,6 @@ def montar(grupos):
 
 
 
-def preservar_detalhes_conhecidos(etapas_novas, arquivo=SAIDA, temporada_nova="2026/27"):
-    """Preserva horários conhecidos para eventos que continuam no calendário oficial.
-
-    A lista oficial já é validada em main() antes desta função ser chamada.
-    Por isso, a ausência de uma sessão pode representar uma remoção oficial:
-    não deve bloquear a atualização. Os dados são associados ao evento (cidade,
-    país e data), não ao número da rodada, que pode mudar após renumeração.
-    """
-    if not arquivo.exists():
-        return etapas_novas
-
-    try:
-        atual = json.loads(arquivo.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as erro:
-        raise ValueError("Não foi possível validar o calendário anterior; arquivo não alterado") from erro
-
-    if str(atual.get("temporada", "")).strip() != str(temporada_nova).strip():
-        return etapas_novas
-
-    def conhecido(valor):
-        normalizado = str(valor or "").strip()
-        return bool(normalizado) and normalizado.lower() not in {
-            "a confirmar", "tbd", "null", "none"
-        }
-
-    def normalizar_circuito(valor):
-        # Compatibilidade com o JSON anterior, que identificava Brands Hatch
-        # apenas como "Londres".
-        normalizado = str(valor or "").strip().casefold()
-        return "brands hatch" if normalizado == "londres" else normalizado
-
-    sessoes_anteriores = {}
-    for etapa in atual.get("etapas", []):
-        for sessao in etapa.get("sessoes", []):
-            chave = (
-                normalizar_circuito(etapa.get("circuito", "")),
-                str(etapa.get("pais", "")).strip().casefold(),
-                str(sessao.get("data", "")).strip(),
-            )
-            if all(chave):
-                sessoes_anteriores[chave] = sessao
-
-    for etapa in etapas_novas:
-        for sessao in etapa.get("sessoes", []):
-            chave = (
-                str(etapa.get("circuito", "")).strip().casefold(),
-                str(etapa.get("pais", "")).strip().casefold(),
-                str(sessao.get("data", "")).strip(),
-            )
-            sessao_atual = sessoes_anteriores.get(chave)
-            if sessao_atual is None:
-                continue
-
-            # A data é parte da identidade do evento; preservamos somente campos
-            # pendentes, nunca substituímos valores publicados pela fonte oficial.
-            valor_atual = sessao_atual.get("horario", "")
-            if conhecido(valor_atual) and not conhecido(sessao.get("horario", "")):
-                sessao["horario"] = valor_atual
-
-    return etapas_novas
-
 def main():
     print("Consultando calendário oficial da Fórmula E...")
     try:
