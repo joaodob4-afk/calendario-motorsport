@@ -28,7 +28,7 @@ object F2CalendarJson {
     /**
      * Mantém a mesma interface pública utilizada pelas telas existentes.
      * Prioriza o cache válido e depois o JSON incluído no APK.
-     * Usa o calendário de reserva somente quando os JSONs não são válidos.
+     * Se cache e asset não forem válidos, não inventa etapas antigas.
      */
     fun carregar(context: Context): List<F2Event> {
         val json = CalendarioJsonTemporada.selecionar(
@@ -44,7 +44,7 @@ object F2CalendarJson {
             return eventosJson.sortedBy { it.etapa }
         }
 
-        return F2Calendar.eventos.sortedBy { it.etapa }
+        return emptyList()
     }
 
     /**
@@ -94,7 +94,7 @@ object F2CalendarJson {
             } catch (e: Exception) {
                 registrarFalha("F2CalendarJson.atualizar", e)
                 // Sem internet ou resposta inválida:
-                // preserva o cache e os dados de reserva.
+                // preserva o cache anterior.
             } finally {
                 try {
                     conexao?.disconnect()
