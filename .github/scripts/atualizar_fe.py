@@ -154,6 +154,16 @@ def fmt(d):
     return d.strftime("%d/%m/%Y")
 
 
+def rotulo_temporada(rodadas):
+    """Monta o rótulo a partir dos anos presentes nas datas da fonte oficial."""
+    anos = sorted({r["data"].year for r in rodadas})
+    if not anos:
+        raise ValueError("Não há datas para determinar a temporada")
+    if len(anos) == 1:
+        return str(anos[0])
+    return f"{anos[0]}/{anos[-1] % 100:02d}"
+
+
 def montar(grupos):
     etapas = []
     for n, g in enumerate(grupos, start=1):
@@ -200,7 +210,7 @@ def main():
     for e in etapas:
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
-    novo = {"temporada": "2026/27", "categoria": "Formula E", "etapas": etapas}
+    novo = {"temporada": rotulo_temporada(rodadas), "categoria": "Formula E", "etapas": etapas}
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
