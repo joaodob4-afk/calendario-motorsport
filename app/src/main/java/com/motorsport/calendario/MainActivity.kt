@@ -322,75 +322,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Separa "30 OUT–01 NOV" em ("30–01", "OUT–NOV") e "06–08 NOV" em ("06–08", "NOV"). */
-    private fun partirData(data: String): Pair<String, String> {
-        val limpa = data.trim().uppercase()
-
-        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
-            .matchEntire(limpa)?.let {
-                val g = it.groupValues
-                return "${g[1]}–${g[3]}" to "${g[2]}–${g[4]}"
-            }
-
-        Regex("^(\\d{1,2})\\s*[–—-]\\s*(\\d{1,2})\\s+(\\p{L}{3,4})$")
-            .matchEntire(limpa)?.let {
-                val g = it.groupValues
-                return "${g[1]}–${g[2]}" to g[3]
-            }
-
-        Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})$")
-            .matchEntire(limpa)?.let {
-                val g = it.groupValues
-                return g[1] to g[2]
-            }
-
-        return limpa to ""
-    }
-
-    private data class CategoriaInfo(
-        val nome: String,
-        val cor: String,
-        /** Texto curto para o selo dos cards (opcional), útil para nomes muito longos. */
-        val abreviacao: String? = null
-    )
-
-    /**
-     * Lista central de categorias. Para adicionar uma nova, basta incluir uma linha aqui:
-     * o botão do topo, o selo dos cards e a cor passam a existir automaticamente.
-     * O nome pode ser longo: os botões rolam na horizontal e o selo reduz a fonte para caber.
-     */
-    private val categoriasApp = listOf(
-        CategoriaInfo("F1", "#FF3B30"),
-        CategoriaInfo("F2", "#3D9BFF"),
-        CategoriaInfo("F3", "#FF8A2B"),
-        CategoriaInfo("IndyCar", "#A58BFF"),
-        CategoriaInfo("Formula E", "#22D3EE")
-    )
-
-    /** Minúsculas e sem acentos: "Fórmula E" e "formula e" são tratados como iguais. */
-    private fun normalizar(texto: String): String =
-        java.text.Normalizer.normalize(texto.trim(), java.text.Normalizer.Form.NFD)
-            .replace(Regex("\\p{M}+"), "")
-            .lowercase()
-
-    private fun infoDaCategoria(categoria: String): CategoriaInfo? =
-        categoriasApp.firstOrNull { normalizar(it.nome) == normalizar(categoria) }
-
     /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
     private fun corDaCategoria(categoria: String): Int =
-        infoDaCategoria(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
+        Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
             ?: getColor(R.color.verde_neon)
-
-    /** Texto do selo nos cards: abreviação, quando existir, ou o nome completo. */
-    private fun rotuloDoSelo(categoria: String): String =
-        (infoDaCategoria(categoria)?.abreviacao ?: categoria).uppercase()
 
     private fun criarBotoesCategorias() {
         val container = findViewById<LinearLayout>(R.id.containerCategorias)
         val densidade = resources.displayMetrics.density
         container.removeAllViews()
 
-        for (categoria in categoriasApp) {
+        for (categoria in Categorias.todas) {
             val botao = TextView(this).apply {
                 text = categoria.nome
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
@@ -511,7 +453,7 @@ class MainActivity : AppCompatActivity() {
                     handlerPesquisa.removeCallbacks(it)
                 }
 
-                val texto = normalizar(s?.toString() ?: "")
+                val texto = Formatacao.normalizar(s?.toString() ?: "")
 
                 pesquisaRunnable = Runnable {
                     if (texto.isEmpty()) {
@@ -520,10 +462,10 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     val filtradas = todasEtapas.filter {
-                        normalizar(it.categoria).contains(texto) ||
-                            normalizar(it.pais).contains(texto) ||
-                            normalizar(it.circuito).contains(texto) ||
-                            normalizar(it.data).contains(texto)
+                        Formatacao.normalizar(it.categoria).contains(texto) ||
+                            Formatacao.normalizar(it.pais).contains(texto) ||
+                            Formatacao.normalizar(it.circuito).contains(texto) ||
+                            Formatacao.normalizar(it.data).contains(texto)
                     }
 
                     mostrarEtapas(filtradas)
@@ -598,7 +540,7 @@ class MainActivity : AppCompatActivity() {
             val status = statusEtapa(etapa, etapasOrdenadas)
 
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
-            chipCategoria.text = rotuloDoSelo(etapa.categoria)
+            chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
             estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
             estilizarCard(item, corDaCategoria(etapa.categoria))
 
@@ -624,7 +566,7 @@ class MainActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
 
-            val (dias, mes) = partirData(etapa.data)
+            val (dias, mes) = Formatacao.partirData(etapa.data)
             item.findViewById<TextView>(R.id.itemDia).text = dias
             val itemMes = item.findViewById<TextView>(R.id.itemMes)
             itemMes.text = mes
