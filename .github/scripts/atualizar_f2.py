@@ -7,6 +7,7 @@ Se qualquer etapa falhar na validacao, NAO altera o arquivo e sai com erro.
 import json
 import re
 import sys
+from datetime import datetime
 import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
