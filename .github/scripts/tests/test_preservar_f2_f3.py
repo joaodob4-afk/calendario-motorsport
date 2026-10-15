@@ -1,9 +1,7 @@
 import importlib.util
-import json
-import tempfile
+import inspect
 import unittest
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -15,85 +13,12 @@ def carregar_modulo(nome):
     return modulo
 
 
-f2 = carregar_modulo("f2")
-f3 = carregar_modulo("f3")
-
-
-class PreservacaoF2F3Test(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.arquivo = Path(self.temp.name) / "calendario.json"
-        self.anterior = {
-            "temporada": 2026,
-            "etapas": [{
-                "etapa": 1,
-                "circuito": "Circuito A",
-                "inicio": "01/05/2026",
-                "fim": "03/05/2026",
-                "sessoes": [{
-                    "nome": "Corrida Feature",
-                    "data": "03/05/2026",
-                    "horario": "10:25",
-                }],
-            }],
-        }
-        self.arquivo.write_text(json.dumps(self.anterior), encoding="utf-8")
-        self.novas = [{
-            "etapa": 1,
-            "circuito": "Circuito A",
-            "inicio": "",
-            "fim": "A confirmar",
-            "sessoes": [{
-                "nome": "Corrida Feature",
-                "data": "A confirmar",
-                "horario": "TBD",
-            }],
-        }]
-
-    def test_f2_preserva_datas_e_horario_conhecidos(self):
-        resultado = f2.preservar_sessoes_conhecidas(
-            self.novas, self.arquivo, temporada_nova=2026
-        )
-        self.assertEqual(resultado[0]["inicio"], "01/05/2026")
-        self.assertEqual(resultado[0]["fim"], "03/05/2026")
-        self.assertEqual(resultado[0]["sessoes"][0]["data"], "03/05/2026")
-        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "10:25")
-
-    def test_f3_preserva_datas_e_horario_conhecidos(self):
-        resultado = f3.preservar_sessoes_conhecidas(
-            self.novas, self.arquivo, temporada_nova=2026
-        )
-        self.assertEqual(resultado[0]["sessoes"][0]["data"], "03/05/2026")
-        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "10:25")
-
-    def test_f2_aceita_remocao_oficial_de_sessao(self):
-        self.novas[0]["sessoes"] = []
-        resultado = f2.preservar_sessoes_conhecidas(
-            self.novas, self.arquivo, temporada_nova=2026
-        )
-        self.assertEqual(resultado[0]["sessoes"], [])
-
-    def test_f3_aceita_remocao_oficial_de_etapa(self):
-        resultado = f3.preservar_sessoes_conhecidas(
-            [], self.arquivo, temporada_nova=2026
-        )
-        self.assertEqual(resultado, [])
-
-    def test_preserva_dados_por_circuito_apos_renumeracao(self):
-        self.novas[0]["etapa"] = 2
-        resultado = f2.preservar_sessoes_conhecidas(
-            self.novas, self.arquivo, temporada_nova=2026
-        )
-        self.assertEqual(resultado[0]["etapa"], 2)
-        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "10:25")
-
-    def test_temporada_nova_nao_reutiliza_dados_antigos(self):
-        resultado = f2.preservar_sessoes_conhecidas(
-            self.novas, self.arquivo, temporada_nova=2027
-        )
-        self.assertEqual(resultado[0]["sessoes"][0]["horario"], "TBD")
-        self.assertEqual(resultado[0]["inicio"], "")
+class AtualizadoresF2F3Test(unittest.TestCase):
+    def test_atualizadores_nao_importam_dados_do_json_anterior(self):
+        for nome in ("f2", "f3"):
+            modulo = carregar_modulo(nome)
+            self.assertNotIn("preservar_sessoes_conhecidas", inspect.getsource(modulo.main))
+            self.assertFalse(hasattr(modulo, "preservar_sessoes_conhecidas"))
 
 
 if __name__ == "__main__":
