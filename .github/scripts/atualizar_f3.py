@@ -22,11 +22,8 @@ BRASILIA = ZoneInfo("America/Sao_Paulo")
 CIRCUITOS = {
     "sakhir": ("Sakhir", "Bahrein", "Asia/Bahrain"),
     "jeddah": ("Jeddah", "Arábia Saudita", "Asia/Riyadh"),
-    "istanbul": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
-    "istanbul-park": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
     "melbourne": ("Melbourne", "Austrália", "Australia/Melbourne"),
     "miami-gardens": ("Miami", "Estados Unidos", "America/New_York"),
-    "montreal": ("Montreal", "Canadá", "America/Toronto"),
     "monte-carlo": ("Monte Carlo", "Mônaco", "Europe/Monaco"),
     "barcelona": ("Barcelona", "Espanha", "Europe/Madrid"),
     "spielberg": ("Spielberg", "Áustria", "Europe/Vienna"),
