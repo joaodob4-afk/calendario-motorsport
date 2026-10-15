@@ -38,21 +38,23 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         )
 
     def test_parser_aceita_slug_da_temporada_atual(self):
-        html = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
-        self.assertEqual(f2.listar_slugs(html, 2026), ["melbourne"])
+        temporada = f2.TEMPORADA_ATUAL
+        html = f'<a href="/en/racing/{temporada}/melbourne">Melbourne</a>'
+        self.assertEqual(f2.listar_slugs(html, temporada), ["melbourne"])
 
     def test_descobre_temporada_atual_pela_url_final_da_rota_estavel(self):
         from unittest.mock import patch
-        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+        temporada_atual = f2.TEMPORADA_ATUAL
+        html_atual = f'<a href="/en/racing/{temporada_atual}/melbourne">Melbourne</a>'
         with patch.object(
             f2,
             "baixar_com_url",
             side_effect=[
-                (html_2026, "https://www.fiaformula2.com/en/racing/2026"),
+                (html_atual, f"https://www.fiaformula2.com/en/racing/{temporada_atual}"),
             ],
         ):
             temporada, slugs = f2.descobrir_calendario()
-        self.assertEqual(temporada, 2026)
+        self.assertEqual(temporada, temporada_atual)
         self.assertEqual(slugs, ["melbourne"])
 
     def test_aceita_etapa_com_duas_sessoes_publicadas(self):
