@@ -54,7 +54,7 @@ object IndyCarCalendarJson {
      * Se nenhum deles for válido, devolve lista vazia.
      */
     fun carregar(context: Context): List<IndyCarEvent> {
-        val json = lerCache(context) ?: lerAsset(context)
+        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
             ?: return emptyList()
 
         return try {
