@@ -26,6 +26,16 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Nenhuma etapa encontrada"):
             indycar.validar_cartoes_fonte({})
 
+    def test_prefere_temporada_atual_quando_fonte_tambem_tem_ano_futuro(self):
+        self.assertEqual(
+            indycar.selecionar_ano_temporada({2026, 2027}, ano_atual=2026),
+            2026,
+        )
+
+    def test_nao_usa_temporada_futura_se_atual_ainda_nao_foi_publicada(self):
+        with self.assertRaisesRegex(ValueError, "temporada atual \(2026\)"):
+            indycar.selecionar_ano_temporada({2027}, ano_atual=2026)
+
     def test_converte_horario_et_para_brasilia_no_horario_de_verao(self):
         instante = indycar.converter_hora(2026, 5, 1, 10, 0, "AM")
         brasilia = instante.astimezone(indycar.BRASILIA)
