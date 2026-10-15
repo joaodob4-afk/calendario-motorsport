@@ -84,7 +84,7 @@ class FormulaECachePreservationTest {
     }
 
     @Test
-    fun horarioConhecidoNaoPodeVirarAConfirmar() {
+    fun refleteHorarioAtualDaFonteMesmoQuandoViraAConfirmar() {
         val context = RuntimeEnvironment.getApplication()
         limpar(context)
         val arquivo = cacheFile(context)
@@ -96,15 +96,13 @@ class FormulaECachePreservationTest {
                     jsonComEtapas(15, horario = "19:30")
                 )
             )
-            val original = arquivo.readText()
-
-            assertFalse(
+            assertTrue(
                 FormulaECalendarJson.gravarCacheSeValido(
                     context,
                     jsonComEtapas(15, horario = "A confirmar")
                 )
             )
-            assertEquals(original, AtomicFile(arquivo).openRead().bufferedReader().use { it.readText() })
+            assertTrue(AtomicFile(arquivo).openRead().bufferedReader().use { it.readText() }.contains("\"horario\":\"A confirmar\""))
         } finally {
             limpar(context)
         }
