@@ -60,7 +60,8 @@ object FormulaECalendarJson {
 
         return try {
             interpretar(json).sortedBy { it.etapa }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("FormulaECalendarJson.carregar", e)
             emptyList()
         }
     }
@@ -96,7 +97,8 @@ object FormulaECalendarJson {
                     // Valida o calendário e preserva cache mais completo da mesma temporada.
                     gravou = gravarCacheSeValido(app, texto)
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("FormulaECalendarJson.atualizar", e)
                 // Sem internet, JSON inválido ou falha de gravação:
                 // mantém o cache anterior e o JSON do APK.
             } finally {
@@ -130,14 +132,16 @@ object FormulaECalendarJson {
                 val atomico = AtomicFile(arquivo)
                 val cacheAtual = try {
                     atomico.openRead().bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
                     null
                 }
 
                 if (cacheAtual != null) {
                     val eventosAtuais = try {
                         interpretar(cacheAtual)
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
                         null
                     }
                     if (eventosAtuais != null) {
@@ -177,7 +181,8 @@ object FormulaECalendarJson {
 
                 gravarCacheSeguro(context, texto)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
             false
         }
     }
@@ -205,11 +210,13 @@ object FormulaECalendarJson {
             saida = null
 
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("FormulaECalendarJson.gravarCacheSeguro", e)
             if (saida != null) {
                 try {
                     atomico.failWrite(saida)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("FormulaECalendarJson.gravarCacheSeguro", e)
                     // O AtomicFile tenta recuperar a versão anterior.
                 }
             }
@@ -248,7 +255,8 @@ object FormulaECalendarJson {
                         dataFim = fim.toString()
                     )
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("FormulaECalendarJson.comoEtapas", e)
                 // Ignora somente a etapa que não puder ser convertida.
             }
         }
@@ -268,7 +276,8 @@ object FormulaECalendarJson {
 
             interpretar(texto)
             texto
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("FormulaECalendarJson.lerCache", e)
             null
         }
     }
@@ -282,7 +291,8 @@ object FormulaECalendarJson {
 
             interpretar(texto)
             texto
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("FormulaECalendarJson.lerAsset", e)
             null
         }
     }

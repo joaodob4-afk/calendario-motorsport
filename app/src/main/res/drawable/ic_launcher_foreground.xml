@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bandeira quadriculada em verde neon (zona segura do ícone adaptativo: 66dp no centro) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#12330F"
+        android:pathData="M42,30h12v12h-12zM66,30h12v12h-12zM30,42h12v12h-12zM54,42h12v12h-12zM42,54h12v12h-12zM66,54h12v12h-12zM30,66h12v12h-12zM54,66h12v12h-12z" />
+    <path
+        android:fillColor="#39FF14"
+        android:pathData="M30,30h12v12h-12zM54,30h12v12h-12zM42,42h12v12h-12zM66,42h12v12h-12zM30,54h12v12h-12zM54,54h12v12h-12zM42,66h12v12h-12zM66,66h12v12h-12z" />
+    <path
+        android:pathData="M28,28h52v52h-52z"
+        android:strokeColor="#39FF14"
+        android:strokeWidth="2" />
+</vector>

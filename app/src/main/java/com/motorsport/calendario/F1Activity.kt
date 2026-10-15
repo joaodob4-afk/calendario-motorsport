@@ -70,7 +70,8 @@ class F1Activity : AppCompatActivity() {
                         )
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1Activity.onCreate", e)
                 runOnUiThread {
                     mostrarErro(
                         "Não foi possível carregar a programação. Verifique sua conexão."
@@ -215,7 +216,8 @@ class F1Activity : AppCompatActivity() {
                         ?.optString("circuitId", "")
                         ?.takeIf { it.isNotBlank() }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1Activity.buscarCorridaSelecionada", e)
                 null
             }
 
@@ -235,7 +237,8 @@ class F1Activity : AppCompatActivity() {
                         corridaEhProxima = false
                         return corridaCache
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F1Activity.buscarCorridaSelecionada", e)
                     // Cache inválido: tenta os outros caminhos.
                 }
             }
@@ -255,7 +258,8 @@ class F1Activity : AppCompatActivity() {
                     corridaEhProxima = false
                     return corridaRecebida
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1Activity.buscarCorridaSelecionada", e)
                 // Tenta a fonte online.
             }
         }
@@ -263,7 +267,8 @@ class F1Activity : AppCompatActivity() {
         if (!circuitId.isNullOrBlank()) {
             val selecionada = try {
                 buscarCorridaPorCircuito(circuitId)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1Activity.buscarCorridaSelecionada", e)
                 null
             }
 
@@ -322,7 +327,8 @@ class F1Activity : AppCompatActivity() {
 
             val dataCorrida = try {
                 LocalDate.parse(dataTexto)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F1Activity.buscarProximaCorrida", e)
                 continue
             }
 
@@ -348,7 +354,8 @@ class F1Activity : AppCompatActivity() {
             val instante = try {
                 OffsetDateTime.parse("${dataTexto}T${hora}")
                     .toInstant()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F1Activity.buscarProximaCorrida", e)
                 continue
             }
 
@@ -418,7 +425,8 @@ class F1Activity : AppCompatActivity() {
 
         val dataCorrida = try {
             LocalDate.parse(race.optString("date", ""))
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F1Activity.mostrarEvento", e)
             LocalDate.now(brasilia)
         }
 
@@ -570,7 +578,8 @@ class F1Activity : AppCompatActivity() {
 
             try {
                 datas.add(LocalDate.parse(dataTexto))
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F1Activity.adicionarFimDeSemana", e)
                 // Ignora datas ausentes ou inválidas.
             }
         }
@@ -647,7 +656,8 @@ class F1Activity : AppCompatActivity() {
 
             val data = try {
                 LocalDate.parse(dataTexto)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F1Activity.obterSessoes", e)
                 continue
             }
 
@@ -672,7 +682,8 @@ class F1Activity : AppCompatActivity() {
 
         val dataCorrida = try {
             LocalDate.parse(dataCorridaTexto)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F1Activity.obterSessoes", e)
             null
         }
 
@@ -706,10 +717,12 @@ class F1Activity : AppCompatActivity() {
         return try {
             OffsetDateTime.parse("${dataTexto}T${horaTexto}")
                 .atZoneSameInstant(brasilia)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F1Activity.converterHorario", e)
             try {
                 LocalDate.parse(dataTexto).atStartOfDay(brasilia)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F1Activity.converterHorario", e)
                 null
             }
         }
@@ -943,7 +956,8 @@ class F1Activity : AppCompatActivity() {
                                 )
                             }
                         }
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("F1Activity.mostrarErro", e)
                         runOnUiThread {
                             mostrarErro(
                                 "Falha na conexão. Tente novamente."

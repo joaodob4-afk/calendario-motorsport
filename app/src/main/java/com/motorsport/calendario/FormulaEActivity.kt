@@ -165,7 +165,8 @@ class FormulaEActivity : AppCompatActivity() {
     private fun lerData(texto: String): LocalDate? {
         return try {
             LocalDate.parse(texto, formatoData)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("FormulaEActivity.lerData", e)
             null
         }
     }
