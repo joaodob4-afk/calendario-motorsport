@@ -688,6 +688,22 @@ class MainActivity : AppCompatActivity() {
             else -> "FÓRMULA E"
         }
 
+        val rotuloTemporada = findViewById<TextView>(R.id.categorySeasonLabel)
+        val anosTemporada = todasEtapas
+            .filter { it.categoria == categoria }
+            .mapNotNull { parseDataSegura(it.dataInicio)?.year }
+            .distinct()
+            .sorted()
+        val temporadaTexto = when {
+            anosTemporada.isEmpty() -> java.time.LocalDate.now().year.toString()
+            anosTemporada.size == 1 -> anosTemporada.first().toString()
+            else -> anosTemporada.first().toString() + "/" +
+                anosTemporada.drop(1).joinToString("/") {
+                    (it % 100).toString().padStart(2, '0')
+                }
+        }
+        rotuloTemporada.text = "Temporada $temporadaTexto"
+
         // Todas as categorias usam a identidade visual padrão verde fluorescente.
         val corCategoria = android.graphics.Color.rgb(57, 255, 20)
 
