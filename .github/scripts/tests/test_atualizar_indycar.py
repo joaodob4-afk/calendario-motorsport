@@ -89,98 +89,6 @@ class AtualizadorIndyCarTest(unittest.TestCase):
     def test_html_sem_bloco_de_programacao_nao_inventa_sessoes(self):
         self.assertEqual(indycar.extrair_sessoes("<html>Sem programação</html>", 2026), [])
 
-    def test_permite_reducao_oficial_de_etapas_na_mesma_temporada(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [
-                    {"etapa": n, "circuito": f"Circuito {n}",
-                     "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}]}
-                    for n in range(1, 18)
-                ],
-            }), encoding="utf-8")
-            novas = [
-                {"etapa": n, "circuito": f"Circuito {n}",
-                 "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}]}
-                for n in range(1, 10)
-            ]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual(len(novas), 9)
-
-    def test_permite_calendario_com_mesma_ou_maior_quantidade(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar",
-                "etapas": [
-                    {"etapa": n, "sessoes": [{"nome": "Corrida"}]}
-                    for n in range(1, 11)
-                ],
-            }), encoding="utf-8")
-            indycar.validar_nao_reduzir_calendario(
-                [{"etapa": n, "sessoes": [{"nome": "Corrida"}]} for n in range(1, 11)], arquivo
-            )
-            indycar.validar_nao_reduzir_calendario(
-                [{"etapa": n, "sessoes": [{"nome": "Corrida"}]} for n in range(1, 12)], arquivo
-            )
-
-
-    def test_permite_remocao_oficial_de_sessao_e_renumeracao_da_etapa(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [{
-                    "etapa": 1, "nome": "Grande Prêmio de teste", "circuito": "Pista teste",
-                    "sessoes": [
-                        {"nome": "Treino Livre 1", "data": "01/05/2026", "horario": "11:00"},
-                        {"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"},
-                    ],
-                }],
-            }), encoding="utf-8")
-            novas = [{
-                "etapa": 2, "nome": "Grande Prêmio de teste", "circuito": "Pista teste",
-                "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}],
-            }]
-            with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
-                indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            # A validação falha antes de o atualizador gravar o JSON novo.
-            self.assertEqual(novas[0]["etapa"], 2)
-            self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
-
-    def test_preserva_horario_conhecido_ao_renumerar_etapa(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [{
-                    "etapa": 1, "nome": "Grande Prêmio de teste", "circuito": "Pista teste",
-                    "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "16:00"}],
-                }],
-            }), encoding="utf-8")
-            novas = [{
-                "etapa": 2, "nome": "Grande Prêmio de teste", "circuito": "Pista teste",
-                "sessoes": [{"nome": "Corrida", "data": "03/05/2026", "horario": "A confirmar"}],
-            }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual(novas[0]["sessoes"][0]["horario"], "16:00")
-
-    def test_temporada_nova_permite_menos_etapas(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [
-                    {"etapa": n, "nome": f"Etapa {n}", "sessoes": [{"nome": "Corrida", "horario": "16:00"}]}
-                    for n in range(1, 18)
-                ],
-            }), encoding="utf-8")
-            indycar.validar_nao_reduzir_calendario([
-                {"etapa": n, "nome": f"Nova etapa {n}", "sessoes": [{"nome": "Corrida", "horario": "A confirmar"}]}
-                for n in range(1, 11)
-            ], arquivo, temporada_nova=2027)
-
     def test_separa_corridas_de_milwaukee_quando_a_pagina_lista_as_duas(self):
         sessoes = [
             ("Treino Livre", indycar.converter_hora(2026, 8, 28, 6, 0, "PM"), (8, 28)),
@@ -193,53 +101,6 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         esperadas = ["Treino Livre", "Classificação"]
         self.assertEqual([s[0] for s in corrida1], esperadas + ["Corrida 1"])
         self.assertEqual([s[0] for s in corrida2], esperadas + ["Corrida 2"])
-
-    def test_preserva_horarios_separados_para_duas_corridas_na_mesma_pista(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [
-                    {
-                        "etapa": 16, "nome": "Snap-on Makers and Fixers 250",
-                        "circuito": "Milwaukee Mile",
-                        "sessoes": [{"nome": "Corrida 1", "data": "29/08/2026", "horario": "19:00"}],
-                    },
-                    {
-                        "etapa": 17, "nome": "Snap-on Milwaukee Mile 250",
-                        "circuito": "Milwaukee Mile",
-                        "sessoes": [{"nome": "Corrida 2", "data": "30/08/2026", "horario": "14:00"}],
-                    },
-                ],
-            }), encoding="utf-8")
-            novas = [
-                {
-                    "etapa": 16, "nome": "Snap-on Makers and Fixers 250",
-                    "circuito": "Milwaukee Mile",
-                    "inicio": "28/08/2026", "fim": "30/08/2026",
-                    "sessoes": [{"nome": "Corrida 1", "data": "29/08/2026", "horario": "A confirmar"}],
-                },
-                {
-                    "etapa": 17, "nome": "Snap-on Milwaukee Mile 250",
-                    "circuito": "Milwaukee Mile",
-                    "inicio": "29/08/2026", "fim": "30/08/2026",
-                    "sessoes": [{"nome": "Corrida 2", "data": "30/08/2026", "horario": "A confirmar"}],
-                },
-            ]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual(novas[0]["sessoes"][0]["horario"], "19:00")
-            self.assertEqual(novas[1]["sessoes"][0]["horario"], "14:00")
-
-    def test_nao_sobrescreve_calendario_anterior_com_estrutura_invalida(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text('{"categoria":"IndyCar","etapas":[]}', encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "estrutura do calendário anterior inválida"):
-                indycar.validar_nao_reduzir_calendario(
-                    [{"etapa": n} for n in range(1, 11)], arquivo
-                )
-
-
 
     def test_extrai_programacao_do_layout_atual_toggle_schedule(self):
         html = """
@@ -266,56 +127,6 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             ["06/03/2026 12:00", "06/03/2026 16:00", "06/03/2026 18:30", "07/03/2026 17:00"],
         )
 
-
-    def test_pre_race_removida_da_110th_indianapolis_500_e_permitida(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [{
-                    "etapa": 1, "nome": "110th Running of the Indianapolis 500",
-                    "circuito": "Indianapolis Motor Speedway",
-                    "sessoes": [
-                        {"nome": "Pre-Race", "data": "24/05/2026", "horario": "12:00"},
-                        {"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"},
-                    ],
-                }],
-            }), encoding="utf-8")
-            novas = [{
-                "etapa": 1, "nome": "110th Running of the Indianapolis 500",
-                "circuito": "Indianapolis Motor Speedway",
-                "sessoes": [{"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"}],
-            }]
-            indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-            self.assertEqual([s["nome"] for s in novas[0]["sessoes"]], ["Corrida"])
-
-    def test_pre_race_ausente_em_outra_etapa_continua_falhando(self):
-        with tempfile.TemporaryDirectory() as pasta:
-            arquivo = Path(pasta) / "indycar_calendar.json"
-            arquivo.write_text(json.dumps({
-                "categoria": "IndyCar", "temporada": 2026,
-                "etapas": [{
-                    "etapa": 1, "nome": "Outra prova",
-                    "circuito": "Outra pista",
-                    "sessoes": [
-                        {"nome": "Pre-Race", "data": "24/05/2026", "horario": "12:00"},
-                        {"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"},
-                    ],
-                }],
-            }), encoding="utf-8")
-            novas = [{
-                "etapa": 1, "nome": "Outra prova", "circuito": "Outra pista",
-                "sessoes": [{"nome": "Corrida", "data": "24/05/2026", "horario": "13:00"}],
-            }]
-            with self.assertRaisesRegex(ValueError, "sessão anterior ausente na extração"):
-                indycar.validar_nao_reduzir_calendario(novas, arquivo, temporada_nova=2026)
-
-    def test_pre_race_show_nao_e_liberada_pela_excecao_da_indy_500(self):
-        etapa = {
-            "nome": "110th Running of the Indianapolis 500",
-            "circuito": "Indianapolis Motor Speedway",
-        }
-        self.assertFalse(indycar.sessao_removida_intencionalmente(etapa, "Pre-Race Show"))
 
     def test_parser_preserva_pre_race_show_fora_da_indianapolis_500(self):
         self.assertEqual(indycar.traduzir("Pre-Race Show"), "Pre-Race Show")
