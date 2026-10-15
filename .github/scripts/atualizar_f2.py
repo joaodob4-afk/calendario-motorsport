@@ -8,7 +8,6 @@ import json
 import re
 import sys
 import urllib.request
-from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -34,8 +33,6 @@ CIRCUITOS = {
     "monza": ("Monza", "Itália", "Europe/Rome"),
     "madrid": ("Madrid", "Espanha", "Europe/Madrid"),
     "baku": ("Baku City Circuit", "Azerbaijão", "Asia/Baku"),
-    "istanbul": ("Istanbul Park", "Turquia", "Europe/Istanbul"),
-    "mexico-city": ("Cidade do México", "México", "America/Mexico_City"),
     "lusail": ("Lusail", "Catar", "Asia/Qatar"),
     "yas-marina": ("Yas Marina", "Emirados Árabes Unidos", "Asia/Dubai"),
 }
