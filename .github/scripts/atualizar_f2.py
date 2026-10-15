@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula2.com"
-TEMPORADA_ATUAL = 2026
+TEMPORADA_ATUAL = datetime.now().year
 SAIDA = Path("app/src/main/assets/f2_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -69,7 +69,8 @@ class LinksParser(HTMLParser):
                     self.links.add(m.group(1))
 
 
-def listar_slugs(html, temporada=2026):
+def listar_slugs(html, temporada=None):
+    temporada = temporada or TEMPORADA_ATUAL
     p = LinksParser(temporada)
     p.feed(html)
     return sorted(p.links)

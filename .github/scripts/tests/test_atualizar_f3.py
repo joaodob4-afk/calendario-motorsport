@@ -44,31 +44,34 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             ["Corrida Feature 1", "Corrida Feature 2"],
         )
 
-    def test_descobre_temporada_atual_2026(self):
-        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a><a href="/en/racing/2026/monza">Monza</a>'
-        with patch.object(f3, "baixar", return_value=html_2026):
+    def test_descobre_temporada_atual(self):
+        temporada_atual = f3.TEMPORADAS_PREFERIDAS[0]
+        html_atual = f'<a href="/en/racing/{temporada_atual}/melbourne">Melbourne</a><a href="/en/racing/{temporada_atual}/monza">Monza</a>'
+        with patch.object(f3, "baixar", return_value=html_atual):
             temporada, slugs = f3.descobrir_calendario()
-        self.assertEqual(temporada, 2026)
+        self.assertEqual(temporada, temporada_atual)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
     def test_descobre_temporada_atual_pela_rota_estavel_se_url_do_ano_falhar(self):
-        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a><a href="/en/racing/2026/monza">Monza</a>'
+        temporada_atual = f3.TEMPORADAS_PREFERIDAS[0]
+        html_atual = f'<a href="/en/racing/{temporada_atual}/melbourne">Melbourne</a><a href="/en/racing/{temporada_atual}/monza">Monza</a>'
         with patch.object(
             f3, "baixar",
-            side_effect=[RuntimeError("HTTP 500"), html_2026],
+            side_effect=[RuntimeError("HTTP 500"), html_atual],
         ):
             temporada, slugs = f3.descobrir_calendario()
-        self.assertEqual(temporada, 2026)
+        self.assertEqual(temporada, temporada_atual)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
-    def test_usa_rota_estavel_quando_pagina_de_2026_nao_tem_etapas(self):
-        html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
+    def test_usa_rota_estavel_quando_pagina_do_ano_nao_tem_etapas(self):
+        temporada_atual = f3.TEMPORADAS_PREFERIDAS[0]
+        html_atual = f'<a href="/en/racing/{temporada_atual}/melbourne">Melbourne</a>'
         with patch.object(
             f3, "baixar",
-            side_effect=["página sem etapas", html_2026],
+            side_effect=["página sem etapas", html_atual],
         ):
             temporada, slugs = f3.descobrir_calendario()
-        self.assertEqual(temporada, 2026)
+        self.assertEqual(temporada, temporada_atual)
         self.assertEqual(slugs, ["melbourne"])
 
     def test_aceita_etapa_com_duas_sessoes_publicadas(self):
