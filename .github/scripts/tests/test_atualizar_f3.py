@@ -88,6 +88,11 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(f3.CIRCUITOS["montreal"][0], "Montreal")
         self.assertEqual(f3.CIRCUITOS["istanbul"][0], "Istanbul Park")
 
+    def test_aceita_etapa_com_duas_sessoes_publicadas(self):
+        html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'
+        etapa = f3.montar_etapa("sakhir", html)
+        self.assertEqual([s["nome"] for s in etapa["sessoes"]], ["Treino Livre", "Corrida Feature"])
+
     def test_rejeita_duas_sessoes_no_mesmo_horario_exibido(self):
         from datetime import datetime, timezone
         instante = datetime(2026, 9, 11, 12, 0, tzinfo=timezone.utc)

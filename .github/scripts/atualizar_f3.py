@@ -193,9 +193,8 @@ def montar_etapa(slug, html):
     sessoes = traduzir_sessoes(sub_eventos(html))
     validar_horarios_exibidos(slug, sessoes)
 
-    nomes = [n for n, _ in sessoes]
-    if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
-        raise ValueError(f"{slug}: sessões incompletas {nomes}")
+    if not sessoes:
+        raise ValueError(f"{slug}: nenhuma sessão encontrada")
 
     local = ZoneInfo(fuso)
     fmt = "%d/%m/%Y"

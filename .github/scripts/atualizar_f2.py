@@ -261,9 +261,8 @@ def montar_etapa(slug, html):
         validar_horarios_exibidos(slug, sessoes)
         validar_sessoes_sem_conflito(slug, sessoes)
 
-    nomes = [n for n, _ in sessoes]
-    if len(sessoes) < 3 or not any(n.startswith("Corrida Feature") for n in nomes):
-        raise ValueError(f"{slug}: sessões incompletas {nomes}")
+    if not sessoes:
+        raise ValueError(f"{slug}: nenhuma sessão encontrada")
 
     fmt = "%d/%m/%Y"
     return {
