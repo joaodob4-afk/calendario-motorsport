@@ -14,7 +14,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 BASE = "https://www.fiaformula3.com"
-TEMPORADAS_PREFERIDAS = (2026,)
+TEMPORADAS_PREFERIDAS = (datetime.now().year,)
 SAIDA = Path("app/src/main/assets/f3_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
@@ -63,7 +63,8 @@ class LinksParser(HTMLParser):
                     self.links.add(m.group(1))
 
 
-def listar_slugs(html, temporada=2026):
+def listar_slugs(html, temporada=None):
+    temporada = temporada or TEMPORADAS_PREFERIDAS[0]
     p = LinksParser(temporada)
     p.feed(html)
     return sorted(p.links)
