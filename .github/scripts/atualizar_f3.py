@@ -217,82 +217,6 @@ def montar_etapa(slug, html):
 
 
 
-def preservar_sessoes_conhecidas(etapas_novas, arquivo=SAIDA, temporada_nova=2026):
-    """Preserva dados já conhecidos se a fonte devolver campos vazios/TBD na mesma temporada."""
-    arquivo = Path(arquivo)
-    if not arquivo.exists():
-        return etapas_novas
-
-    try:
-        anterior = json.loads(arquivo.read_text(encoding="utf-8"))
-        if (
-            not isinstance(anterior, dict)
-            or not isinstance(anterior.get("etapas"), list)
-            or not anterior["etapas"]
-            or any(
-                not isinstance(etapa, dict)
-                or not isinstance(etapa.get("sessoes"), list)
-                or not etapa.get("etapa")
-                for etapa in anterior["etapas"]
-            )
-        ):
-            raise ValueError("estrutura do calendário anterior inválida")
-    except (OSError, ValueError, AttributeError) as erro:
-        raise ValueError(
-            f"não foi possível validar o calendário anterior ({erro}). Nada foi alterado."
-        ) from erro
-
-    if str(anterior.get("temporada", "")).strip() != str(temporada_nova).strip():
-        return etapas_novas
-
-    # O circuito é mais estável que o número da etapa, que pode mudar após remoções.
-    novas_por_circuito = {
-        str(etapa.get("circuito", "")).strip().casefold(): etapa
-        for etapa in etapas_novas
-    }
-    antigas = anterior["etapas"]
-
-    def conhecido(valor):
-        normalizado = str(valor or "").strip().casefold()
-        return bool(normalizado) and normalizado not in {
-            "a confirmar", "tbd", "tba", "null", "none"
-        }
-
-    for etapa_atual in antigas:
-        circuito = str(etapa_atual.get("circuito", "")).strip().casefold()
-        etapa_nova = novas_por_circuito.get(circuito)
-        # Etapa ausente na fonte oficial não é recriada: pode ter sido cancelada.
-        if etapa_nova is None:
-            continue
-        for campo in ("inicio", "fim"):
-            valor_atual = etapa_atual.get(campo, "")
-            if conhecido(valor_atual) and not conhecido(etapa_nova.get(campo, "")):
-                etapa_nova[campo] = valor_atual
-
-        sessoes_novas = {
-            str(sessao.get("nome", "")).strip().casefold(): sessao
-            for sessao in etapa_nova.get("sessoes", [])
-            if isinstance(sessao, dict) and str(sessao.get("nome", "")).strip()
-        }
-
-        for sessao_atual in etapa_atual["sessoes"]:
-            if not isinstance(sessao_atual, dict):
-                raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
-            nome = str(sessao_atual.get("nome", "")).strip()
-            sessao_nova = sessoes_novas.get(nome.casefold())
-            # Sessões removidas/renomeadas oficialmente não devem ser ressuscitadas.
-            if sessao_nova is None:
-                continue
-
-            for campo in ("data", "horario"):
-                valor_atual = sessao_atual.get(campo, "")
-                valor_novo = sessao_nova.get(campo, "")
-                if conhecido(valor_atual) and not conhecido(valor_novo):
-                    sessao_nova[campo] = valor_atual
-
-    return etapas_novas
-
-
 def main():
     print("Consultando páginas oficiais da F3...")
     temporada, slugs = descobrir_calendario()
@@ -322,15 +246,6 @@ def main():
     ]
 
     novo = {"temporada": temporada, "categoria": "F3", "etapas": etapas}
-    try:
-        novo["etapas"] = preservar_sessoes_conhecidas(
-            novo["etapas"], temporada_nova=novo["temporada"]
-        )
-    except ValueError as e:
-        print("ERRO:", e)
-        print("Nada foi alterado.")
-        return 1
-
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:

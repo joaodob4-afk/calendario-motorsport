@@ -124,62 +124,6 @@ object F3CalendarJson {
         var saida: FileOutputStream? = null
 
         return try {
-            // Só compara calendários da mesma temporada: a quantidade de etapas
-            // pode mudar legitimamente quando uma nova temporada é publicada.
-            val temporadaNova = JSONObject(conteudo).optInt("temporada", 0)
-            if (temporadaNova > 0) {
-                val eventosAtuais = try {
-                    val textoAtual = cacheAtomico.openRead()
-                        .bufferedReader(Charsets.UTF_8)
-                        .use { it.readText() }
-                    val temporadaAtual = JSONObject(textoAtual)
-                        .optInt("temporada", 0)
-                    val atuais = interpretar(textoAtual)
-
-                    if (
-                        temporadaAtual == temporadaNova &&
-                        atuais.size >= MINIMO_ETAPAS_VALIDAS
-                    ) {
-                        atuais
-                    } else {
-                        null
-                    }
-                } catch (e: Exception) {
-                    registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
-                    null
-                }
-
-                // Na mesma temporada, compara por circuito (não pelo número da etapa).
-                // Etapas/sessões ausentes podem ter sido removidas ou renomeadas oficialmente;
-                // não as ressuscita. Só bloqueia a perda de um horário ainda representado
-                // pela mesma sessão, pois isso degradaria os detalhes offline.
-                if (eventosAtuais != null) {
-                    val novosPorCircuito = eventosNovos.associateBy {
-                        it.circuito.trim().lowercase()
-                    }
-                    for (atual in eventosAtuais) {
-                        val novo = novosPorCircuito[atual.circuito.trim().lowercase()]
-                            ?: continue
-                        val novasSessoes = novo.sessoes.associateBy {
-                            it.nome.trim().lowercase()
-                        }
-                        for (sessaoAtual in atual.sessoes) {
-                            val sessaoNova = novasSessoes[sessaoAtual.nome.trim().lowercase()]
-                                ?: continue
-                            val horarioAtual = sessaoAtual.horario.trim()
-                            val horarioNovo = sessaoNova.horario.trim()
-                            if (
-                                horarioAtual.isNotBlank() &&
-                                !horarioAtual.equals("A confirmar", ignoreCase = true) &&
-                                horarioNovo.equals("A confirmar", ignoreCase = true)
-                            ) {
-                                return false
-                            }
-                        }
-                    }
-                }
-            }
-
             saida = cacheAtomico.startWrite()
             saida.write(conteudo.toByteArray(Charsets.UTF_8))
             saida.flush()

@@ -303,112 +303,6 @@ def montar_etapa(cartao, html_evento):
     }
 
 
-def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
-    """Preserva dados conhecidos e bloqueia desaparecimento inesperado de sessões.
-
-    O circuito identifica a etapa mesmo quando o número muda. Se uma sessão
-    conhecida deixar de aparecer na extração, interrompe a atualização para
-    evitar apagar dados por falha parcial de leitura. Remoções oficiais precisam
-    ser verificadas antes de liberar uma nova atualização.
-    """
-    arquivo = Path(arquivo)
-    if not arquivo.exists():
-        return
-
-    try:
-        anterior = json.loads(arquivo.read_text(encoding="utf-8"))
-        if (
-            not isinstance(anterior, dict)
-            or not isinstance(anterior.get("etapas"), list)
-            or not anterior["etapas"]
-            or any(
-                not isinstance(etapa, dict)
-                or not isinstance(etapa.get("sessoes"), list)
-                or not etapa.get("etapa")
-                for etapa in anterior["etapas"]
-            )
-        ):
-            raise ValueError("estrutura do calendário anterior inválida")
-    except (OSError, json.JSONDecodeError, ValueError) as e:
-        raise ValueError(
-            f"não foi possível validar o calendário anterior ({e}). Nada foi alterado."
-        ) from e
-
-    temporada_atual = anterior.get("temporada")
-    if (
-        temporada_nova is not None
-        and temporada_atual is not None
-        and str(temporada_nova) != str(temporada_atual)
-    ):
-        return
-
-    # Algumas pistas recebem mais de uma corrida na mesma temporada
-    # (por exemplo, Milwaukee). Nesses casos, o circuito sozinho não
-    # identifica uma etapa; usamos também o nome oficial da prova.
-    contagem_circuitos = {}
-    for etapa in anterior["etapas"] + etapas_novas:
-        circuito = str(etapa.get("circuito", "")).strip().casefold()
-        if circuito:
-            contagem_circuitos[circuito] = contagem_circuitos.get(circuito, 0) + 1
-    circuitos_com_multiplas_etapas = {
-        circuito for circuito, quantidade in contagem_circuitos.items()
-        if quantidade > 2
-    }
-
-    def identidade(etapa):
-        circuito = str(etapa.get("circuito", "")).strip().casefold()
-        nome = str(etapa.get("nome", "")).strip().casefold()
-        if circuito and circuito in circuitos_com_multiplas_etapas and nome:
-            return ("circuito_nome", circuito, nome)
-        if circuito:
-            return ("circuito", circuito)
-        if nome:
-            return ("nome", nome)
-        return ("etapa", str(etapa.get("etapa", "")))
-
-    def conhecido(valor):
-        normalizado = str(valor or "").strip().casefold()
-        return bool(normalizado) and normalizado not in {
-            "a confirmar", "tbd", "tba", "null", "none"
-        }
-
-    novas_por_identidade = {identidade(etapa): etapa for etapa in etapas_novas}
-    for etapa_atual in anterior["etapas"]:
-        etapa_nova = novas_por_identidade.get(identidade(etapa_atual))
-        # Etapas removidas/renomeadas oficialmente não devem ser recriadas.
-        if etapa_nova is None:
-            continue
-
-        for campo in ("inicio", "fim"):
-            valor_atual = etapa_atual.get(campo, "")
-            if conhecido(valor_atual) and not conhecido(etapa_nova.get(campo, "")):
-                etapa_nova[campo] = valor_atual
-
-        sessoes_novas = {
-            str(sessao.get("nome", "")).strip().casefold(): sessao
-            for sessao in etapa_nova.get("sessoes", [])
-            if isinstance(sessao, dict) and str(sessao.get("nome", "")).strip()
-        }
-        for sessao_atual in etapa_atual["sessoes"]:
-            if not isinstance(sessao_atual, dict):
-                raise ValueError("estrutura de sessão anterior inválida. Nada foi alterado.")
-            nome_sessao = str(sessao_atual.get("nome", "")).strip()
-            sessao_nova = sessoes_novas.get(nome_sessao.casefold())
-            # Uma sessão anterior ausente pode indicar extração incompleta.
-            # Não publica um calendário que a apagaria silenciosamente.
-            if sessao_nova is None:
-                raise ValueError(
-                    f"etapa {etapa_atual.get('nome', identidade(etapa_atual))}: "
-                    f"sessão anterior ausente na extração ({nome_sessao}). "
-                    "Nada foi alterado; confira a fonte oficial antes de atualizar."
-                )
-
-            for campo in ("data", "horario"):
-                valor_atual = sessao_atual.get(campo, "")
-                if conhecido(valor_atual) and not conhecido(sessao_nova.get(campo, "")):
-                    sessao_nova[campo] = valor_atual
-
-
 def main():
     print("Consultando páginas oficiais da IndyCar...")
     try:
@@ -443,12 +337,6 @@ def main():
     ano = next(iter(cartoes.values()))["ano"]
     novo = {"temporada": ano, "categoria": "IndyCar", "etapas": saida}
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
-
-    try:
-        validar_nao_reduzir_calendario(saida, temporada_nova=ano)
-    except ValueError as e:
-        print("ERRO:", e)
-        return 1
 
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
         print("Sem mudanças no calendário.")
