@@ -40,6 +40,18 @@ def validar_cartoes_fonte(cartoes):
     return cartoes
 
 
+
+def selecionar_ano_temporada(anos_publicados, ano_atual=None):
+    """Usa apenas a temporada do ano atual; não antecipa calendário futuro."""
+    if ano_atual is None:
+        ano_atual = datetime.now().year
+    if ano_atual not in anos_publicados:
+        raise ValueError(
+            f"Nenhum cartão da temporada atual ({ano_atual}) encontrado"
+        )
+    return ano_atual
+
+
 def baixar(url):
     ultimo = None
     for tentativa in range(3):
@@ -73,7 +85,8 @@ def extrair_cartoes(html):
     if not achados:
         raise ValueError("Nenhum cartão de etapa encontrado")
 
-    ano = max(int(m.group(2)) for m in achados)
+    anos_publicados = {int(m.group(2)) for m in achados}
+    ano = selecionar_ano_temporada(anos_publicados)
     cartoes = {}
 
     for i, m in enumerate(achados):
