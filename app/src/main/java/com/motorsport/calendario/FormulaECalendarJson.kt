@@ -55,7 +55,7 @@ object FormulaECalendarJson {
      * cache válido > JSON embutido no APK > lista vazia.
      */
     fun carregar(context: Context): List<FormulaEEvent> {
-        val json = lerCache(context) ?: lerAsset(context)
+        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
             ?: return emptyList()
 
         return try {
