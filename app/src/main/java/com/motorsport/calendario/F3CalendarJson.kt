@@ -42,7 +42,7 @@ object F3CalendarJson {
             return eventosJson.sortedBy { it.etapa }
         }
 
-        return F3Calendar.eventos.sortedBy { it.etapa }
+        return emptyList()
     }
 
     fun atualizar(
@@ -85,7 +85,7 @@ object F3CalendarJson {
             } catch (e: Exception) {
                 registrarFalha("F3CalendarJson.atualizar", e)
                 // Falha de rede ou dados inválidos:
-                // mantém o cache anterior e o calendário local.
+                // mantém o cache anterior e os dados do asset.
             } finally {
                 try {
                     conexao?.disconnect()
