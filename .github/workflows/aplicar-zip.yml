@@ -1,0 +1,40 @@
+name: Aplicar zip de mudanças
+
+on:
+  workflow_dispatch:
+    inputs:
+      arquivo:
+        description: 'Nome do zip que está na raiz do repositório'
+        required: true
+        default: 'testes.zip'
+      branch:
+        description: 'Branch que será criado com as mudanças'
+        required: true
+        default: 'testes'
+
+permissions:
+  contents: write
+
+jobs:
+  aplicar:
+    runs-on: ubuntu-latest
+    env:
+      ZIP: ${{ inputs.arquivo }}
+      BRANCH: ${{ inputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extrair o zip por cima do projeto
+        run: |
+          test -f "$ZIP" || { echo "ERRO: $ZIP não está na raiz do repositório."; exit 1; }
+          unzip -o "$ZIP"
+          rm "$ZIP"
+
+      - name: Criar o branch e enviar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "Aplicar mudanças de $ZIP"
+          git push origin "$BRANCH"
