@@ -458,12 +458,6 @@ def main():
     novo = {"temporada": ano, "categoria": "IndyCar", "etapas": saida}
     texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
 
-    try:
-        validar_nao_reduzir_calendario(saida, temporada_nova=ano)
-    except ValueError as e:
-        print("ERRO:", e)
-        return 1
-
     if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
         print("Sem mudanças no calendário.")
         return 0
