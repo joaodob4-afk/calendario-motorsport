@@ -1,0 +1,25 @@
+# Gradle e builds
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Configuração local (caminhos do SDK, chaves)
+local.properties
+*.jks
+*.keystore
+
+# Android Studio / IDEs
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Pacotes gerados
+*.apk
+*.aab
+
+# Python (scripts de atualização)
+__pycache__/
+*.pyc
