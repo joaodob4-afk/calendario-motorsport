@@ -291,7 +291,7 @@ fun sessaoRemovidaNaMesmaTemporadaPermiteAtualizacaoOficial() {
 }
 
 @Test
-fun horarioConhecidoEhPreservadoQuandoFonteRetornaAConfirmar() {
+fun refleteHorarioAtualQuandoFonteRetornaAConfirmar() {
     val context = RuntimeEnvironment.getApplication()
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
@@ -307,7 +307,7 @@ fun horarioConhecidoEhPreservadoQuandoFonteRetornaAConfirmar() {
         )
 
         val eventos = IndyCarCalendarJson.carregar(context)
-        assertEquals("12:30", eventos.first().sessoes.first { it.nome == "Corrida" }.horario)
+        assertEquals("A confirmar", eventos.first().sessoes.first { it.nome == "Corrida" }.horario)
     } finally {
         arquivoCache.delete()
         arquivoBackup.delete()
@@ -355,7 +355,7 @@ fun calendarioMenorNaMesmaTemporadaPermiteRemocaoOficialDeEtapas() {
 }
 
 @Test
-fun preservaHorariosIndependentesNasDuasCorridasDeMilwaukee() {
+fun refleteHorariosPublicadosNasDuasCorridasDeMilwaukee() {
     val context = RuntimeEnvironment.getApplication()
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
@@ -373,12 +373,12 @@ fun preservaHorariosIndependentesNasDuasCorridasDeMilwaukee() {
         val eventos = IndyCarCalendarJson.carregar(context)
         assertEquals(2, eventos.size)
         assertEquals(
-            "19:00",
+            "A confirmar",
             eventos.first { it.nome == "Snap-on Makers and Fixers 250" }
                 .sessoes.first { it.nome == "Corrida 1" }.horario
         )
         assertEquals(
-            "14:00",
+            "A confirmar",
             eventos.first { it.nome == "Snap-on Milwaukee Mile 250" }
                 .sessoes.first { it.nome == "Corrida 2" }.horario
         )
