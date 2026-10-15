@@ -303,6 +303,18 @@ def montar_etapa(cartao, html_evento):
     }
 
 
+def sessao_removida_intencionalmente(etapa, nome_sessao):
+    """Permite remover Pre-Race somente da 110th Indianapolis 500."""
+    titulo = str(etapa.get("nome", "")).strip().casefold()
+    circuito = str(etapa.get("circuito", "")).strip().casefold()
+    sessao = str(nome_sessao or "").strip().casefold()
+    return (
+        titulo == "110th running of the indianapolis 500"
+        and circuito == "indianapolis motor speedway"
+        and sessao == "pre-race"
+    )
+
+
 def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=None):
     """Preserva dados conhecidos e bloqueia desaparecimento inesperado de sessões.
 
@@ -397,6 +409,8 @@ def validar_nao_reduzir_calendario(etapas_novas, arquivo=SAIDA, temporada_nova=N
             # Uma sessão anterior ausente pode indicar extração incompleta.
             # Não publica um calendário que a apagaria silenciosamente.
             if sessao_nova is None:
+                if sessao_removida_intencionalmente(etapa_atual, nome_sessao):
+                    continue
                 raise ValueError(
                     f"etapa {etapa_atual.get('nome', identidade(etapa_atual))}: "
                     f"sessão anterior ausente na extração ({nome_sessao}). "
