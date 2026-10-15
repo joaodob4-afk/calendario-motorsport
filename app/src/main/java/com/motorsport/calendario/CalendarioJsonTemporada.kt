@@ -5,7 +5,7 @@ package com.motorsport.calendario
  * Se o cache for da mesma temporada ou de uma mais nova, ele continua sendo priorizado.
  */
 internal object CalendarioJsonTemporada {
-    private val anoNoJson = Regex("\\\"temporada\\\"\\s*:\\s*\\\"?(\\d{4})")
+    private val anoNoJson = Regex("\"temporada\"\\s*:\\s*\"?(\\d{4})")
 
     fun selecionar(cache: String?, asset: String?): String? {
         if (cache.isNullOrBlank()) return asset
