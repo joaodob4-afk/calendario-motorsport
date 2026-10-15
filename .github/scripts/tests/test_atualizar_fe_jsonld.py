@@ -10,6 +10,14 @@ SPEC.loader.exec_module(fe)
 
 
 class DescobertaItemListJsonLdTest(unittest.TestCase):
+    def test_rotulo_temporada_dinamico(self):
+        rodadas = [{"data": fe.date(2026, 12, 18)}, {"data": fe.date(2027, 1, 16)}]
+        self.assertEqual(fe.rotulo_temporada(rodadas), "2026/27")
+
+    def test_rotulo_temporada_em_ano_unico(self):
+        rodadas = [{"data": fe.date(2028, 1, 10)}, {"data": fe.date(2028, 2, 10)}]
+        self.assertEqual(fe.rotulo_temporada(rodadas), "2028")
+
     def test_item_list_em_objeto_raiz(self):
         html = '<script type="application/ld+json">{"itemListElement":[{"item":{"name":"R1 Sao Paulo E-Prix","startDate":"2027-01-01"}}]}</script>'
         self.assertEqual(len(fe.lista_do_calendario(html)["itemListElement"]), 1)
