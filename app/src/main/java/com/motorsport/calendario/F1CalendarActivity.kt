@@ -484,7 +484,8 @@ class F1CalendarActivity : AppCompatActivity() {
                 formato
             )
 
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
 
             if (data.isNotEmpty()) {
 
@@ -501,7 +502,8 @@ class F1CalendarActivity : AppCompatActivity() {
 
                     dataFormatada
 
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
 
                     data
                 }
@@ -613,7 +615,8 @@ class F1CalendarActivity : AppCompatActivity() {
                 if (corridasCache.length() >= 5) {
                     return corridasCache
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1CalendarActivity.buscarCorridasF1", e)
                 // Cache ausente/corrompido: tenta a rede abaixo.
             }
         }
@@ -656,7 +659,8 @@ class F1CalendarActivity : AppCompatActivity() {
             // detalhada; não substituímos esse cache com a resposta básica desta tela.
 
             return corridas
-        } catch (erro: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarActivity.buscarCorridasF1", e)
             // Se não houver cache nem internet, usa o calendário fixo
             // incluído no app para que a primeira abertura também funcione offline.
             return criarCalendarioReserva()

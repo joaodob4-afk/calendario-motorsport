@@ -112,7 +112,8 @@ object F1CalendarApi {
             } else {
                 lista
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.carregarCache", e)
             null
         }
     }
@@ -145,7 +146,8 @@ object F1CalendarApi {
                 }
             }
             null
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.corridaJsonDoCache", e)
             null
         }
     }
@@ -168,7 +170,8 @@ object F1CalendarApi {
                         "https://api.jolpi.ca/f1/alpha/schedules/$ano/"
                     )
                     normalizarProgramacaoDetalhada(detalhado)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F1CalendarApi.atualizar", e)
                     null
                 }
                 if (normalizado != null &&
@@ -187,7 +190,8 @@ object F1CalendarApi {
                         gravou = gravarCacheSeguro(app.filesDir, basico)
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1CalendarApi.atualizar", e)
                 // Sem internet ou resposta inválida: preserva o cache anterior.
             }
 
@@ -195,7 +199,8 @@ object F1CalendarApi {
                 Handler(Looper.getMainLooper()).post {
                     try {
                         aoTerminar()
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("F1CalendarApi.atualizar", e)
                         // A atualização do cache já foi concluída.
                     }
                 }
@@ -226,7 +231,8 @@ object F1CalendarApi {
                 }
             }
             false
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.cacheDaTemporadaTemSessoes", e)
             false
         }
     }
@@ -276,10 +282,12 @@ object F1CalendarApi {
                     val instante = try {
                         java.time.OffsetDateTime.parse(timestamp)
                             .withOffsetSameInstant(java.time.ZoneOffset.UTC)
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
                         try {
                             java.time.Instant.parse(timestamp).atOffset(java.time.ZoneOffset.UTC)
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
                             continue
                         }
                     }
@@ -311,9 +319,10 @@ object F1CalendarApi {
                             java.time.OffsetDateTime.parse(timestamp)
                                 .withOffsetSameInstant(java.time.ZoneOffset.UTC)
                                 .toLocalDate().toString()
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
                             try { java.time.Instant.parse(timestamp).toString().substring(0, 10) }
-                            catch (_: Exception) { "" }
+                            catch (e: Exception) { registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e); "" }
                         }
                     }
                 }
@@ -346,7 +355,8 @@ object F1CalendarApi {
                     .put("season", raiz.optInt("year", java.time.LocalDate.now().year).toString())
                     .put("Races", corridas)))
                 .toString()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.normalizarProgramacaoDetalhada", e)
             null
         }
     }
@@ -365,7 +375,8 @@ object F1CalendarApi {
                 return false
             }
             gravarCacheSeguro(context.applicationContext.filesDir, json)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.salvarCalendarioCompleto", e)
             false
         }
     }
@@ -422,10 +433,12 @@ object F1CalendarApi {
             val substituiu = temporario.renameTo(destino)
             if (!substituiu) temporario.delete()
             substituiu
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.gravarCacheSeguro", e)
             try {
                 temporario.delete()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F1CalendarApi.gravarCacheSeguro", e)
                 // A limpeza não deve afetar o aplicativo.
             }
             false
@@ -499,7 +512,8 @@ object F1CalendarApi {
                 }
             }
             raizNova.toString()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.conhecido", e)
             // Se não for possível ler o cache antigo, não bloqueia a fonte nova.
             novoTexto
         }
@@ -524,7 +538,8 @@ object F1CalendarApi {
 
                 val fim = try {
                     LocalDate.parse(corrida.getString("date"))
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarDescarte("F1CalendarApi.interpretar", e)
                     continue
                 }
 
@@ -539,7 +554,8 @@ object F1CalendarApi {
 
                     val data = try {
                         LocalDate.parse(texto)
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarDescarte("F1CalendarApi.interpretar", e)
                         continue
                     }
 
@@ -576,7 +592,8 @@ object F1CalendarApi {
             }
 
             lista.sortedBy { it.dataInicio }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F1CalendarApi.interpretar", e)
             emptyList()
         }
     }

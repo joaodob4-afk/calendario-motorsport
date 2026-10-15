@@ -78,13 +78,15 @@ object F3CalendarJson {
                         gravou = gravarCacheSeguro(app, texto)
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F3CalendarJson.atualizar", e)
                 // Falha de rede ou dados inválidos:
                 // mantém o cache anterior e o calendário local.
             } finally {
                 try {
                     conexao?.disconnect()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F3CalendarJson.atualizar", e)
                     // Não deixa uma falha ao fechar afetar o aplicativo.
                 }
             }
@@ -93,7 +95,8 @@ object F3CalendarJson {
                 Handler(Looper.getMainLooper()).post {
                     try {
                         aoTerminar()
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("F3CalendarJson.atualizar", e)
                         // A gravação do cache já foi concluída.
                     }
                 }
@@ -141,7 +144,8 @@ object F3CalendarJson {
                     } else {
                         null
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
                     null
                 }
 
@@ -189,12 +193,14 @@ object F3CalendarJson {
                 .use { it.readText() }
 
             interpretar(verificado).size >= MINIMO_ETAPAS_VALIDAS
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
             try {
                 if (saida != null) {
                     cacheAtomico.failWrite(saida)
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
                 // A falha na recuperação não deve fechar o aplicativo.
             }
 
@@ -223,7 +229,8 @@ object F3CalendarJson {
                         dataFim = fim.toString()
                     )
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F3CalendarJson.comoEtapas", e)
                 // Ignora somente etapas com datas inválidas.
             }
         }
@@ -249,7 +256,8 @@ object F3CalendarJson {
             } else {
                 null
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F3CalendarJson.lerCache", e)
             null
         }
     }
@@ -262,7 +270,8 @@ object F3CalendarJson {
                 .use { it.readText() }
 
             if (interpretar(texto).isNotEmpty()) texto else null
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F3CalendarJson.lerAsset", e)
             null
         }
     }
@@ -356,7 +365,8 @@ object F3CalendarJson {
             }
 
             eventos.sortedBy { it.etapa }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F3CalendarJson.interpretar", e)
             emptyList()
         }
     }

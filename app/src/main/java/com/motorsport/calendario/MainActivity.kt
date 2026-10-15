@@ -14,10 +14,6 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
@@ -130,7 +126,8 @@ class MainActivity : AppCompatActivity() {
         if (data.isNullOrBlank()) return null
         return try {
             java.time.LocalDate.parse(data)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("MainActivity.parseDataSegura", e)
             null
         }
     }
@@ -246,7 +243,8 @@ class MainActivity : AppCompatActivity() {
         return try {
             val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
             if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("MainActivity.fimDaEtapa", e)
             inicio.plusDays(2)
         }
     }
@@ -726,34 +724,6 @@ class MainActivity : AppCompatActivity() {
         return resources.getIdentifier(arquivo, "drawable", packageName)
     }
 
-    private fun bandeiraPais(pais: String): String {
-        return when (pais) {
-            "Austrália" -> "🇦🇺"
-            "Japão" -> "🇯🇵"
-            "Bahrein" -> "🇧🇭"
-            "Arábia Saudita" -> "🇸🇦"
-            "Estados Unidos" -> "🇺🇸"
-            "Canadá" -> "🇨🇦"
-            "Mônaco" -> "🇲🇨"
-            "Espanha" -> "🇪🇸"
-            "Áustria" -> "🇦🇹"
-            "Reino Unido" -> "🇬🇧"
-            "Bélgica" -> "🇧🇪"
-            "Hungria" -> "🇭🇺"
-            "Holanda" -> "🇳🇱"
-            "Itália" -> "🇮🇹"
-            "Azerbaijão" -> "🇦🇿"
-            "Singapura" -> "🇸🇬"
-            "México" -> "🇲🇽"
-            "Brasil" -> "🇧🇷"
-            "Catar" -> "🇶🇦"
-            "China" -> "🇨🇳"
-            "Alemanha" -> "🇩🇪"
-            "Abu Dhabi", "Emirados Árabes Unidos" -> "🇦🇪"
-            else -> "🌐"
-        }
-    }
-
     private fun abrirCategoria(categoria: String) {
         categoriaAtual = categoria
 
@@ -851,173 +821,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun definirCartaoProximo(
-        evento: TextView,
-        rotulo: String,
-        titulo: String,
-        detalhe: String,
-        linhas: List<String>,
-        rodape: String
-    ) {
-        val verde = android.graphics.Color.rgb(57, 255, 20)
-        val branco = android.graphics.Color.WHITE
-        val cinza = android.graphics.Color.rgb(175, 175, 175)
-
-        val texto = android.text.SpannableStringBuilder()
-
-        fun linha(conteudo: String, cor: Int, escala: Float, negrito: Boolean) {
-            val inicio = texto.length
-            texto.append(conteudo)
-            val fim = texto.length
-
-            texto.setSpan(android.text.style.ForegroundColorSpan(cor), inicio, fim, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            texto.setSpan(android.text.style.RelativeSizeSpan(escala), inicio, fim, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-            if (negrito) {
-                texto.setSpan(
-                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                    inicio,
-                    fim,
-                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-            }
-
-            texto.append("\n")
-        }
-
-        fun espaco() {
-            val inicio = texto.length
-            texto.append("\n")
-            texto.setSpan(
-                android.text.style.RelativeSizeSpan(0.5f),
-                inicio,
-                texto.length,
-                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        }
-
-        linha(rotulo, verde, 0.72f, true)
-        linha(titulo, branco, 1.3f, true)
-
-        if (detalhe.isNotBlank()) {
-            for (parte in detalhe.split("\n")) {
-                if (parte.isNotBlank()) {
-                    linha(parte, cinza, 0.85f, false)
-                }
-            }
-        }
-
-        if (linhas.isNotEmpty()) {
-            espaco()
-            for (item in linhas) {
-                linha(item, branco, 0.9f, false)
-            }
-        }
-
-        espaco()
-        linha(rodape, verde, 0.72f, true)
-        texto.delete(texto.length - 1, texto.length)
-
-        evento.text = texto
-    }
-
-    private fun rotuloEtapa(numero: Int, inicio: String): String {
-        return try {
-            val data = java.time.LocalDate.parse(
-                inicio,
-                DateTimeFormatter.ofPattern("dd/MM/yyyy")
-            )
-
-            if (!data.isAfter(java.time.LocalDate.now())) {
-                "EM ANDAMENTO  •  ETAPA $numero"
-            } else {
-                "ETAPA $numero"
-            }
-        } catch (_: Exception) {
-            "ETAPA $numero"
-        }
-    }
-
-    private fun periodoDatas(inicio: String, fim: String): String {
-        return if (inicio == fim) inicio else "$inicio até $fim"
-    }
-
-    private fun carregarF1(evento: TextView) {
-        Thread {
-            try {
-                val races = buscarCorridasF1()
-                val agora = java.time.Instant.now()
-
-                var proximaCorrida: JSONObject? = null
-                var proximaData: OffsetDateTime? = null
-
-                for (i in 0 until races.length()) {
-                    val race = races.getJSONObject(i)
-                    val data = race.getString("date")
-                    val hora = race.optString("time", "00:00:00Z")
-
-                    val horario = OffsetDateTime.parse("${data}T${hora}")
-                    if (horario.toInstant().isAfter(agora)) {
-                        proximaCorrida = race
-                        proximaData = horario
-                        break
-                    }
-                }
-
-                if (proximaCorrida == null) {
-                    runOnUiThread { evento.text = "Nenhuma corrida futura encontrada." }
-                    return@Thread
-                }
-
-                val brasilia = ZoneId.of("America/Sao_Paulo")
-                val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm")
-                val horarioBrasilia = proximaData!!.atZoneSameInstant(brasilia)
-                val nome = proximaCorrida!!.getString("raceName")
-                val dataCorrida = horarioBrasilia.format(formato)
-
-                val qualificacao = proximaCorrida!!.optJSONObject("Qualifying")
-                var textoQualificacao = ""
-
-                if (qualificacao != null) {
-                    val dataQualificacao = qualificacao.getString("date")
-                    val horaQualificacao = qualificacao.getString("time")
-                    val horarioQualificacao = OffsetDateTime.parse("${dataQualificacao}T${horaQualificacao}")
-                    val horarioBrasiliaQualificacao = horarioQualificacao.atZoneSameInstant(brasilia)
-                    textoQualificacao = "🔵 Classificação  ${horarioBrasiliaQualificacao.format(formato)}"
-                }
-
-                val nomeCircuito = proximaCorrida!!.optJSONObject("Circuit")?.optString("circuitName", "") ?: ""
-
-                val linhasF1 = mutableListOf<String>()
-                if (textoQualificacao.isNotBlank()) {
-                    linhasF1.add(textoQualificacao)
-                }
-                linhasF1.add("🔴 Corrida  $dataCorrida")
-
-                runOnUiThread {
-                    definirCartaoProximo(
-                        evento,
-                        "PRÓXIMA CORRIDA",
-                        nome,
-                        nomeCircuito,
-                        linhasF1,
-                        "TOQUE PARA VER OS DETALHES  ›"
-                    )
-                }
-
-            } catch (e: Exception) {
-                runOnUiThread {
-                    evento.text = "Erro ao carregar calendário.\n\nErro: ${e.javaClass.simpleName}"
-                }
-            }
-        }.start()
-    }
-
-    private fun abrirEventoF1() {
-        startActivity(Intent(this, F1Activity::class.java))
-        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-    }
-
     private fun abrirEventoF1PelaEtapa(etapa: Etapa) {
         val dataCorrida = fimDaEtapa(etapa).toString()
         val localizacao = JSONObject().apply {
@@ -1041,53 +844,6 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("RACE", corrida.toString())
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-    }
-
-    private fun carregarF2(evento: TextView) {
-        val hoje = java.time.LocalDate.now()
-        var proximo: F2Event? = null
-
-        for (item in F2CalendarJson.carregar(this)) {
-            val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            if (!fim.isBefore(hoje)) {
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) {
-            evento.text = "Temporada encerrada"
-            return
-        }
-
-        val autodromo = Autodromos.nome(proximo.circuito)
-        definirCartaoProximo(
-            evento,
-            rotuloEtapa(proximo.etapa, proximo.inicio),
-            proximo.circuito,
-            listOf(
-                if (autodromo.equals(proximo.circuito, ignoreCase = true)) "" else autodromo,
-                "${bandeiraPais(proximo.pais)} ${proximo.pais}"
-            ).filter { it.isNotBlank() }.joinToString("\n"),
-            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
-            "TOQUE PARA VER OS DETALHES  ›"
-        )
-    }
-
-    private fun abrirEventoF2() {
-        val hoje = java.time.LocalDate.now()
-        var proximo: F2Event? = null
-
-        for (item in F2CalendarJson.carregar(this)) {
-            val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            if (!fim.isBefore(hoje)) {
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) return
-        abrirEventoF2Item(proximo)
     }
 
     private fun abrirEventoF2PelaEtapa(etapa: Etapa) {
@@ -1114,53 +870,6 @@ class MainActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
-    private fun carregarF3(evento: TextView) {
-        val hoje = java.time.LocalDate.now()
-        var proximo: F3Event? = null
-
-        for (item in F3CalendarJson.carregar(this)) {
-            val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            if (!fim.isBefore(hoje)) {
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) {
-            evento.text = "Temporada encerrada"
-            return
-        }
-
-        val autodromo = Autodromos.nome(proximo.circuito)
-        definirCartaoProximo(
-            evento,
-            rotuloEtapa(proximo.etapa, proximo.inicio),
-            proximo.circuito,
-            listOf(
-                if (autodromo.equals(proximo.circuito, ignoreCase = true)) "" else autodromo,
-                "${bandeiraPais(proximo.pais)} ${proximo.pais}"
-            ).filter { it.isNotBlank() }.joinToString("\n"),
-            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
-            "TOQUE PARA VER OS DETALHES  ›"
-        )
-    }
-
-    private fun abrirEventoF3() {
-        val hoje = java.time.LocalDate.now()
-        var proximo: F3Event? = null
-
-        for (item in F3CalendarJson.carregar(this)) {
-            val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-            if (!fim.isBefore(hoje)) {
-                proximo = item
-                break
-            }
-        }
-
-        if (proximo == null) return
-        abrirEventoF3Item(proximo)
-    }
-
     private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
         var encontrado: F3Event? = null
 
@@ -1183,50 +892,6 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("ETAPA", evento.etapa)
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-    }
-
-    private fun proximoEventoFormulaE(): FormulaEEvent? {
-        val hoje = java.time.LocalDate.now()
-
-        for (item in FormulaECalendarJson.carregar(this)) {
-            try {
-                val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                if (!fim.isBefore(hoje)) {
-                    return item
-                }
-            } catch (_: Exception) {
-                // Ignora etapa com data inválida.
-            }
-        }
-
-        return null
-    }
-
-    private fun carregarFormulaE(evento: TextView) {
-        if (FormulaECalendarJson.carregar(this).isEmpty()) {
-            evento.text = "Calendário da Fórmula E\n\nAinda não foi carregado.\nAbra o app com internet."
-            return
-        }
-
-        val proximo = proximoEventoFormulaE()
-        if (proximo == null) {
-            evento.text = "Temporada encerrada"
-            return
-        }
-
-        definirCartaoProximo(
-            evento,
-            rotuloEtapa(proximo.etapa, proximo.inicio),
-            "${proximo.circuito} E-Prix",
-            "${bandeiraPais(proximo.pais)} ${proximo.pais}",
-            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
-            "TOQUE PARA VER OS DETALHES  ›"
-        )
-    }
-
-    private fun abrirEventoFormulaE() {
-        val proximo = proximoEventoFormulaE() ?: return
-        abrirEventoFormulaEItem(proximo)
     }
 
     private fun abrirEventoFormulaEPelaEtapa(etapa: Etapa) {
@@ -1256,59 +921,6 @@ class MainActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
-    private fun proximoEventoIndyCar(): IndyCarEvent? {
-        val hoje = java.time.LocalDate.now()
-
-        for (item in IndyCarCalendarJson.carregar(this)) {
-            try {
-                val fim = java.time.LocalDate.parse(item.fim, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                if (!fim.isBefore(hoje)) {
-                    return item
-                }
-            } catch (_: Exception) {
-                // Ignora etapa com data inválida.
-            }
-        }
-
-        return null
-    }
-
-    private fun carregarIndyCar(evento: TextView) {
-        if (IndyCarCalendarJson.carregar(this).isEmpty()) {
-            evento.text = "Calendário da IndyCar\n\nAinda não foi carregado.\nAbra o app com internet."
-            return
-        }
-
-        val proximo = proximoEventoIndyCar()
-        if (proximo == null) {
-            evento.text = "Temporada encerrada\n\nTOQUE EM CALENDÁRIO PARA VER AS CORRIDAS"
-            return
-        }
-
-        val localTexto = if (proximo.local.isNotBlank()) proximo.local else proximo.pais
-
-        definirCartaoProximo(
-            evento,
-            rotuloEtapa(proximo.etapa, proximo.inicio),
-            proximo.nome,
-            proximo.circuito + "\n${bandeiraPais(proximo.pais)} $localTexto",
-            listOf("📅 " + periodoDatas(proximo.inicio, proximo.fim)),
-            "TOQUE PARA VER OS DETALHES  ›"
-        )
-    }
-
-    private fun abrirEventoIndyCar() {
-        val proximo = proximoEventoIndyCar()
-
-        if (proximo == null) {
-            startActivity(Intent(this, IndyCarCalendarActivity::class.java))
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-            return
-        }
-
-        abrirEventoIndyCarItem(proximo)
-    }
-
     private fun abrirEventoIndyCarPelaEtapa(etapa: Etapa) {
         var encontrado: IndyCarEvent? = null
         val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -1323,7 +935,8 @@ class MainActivity : AppCompatActivity() {
                     encontrado = item
                     break
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("MainActivity.abrirEventoIndyCarPelaEtapa", e)
                 // Ignora etapa com data inválida.
             }
         }
@@ -1340,23 +953,5 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("ETAPA", evento.etapa)
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-    }
-
-    private fun buscarCorridasF1(): org.json.JSONArray {
-        val url = URL("https://api.jolpi.ca/ergast/f1/current/races/")
-        val connection = url.openConnection() as HttpURLConnection
-
-        connection.requestMethod = "GET"
-        connection.connectTimeout = 15000
-        connection.readTimeout = 15000
-        connection.setRequestProperty("User-Agent", "CalendarioMotorsport/1.0")
-
-        val resposta = connection.inputStream.bufferedReader().use { it.readText() }
-        connection.disconnect()
-
-        return JSONObject(resposta)
-            .getJSONObject("MRData")
-            .getJSONObject("RaceTable")
-            .getJSONArray("Races")
     }
 }

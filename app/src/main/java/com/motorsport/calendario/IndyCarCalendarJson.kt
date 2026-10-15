@@ -59,7 +59,8 @@ object IndyCarCalendarJson {
 
         return try {
             interpretar(json).sortedBy { it.etapa }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("IndyCarCalendarJson.carregar", e)
             emptyList()
         }
     }
@@ -103,12 +104,14 @@ object IndyCarCalendarJson {
                     gravarCacheSeValido(app, texto)
                     gravou = true
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("IndyCarCalendarJson.atualizar", e)
                 // Falhas de rede, validação ou gravação não derrubam o app.
             } finally {
                 try {
                     conexao?.disconnect()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("IndyCarCalendarJson.atualizar", e)
                     // Ignora falhas ao encerrar a conexão.
                 }
 
@@ -146,11 +149,12 @@ object IndyCarCalendarJson {
         // que o número da etapa, que pode mudar após renumeração.
         val cacheAtual = try {
             atomic.openRead().bufferedReader(Charsets.UTF_8).use { it.readText() }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("IndyCarCalendarJson.gravarCacheSeValido", e)
             null
         }
         val eventosAtuais = cacheAtual?.let { atual ->
-            try { interpretar(atual) } catch (_: Exception) { null }
+            try { interpretar(atual) } catch (e: Exception) { registrarFalha("IndyCarCalendarJson.gravarCacheSeValido", e); null }
         }
 
         if (eventosAtuais != null && cacheAtual != null) {
@@ -235,7 +239,8 @@ object IndyCarCalendarJson {
                 if (escritaPendente != null) {
                     try {
                         atomic.failWrite(escritaPendente)
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("IndyCarCalendarJson.gravarAtomicamente", e)
                         // Evita que uma falha de recuperação derrube o app.
                     }
                 }
@@ -275,7 +280,8 @@ object IndyCarCalendarJson {
                         dataFim = fim.toString()
                     )
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("IndyCarCalendarJson.comoEtapas", e)
                 // Ignora apenas a etapa que não puder ser convertida.
             }
         }
@@ -301,7 +307,8 @@ object IndyCarCalendarJson {
                 interpretar(texto)
 
                 texto
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("IndyCarCalendarJson.lerCache", e)
                 null
             }
         }
@@ -316,7 +323,8 @@ object IndyCarCalendarJson {
 
             interpretar(texto)
             texto
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("IndyCarCalendarJson.lerAsset", e)
             null
         }
     }

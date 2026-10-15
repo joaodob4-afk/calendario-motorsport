@@ -87,13 +87,15 @@ object F2CalendarJson {
                         )
                     }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F2CalendarJson.atualizar", e)
                 // Sem internet ou resposta inválida:
                 // preserva o cache e os dados de reserva.
             } finally {
                 try {
                     conexao?.disconnect()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F2CalendarJson.atualizar", e)
                     // A falha ao fechar a conexão não afeta a interface.
                 }
             }
@@ -102,7 +104,8 @@ object F2CalendarJson {
                 Handler(Looper.getMainLooper()).post {
                     try {
                         aoTerminar()
-                    } catch (_: Exception) {
+                    } catch (e: Exception) {
+                        registrarFalha("F2CalendarJson.atualizar", e)
                         // Evita que um callback defeituoso derrube a tarefa.
                     }
                 }
@@ -150,7 +153,8 @@ object F2CalendarJson {
                     } else {
                         null
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    registrarFalha("F2CalendarJson.gravarCacheSeguro", e)
                     null
                 }
 
@@ -193,12 +197,14 @@ object F2CalendarJson {
             saida = null
 
             true
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F2CalendarJson.gravarCacheSeguro", e)
             try {
                 if (saida != null) {
                     cacheAtomico.failWrite(saida)
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarFalha("F2CalendarJson.gravarCacheSeguro", e)
                 // AtomicFile tenta recuperar a versão anterior.
             }
 
@@ -233,7 +239,8 @@ object F2CalendarJson {
                         dataFim = fim.toString()
                     )
                 )
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F2CalendarJson.comoEtapas", e)
                 // Ignora somente a etapa cuja data é inválida.
             }
         }
@@ -260,7 +267,8 @@ object F2CalendarJson {
             } else {
                 null
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F2CalendarJson.lerCache", e)
             null
         }
     }
@@ -273,7 +281,8 @@ object F2CalendarJson {
                 .takeIf {
                     interpretar(it).size >= MINIMO_ETAPAS_VALIDAS
                 }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarFalha("F2CalendarJson.lerAsset", e)
             null
         }
     }
@@ -362,7 +371,8 @@ object F2CalendarJson {
             }
 
             eventos.sortedBy { it.etapa }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F2CalendarJson.interpretar", e)
             emptyList()
         }
     }

@@ -658,7 +658,8 @@ class F3Activity : AppCompatActivity() {
                 if (resultado != null) {
                     return resultado
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                registrarDescarte("F3Activity.converterData", e)
                 // Tenta o próximo formato.
             }
         }
@@ -673,7 +674,8 @@ class F3Activity : AppCompatActivity() {
 
         return try {
             partes[0].toInt() * 60 + partes[1].take(2).toInt()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            registrarDescarte("F3Activity.extrairMinutos", e)
             Int.MAX_VALUE
         }
     }
