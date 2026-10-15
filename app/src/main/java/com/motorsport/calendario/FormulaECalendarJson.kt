@@ -123,62 +123,8 @@ object FormulaECalendarJson {
         texto: String
     ): Boolean {
         return try {
-            val eventosNovos = interpretar(texto)
-            val novaRaiz = JSONObject(texto)
-            val novaTemporada = novaRaiz.optString("temporada").trim()
-
+            interpretar(texto)
             synchronized(cacheLock) {
-                val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-                val atomico = AtomicFile(arquivo)
-                val cacheAtual = try {
-                    atomico.openRead().bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
-                } catch (e: Exception) {
-                    registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
-                    null
-                }
-
-                if (cacheAtual != null) {
-                    val eventosAtuais = try {
-                        interpretar(cacheAtual)
-                    } catch (e: Exception) {
-                        registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
-                        null
-                    }
-                    if (eventosAtuais != null) {
-                        val raizAtual = JSONObject(cacheAtual)
-                        val temporadaAtual = raizAtual.optString("temporada").trim()
-                        // A quantidade oficial pode aumentar ou diminuir na mesma temporada.
-                        // Preserva horários apenas para eventos/sessões que continuam publicados.
-                        if (novaTemporada == temporadaAtual) {
-                            val novosPorCircuito = eventosNovos.associateBy {
-                                it.circuito.trim().lowercase()
-                            }
-                            for (atual in eventosAtuais) {
-                                val novo = novosPorCircuito[
-                                    atual.circuito.trim().lowercase()
-                                ] ?: continue
-                                val novasSessoes = novo.sessoes.associateBy {
-                                    it.nome.trim().lowercase()
-                                }
-                                for (sessaoAtual in atual.sessoes) {
-                                    val sessaoNova = novasSessoes[
-                                        sessaoAtual.nome.trim().lowercase()
-                                    ] ?: continue
-                                    val horarioAtual = sessaoAtual.horario.trim()
-                                    val horarioNovo = sessaoNova.horario.trim()
-                                    if (
-                                        horarioAtual.isNotBlank() &&
-                                        !horarioAtual.equals("A confirmar", ignoreCase = true) &&
-                                        horarioNovo.equals("A confirmar", ignoreCase = true)
-                                    ) {
-                                        return false
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 gravarCacheSeguro(context, texto)
             }
         } catch (e: Exception) {
