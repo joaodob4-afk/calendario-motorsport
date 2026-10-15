@@ -49,14 +49,7 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(f3.listar_slugs(html, 2027), ["jeddah"])
         self.assertEqual(f3.listar_slugs(html, 2026), ["melbourne"])
 
-    def test_prioriza_temporada_2027_quando_publicada(self):
-        html_2027 = '<a href="/en/racing/2027/jeddah">Jeddah</a><a href="/en/racing/2027/montreal">Montreal</a>'
-        with patch.object(f3, "baixar", return_value=html_2027):
-            temporada, slugs = f3.descobrir_calendario()
-        self.assertEqual(temporada, 2027)
-        self.assertEqual(slugs, ["jeddah", "montreal"])
-
-    def test_usa_2026_quando_2027_ainda_nao_tem_etapas(self):
+    def test_descobre_temporada_atual_2026(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a><a href="/en/racing/2026/monza">Monza</a>'
         with patch.object(f3, "baixar", return_value=html_2026):
             temporada, slugs = f3.descobrir_calendario()
@@ -65,30 +58,28 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
 
     def test_descobre_temporada_atual_pela_rota_estavel_se_url_do_ano_falhar(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a><a href="/en/racing/2026/monza">Monza</a>'
-        with patch.object(f3, "TEMPORADAS_PREFERIDAS", (2026,)):
-            with patch.object(
-                f3, "baixar",
-                side_effect=[RuntimeError("HTTP 500"), html_2026],
-            ):
-                temporada, slugs = f3.descobrir_calendario()
+        with patch.object(
+            f3, "baixar",
+            side_effect=[RuntimeError("HTTP 500"), html_2026],
+        ):
+            temporada, slugs = f3.descobrir_calendario()
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
-    def test_nao_seleciona_temporada_futura_quando_ela_nao_tem_links(self):
-        html_sem_etapas = "página sem etapas"
-        with patch.object(f3, "baixar", return_value=html_sem_etapas):
+    def test_nao_busca_temporada_futura(self):
+        html_2027 = '<a href="/en/racing/2027/jeddah">Jeddah</a>'
+        with patch.object(f3, "baixar", return_value=html_2027):
             temporada, slugs = f3.descobrir_calendario()
         self.assertIsNone(temporada)
         self.assertEqual(slugs, [])
 
     def test_usa_rota_estavel_quando_pagina_de_2026_nao_tem_etapas(self):
         html_2026 = '<a href="/en/racing/2026/melbourne">Melbourne</a>'
-        with patch.object(f3, "TEMPORADAS_PREFERIDAS", (2026,)):
-            with patch.object(
-                f3, "baixar",
-                side_effect=["página sem etapas", html_2026],
-            ):
-                temporada, slugs = f3.descobrir_calendario()
+        with patch.object(
+            f3, "baixar",
+            side_effect=["página sem etapas", html_2026],
+        ):
+            temporada, slugs = f3.descobrir_calendario()
         self.assertEqual(temporada, 2026)
         self.assertEqual(slugs, ["melbourne"])
 
