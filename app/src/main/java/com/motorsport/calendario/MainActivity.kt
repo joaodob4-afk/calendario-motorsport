@@ -13,6 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import org.json.JSONObject
 import java.time.format.DateTimeFormatter
 
@@ -130,6 +132,14 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
+                    if (categoriaAtual.isEmpty() && gaveta != null &&
+                        gaveta.isDrawerOpen(GravityCompat.START)
+                    ) {
+                        gaveta.closeDrawer(GravityCompat.START)
+                        return
+                    }
+
                     if (categoriaAtual.isNotEmpty()) {
                         categoriaAtual = ""
                         mostrarMenu()
@@ -175,8 +185,12 @@ class MainActivity : AppCompatActivity() {
 
         criarBotoesCategorias()
 
+        MenuPrincipal.montar(this, findViewById(R.id.containerMenuLateral))
         findViewById<android.view.View>(R.id.btnMenu).setOnClickListener {
-            MenuPrincipal.abrir(this, it)
+            findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
+        }
+        findViewById<android.view.View>(R.id.btnFiltro).setOnClickListener {
+            android.widget.Toast.makeText(this, "Filtros: em breve", android.widget.Toast.LENGTH_SHORT).show()
         }
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
@@ -219,13 +233,22 @@ class MainActivity : AppCompatActivity() {
         val data = findViewById<TextView>(R.id.dataProximaEtapa)
         val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
 
-        titulo.text = "PRÓXIMA ETAPA • ${proxima.categoria}"
+        val prefixo = "PRÓXIMA ETAPA  •  "
+        val textoTitulo = android.text.SpannableString(prefixo + proxima.categoria)
+        textoTitulo.setSpan(
+            android.text.style.ForegroundColorSpan(getColor(R.color.acento)),
+            prefixo.length,
+            textoTitulo.length,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        titulo.text = textoTitulo
         nome.text = proxima.pais
 
         val idBandeira = recursoBandeira(proxima.pais)
         if (idBandeira != 0) {
             bandeira.setImageResource(idBandeira)
             bandeira.visibility = android.view.View.VISIBLE
+            arredondar(bandeira, 6f)
         } else {
             bandeira.visibility = android.view.View.GONE
         }
@@ -237,12 +260,12 @@ class MainActivity : AppCompatActivity() {
         val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
 
         contador.text = when {
-            dias == 0L -> "COMEÇA HOJE"
+            dias == 0L -> "HOJE"
             dias == 1L -> "AMANHÃ"
-            dias > 1L -> "FALTAM $dias DIAS"
+            dias > 1L -> "$dias DIAS"
             else -> "EM ANDAMENTO"
         }
-        estilizarSelo(contador, getColor(R.color.verde_neon))
+        estilizarChipDestaque(contador)
 
         findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
             when (proxima.categoria) {
@@ -255,142 +278,136 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Selo com borda e fundo suave na cor informada (categoria e contagem regressiva). */
-    private fun estilizarSelo(view: TextView, cor: Int, raioDp: Float = 10f) {
-        val densidade = resources.displayMetrics.density
+    /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
+    private fun corDaCategoria(categoria: String): Int =
+        Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
+            ?: getColor(R.color.verde_neon)
+    private fun emPx(valorDp: Float): Int = (valorDp * resources.displayMetrics.density).toInt()
+
+    /** Cápsula escura com borda cinza e texto na cor informada (categorias). */
+    private fun estilizarCapsula(view: TextView, cor: Int, raioDp: Float) {
         view.setTextColor(cor)
         view.background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(
-                android.graphics.Color.argb(
-                    45,
-                    android.graphics.Color.red(cor),
-                    android.graphics.Color.green(cor),
-                    android.graphics.Color.blue(cor)
-                )
-            )
-            cornerRadius = raioDp * densidade
-            setStroke((1 * densidade).toInt().coerceAtLeast(1), cor)
+            setColor(getColor(R.color.superficie))
+            cornerRadius = emPx(raioDp).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
         }
+    }
+
+    /** Selo só com contorno e texto na cor informada (status das etapas). */
+    private fun estilizarContorno(view: TextView, cor: Int) {
+        view.setTextColor(cor)
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(android.graphics.Color.TRANSPARENT)
+            cornerRadius = emPx(8f).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), cor)
+        }
+    }
+
+    /** Selo preenchido em verde (contagem regressiva da próxima etapa). */
+    private fun estilizarChipDestaque(view: TextView) {
+        view.setTextColor(getColor(R.color.acento_escuro))
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(getColor(R.color.acento))
+            cornerRadius = emPx(8f).toFloat()
+        }
+    }
+
+    private fun arredondar(imagem: ImageView, raioDp: Float) {
+        val raio = emPx(raioDp).toFloat()
+        imagem.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, raio)
+            }
+        }
+        imagem.clipToOutline = true
     }
 
     /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
     private fun corDaCategoria(categoria: String): Int =
         Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
-            ?: getColor(R.color.verde_neon)
+            ?: getColor(R.color.acento)
 
     private fun criarBotoesCategorias() {
         val container = findViewById<LinearLayout>(R.id.containerCategorias)
-        val densidade = resources.displayMetrics.density
         container.removeAllViews()
 
         for (categoria in Categorias.todas) {
             val botao = TextView(this).apply {
-                text = categoria.nome
-                setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f)
-                typeface = android.graphics.Typeface.create(
-                    "sans-serif-condensed",
-                    android.graphics.Typeface.BOLD
-                )
+                text = categoria.nome.uppercase()
+                textSize = 13f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                letterSpacing = 0.04f
                 gravity = android.view.Gravity.CENTER
                 maxLines = 1
-                minWidth = (62 * densidade).toInt()
-                setPadding((16 * densidade).toInt(), 0, (16 * densidade).toInt(), 0)
+                minWidth = emPx(52f)
+                setPadding(emPx(16f), 0, emPx(16f), 0)
                 isClickable = true
                 isFocusable = true
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                    (40 * densidade).toInt()
-                ).apply { marginEnd = (8 * densidade).toInt() }
+                    emPx(38f)
+                ).apply { marginEnd = emPx(8f) }
             }
 
-            estilizarSelo(botao, corDaCategoria(categoria.nome), 14f)
+            estilizarCapsula(botao, corDaCategoria(categoria.nome), 12f)
             botao.setOnClickListener { abrirCategoria(categoria.nome) }
             container.addView(botao)
         }
     }
 
-    /** Fundo em degradê, borda sutil e marcador lateral (fora do card) na cor da categoria. */
+    /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
-        val densidade = resources.displayMetrics.density
+        val raio = emPx(10f).toFloat()
 
-        item.findViewById<android.view.View>(R.id.itemCartao).background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(
-                android.graphics.Color.parseColor("#0D1B0E"),
-                android.graphics.Color.parseColor("#050A06")
-            )
-        ).apply {
-            cornerRadius = 16f * densidade
-            setStroke(
-                (1 * densidade).toInt().coerceAtLeast(1),
-                android.graphics.Color.argb(
-                    72,
-                    android.graphics.Color.red(cor),
-                    android.graphics.Color.green(cor),
-                    android.graphics.Color.blue(cor)
-                )
-            )
+        item.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(getColor(R.color.superficie))
+            cornerRadius = raio
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
         }
 
         item.findViewById<android.view.View>(R.id.itemAcento).background =
             android.graphics.drawable.GradientDrawable().apply {
                 setColor(cor)
-                // arredondado só por fora; o lado que encosta no card fica reto
-                val raio = 3f * densidade
-                cornerRadii = floatArrayOf(raio, raio, 0f, 0f, 0f, 0f, raio, raio)
+                val r = raio - emPx(1f)
+                cornerRadii = floatArrayOf(r, r, 0f, 0f, 0f, 0f, r, r)
             }
     }
 
-    /** Cabeçalho de mês: nome espaçado e uma linha fina até o fim. */
+    /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
     private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
         val nomes = listOf(
             "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
             "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
         )
-        val densidade = resources.displayMetrics.density
         val anoAtual = java.time.LocalDate.now().year
 
-        val linha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(
-                (8 * densidade).toInt(),
-                ((if (primeiro) 2 else 14) * densidade).toInt(),
-                (4 * densidade).toInt(),
-                (8 * densidade).toInt()
+        val coluna = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
+        if (!primeiro) {
+            coluna.addView(
+                android.view.View(this).apply {
+                    setBackgroundColor(getColor(R.color.borda_suave))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        emPx(1f).coerceAtLeast(1)
+                    ).apply { topMargin = emPx(10f) }
+                }
             )
         }
 
-        val titulo = TextView(this).apply {
-            text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
-            setTextColor(android.graphics.Color.parseColor("#7F8B97"))
-            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
-            typeface = android.graphics.Typeface.create(
-                "sans-serif-condensed",
-                android.graphics.Typeface.BOLD
-            )
-            letterSpacing = 0.18f
-        }
+        coluna.addView(
+            TextView(this).apply {
+                text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
+                setTextColor(getColor(R.color.texto_suave))
+                textSize = 13f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                letterSpacing = 0.16f
+                setPadding(emPx(4f), emPx(if (primeiro) 6f else 16f), 0, emPx(8f))
+            }
+        )
 
-        val traco = android.view.View(this).apply {
-            setBackgroundColor(android.graphics.Color.parseColor("#142414"))
-            layoutParams = LinearLayout.LayoutParams(
-                0,
-                (1 * densidade).toInt().coerceAtLeast(1),
-                1f
-            ).apply { marginStart = (10 * densidade).toInt() }
-        }
-
-        linha.addView(titulo)
-        linha.addView(traco)
-        return linha
-    }
-
-    /** Mantém as colunas fixas (alinhadas), mas proporcionais à fonte do sistema. */
-    private fun ajustarLargura(view: android.view.View, baseDp: Float, escala: Float) {
-        val parametros = view.layoutParams
-        parametros.width = (baseDp * escala * resources.displayMetrics.density).toInt()
-        view.layoutParams = parametros
+        return coluna
     }
 
     private fun configurarBusca() {
@@ -482,17 +499,11 @@ class MainActivity : AppCompatActivity() {
 
             val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
-            // Só a coluna da data acompanha a fonte do sistema (até 10%); o resto se ajusta sozinho
-            val escalaFonte = resources.configuration.fontScale.coerceIn(1f, 1.1f)
-            if (escalaFonte > 1f) {
-                ajustarLargura(item.findViewById(R.id.colunaData), 66f, escalaFonte)
-            }
-
             val status = statusEtapa(etapa, etapasOrdenadas)
 
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
             chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
-            estilizarSelo(chipCategoria, corDaCategoria(etapa.categoria))
+            estilizarCapsula(chipCategoria, corDaCategoria(etapa.categoria), 8f)
             estilizarCard(item, corDaCategoria(etapa.categoria))
 
             val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
@@ -502,13 +513,7 @@ class MainActivity : AppCompatActivity() {
                 imagemBandeira.setImageResource(idBandeira)
                 imagemBandeira.visibility = android.view.View.VISIBLE
 
-                val raioBandeira = 5f * resources.displayMetrics.density
-                imagemBandeira.outlineProvider = object : android.view.ViewOutlineProvider() {
-                    override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
-                        outline.setRoundRect(0, 0, view.width, view.height, raioBandeira)
-                    }
-                }
-                imagemBandeira.clipToOutline = true
+                arredondar(imagemBandeira, 6f)
             } else {
                 // INVISIBLE mantém o espaço da bandeira e o texto continua alinhado
                 imagemBandeira.visibility = android.view.View.INVISIBLE
@@ -517,38 +522,17 @@ class MainActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
 
-            val (dias, mes) = Formatacao.partirData(etapa.data)
-            item.findViewById<TextView>(R.id.itemDia).text = dias
-            val itemMes = item.findViewById<TextView>(R.id.itemMes)
-            itemMes.text = mes
-            itemMes.visibility =
-                if (mes.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+            item.findViewById<TextView>(R.id.itemData).text = etapa.data
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = status
 
-            when (status) {
-                "FINALIZADA" -> {
-                    itemStatus.setTextColor(android.graphics.Color.WHITE)
-                    itemStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                        android.graphics.Color.rgb(90, 100, 110)
-                    )
-                }
-
-                "PRÓXIMA", "EM ANDAMENTO" -> {
-                    itemStatus.setTextColor(android.graphics.Color.WHITE)
-                    itemStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                        android.graphics.Color.rgb(25, 150, 95)
-                    )
-                }
-
-                "AGENDADA" -> {
-                    itemStatus.setTextColor(android.graphics.Color.WHITE)
-                    itemStatus.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                        android.graphics.Color.rgb(30, 70, 105)
-                    )
-                }
+            val corStatus = when (status) {
+                "FINALIZADA" -> getColor(R.color.texto_suave)
+                "PRÓXIMA", "EM ANDAMENTO" -> getColor(R.color.acento)
+                else -> getColor(R.color.status_azul)
             }
+            estilizarContorno(itemStatus, corStatus)
 
             item.contentDescription = status
 

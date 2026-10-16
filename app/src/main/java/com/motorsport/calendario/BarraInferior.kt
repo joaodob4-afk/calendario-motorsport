@@ -2,7 +2,6 @@ package com.motorsport.calendario
 
 import android.app.Activity
 import android.graphics.Typeface
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -28,18 +27,16 @@ internal object BarraInferior {
 
     val itens = listOf(
         ItemDaBarra("Início", R.drawable.ic_nav_inicio, pronto = true),
-        ItemDaBarra("Agenda", R.drawable.ic_nav_agenda),
-        ItemDaBarra("Favoritos", R.drawable.ic_nav_favoritos),
-        ItemDaBarra("Resultados", R.drawable.ic_nav_resultados),
-        ItemDaBarra("Alertas", R.drawable.ic_nav_alertas)
+        ItemDaBarra("Calendário", R.drawable.ic_nav_agenda),
+        ItemDaBarra("Classificação", R.drawable.ic_nav_resultados),
+        ItemDaBarra("Mais", R.drawable.ic_nav_mais)
     )
 
     fun montar(activity: Activity, container: LinearLayout, selecionado: Int = 0) {
         container.removeAllViews()
 
-        val densidade = activity.resources.displayMetrics.density
-        val corAtiva = activity.getColor(R.color.verde_neon)
-        val corInativa = activity.getColor(R.color.cinza_texto)
+        val corAtiva = activity.getColor(R.color.acento)
+        val corInativa = activity.getColor(R.color.texto_suave)
 
         itens.forEachIndexed { indice, item ->
             val cor = if (indice == selecionado) corAtiva else corInativa
@@ -48,20 +45,17 @@ internal object BarraInferior {
                 setImageResource(item.icone)
                 setColorFilter(cor)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                layoutParams = LinearLayout.LayoutParams(
-                    (24 * densidade).toInt(),
-                    (24 * densidade).toInt()
-                )
+                layoutParams = LinearLayout.LayoutParams(activity.emPx(26f), activity.emPx(26f))
             }
 
             val rotulo = TextView(activity).apply {
                 text = item.rotulo
                 setTextColor(cor)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+                textSize = 12f
+                typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                 maxLines = 1
                 gravity = Gravity.CENTER
-                setPadding(0, (3 * densidade).toInt(), 0, 0)
+                setPadding(0, activity.emPx(3f), 0, 0)
             }
 
             val celula = LinearLayout(activity).apply {

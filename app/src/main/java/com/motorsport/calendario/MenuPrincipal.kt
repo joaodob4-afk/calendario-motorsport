@@ -1,141 +1,90 @@
 package com.motorsport.calendario
 
 import android.app.Activity
-import android.app.Dialog
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import android.view.Window
 import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.TextView
 
 /** Fundo com efeito de toque (ondulação verde) para linhas clicáveis. */
 internal fun fundoDeToque(): RippleDrawable =
     RippleDrawable(
-        ColorStateList.valueOf(Color.parseColor("#3339FF14")),
+        ColorStateList.valueOf(Color.parseColor("#334CAF50")),
         null,
         ColorDrawable(Color.WHITE)
     )
 
-private fun Activity.dp(valor: Float): Int = (valor * resources.displayMetrics.density).toInt()
-
-private fun fundoArredondado(activity: Activity, raioDp: Float): GradientDrawable =
-    GradientDrawable().apply {
-        setColor(Color.parseColor("#0D1B0E"))
-        cornerRadius = activity.dp(raioDp).toFloat()
-        setStroke(activity.dp(1f).coerceAtLeast(1), activity.getColor(R.color.verde_borda))
-    }
-
-private fun texto(
-    activity: Activity,
-    conteudo: String,
-    tamanhoSp: Float,
-    cor: Int,
-    negrito: Boolean = false
-) = TextView(activity).apply {
-    text = conteudo
-    setTextColor(cor)
-    setTextSize(TypedValue.COMPLEX_UNIT_SP, tamanhoSp)
-    typeface = Typeface.create(
-        "sans-serif-condensed",
-        if (negrito) Typeface.BOLD else Typeface.NORMAL
-    )
-}
-
 /**
- * Menu aberto pelo botão no canto superior esquerdo da tela inicial.
- * Para incluir uma opção nova, acrescente um item em [itens].
+ * Conteúdo do painel que abre pelo lado da tela inicial (botão no canto superior esquerdo).
+ *
+ * Cada função de seção acrescenta um bloco ao painel. Para incluir uma função nova no
+ * futuro, crie uma seção nova e chame-a em [montar].
  */
 internal object MenuPrincipal {
 
-    private class Item(
-        val titulo: String,
-        val detalhe: String,
-        val aoTocar: () -> Unit
-    )
+    fun montar(activity: Activity, container: LinearLayout) {
+        container.removeAllViews()
 
-    private fun itens(activity: Activity): List<Item> = listOf(
-        Item(
-            titulo = "Avisar antes das sessões",
-            detalhe = PreferenciasDeAviso.descricao(PreferenciasDeAviso.minutosAntes(activity))
-        ) { escolherTempoDeAviso(activity) }
-    )
-
-    fun abrir(activity: Activity, ancora: View) {
-        val painel = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            val margem = activity.dp(6f)
-            setPadding(margem, margem, margem, margem)
-            background = fundoArredondado(activity, 16f)
-        }
-
-        val janela = PopupWindow(painel, activity.dp(270f), ViewGroup.LayoutParams.WRAP_CONTENT, true)
-        janela.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        janela.elevation = activity.dp(10f).toFloat()
-
-        itens(activity).forEach { item ->
-            val linha = LinearLayout(activity).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(activity.dp(14f), activity.dp(12f), activity.dp(14f), activity.dp(12f))
-                isClickable = true
-                isFocusable = true
-                background = fundoDeToque()
-                setOnClickListener {
-                    janela.dismiss()
-                    item.aoTocar()
-                }
-                addView(texto(activity, item.titulo, 17f, Color.WHITE, negrito = true))
-                addView(texto(activity, item.detalhe, 13f, activity.getColor(R.color.cinza_texto)))
-            }
-            painel.addView(linha)
-        }
-
-        janela.showAsDropDown(ancora, 0, activity.dp(6f))
-    }
-
-    /** Caixa com as opções de antecedência do aviso: 1 hora até 15 minutos, ou desativado. */
-    fun escolherTempoDeAviso(activity: Activity) {
-        val dialogo = Dialog(activity)
-        dialogo.requestWindowFeature(Window.FEATURE_NO_TITLE)
-
-        val atual = PreferenciasDeAviso.minutosAntes(activity)
-        val verde = activity.getColor(R.color.verde_neon)
-
-        val raiz = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            val margem = activity.dp(20f)
-            setPadding(margem, margem, margem, activity.dp(12f))
-            background = fundoArredondado(activity, 20f)
-        }
-
-        raiz.addView(texto(activity, "Avisar antes das sessões", 22f, Color.WHITE, negrito = true))
-        raiz.addView(
-            texto(
-                activity,
-                "Quanto tempo antes você quer ser lembrado?",
-                14f,
-                activity.getColor(R.color.cinza_texto)
-            ).apply { setPadding(0, activity.dp(4f), 0, activity.dp(12f)) }
+        container.addView(
+            texto(activity, "Menu", 26f, Color.WHITE, Typeface.BOLD)
         )
 
-        val escolhas = PreferenciasDeAviso.opcoes + PreferenciasDeAviso.DESATIVADO
+        secaoAlertas(activity, container)
 
-        escolhas.forEach { minutos ->
+        container.addView(
+            texto(
+                activity,
+                "Mais funções em breve.",
+                14f,
+                activity.getColor(R.color.texto_suave),
+                Typeface.NORMAL
+            ).apply { setPadding(0, activity.emPx(28f), 0, 0) }
+        )
+    }
+
+    /** Escolha de quanto tempo antes das sessões o usuário quer ser avisado. */
+    private fun secaoAlertas(activity: Activity, container: LinearLayout) {
+        container.addView(
+            texto(
+                activity,
+                "ALERTAS",
+                12f,
+                activity.getColor(R.color.texto_suave),
+                Typeface.NORMAL
+            ).apply {
+                letterSpacing = 0.14f
+                setPadding(0, activity.emPx(28f), 0, activity.emPx(12f))
+            }
+        )
+
+        container.addView(texto(activity, "Avisar antes das sessões", 18f, Color.WHITE, Typeface.BOLD))
+        container.addView(
+            texto(
+                activity,
+                "Escolha com quanto tempo de antecedência você quer ser lembrado.",
+                14f,
+                activity.getColor(R.color.texto_suave),
+                Typeface.NORMAL
+            ).apply { setPadding(0, activity.emPx(4f), 0, activity.emPx(10f)) }
+        )
+
+        val atual = PreferenciasDeAviso.minutosAntes(activity)
+        val verde = activity.getColor(R.color.acento)
+
+        (PreferenciasDeAviso.opcoes + PreferenciasDeAviso.DESATIVADO).forEach { minutos ->
             val marcada = minutos == atual
 
             val marcador = View(activity).apply {
-                layoutParams = LinearLayout.LayoutParams(activity.dp(20f), activity.dp(20f))
+                layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
-                    setStroke(activity.dp(2f), verde)
+                    setStroke(activity.emPx(2f), if (marcada) verde else activity.getColor(R.color.texto_suave))
                     setColor(if (marcada) verde else Color.TRANSPARENT)
                 }
             }
@@ -149,30 +98,42 @@ internal object MenuPrincipal {
             val linha = LinearLayout(activity).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(activity.dp(6f), activity.dp(13f), activity.dp(6f), activity.dp(13f))
+                setPadding(activity.emPx(6f), activity.emPx(13f), activity.emPx(6f), activity.emPx(13f))
                 isClickable = true
                 isFocusable = true
                 background = fundoDeToque()
                 setOnClickListener {
                     PreferenciasDeAviso.definir(activity, minutos)
-                    dialogo.dismiss()
+                    montar(activity, container) // redesenha com a nova escolha marcada
                 }
                 addView(marcador)
                 addView(
-                    texto(activity, rotulo, 17f, Color.WHITE, negrito = marcada).apply {
-                        setPadding(activity.dp(14f), 0, 0, 0)
-                    }
+                    texto(
+                        activity,
+                        rotulo,
+                        17f,
+                        Color.WHITE,
+                        if (marcada) Typeface.BOLD else Typeface.NORMAL
+                    ).apply { setPadding(activity.emPx(14f), 0, 0, 0) }
                 )
             }
 
-            raiz.addView(linha)
-        }
-
-        dialogo.setContentView(raiz)
-        dialogo.show()
-        dialogo.window?.apply {
-            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            setLayout((activity.resources.displayMetrics.widthPixels * 0.88f).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+            container.addView(linha)
         }
     }
+
+    private fun texto(
+        activity: Activity,
+        conteudo: String,
+        tamanhoSp: Float,
+        cor: Int,
+        estilo: Int
+    ) = TextView(activity).apply {
+        text = conteudo
+        setTextColor(cor)
+        textSize = tamanhoSp
+        typeface = Typeface.create("sans-serif", estilo)
+    }
 }
+
+internal fun Activity.emPx(valorDp: Float): Int = (valorDp * resources.displayMetrics.density).toInt()
