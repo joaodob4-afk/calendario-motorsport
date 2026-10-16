@@ -175,6 +175,11 @@ class MainActivity : AppCompatActivity() {
 
         criarBotoesCategorias()
 
+        findViewById<android.view.View>(R.id.btnMenu).setOnClickListener {
+            MenuPrincipal.abrir(this, it)
+        }
+        BarraInferior.montar(this, findViewById(R.id.barraInferior))
+
         configurarBusca()
         atualizarProximaEtapa()
 
