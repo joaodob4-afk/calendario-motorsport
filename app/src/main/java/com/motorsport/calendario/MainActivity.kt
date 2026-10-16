@@ -278,12 +278,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
-    private fun corDaCategoria(categoria: String): Int =
-        Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
-            ?: getColor(R.color.verde_neon)
-    private fun emPx(valorDp: Float): Int = (valorDp * resources.displayMetrics.density).toInt()
-
     /** Cápsula escura com borda cinza e texto na cor informada (categorias). */
     private fun estilizarCapsula(view: TextView, cor: Int, raioDp: Float) {
         view.setTextColor(cor)
