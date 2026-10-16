@@ -1,19 +1,13 @@
 package com.motorsport.calendario
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.AtomicFile
 import org.json.JSONObject
-import java.io.File
 import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicBoolean
 
 data class IndyCarSession(
     val nome: String,
@@ -40,154 +34,39 @@ object IndyCarCalendarJson {
     private const val MINIMO_ETAPAS_VALIDAS = 1
     private const val ARQUIVO_CACHE = "indycar_calendar_cache.json"
 
-    private val atualizacaoEmAndamento = AtomicBoolean(false)
-
-    // Coordena todas as leituras, gravações e recuperações do cache.
-    private val cacheLock = Any()
-
     private val formatoData: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ROOT)
             .withResolverStyle(ResolverStyle.STRICT)
 
-    /**
-     * Prioridade: cache válido > JSON embutido no APK.
-     * Se nenhum deles for válido, devolve lista vazia.
-     */
-    fun carregar(context: Context): List<IndyCarEvent> {
-        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
-            ?: return emptyList()
+    private val fonte = FonteDeCalendario(
+        nome = "IndyCarCalendarJson",
+        urlJson = URL_JSON,
+        arquivoAsset = "indycar_calendar.json",
+        arquivoCache = ARQUIVO_CACHE
+    ) { interpretar(it) }
 
-        return try {
-            interpretar(json).sortedBy { it.etapa }
-        } catch (e: Exception) {
-            registrarFalha("IndyCarCalendarJson.carregar", e)
-            emptyList()
+    /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
+    fun carregar(context: Context): List<IndyCarEvent> =
+        fonte.carregar(context).sortedBy { it.etapa }
+
+    /** Atualiza em segundo plano; um JSON inválido nunca substitui o cache atual. */
+    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) =
+        fonte.atualizar(context, aoTerminar)
+
+    /** Valida e grava no cache. Lança exceção se o calendário for inválido ou a gravação falhar. */
+    internal fun gravarCacheSeValido(context: Context, texto: String) {
+        interpretar(texto) // lança exceção se o calendário for inválido
+        if (!fonte.gravarCache(context, texto)) {
+            throw java.io.IOException("Não foi possível gravar o cache da IndyCar")
         }
     }
 
-    /**
-     * Baixa o calendário em segundo plano.
-     *
-     * Valida todos os eventos antes de gravar.
-     * Usa AtomicFile e um bloqueio compartilhado para
-     * proteger a leitura e a gravação do cache.
-     */
-    fun atualizar(
-        context: Context,
-        aoTerminar: (() -> Unit)? = null
-    ) {
-        val app = context.applicationContext
-
-        if (!atualizacaoEmAndamento.compareAndSet(false, true)) {
-            return
-        }
-
-        Thread {
-            var gravou = false
-            var conexao: HttpURLConnection? = null
-
-            try {
-                conexao = URL(URL_JSON)
-                    .openConnection() as HttpURLConnection
-
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.requestMethod = "GET"
-                conexao.setRequestProperty("Cache-Control", "no-cache")
-
-                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
-                    val texto = conexao.inputStream
-                        .bufferedReader(Charsets.UTF_8)
-                        .use { it.readText() }
-
-                    // Valida o JSON e só então substitui o cache.
-                    gravarCacheSeValido(app, texto)
-                    gravou = true
-                }
-            } catch (e: Exception) {
-                registrarFalha("IndyCarCalendarJson.atualizar", e)
-                // Falhas de rede, validação ou gravação não derrubam o app.
-            } finally {
-                try {
-                    conexao?.disconnect()
-                } catch (e: Exception) {
-                    registrarFalha("IndyCarCalendarJson.atualizar", e)
-                    // Ignora falhas ao encerrar a conexão.
-                }
-
-                atualizacaoEmAndamento.set(false)
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post {
-                    aoTerminar()
-                }
-            }
-        }.start()
-    }
-
-    /**
-     * Valida o JSON antes de substituir o cache.
-     * Se a validação falhar, o arquivo existente não é alterado.
-     * A visibilidade internal permite testar esse comportamento.
-     */
-    
-    internal fun gravarCacheSeValido(
-    context: Context,
-    texto: String
-) {
-    // Valida o calendário recebido antes de tocar no cache.
-    interpretar(texto)
-    synchronized(cacheLock) {
-        val destino = File(context.filesDir, ARQUIVO_CACHE)
-        gravarAtomicamente(AtomicFile(destino), texto)
-    }
-}
-
-
-    /**
-     * Grava o cache atomicamente.
-     * Permite injetar uma falha de escrita nos testes.
-     */
+    /** Gravação atômica; o parâmetro [escrever] permite simular falhas nos testes. */
     internal fun gravarAtomicamente(
         atomic: AtomicFile,
         texto: String,
-        escrever: (FileOutputStream, ByteArray) -> Unit = { saida, bytes ->
-            saida.write(bytes)
-        }
-    ) {
-        synchronized(cacheLock) {
-            var saida: FileOutputStream? = null
-
-            try {
-                val arquivoTemporario = atomic.startWrite()
-                saida = arquivoTemporario
-
-                escrever(
-                    arquivoTemporario,
-                    texto.toByteArray(Charsets.UTF_8)
-                )
-
-                arquivoTemporario.flush()
-                atomic.finishWrite(arquivoTemporario)
-                saida = null
-            } catch (e: Exception) {
-                val escritaPendente = saida
-                saida = null
-
-                if (escritaPendente != null) {
-                    try {
-                        atomic.failWrite(escritaPendente)
-                    } catch (e: Exception) {
-                        registrarFalha("IndyCarCalendarJson.gravarAtomicamente", e)
-                        // Evita que uma falha de recuperação derrube o app.
-                    }
-                }
-
-                throw e
-            }
-        }
-    }
+        escrever: (FileOutputStream, ByteArray) -> Unit = { saida, bytes -> saida.write(bytes) }
+    ) = fonte.gravarAtomicamente(atomic, texto, escrever)
 
     /** Converte os eventos para o formato usado pela tela inicial. */
     fun comoEtapas(
@@ -227,47 +106,6 @@ object IndyCarCalendarJson {
 
         return lista.sortedBy { it.dataInicio }
     }
-
-    /**
-     * Lê o cache de forma sincronizada.
-     * O AtomicFile tenta recuperar o backup antes de entregar o conteúdo.
-     */
-    private fun lerCache(context: Context): String? {
-        return synchronized(cacheLock) {
-            try {
-                val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-                val atomic = AtomicFile(arquivo)
-
-                val texto = atomic.openRead()
-                    .bufferedReader(Charsets.UTF_8)
-                    .use { it.readText() }
-
-                // Rejeita cache vazio, incompleto ou inválido.
-                interpretar(texto)
-
-                texto
-            } catch (e: Exception) {
-                registrarFalha("IndyCarCalendarJson.lerCache", e)
-                null
-            }
-        }
-    }
-
-    private fun lerAsset(context: Context): String? {
-        return try {
-            val texto = context.assets
-                .open("indycar_calendar.json")
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            interpretar(texto)
-            texto
-        } catch (e: Exception) {
-            registrarFalha("IndyCarCalendarJson.lerAsset", e)
-            null
-        }
-    }
-
     /**
      * Interpreta e valida o calendário inteiro.
      * Lança uma exceção se encontrar dados inválidos.

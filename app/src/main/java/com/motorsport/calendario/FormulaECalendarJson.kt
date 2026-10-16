@@ -1,15 +1,7 @@
 package com.motorsport.calendario
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import android.util.AtomicFile
 import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
@@ -37,8 +29,6 @@ object FormulaECalendarJson {
 
     private const val ARQUIVO_CACHE = "fe_calendar_cache.json"
 
-    private val cacheLock = Any()
-
     private val regexNumeroRodada = Regex("""(?i)\bRodada\s+(\d+)\b""")
 
     private fun numeroDaRodada(nome: String): Int? {
@@ -50,125 +40,24 @@ object FormulaECalendarJson {
         DateTimeFormatter.ofPattern("dd/MM/uuuu")
             .withResolverStyle(ResolverStyle.STRICT)
 
-    /**
-     * Mantém a prioridade original:
-     * cache válido > JSON embutido no APK > lista vazia.
-     */
-    fun carregar(context: Context): List<FormulaEEvent> {
-        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
-            ?: return emptyList()
+    private val fonte = FonteDeCalendario(
+        nome = "FormulaECalendarJson",
+        urlJson = URL_JSON,
+        arquivoAsset = "fe_calendar.json",
+        arquivoCache = ARQUIVO_CACHE
+    ) { interpretar(it) }
 
-        return try {
-            interpretar(json).sortedBy { it.etapa }
-        } catch (e: Exception) {
-            registrarFalha("FormulaECalendarJson.carregar", e)
-            emptyList()
-        }
-    }
+    /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
+    fun carregar(context: Context): List<FormulaEEvent> =
+        fonte.carregar(context).sortedBy { it.etapa }
 
-    /**
-     * Baixa e valida o calendário em segundo plano.
-     * O cache anterior só é substituído depois de validar o novo JSON
-     * e concluir uma gravação segura.
-     */
-    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) {
-        val app = context.applicationContext
+    /** Atualiza em segundo plano; um JSON inválido nunca substitui o cache atual. */
+    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) =
+        fonte.atualizar(context, aoTerminar)
 
-        Thread {
-            var gravou = false
-            var conexao: HttpURLConnection? = null
-
-            try {
-                conexao = URL(URL_JSON).openConnection() as HttpURLConnection
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.requestMethod = "GET"
-                conexao.setRequestProperty("Cache-Control", "no-cache")
-                conexao.setRequestProperty(
-                    "Accept",
-                    "application/json"
-                )
-
-                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
-                    val texto = conexao.inputStream
-                        .bufferedReader(StandardCharsets.UTF_8)
-                        .use { it.readText() }
-
-                    // Valida o calendário e preserva cache mais completo da mesma temporada.
-                    gravou = gravarCacheSeValido(app, texto)
-                }
-            } catch (e: Exception) {
-                registrarFalha("FormulaECalendarJson.atualizar", e)
-                // Sem internet, JSON inválido ou falha de gravação:
-                // mantém o cache anterior e o JSON do APK.
-            } finally {
-                conexao?.disconnect()
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post {
-                    aoTerminar()
-                }
-            }
-        }.start()
-    }
-
-    /**
-     * Valida o calendário antes de gravar e impede que uma resposta parcial
-     * da mesma temporada substitua um cache com mais etapas.
-     * Uma temporada diferente pode ter legitimamente outra quantidade de etapas.
-     */
-    internal fun gravarCacheSeValido(
-        context: Context,
-        texto: String
-    ): Boolean {
-        return try {
-            interpretar(texto)
-            synchronized(cacheLock) {
-                gravarCacheSeguro(context, texto)
-            }
-        } catch (e: Exception) {
-            registrarFalha("FormulaECalendarJson.gravarCacheSeValido", e)
-            false
-        }
-    }
-
-    /**
-     * Grava usando AtomicFile para evitar deixar o cache definitivo
-     * parcialmente escrito se ocorrer uma falha durante a operação.
-     */
-    private fun gravarCacheSeguro(
-        context: Context,
-        texto: String
-    ): Boolean {
-        val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-        val atomico = AtomicFile(arquivo)
-        var saida: FileOutputStream? = null
-
-        return try {
-            saida = atomico.startWrite()
-
-            saida.write(texto.toByteArray(StandardCharsets.UTF_8))
-            saida.flush()
-            saida.fd.sync()
-
-            atomico.finishWrite(saida)
-            saida = null
-
-            true
-        } catch (e: Exception) {
-            registrarFalha("FormulaECalendarJson.gravarCacheSeguro", e)
-            if (saida != null) {
-                try {
-                    atomico.failWrite(saida)
-                } catch (e: Exception) {
-                    registrarFalha("FormulaECalendarJson.gravarCacheSeguro", e)
-                    // O AtomicFile tenta recuperar a versão anterior.
-                }
-            }
-            false
-        }
-    }
+    /** Valida e grava no cache. Devolve false, sem tocar no cache, se for inválido. */
+    internal fun gravarCacheSeValido(context: Context, texto: String): Boolean =
+        fonte.gravarCache(context, texto)
 
     /**
      * Converte os eventos para o modelo usado pela tela inicial.
@@ -209,40 +98,6 @@ object FormulaECalendarJson {
 
         return lista.sortedBy { it.dataInicio }
     }
-
-    private fun lerCache(context: Context): String? {
-        return try {
-            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-            if (!arquivo.exists()) return null
-            
-            val atomico = AtomicFile(arquivo)
-            val texto = atomico.openRead()
-                .bufferedReader(StandardCharsets.UTF_8)
-                .use { it.readText() }
-
-            interpretar(texto)
-            texto
-        } catch (e: Exception) {
-            registrarFalha("FormulaECalendarJson.lerCache", e)
-            null
-        }
-    }
-
-    private fun lerAsset(context: Context): String? {
-        return try {
-            val texto = context.assets
-                .open("fe_calendar.json")
-                .bufferedReader(StandardCharsets.UTF_8)
-                .use { it.readText() }
-
-            interpretar(texto)
-            texto
-        } catch (e: Exception) {
-            registrarFalha("FormulaECalendarJson.lerAsset", e)
-            null
-        }
-    }
-
     /**
      * Valida estrutura, categoria, etapas, datas e sessões.
      * Um JSON incompleto ou inconsistente é rejeitado por inteiro.
