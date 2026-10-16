@@ -1,8 +1,7 @@
 package com.motorsport.calendario
 
 import android.content.Context
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -10,6 +9,12 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
+/**
+ * Este arquivo existia numa versão anterior, quando a escolha era única ("todas" ou
+ * "apenas corridas"). Hoje a escolha é por categoria (veja PreferenciaPorCategoriaTest).
+ * Foi mantido, atualizado, para não deixar um teste antigo quebrando a compilação.
+ * Pode ser apagado do repositório quando quiser.
+ */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class PreferenciaTipoDeAvisoTest {
@@ -23,23 +28,14 @@ class PreferenciaTipoDeAvisoTest {
 
     @Test
     fun porPadraoAvisaDeTodasAsSessoes() {
-        assertFalse(PreferenciasDeAviso.apenasCorridas(context))
-    }
-
-    @Test
-    fun escolhaDeApenasCorridasFicaSalva() {
-        PreferenciasDeAviso.definirApenasCorridas(context, true)
-        assertTrue(PreferenciasDeAviso.apenasCorridas(context))
-
-        PreferenciasDeAviso.definirApenasCorridas(context, false)
-        assertFalse(PreferenciasDeAviso.apenasCorridas(context))
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(context, "F1"))
     }
 
     @Test
     fun tipoDeSessaoNaoMudaOTempoDeAntecedencia() {
         PreferenciasDeAviso.definir(context, 30)
-        PreferenciasDeAviso.definirApenasCorridas(context, true)
+        PreferenciasDeAviso.definirModo(context, "F2", ModoDeAviso.CORRIDAS)
 
-        assertTrue(PreferenciasDeAviso.minutosAntes(context) == 30)
+        assertEquals(30, PreferenciasDeAviso.minutosAntes(context))
     }
 }
