@@ -29,6 +29,20 @@ internal data class AvisoPlanejado(
     val dispararEm: Instant
 )
 
+/** O que avisar de uma categoria. */
+internal enum class ModoDeAviso(val rotulo: String) {
+    TODAS("Todas"),
+    CORRIDAS("Corridas"),
+    NENHUMA("Nenhuma");
+
+    fun permite(nomeDaSessao: String): Boolean =
+        when (this) {
+            TODAS -> true
+            CORRIDAS -> PlanoDeAvisos.ehCorrida(nomeDaSessao)
+            NENHUMA -> false
+        }
+}
+
 /**
  * Regras dos avisos, sem dependência do Android, para poderem ser testadas
  * automaticamente. Quem agenda de verdade é o [AgendadorDeAvisos].
@@ -71,6 +85,7 @@ internal object PlanoDeAvisos {
     /**
      * Avisos que ainda vão acontecer dentro do horizonte, do mais próximo ao mais distante.
      * [minutosAntes] igual a zero (ou negativo) significa "não avisar".
+     * [modoDaCategoria] diz, para cada categoria, se vale todas as sessões, só corridas ou nenhuma.
      */
     fun calcular(
         sessoes: List<SessaoParaAviso>,
@@ -78,7 +93,7 @@ internal object PlanoDeAvisos {
         minutosAntes: Int,
         horizonte: Duration = Duration.ofDays(HORIZONTE_DIAS),
         limite: Int = LIMITE_DE_ALARMES,
-        apenasCorridas: Boolean = false
+        modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
     ): List<AvisoPlanejado> {
         if (minutosAntes <= 0) return emptyList()
 
@@ -86,7 +101,7 @@ internal object PlanoDeAvisos {
         val fimDaJanela = agora.plus(horizonte)
 
         return sessoes
-            .filter { !apenasCorridas || ehCorrida(it.nome) }
+            .filter { modoDaCategoria(it.categoria).permite(it.nome) }
             .distinctBy { it.chave }
             .map { AvisoPlanejado(it, it.inicio.toInstant().minus(antecedencia)) }
             .filter { it.dispararEm.isAfter(agora) && !it.dispararEm.isAfter(fimDaJanela) }

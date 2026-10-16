@@ -55,7 +55,7 @@ internal object AgendadorDeAvisos {
                 ColetorDeSessoes.coletar(app),
                 Instant.now(),
                 minutos,
-                apenasCorridas = PreferenciasDeAviso.apenasCorridas(app)
+                modoDaCategoria = { PreferenciasDeAviso.modoDaCategoria(app, it) }
             )
 
             val agendados = mutableSetOf<String>()

@@ -180,7 +180,7 @@ class PlanoDeAvisosTest {
     }
 
     @Test
-    fun apenasCorridasDescartaAsDemaisSessoes() {
+    fun modoCorridasDescartaTreinosEClassificacoes() {
         val sessoes = listOf(
             sessao("Treino Livre", 17, 18),
             sessao("Classificação", 18, 10),
@@ -188,9 +188,47 @@ class PlanoDeAvisosTest {
             sessao("Corrida Feature", 19, 10)
         )
 
-        val avisos = PlanoDeAvisos.calcular(sessoes, agora, 15, apenasCorridas = true)
+        val avisos = PlanoDeAvisos.calcular(
+            sessoes, agora, 15, modoDaCategoria = { ModoDeAviso.CORRIDAS }
+        )
 
         assertEquals(listOf("Corrida Sprint", "Corrida Feature"), avisos.map { it.sessao.nome })
+    }
+
+    @Test
+    fun cadaCategoriaTemOSeuProprioModo() {
+        val sessoes = listOf(
+            sessao("Treino Livre", 17, 18, categoria = "F1"),
+            sessao("Corrida", 18, 10, categoria = "F1"),
+            sessao("Treino Livre", 17, 19, categoria = "F2"),
+            sessao("Corrida Feature", 18, 11, categoria = "F2"),
+            sessao("Corrida", 18, 12, categoria = "IndyCar")
+        )
+        val modos = mapOf(
+            "F1" to ModoDeAviso.TODAS,
+            "F2" to ModoDeAviso.CORRIDAS,
+            "IndyCar" to ModoDeAviso.NENHUMA
+        )
+
+        val avisos = PlanoDeAvisos.calcular(
+            sessoes, agora, 15, modoDaCategoria = { modos.getValue(it) }
+        )
+
+        assertEquals(
+            listOf("F1:Treino Livre", "F1:Corrida", "F2:Corrida Feature"),
+            avisos.map { "${it.sessao.categoria}:${it.sessao.nome}" }
+        )
+    }
+
+    @Test
+    fun modoNenhumaSilenciaACategoriaInteira() {
+        val sessoes = listOf(sessao("Treino Livre", 17, 18), sessao("Corrida", 18, 10))
+
+        val avisos = PlanoDeAvisos.calcular(
+            sessoes, agora, 15, modoDaCategoria = { ModoDeAviso.NENHUMA }
+        )
+
+        assertTrue(avisos.isEmpty())
     }
 
     @Test
