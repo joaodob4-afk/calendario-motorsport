@@ -6,7 +6,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.time.Duration
 import java.time.Instant
 import java.time.ZonedDateTime
 
@@ -73,19 +72,16 @@ class PlanoDeAvisosTest {
     }
 
     @Test
-    fun ignoraSessaoForaDoHorizonte() {
+    fun sessaoDistanteTambemRecebeAviso() {
+        // Depois de uma pausa longa no calendário, o aviso da volta continua agendado.
         val longe = SessaoParaAviso(
             "F1",
             "Interlagos",
             "Corrida",
-            ZonedDateTime.of(2026, 12, 20, 10, 0, 0, 0, brasilia)
+            ZonedDateTime.of(2027, 3, 14, 10, 0, 0, 0, brasilia)
         )
 
-        assertTrue(PlanoDeAvisos.calcular(listOf(longe), agora, 30).isEmpty())
-        assertEquals(
-            1,
-            PlanoDeAvisos.calcular(listOf(longe), agora, 30, horizonte = Duration.ofDays(90)).size
-        )
+        assertEquals(1, PlanoDeAvisos.calcular(listOf(longe), agora, 30).size)
     }
 
     @Test
