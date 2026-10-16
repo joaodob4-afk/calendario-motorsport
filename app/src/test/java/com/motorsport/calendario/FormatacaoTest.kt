@@ -1,8 +1,10 @@
 package com.motorsport.calendario
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class FormatacaoTest {
 
@@ -75,5 +77,56 @@ class FormatacaoTest {
     fun normalizar_buscaSemAcentoEncontraComAcento() {
         val digitado = Formatacao.normalizar("mexico")
         assertTrue(Formatacao.normalizar("México").contains(digitado))
+    }
+
+    @Test
+    fun periodo_mostraInicioEFimEmDiaMes() {
+        assertEquals(
+            "23/10 – 25/10",
+            Formatacao.periodo(LocalDate.of(2026, 10, 23), LocalDate.of(2026, 10, 25))
+        )
+    }
+
+    @Test
+    fun periodo_queCruzaOMesNaoUsaNomeDeMes() {
+        assertEquals(
+            "30/10 – 01/11",
+            Formatacao.periodo(LocalDate.of(2026, 10, 30), LocalDate.of(2026, 11, 1))
+        )
+    }
+
+    @Test
+    fun periodo_queCruzaOAnoNaoMostraAno() {
+        assertEquals(
+            "30/12 – 02/01",
+            Formatacao.periodo(LocalDate.of(2026, 12, 30), LocalDate.of(2027, 1, 2))
+        )
+    }
+
+    @Test
+    fun periodo_usaDoisDigitosParaDiaEMes() {
+        assertEquals(
+            "06/03 – 08/03",
+            Formatacao.periodo(LocalDate.of(2026, 3, 6), LocalDate.of(2026, 3, 8))
+        )
+    }
+
+    @Test
+    fun periodo_etapaDeUmDiaMostraUmaData() {
+        val dia = LocalDate.of(2026, 5, 24)
+        assertEquals("24/05", Formatacao.periodo(dia, dia))
+    }
+
+    @Test
+    fun periodo_semFimOuComFimAntesDoInicioMostraSoOInicio() {
+        val inicio = LocalDate.of(2026, 5, 24)
+        assertEquals("24/05", Formatacao.periodo(inicio, null))
+        assertEquals("24/05", Formatacao.periodo(inicio, LocalDate.of(2026, 5, 20)))
+    }
+
+    @Test
+    fun periodo_semInicioDevolveNull() {
+        assertNull(Formatacao.periodo(null, LocalDate.of(2026, 5, 24)))
+        assertNull(Formatacao.periodo(null, null))
     }
 }

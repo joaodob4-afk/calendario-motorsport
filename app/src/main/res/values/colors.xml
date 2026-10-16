@@ -5,4 +5,13 @@
     <color name="verde_borda">#1C5413</color>
     <color name="cinza_texto">#93A0AD</color>
     <color name="ic_launcher_background">#050A06</color>
+
+    <!-- Visual neutro da tela inicial -->
+    <color name="fundo_tela">#0E1012</color>
+    <color name="superficie">#15181B</color>
+    <color name="borda_suave">#2A2D31</color>
+    <color name="texto_suave">#9AA0A6</color>
+    <color name="acento">#4CAF50</color>
+    <color name="acento_escuro">#0B1A0C</color>
+    <color name="status_azul">#5B9BEA</color>
 </resources>
