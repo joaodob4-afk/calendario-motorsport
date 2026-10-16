@@ -527,7 +527,7 @@ class MainActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
 
-            // DD/MM/AAAA, sem o nome do mês (o mês já aparece no cabeçalho da lista)
+            // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
             val periodo = Formatacao.periodo(
                 parseDataSegura(etapa.dataInicio),
                 parseDataSegura(etapa.dataFim)

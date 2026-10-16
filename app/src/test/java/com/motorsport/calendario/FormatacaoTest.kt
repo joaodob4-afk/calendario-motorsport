@@ -80,9 +80,9 @@ class FormatacaoTest {
     }
 
     @Test
-    fun periodo_mostraInicioEFimEmDiaMesAno() {
+    fun periodo_mostraInicioEFimEmDiaMes() {
         assertEquals(
-            "23/10/2026 – 25/10/2026",
+            "23/10 – 25/10",
             Formatacao.periodo(LocalDate.of(2026, 10, 23), LocalDate.of(2026, 10, 25))
         )
     }
@@ -90,15 +90,15 @@ class FormatacaoTest {
     @Test
     fun periodo_queCruzaOMesNaoUsaNomeDeMes() {
         assertEquals(
-            "30/10/2026 – 01/11/2026",
+            "30/10 – 01/11",
             Formatacao.periodo(LocalDate.of(2026, 10, 30), LocalDate.of(2026, 11, 1))
         )
     }
 
     @Test
-    fun periodo_queCruzaOAnoMostraOsDoisAnos() {
+    fun periodo_queCruzaOAnoNaoMostraAno() {
         assertEquals(
-            "30/12/2026 – 02/01/2027",
+            "30/12 – 02/01",
             Formatacao.periodo(LocalDate.of(2026, 12, 30), LocalDate.of(2027, 1, 2))
         )
     }
@@ -106,7 +106,7 @@ class FormatacaoTest {
     @Test
     fun periodo_usaDoisDigitosParaDiaEMes() {
         assertEquals(
-            "06/03/2026 – 08/03/2026",
+            "06/03 – 08/03",
             Formatacao.periodo(LocalDate.of(2026, 3, 6), LocalDate.of(2026, 3, 8))
         )
     }
@@ -114,14 +114,14 @@ class FormatacaoTest {
     @Test
     fun periodo_etapaDeUmDiaMostraUmaData() {
         val dia = LocalDate.of(2026, 5, 24)
-        assertEquals("24/05/2026", Formatacao.periodo(dia, dia))
+        assertEquals("24/05", Formatacao.periodo(dia, dia))
     }
 
     @Test
     fun periodo_semFimOuComFimAntesDoInicioMostraSoOInicio() {
         val inicio = LocalDate.of(2026, 5, 24)
-        assertEquals("24/05/2026", Formatacao.periodo(inicio, null))
-        assertEquals("24/05/2026", Formatacao.periodo(inicio, LocalDate.of(2026, 5, 20)))
+        assertEquals("24/05", Formatacao.periodo(inicio, null))
+        assertEquals("24/05", Formatacao.periodo(inicio, LocalDate.of(2026, 5, 20)))
     }
 
     @Test

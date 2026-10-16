@@ -113,7 +113,7 @@
                 app:autoSizeStepGranularity="0.5sp" />
         </LinearLayout>
 
-        <!-- Linha 2: período em DD/MM/AAAA e status -->
+        <!-- Linha 2: período em DD/MM e status -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -134,7 +134,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="30/10/2026 – 01/11/2026"
+                android:text="30/10 – 01/11"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:fontFamily="sans-serif-medium"
