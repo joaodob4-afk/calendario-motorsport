@@ -1,14 +1,7 @@
 package com.motorsport.calendario
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import android.util.AtomicFile
 import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
@@ -28,129 +21,25 @@ object F3CalendarJson {
         .ofPattern("dd/MM/uuuu")
         .withResolverStyle(ResolverStyle.STRICT)
 
-    fun carregar(context: Context): List<F3Event> {
-        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
-        val eventosJson = json?.let { interpretar(it) }.orEmpty()
-        // Um calendário remoto estruturalmente válido é a fonte oficial desta temporada.
-        // Não mescla o fallback por número de etapa: isso poderia ressuscitar etapas
-        // removidas ou associar o circuito errado depois de uma renumeração.
-        if (eventosJson.isNotEmpty()) {
-            return eventosJson.sortedBy { it.etapa }
-        }
+    private val fonte = FonteDeCalendario(
+        nome = "F3CalendarJson",
+        urlJson = URL_JSON,
+        arquivoAsset = "f3_calendar.json",
+        arquivoCache = ARQUIVO_CACHE
+    ) { interpretar(it) }
 
-        return emptyList()
-    }
+    /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
+    fun carregar(context: Context): List<F3Event> =
+        fonte.carregar(context).sortedBy { it.etapa }
 
-    fun atualizar(
-        context: Context,
-        aoTerminar: (() -> Unit)? = null
-    ) {
-        val app = context.applicationContext
+    /** Atualiza em segundo plano; um JSON inválido nunca substitui o cache atual. */
+    fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) =
+        fonte.atualizar(context, aoTerminar)
 
-        Thread {
-            var gravou = false
-            var conexao: HttpURLConnection? = null
+    /** Valida e grava no cache. Devolve false, sem tocar no cache, se for inválido. */
+    internal fun gravarCacheSeguro(context: Context, conteudo: String): Boolean =
+        fonte.gravarCache(context, conteudo)
 
-            try {
-                conexao = URL(URL_JSON)
-                    .openConnection() as HttpURLConnection
-
-                conexao.connectTimeout = 10000
-                conexao.readTimeout = 10000
-                conexao.requestMethod = "GET"
-                conexao.setRequestProperty(
-                    "Cache-Control",
-                    "no-cache"
-                )
-                conexao.setRequestProperty(
-                    "Accept",
-                    "application/json"
-                )
-
-                if (conexao.responseCode == HttpURLConnection.HTTP_OK) {
-                    val texto = conexao.inputStream
-                        .bufferedReader(Charsets.UTF_8)
-                        .use { it.readText() }
-
-                    val eventos = interpretar(texto)
-
-                    if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                        gravou = gravarCacheSeguro(app, texto)
-                    }
-                }
-            } catch (e: Exception) {
-                registrarFalha("F3CalendarJson.atualizar", e)
-                // Falha de rede ou dados inválidos:
-                // mantém o cache anterior e os dados do asset.
-            } finally {
-                try {
-                    conexao?.disconnect()
-                } catch (e: Exception) {
-                    registrarFalha("F3CalendarJson.atualizar", e)
-                    // Não deixa uma falha ao fechar afetar o aplicativo.
-                }
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post {
-                    try {
-                        aoTerminar()
-                    } catch (e: Exception) {
-                        registrarFalha("F3CalendarJson.atualizar", e)
-                        // A gravação do cache já foi concluída.
-                    }
-                }
-            }
-        }.start()
-    }
-
-    /**
-     * AtomicFile protege o cache anterior caso a gravação falhe.
-     * O conteúdo é validado antes e depois da escrita.
-     */
-    internal fun gravarCacheSeguro(
-        context: Context,
-        conteudo: String
-    ): Boolean {
-        val eventosNovos = interpretar(conteudo)
-
-        if (eventosNovos.size < MINIMO_ETAPAS_VALIDAS) {
-            return false
-        }
-
-        val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-        val cacheAtomico = AtomicFile(arquivo)
-
-        var saida: FileOutputStream? = null
-
-        return try {
-            saida = cacheAtomico.startWrite()
-            saida.write(conteudo.toByteArray(Charsets.UTF_8))
-            saida.flush()
-            saida.fd.sync()
-            cacheAtomico.finishWrite(saida)
-            saida = null
-
-            // Confere o arquivo definitivo depois da troca.
-            val verificado = cacheAtomico.openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            interpretar(verificado).size >= MINIMO_ETAPAS_VALIDAS
-        } catch (e: Exception) {
-            registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
-            try {
-                if (saida != null) {
-                    cacheAtomico.failWrite(saida)
-                }
-            } catch (e: Exception) {
-                registrarFalha("F3CalendarJson.gravarCacheSeguro", e)
-                // A falha na recuperação não deve fechar o aplicativo.
-            }
-
-            false
-        }
-    }
     fun comoEtapas(
         eventos: List<F3Event>
     ): List<MainActivity.Etapa> {
@@ -181,45 +70,6 @@ object F3CalendarJson {
 
         return lista.sortedBy { it.dataInicio }
     }
-
-    private fun lerCache(context: Context): String? {
-        return try {
-            val arquivo = File(context.filesDir, ARQUIVO_CACHE)
-
-            if (!arquivo.exists()) return null
-                
-            val texto = AtomicFile(arquivo)
-                .openRead()
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            val eventos = interpretar(texto)
-
-            if (eventos.size >= MINIMO_ETAPAS_VALIDAS) {
-                texto
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            registrarFalha("F3CalendarJson.lerCache", e)
-            null
-        }
-    }
-
-    private fun lerAsset(context: Context): String? {
-        return try {
-            val texto = context.assets
-                .open("f3_calendar.json")
-                .bufferedReader(Charsets.UTF_8)
-                .use { it.readText() }
-
-            if (interpretar(texto).isNotEmpty()) texto else null
-        } catch (e: Exception) {
-            registrarFalha("F3CalendarJson.lerAsset", e)
-            null
-        }
-    }
-
     private fun interpretar(json: String): List<F3Event> {
         return try {
             val raiz = JSONObject(json)
