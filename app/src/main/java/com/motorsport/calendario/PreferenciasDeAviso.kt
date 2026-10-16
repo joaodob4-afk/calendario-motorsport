@@ -10,6 +10,7 @@ internal object PreferenciasDeAviso {
 
     private const val ARQUIVO = "preferencias"
     private const val CHAVE_MINUTOS = "aviso_minutos_antes"
+    private const val CHAVE_APENAS_CORRIDAS = "aviso_apenas_corridas"
 
     const val DESATIVADO = 0
 
@@ -33,6 +34,20 @@ internal object PreferenciasDeAviso {
             .getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
             .edit()
             .putInt(CHAVE_MINUTOS, valido)
+            .apply()
+    }
+
+    /** true: avisa só das corridas. false (padrão): avisa de todas as sessões. */
+    fun apenasCorridas(context: Context): Boolean =
+        context.applicationContext
+            .getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
+            .getBoolean(CHAVE_APENAS_CORRIDAS, false)
+
+    fun definirApenasCorridas(context: Context, apenasCorridas: Boolean) {
+        context.applicationContext
+            .getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(CHAVE_APENAS_CORRIDAS, apenasCorridas)
             .apply()
     }
 

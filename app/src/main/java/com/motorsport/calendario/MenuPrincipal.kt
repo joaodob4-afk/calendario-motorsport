@@ -104,6 +104,14 @@ internal object MenuPrincipal {
                 background = fundoDeToque()
                 setOnClickListener {
                     PreferenciasDeAviso.definir(activity, minutos)
+
+                    if (minutos != PreferenciasDeAviso.DESATIVADO &&
+                        Notificacoes.precisaPedirPermissao(activity)
+                    ) {
+                        Notificacoes.pedirPermissao(activity)
+                    }
+
+                    AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
                     montar(activity, container) // redesenha com a nova escolha marcada
                 }
                 addView(marcador)
@@ -120,6 +128,128 @@ internal object MenuPrincipal {
 
             container.addView(linha)
         }
+
+        if (atual != PreferenciasDeAviso.DESATIVADO) {
+            secaoTipoDeSessao(activity, container)
+        }
+
+        // Escolheu um aviso, mas as notificações estão bloqueadas no aparelho.
+        if (atual != PreferenciasDeAviso.DESATIVADO && !Notificacoes.permitidas(activity)) {
+            container.addView(
+                linhaDeAcao(
+                    activity,
+                    "As notificações estão bloqueadas. Toque para ativar nas configurações.",
+                    Color.parseColor("#FFB74D")
+                ) {
+                    if (Notificacoes.precisaPedirPermissao(activity)) {
+                        Notificacoes.pedirPermissao(activity)
+                    } else {
+                        Notificacoes.abrirConfiguracoes(activity)
+                    }
+                }
+            )
+        }
+
+        container.addView(
+            linhaDeAcao(activity, "Enviar notificação de teste", verde) {
+                when {
+                    Notificacoes.precisaPedirPermissao(activity) ->
+                        Notificacoes.pedirPermissao(activity)
+
+                    !Notificacoes.permitidas(activity) ->
+                        Notificacoes.abrirConfiguracoes(activity)
+
+                    else -> Notificacoes.mostrarTeste(activity)
+                }
+            }
+        )
+    }
+
+    /** Escolha entre avisar de todas as sessões ou só das corridas. */
+    private fun secaoTipoDeSessao(activity: Activity, container: LinearLayout) {
+        container.addView(
+            texto(activity, "Quais sessões avisar", 18f, Color.WHITE, Typeface.BOLD)
+                .apply { setPadding(0, activity.emPx(28f), 0, activity.emPx(6f)) }
+        )
+
+        val apenasCorridas = PreferenciasDeAviso.apenasCorridas(activity)
+
+        listOf(false to "Todas as sessões", true to "Apenas as corridas").forEach { (soCorridas, rotulo) ->
+            container.addView(
+                linhaDeOpcao(activity, rotulo, soCorridas == apenasCorridas) {
+                    PreferenciasDeAviso.definirApenasCorridas(activity, soCorridas)
+                    AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
+                    montar(activity, container)
+                }
+            )
+        }
+
+        container.addView(
+            texto(
+                activity,
+                if (apenasCorridas) {
+                    "Sprints e corridas principais. Treinos e classificações ficam de fora."
+                } else {
+                    "Treinos, classificações e corridas."
+                },
+                13f,
+                activity.getColor(R.color.texto_suave),
+                Typeface.NORMAL
+            ).apply { setPadding(activity.emPx(6f), activity.emPx(4f), 0, 0) }
+        )
+    }
+
+    /** Linha com marcador redondo, igual às opções de antecedência. */
+    private fun linhaDeOpcao(
+        activity: Activity,
+        rotulo: String,
+        marcada: Boolean,
+        aoTocar: () -> Unit
+    ): LinearLayout {
+        val verde = activity.getColor(R.color.acento)
+
+        val marcador = View(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setStroke(activity.emPx(2f), if (marcada) verde else activity.getColor(R.color.texto_suave))
+                setColor(if (marcada) verde else Color.TRANSPARENT)
+            }
+        }
+
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(activity.emPx(6f), activity.emPx(13f), activity.emPx(6f), activity.emPx(13f))
+            isClickable = true
+            isFocusable = true
+            background = fundoDeToque()
+            setOnClickListener { aoTocar() }
+            addView(marcador)
+            addView(
+                texto(
+                    activity,
+                    rotulo,
+                    17f,
+                    Color.WHITE,
+                    if (marcada) Typeface.BOLD else Typeface.NORMAL
+                ).apply { setPadding(activity.emPx(14f), 0, 0, 0) }
+            )
+        }
+    }
+
+    /** Linha de texto clicável, com o mesmo efeito de toque das opções. */
+    private fun linhaDeAcao(
+        activity: Activity,
+        rotulo: String,
+        cor: Int,
+        aoTocar: () -> Unit
+    ) = texto(activity, rotulo, 15f, cor, Typeface.BOLD).apply {
+        setPadding(activity.emPx(6f), activity.emPx(16f), activity.emPx(6f), activity.emPx(16f))
+        isClickable = true
+        isFocusable = true
+        background = fundoDeToque()
+        setOnClickListener { aoTocar() }
     }
 
     private fun texto(
