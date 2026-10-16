@@ -52,11 +52,12 @@ internal object PlanoDeAvisos {
     /** Os horários dos calendários do app estão em Brasília. */
     val BRASILIA: ZoneId = ZoneId.of("America/Sao_Paulo")
 
-    /** Só são agendados os avisos dos próximos dias; o restante entra nas próximas aberturas. */
-    const val HORIZONTE_DIAS = 21L
-
-    /** O Android limita a quantidade de alarmes por app, então o plano nunca passa disto. */
-    const val LIMITE_DE_ALARMES = 40
+    /**
+     * O Android limita a quantidade de alarmes por app. Agendamos só os próximos, em
+     * qualquer data; os seguintes entram sozinhos a cada aviso mostrado e a cada
+     * abertura do app.
+     */
+    const val LIMITE_DE_ALARMES = 50
 
     /** Um aviso que chega com mais atraso que isto (aparelho desligado, por exemplo) é descartado. */
     const val TOLERANCIA_ATRASO_MINUTOS = 5L
@@ -83,7 +84,7 @@ internal object PlanoDeAvisos {
     }
 
     /**
-     * Avisos que ainda vão acontecer dentro do horizonte, do mais próximo ao mais distante.
+     * Próximos avisos que ainda vão acontecer, do mais próximo ao mais distante.
      * [minutosAntes] igual a zero (ou negativo) significa "não avisar".
      * [modoDaCategoria] diz, para cada categoria, se vale todas as sessões, só corridas ou nenhuma.
      */
@@ -91,20 +92,18 @@ internal object PlanoDeAvisos {
         sessoes: List<SessaoParaAviso>,
         agora: Instant,
         minutosAntes: Int,
-        horizonte: Duration = Duration.ofDays(HORIZONTE_DIAS),
         limite: Int = LIMITE_DE_ALARMES,
         modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
     ): List<AvisoPlanejado> {
         if (minutosAntes <= 0) return emptyList()
 
         val antecedencia = Duration.ofMinutes(minutosAntes.toLong())
-        val fimDaJanela = agora.plus(horizonte)
 
         return sessoes
             .filter { modoDaCategoria(it.categoria).permite(it.nome) }
             .distinctBy { it.chave }
             .map { AvisoPlanejado(it, it.inicio.toInstant().minus(antecedencia)) }
-            .filter { it.dispararEm.isAfter(agora) && !it.dispararEm.isAfter(fimDaJanela) }
+            .filter { it.dispararEm.isAfter(agora) }
             .sortedBy { it.dispararEm }
             .take(limite)
     }
