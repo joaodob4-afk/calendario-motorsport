@@ -1,6 +1,8 @@
 package com.motorsport.calendario
 
 import java.text.Normalizer
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * Funções de texto sem dependência do Android. Ficam fora das telas para poderem ser
@@ -45,5 +47,20 @@ internal object Formatacao {
         }
 
         return limpa to ""
+    }
+
+    private val formatoDiaMesAno = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    /**
+     * Período da etapa em DD/MM/AAAA, sem nome de mês (o mês já aparece no cabeçalho da lista):
+     * "30/10/2026 – 01/11/2026". Etapa de um dia só (ou sem data de fim) mostra uma data.
+     * Devolve null se não houver data de início; quem chama usa então o texto original.
+     */
+    fun periodo(inicio: LocalDate?, fim: LocalDate?): String? {
+        if (inicio == null) return null
+        if (fim == null || fim.isBefore(inicio) || fim == inicio) {
+            return inicio.format(formatoDiaMesAno)
+        }
+        return "${inicio.format(formatoDiaMesAno)} – ${fim.format(formatoDiaMesAno)}"
     }
 }

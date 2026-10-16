@@ -165,6 +165,16 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    /**
+     * A tela inicial usa um cinza-escuro no lugar do preto. A janela e as barras do sistema
+     * seguem a mesma cor, para não aparecer uma faixa mais escura no topo e no pé.
+     */
+    private fun definirCorDaJanela(cor: Int) {
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(cor))
+        window.statusBarColor = cor
+        window.navigationBarColor = cor
+    }
+
     private fun animarEntrada() {
         val tela = findViewById<android.view.View>(android.R.id.content)
         tela.translationX = 80f
@@ -179,6 +189,7 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarMenu() {
         setContentView(R.layout.activity_main)
         aplicarInsetsDasBarras()
+        definirCorDaJanela(getColor(R.color.fundo_tela))
         animarEntrada()
 
         listaEtapas = findViewById(R.id.listaEtapas)
@@ -352,7 +363,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
-        val raio = emPx(10f).toFloat()
+        val raio = emPx(12f).toFloat()
 
         item.background = android.graphics.drawable.GradientDrawable().apply {
             setColor(getColor(R.color.superficie))
@@ -516,7 +527,12 @@ class MainActivity : AppCompatActivity() {
             item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
             item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
 
-            item.findViewById<TextView>(R.id.itemData).text = etapa.data
+            // DD/MM/AAAA, sem o nome do mês (o mês já aparece no cabeçalho da lista)
+            val periodo = Formatacao.periodo(
+                parseDataSegura(etapa.dataInicio),
+                parseDataSegura(etapa.dataFim)
+            ) ?: etapa.data
+            item.findViewById<TextView>(R.id.itemData).text = periodo
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = status
@@ -528,7 +544,8 @@ class MainActivity : AppCompatActivity() {
             }
             estilizarContorno(itemStatus, corStatus)
 
-            item.contentDescription = status
+            item.contentDescription =
+                "${etapa.categoria}, ${etapa.pais}, ${etapa.circuito}, $periodo, $status"
 
             item.setOnClickListener {
                 when (etapa.categoria) {
@@ -600,6 +617,7 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_category)
         aplicarInsetsDasBarras()
+        definirCorDaJanela(android.graphics.Color.BLACK)
         animarEntrada()
 
         val titulo = findViewById<TextView>(R.id.categoryTitle)
