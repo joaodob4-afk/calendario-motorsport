@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
     /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
     private var carregandoCalendarios = true
 
-    private fun lerEtapas(origem: String, bloco: () -> List<Etapa>): List<Etapa>? =
+    private fun lerEtapas(origem: String, bloco: () -> List<Etapa>?): List<Etapa>? =
         try {
             bloco()
         } catch (e: Exception) {
