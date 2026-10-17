@@ -1,679 +1,986 @@
 package com.motorsport.calendario
 
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
+import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
-import android.view.View
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import org.json.JSONObject
+import java.time.format.DateTimeFormatter
 
-class MotoActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
-    private val preto = Color.BLACK
-    private val verde = Color.rgb(57, 255, 20)
-    private val branco = Color.WHITE
-    private val cinza = Color.rgb(175, 175, 175)
-    private val linhaCinza = Color.rgb(55, 55, 55)
-    private val fundoCard = Color.rgb(15, 20, 15)
-    private val verdeEscuro = Color.rgb(20, 75, 20)
+    private var categoriaAtual = ""
 
-    private val localePt = Locale("pt", "BR")
+    data class Etapa(
+        val categoria: String,
+        val pais: String,
+        val circuito: String,
+        val data: String,
+        val dataInicio: String = "",
+        val circuitId: String = "",
+        val dataFim: String = ""
+    )
 
-    private lateinit var conteudo: LinearLayout
+    private lateinit var listaEtapas: LinearLayout
 
-    private var etapaEhProxima = true
+    private val handlerPesquisa =
+        Handler(Looper.getMainLooper())
 
-    /** Classe (MotoGP, Moto2 ou Moto3) recebida pela Intent. */
-    private var classe = ClasseMoto.MOTOGP
+    private var pesquisaRunnable: Runnable? = null
+
+    private val handlerProximaEtapa =
+        Handler(Looper.getMainLooper())
+
+    private val atualizadorProximaEtapa =
+        object : Runnable {
+            override fun run() {
+                if (categoriaAtual.isEmpty()) {
+                    atualizarProximaEtapa()
+                }
+
+                handlerProximaEtapa.postDelayed(
+                    this,
+                    60000
+                )
+            }
+        }
+
+    private val handlerRedesenho = Handler(Looper.getMainLooper())
+
+    private val redesenhoDaLista = Runnable {
+        if (categoriaAtual.isEmpty()) {
+            atualizarProximaEtapa()
+            mostrarEtapas(todasEtapas)
+        }
+    }
+
+    /**
+     * Ao abrir o app, vários calendários terminam de baixar quase ao mesmo tempo. Em vez de
+     * refazer a lista inteira a cada um, agrupa tudo em um único redesenho.
+     */
+    private fun redesenharListaDepois() {
+        handlerRedesenho.removeCallbacks(redesenhoDaLista)
+        handlerRedesenho.postDelayed(redesenhoDaLista, 400)
+    }
+
+    private var etapasF1Dinamicas: List<Etapa>? = null
+    private var etapasF2Dinamicas: List<Etapa>? = null
+    private var etapasF3Dinamicas: List<Etapa>? = null
+    private var etapasFormulaEDinamicas: List<Etapa>? = null
+    private var etapasIndyCarDinamicas: List<Etapa>? = null
+    private var etapasMotoDinamicas: List<Etapa>? = null
+
+    private val todasEtapas: List<Etapa>
+        get() =
+            (etapasF1Dinamicas ?: emptyList()) +
+                (etapasF2Dinamicas ?: emptyList()) +
+                (etapasF3Dinamicas ?: emptyList()) +
+                (etapasFormulaEDinamicas ?: emptyList()) +
+                (etapasIndyCarDinamicas ?: emptyList()) +
+                (etapasMotoDinamicas ?: emptyList())
+
+    private fun parseDataSegura(data: String?): java.time.LocalDate? {
+        if (data.isNullOrBlank()) return null
+        return try {
+            java.time.LocalDate.parse(data)
+        } catch (e: Exception) {
+            registrarDescarte("MainActivity.parseDataSegura", e)
+            null
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        classe = ClasseMoto.doIntent(intent)
-
-        // Atualiza os detalhes assim que o calendário novo for salvo.
-        MotoCalendarJson.atualizar(this, classe) {
-            if (!isFinishing && !isDestroyed) {
-                carregarEvento()
-            }
-        }
-
-        overridePendingTransition(
-            R.anim.slide_in_right,
-            R.anim.slide_out_left
-        )
+        carregarCalendarios()
 
         onBackPressedDispatcher.addCallback(
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    voltar()
+                    val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
+                    if (categoriaAtual.isEmpty() && gaveta != null &&
+                        gaveta.isDrawerOpen(GravityCompat.START)
+                    ) {
+                        gaveta.closeDrawer(GravityCompat.START)
+                        return
+                    }
+
+                    if (categoriaAtual.isNotEmpty()) {
+                        categoriaAtual = ""
+                        mostrarMenu()
+                        overridePendingTransition(
+                            R.anim.slide_in_left,
+                            R.anim.slide_out_right
+                        )
+                    } else {
+                        finish()
+                    }
                 }
             }
         )
 
-        montarTela()
-
-        carregarEvento()
+        mostrarMenu()
     }
 
-    private fun carregarEvento() {
-        if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
+    /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
+    private var carregandoCalendarios = true
 
-        conteudo.removeAllViews()
+    private fun lerEtapas(origem: String, bloco: () -> List<Etapa>?): List<Etapa>? =
+        try {
+            bloco()
+        } catch (e: Exception) {
+            registrarFalha("MainActivity.carregarCalendarios.$origem", e)
+            null
+        }
 
-        // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
-        val eventos = MotoCalendarJson.carregar(this, classe)
-        val proximaEtapa = obterProximaEtapa(eventos)
-        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-        val evento = eventos.find { it.etapa == etapaEscolhida }
-            ?: proximaEtapa
+    /**
+     * Lê os calendários (cache ou JSON do APK) fora da thread principal, para a primeira tela
+     * aparecer logo. O download das versões novas só começa depois, para uma leitura antiga
+     * nunca sobrescrever uma atualização.
+     */
+    private fun carregarCalendarios() {
+        val app = applicationContext
 
-        etapaEhProxima = evento == null || evento == proximaEtapa
+        Thread {
+            val f1 = lerEtapas("F1") { F1CalendarApi.carregarCache(app) }
+            val f2 = lerEtapas("F2") { F2CalendarJson.comoEtapas(F2CalendarJson.carregar(app)) }
+            val f3 = lerEtapas("F3") { F3CalendarJson.comoEtapas(F3CalendarJson.carregar(app)) }
+            val indy = lerEtapas("IndyCar") {
+                IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(app))
+            }
+            val fe = lerEtapas("FormulaE") {
+                FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
+            }
+            val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
 
-        if (evento != null) {
-            mostrarEvento(evento)
-        } else {
-            adicionarTexto(
-                "CALENDÁRIO INDISPONÍVEL",
-                17f,
-                verde,
-                true
-            )
-            adicionarTexto(
-                "Não foi possível encontrar uma próxima etapa no calendário.",
-                14f,
-                cinza,
-                false
-            )
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+
+                etapasF1Dinamicas = f1
+                etapasF2Dinamicas = f2
+                etapasF3Dinamicas = f3
+                etapasIndyCarDinamicas = indy
+                etapasFormulaEDinamicas = fe
+                etapasMotoDinamicas = moto
+                carregandoCalendarios = false
+
+                if (categoriaAtual.isEmpty()) {
+                    atualizarProximaEtapa()
+                    mostrarEtapas(todasEtapas)
+                }
+
+                baixarCalendariosNovos()
+            }
+        }.start()
+    }
+
+    /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
+    private fun baixarCalendariosNovos() {
+        F2CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        F3CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        IndyCarCalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        FormulaECalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
+        for (classe in ClasseMoto.values()) {
+            MotoCalendarJson.atualizar(this, classe) {
+                AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+                etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
+                redesenharListaDepois()
+            }
+        }
+
+        F1CalendarApi.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
+            redesenharListaDepois()
         }
     }
 
-    private fun obterProximaEtapa(
-        eventos: List<MotoEvent>
-    ): MotoEvent? {
-        val hoje = SimpleDateFormat(
-            "dd/MM/yyyy",
-            Locale.US
-        ).format(Date())
+    override fun onResume() {
+        super.onResume()
 
-        val dataHoje = converterData(hoje) ?: return null
+        // Refaz os avisos ao abrir o app e depois do pedido de permissão de notificações.
+        AgendadorDeAvisos.reagendarEmSegundoPlano(this)
 
-        return eventos
-            .filter { evento ->
-                val dataFim = converterData(evento.fim)
-                dataFim != null && !dataFim.before(dataHoje)
-            }
-            .sortedBy { evento ->
-                converterData(evento.inicio)?.time
-                    ?: Long.MAX_VALUE
-            }
-            .firstOrNull()
+        // O painel lateral mostra o estado das notificações; atualiza ao voltar das configurações.
+        findViewById<LinearLayout>(R.id.containerMenuLateral)?.let {
+            MenuPrincipal.montar(this, it)
+        }
     }
 
-    private fun montarTela() {
-        val raiz = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(preto)
-            setPadding(dp(18), dp(12), dp(18), dp(20))
+    override fun onDestroy() {
+        pesquisaRunnable?.let {
+            handlerPesquisa.removeCallbacks(it)
         }
+        handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
+        handlerRedesenho.removeCallbacks(redesenhoDaLista)
+        super.onDestroy()
+    }
 
-        val cabecalho = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
+    /**
+     * A tela inicial usa um cinza-escuro no lugar do preto. A janela e as barras do sistema
+     * seguem a mesma cor, para não aparecer uma faixa mais escura no topo e no pé.
+     */
+    private fun definirCorDaJanela(cor: Int) {
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(cor))
+        window.statusBarColor = cor
+        window.navigationBarColor = cor
+    }
 
-        val voltar = ImageView(this).apply {
-            val recurso = resources.getIdentifier(
-                "back_button",
-                "drawable",
-                packageName
-            )
+    private fun animarEntrada() {
+        val tela = findViewById<android.view.View>(android.R.id.content)
+        tela.translationX = 80f
+        tela.alpha = 0f
+        tela.animate()
+            .translationX(0f)
+            .alpha(1f)
+            .setDuration(280)
+            .start()
+    }
 
-            if (recurso != 0) {
-                setImageResource(recurso)
-            } else {
-                setImageResource(
-                    android.R.drawable.ic_media_previous
-                )
-                setColorFilter(verde)
-            }
-
-            contentDescription = "Voltar"
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(4), dp(4), dp(12), dp(4))
-
-            setOnClickListener {
-                voltar()
-            }
-        }
-
-        cabecalho.addView(
-            voltar,
-            LinearLayout.LayoutParams(dp(42), dp(42))
-        )
-
-        val tituloTela = TextView(this).apply {
-            text = classe.tituloGrande
-            textSize = 23f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-black",
-                Typeface.NORMAL
-            )
-            letterSpacing = 0.06f
-        }
-
-        cabecalho.addView(
-            tituloTela,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        raiz.addView(cabecalho)
-
-        val detalhe = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        raiz.addView(
-            detalhe,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(2)
-            ).apply {
-                topMargin = dp(12)
-                bottomMargin = dp(14)
-            }
-        )
-
-        val scrollView = ScrollView(this).apply {
-            isFillViewport = true
-            clipToPadding = false
-            overScrollMode = View.OVER_SCROLL_NEVER
-            isVerticalScrollBarEnabled = false
-            isHorizontalScrollBarEnabled = false
-            isVerticalFadingEdgeEnabled = false
-        }
-
-        conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(2), 0, dp(20))
-        }
-
-        scrollView.addView(conteudo)
-
-        raiz.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
-
-        setContentView(raiz)
+    private fun mostrarMenu() {
+        setContentView(R.layout.activity_main)
         aplicarInsetsDasBarras()
+        definirCorDaJanela(getColor(R.color.fundo_tela))
+        animarEntrada()
+
+        listaEtapas = findViewById(R.id.listaEtapas)
+
+        criarBotoesCategorias()
+
+        MenuPrincipal.montar(this, findViewById(R.id.containerMenuLateral))
+        findViewById<android.view.View>(R.id.btnMenu).setOnClickListener {
+            findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
+        }
+        findViewById<android.view.View>(R.id.btnFiltro).setOnClickListener {
+            android.widget.Toast.makeText(this, "Filtros: em breve", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        BarraInferior.montar(this, findViewById(R.id.barraInferior))
+
+        configurarBusca()
+        atualizarProximaEtapa()
+
+        handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
+        handlerProximaEtapa.post(atualizadorProximaEtapa)
+
+        mostrarEtapas(todasEtapas)
     }
 
-    private fun voltar() {
-        finish()
-
-        overridePendingTransition(
-            android.R.anim.slide_in_left,
-            R.anim.slide_out_right
-        )
+    private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate {
+        val inicio = parseDataSegura(etapa.dataInicio) ?: java.time.LocalDate.now()
+        return try {
+            val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
+            if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
+        } catch (e: Exception) {
+            registrarDescarte("MainActivity.fimDaEtapa", e)
+            inicio.plusDays(2)
+        }
     }
 
-    private fun mostrarEvento(evento: MotoEvent) {
-        conteudo.removeAllViews()
+    private fun atualizarProximaEtapa() {
+        val hoje = java.time.LocalDate.now()
 
-        adicionarTexto(
-            if (etapaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
-            12f,
-            verde,
-            true
-        ).letterSpacing = 0.16f
-
-        adicionarTexto(
-            classe.tituloGrande,
-            28f,
-            branco,
-            true
-        ).setPadding(0, dp(5), 0, dp(5))
-
-        val nomeAutodromo = Autodromos.nome(evento.circuito)
-
-        adicionarTexto(
-            nomeAutodromo.ifBlank { evento.circuito },
-            12f,
-            cinza,
-            false
-        ).setPadding(0, 0, 0, dp(12))
-
-        val localLinha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val bandeira = ImageView(this).apply {
-            val id = obterRecursoBandeira(evento.pais)
-
-            if (id != 0) {
-                setImageResource(id)
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            } else {
-                visibility = View.GONE
-            }
-        }
-
-        localLinha.addView(
-            bandeira,
-            LinearLayout.LayoutParams(dp(34), dp(23)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val localTexto = TextView(this).apply {
-            text =
-                if (nomeAutodromo.isNotBlank() &&
-                    !nomeAutodromo.equals(evento.circuito, ignoreCase = true)
-                ) {
-                    "${evento.circuito}, ${evento.pais}"
-                } else {
-                    evento.pais
+        val proxima =
+            todasEtapas
+                .filter { !fimDaEtapa(it).isBefore(hoje) }
+                .minByOrNull {
+                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
                 }
-            textSize = 13f
-            setTextColor(cinza)
+
+        if (proxima == null) return
+
+        val titulo = findViewById<TextView>(R.id.tituloProximaEtapa)
+        val nome = findViewById<TextView>(R.id.nomeProximaEtapa)
+        val bandeira = findViewById<ImageView>(R.id.bandeiraProximaEtapa)
+        val circuito = findViewById<TextView>(R.id.circuitoProximaEtapa)
+        val data = findViewById<TextView>(R.id.dataProximaEtapa)
+        val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
+
+        val prefixo = "PRÓXIMA ETAPA  •  "
+        val textoTitulo = android.text.SpannableString(prefixo + proxima.categoria)
+        textoTitulo.setSpan(
+            android.text.style.ForegroundColorSpan(getColor(R.color.acento)),
+            prefixo.length,
+            textoTitulo.length,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        titulo.text = textoTitulo
+        nome.text = proxima.pais
+
+        val idBandeira = recursoBandeira(proxima.pais)
+        if (idBandeira != 0) {
+            bandeira.setImageResource(idBandeira)
+            bandeira.visibility = android.view.View.VISIBLE
+            arredondar(bandeira, 6f)
+        } else {
+            bandeira.visibility = android.view.View.GONE
         }
 
-        localLinha.addView(
-            localTexto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
+        circuito.text = proxima.circuito
+        data.text = proxima.data
 
-        conteudo.addView(
-            localLinha,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(12)
+        val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
+        val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
+
+        contador.text = when {
+            dias == 0L -> "HOJE"
+            dias == 1L -> "AMANHÃ"
+            dias > 1L -> "$dias DIAS"
+            else -> "EM ANDAMENTO"
+        }
+        estilizarChipDestaque(contador)
+
+        findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
+            when (proxima.categoria) {
+                "F1" -> abrirEventoF1PelaEtapa(proxima)
+                "F2" -> abrirEventoF2PelaEtapa(proxima)
+                "F3" -> abrirEventoF3PelaEtapa(proxima)
+                "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
+                "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
+                "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(proxima)
+            }
+        }
+    }
+
+    /** Cápsula escura com borda cinza e texto na cor informada (categorias). */
+    private fun estilizarCapsula(view: TextView, cor: Int, raioDp: Float) {
+        view.setTextColor(cor)
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(getColor(R.color.superficie))
+            cornerRadius = emPx(raioDp).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
+        }
+    }
+
+    /** Selo só com contorno e texto na cor informada (status das etapas). */
+    private fun estilizarContorno(view: TextView, cor: Int) {
+        view.setTextColor(cor)
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(android.graphics.Color.TRANSPARENT)
+            cornerRadius = emPx(8f).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), cor)
+        }
+    }
+
+    /** Selo preenchido em verde (contagem regressiva da próxima etapa). */
+    private fun estilizarChipDestaque(view: TextView) {
+        view.setTextColor(getColor(R.color.acento_escuro))
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(getColor(R.color.acento))
+            cornerRadius = emPx(8f).toFloat()
+        }
+    }
+
+    private fun arredondar(imagem: ImageView, raioDp: Float) {
+        val raio = emPx(raioDp).toFloat()
+        imagem.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, raio)
+            }
+        }
+        imagem.clipToOutline = true
+    }
+
+    /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
+    private fun corDaCategoria(categoria: String): Int =
+        Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
+            ?: getColor(R.color.acento)
+
+    private fun criarBotoesCategorias() {
+        val container = findViewById<LinearLayout>(R.id.containerCategorias)
+        container.removeAllViews()
+
+        for (categoria in Categorias.todas) {
+            val botao = TextView(this).apply {
+                text = categoria.nome.uppercase()
+                textSize = 13f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                letterSpacing = 0.04f
+                gravity = android.view.Gravity.CENTER
+                maxLines = 1
+                minWidth = emPx(52f)
+                setPadding(emPx(16f), 0, emPx(16f), 0)
+                isClickable = true
+                isFocusable = true
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    emPx(38f)
+                ).apply { marginEnd = emPx(8f) }
+            }
+
+            estilizarCapsula(botao, corDaCategoria(categoria.nome), 12f)
+            botao.setOnClickListener { abrirCategoria(categoria.nome) }
+            container.addView(botao)
+        }
+    }
+
+    /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
+    private fun estilizarCard(item: android.view.View, cor: Int) {
+        val raio = emPx(12f).toFloat()
+
+        item.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(getColor(R.color.superficie))
+            cornerRadius = raio
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
+        }
+
+        item.findViewById<android.view.View>(R.id.itemAcento).background =
+            android.graphics.drawable.GradientDrawable().apply {
+                setColor(cor)
+                val r = raio - emPx(1f)
+                cornerRadii = floatArrayOf(r, r, 0f, 0f, 0f, 0f, r, r)
+            }
+    }
+
+    /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
+    private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
+        val nomes = listOf(
+            "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+            "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+        )
+        val anoAtual = java.time.LocalDate.now().year
+
+        val coluna = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
+        if (!primeiro) {
+            coluna.addView(
+                android.view.View(this).apply {
+                    setBackgroundColor(getColor(R.color.borda_suave))
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        emPx(1f).coerceAtLeast(1)
+                    ).apply { topMargin = emPx(10f) }
+                }
+            )
+        }
+
+        coluna.addView(
+            TextView(this).apply {
+                text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
+                setTextColor(getColor(R.color.texto_suave))
+                textSize = 13f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+                letterSpacing = 0.16f
+                setPadding(emPx(4f), emPx(if (primeiro) 6f else 16f), 0, emPx(8f))
             }
         )
 
-        val inicio = formatarData(evento.inicio)
-        val fim = formatarData(evento.fim)
+        return coluna
+    }
 
-        val intervalo = if (
-            inicio.isNotBlank() && fim.isNotBlank()
-        ) {
-            "$inicio – $fim"
-        } else {
-            inicio.ifBlank { fim }
-        }
+    private fun configurarBusca() {
+        val busca = findViewById<EditText>(R.id.searchEtapa)
 
-        adicionarTexto(
-            intervalo.uppercase(localePt),
-            16f,
-            branco,
-            true
-        ).setPadding(0, dp(1), 0, dp(15))
+        busca.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-        adicionarSeparador()
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                pesquisaRunnable?.let {
+                    handlerPesquisa.removeCallbacks(it)
+                }
 
-        adicionarTexto(
-            "PROGRAMAÇÃO",
-            15f,
-            verde,
-            true
-        ).apply {
-            letterSpacing = 0.1f
-            setPadding(0, dp(3), 0, dp(12))
-        }
+                val texto = Formatacao.normalizar(s?.toString() ?: "")
 
-        if (evento.sessoes.isEmpty()) {
-            adicionarTexto(
-                "Os horários desta etapa ainda não estão disponíveis.",
-                14f,
-                cinza,
-                false
-            )
+                pesquisaRunnable = Runnable {
+                    if (texto.isEmpty()) {
+                        mostrarEtapas(todasEtapas)
+                        return@Runnable
+                    }
+
+                    val filtradas = todasEtapas.filter {
+                        Formatacao.normalizar(it.categoria).contains(texto) ||
+                            Formatacao.normalizar(it.pais).contains(texto) ||
+                            Formatacao.normalizar(it.circuito).contains(texto) ||
+                            Formatacao.normalizar(it.data).contains(texto)
+                    }
+
+                    mostrarEtapas(filtradas)
+                }
+
+                handlerPesquisa.postDelayed(pesquisaRunnable!!, 250)
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun mostrarEtapas(etapas: List<Etapa>) {
+        val hoje = java.time.LocalDate.now()
+
+        val proximaEtapa =
+            todasEtapas
+                .filter { !fimDaEtapa(it).isBefore(hoje) }
+                .minByOrNull {
+                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
+                }
+
+        val etapasVisiveis =
+            if (categoriaAtual.isEmpty()) {
+                etapas.filter { etapa ->
+                    !fimDaEtapa(etapa).isBefore(hoje) &&
+                        etapa != proximaEtapa
+                }
+            } else {
+                etapas
+            }
+
+        val etapasOrdenadas =
+            etapasVisiveis.sortedBy {
+                parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
+            }
+
+        listaEtapas.removeAllViews()
+        val inflater = LayoutInflater.from(this)
+
+        if (etapasOrdenadas.isEmpty()) {
+            // Ainda lendo os calendários: melhor mostrar nada do que "nenhuma etapa".
+            if (carregandoCalendarios) return
+
+            val vazio = TextView(this)
+            vazio.text = "Nenhuma etapa encontrada."
+            vazio.setTextColor(android.graphics.Color.WHITE)
+            vazio.textSize = 15f
+            vazio.gravity = android.view.Gravity.CENTER
+            vazio.setPadding(0, 30, 0, 30)
+            listaEtapas.addView(vazio)
             return
         }
 
-        val sessoesOrdenadas = evento.sessoes.sortedWith(
-            compareBy<MotoSession> {
-                converterData(it.data)?.time ?: Long.MAX_VALUE
-            }.thenBy {
-                extrairMinutos(it.horario)
-            }
-        )
+        var mesAnterior = -1
 
-        var dataAtual: String? = null
-
-        for (sessao in sessoesOrdenadas) {
-            val dataSessao = formatarData(sessao.data)
-                .ifBlank { sessao.data }
-
-            if (dataSessao != dataAtual) {
-                adicionarGrupoDia(dataSessao)
-                dataAtual = dataSessao
+        for (etapa in etapasOrdenadas) {
+            val inicioItem = parseDataSegura(etapa.dataInicio)
+            if (inicioItem != null) {
+                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+                if (chaveMes != mesAnterior) {
+                    listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
+                    mesAnterior = chaveMes
+                }
             }
 
-            adicionarSessao(sessao)
+            val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
+
+            val status = statusEtapa(etapa, etapasOrdenadas)
+
+            val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
+            chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
+            estilizarCapsula(chipCategoria, corDaCategoria(etapa.categoria), 8f)
+            estilizarCard(item, corDaCategoria(etapa.categoria))
+
+            val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
+            val idBandeira = recursoBandeira(etapa.pais)
+
+            if (idBandeira != 0) {
+                imagemBandeira.setImageResource(idBandeira)
+                imagemBandeira.visibility = android.view.View.VISIBLE
+
+                arredondar(imagemBandeira, 6f)
+            } else {
+                // INVISIBLE mantém o espaço da bandeira e o texto continua alinhado
+                imagemBandeira.visibility = android.view.View.INVISIBLE
+            }
+
+            item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
+            item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
+
+            // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
+            val periodo = Formatacao.periodo(
+                parseDataSegura(etapa.dataInicio),
+                parseDataSegura(etapa.dataFim)
+            ) ?: etapa.data
+            item.findViewById<TextView>(R.id.itemData).text = periodo
+
+            val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
+            itemStatus.text = status
+
+            val corStatus = when (status) {
+                "FINALIZADA" -> getColor(R.color.texto_suave)
+                "PRÓXIMA", "EM ANDAMENTO" -> getColor(R.color.acento)
+                else -> getColor(R.color.status_azul)
+            }
+            estilizarContorno(itemStatus, corStatus)
+
+            item.contentDescription =
+                "${etapa.categoria}, ${etapa.pais}, ${etapa.circuito}, $periodo, $status"
+
+            item.setOnClickListener {
+                when (etapa.categoria) {
+                    "F1" -> abrirEventoF1PelaEtapa(etapa)
+                    "F2" -> abrirEventoF2PelaEtapa(etapa)
+                    "F3" -> abrirEventoF3PelaEtapa(etapa)
+                    "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
+                    "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
+                    "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(etapa)
+                }
+            }
+
+            listaEtapas.addView(item)
         }
     }
 
-    private fun adicionarSeparador() {
-        val separador = View(this).apply {
-            setBackgroundColor(linhaCinza)
+    private fun statusEtapa(
+        etapa: Etapa,
+        etapasOrdenadas: List<Etapa>
+    ): String {
+        val hoje = java.time.LocalDate.now()
+        val inicioEtapa = parseDataSegura(etapa.dataInicio) ?: return "AGENDADA"
+
+        if (fimDaEtapa(etapa).isBefore(hoje)) {
+            return "FINALIZADA"
         }
 
-        conteudo.addView(
-            separador,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                bottomMargin = dp(16)
-            }
-        )
+        if (!inicioEtapa.isAfter(hoje)) {
+            return "EM ANDAMENTO"
+        }
+
+        val proximasDaCategoria = todasEtapas.filter { it.categoria == etapa.categoria }
+        val proxima = proximasDaCategoria.firstOrNull { !fimDaEtapa(it).isBefore(hoje) }
+
+        return if (proxima == etapa) "PRÓXIMA" else "AGENDADA"
     }
 
-    private fun adicionarGrupoDia(data: String) {
-        val linha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+    private fun recursoBandeira(pais: String): Int {
+        val arquivo = when (pais) {
+            "Austrália" -> "flag_au"
+            "Japão" -> "flag_jp"
+            "Bahrein" -> "flag_bh"
+            "Arábia Saudita" -> "flag_sa"
+            "Estados Unidos" -> "flag_us"
+            "Canadá" -> "flag_ca"
+            "Mônaco" -> "flag_mc"
+            "Espanha" -> "flag_es"
+            "Áustria" -> "flag_at"
+            "Reino Unido" -> "flag_gb"
+            "Bélgica" -> "flag_be"
+            "Hungria" -> "flag_hu"
+            "Holanda" -> "flag_nl"
+            "Itália" -> "flag_it"
+            "Azerbaijão" -> "flag_az"
+            "Singapura" -> "flag_sg"
+            "México" -> "flag_mx"
+            "Brasil" -> "flag_br"
+            "Catar" -> "flag_qa"
+            "China" -> "flag_cn"
+            "Alemanha" -> "flag_de"
+            "Tailândia" -> "flag_th"
+            "França" -> "flag_fr"
+            "República Tcheca" -> "flag_cz"
+            "Indonésia" -> "flag_id"
+            "Malásia" -> "flag_my"
+            "San Marino" -> "flag_sm"
+            "Portugal" -> "flag_pt"
+            "Abu Dhabi", "Emirados Árabes Unidos" -> "flag_ae"
+            else -> return 0
         }
 
-        val marcador = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        linha.addView(
-            marcador,
-            LinearLayout.LayoutParams(dp(3), dp(20)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val texto = TextView(this).apply {
-            text = data.uppercase(localePt)
-            textSize = 12f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-medium",
-                Typeface.BOLD
-            )
-        }
-
-        linha.addView(
-            texto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        conteudo.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(7)
-                bottomMargin = dp(9)
-            }
-        )
+        return resources.getIdentifier(arquivo, "drawable", packageName)
     }
 
-    private fun adicionarSessao(sessao: MotoSession) {
-        val nomeOriginal = sessao.nome.trim()
-        val nomeNormalizado = nomeOriginal.lowercase(localePt)
+    private fun abrirCategoria(categoria: String) {
+        categoriaAtual = categoria
 
-        val corridaPrincipal =
-            nomeNormalizado.contains("feature") ||
-            nomeNormalizado.contains("corrida principal") ||
-            nomeNormalizado == "corrida" ||
-            nomeNormalizado == "race"
+        setContentView(R.layout.activity_category)
+        aplicarInsetsDasBarras()
+        definirCorDaJanela(android.graphics.Color.BLACK)
+        animarEntrada()
 
-        val sprint = nomeNormalizado.contains("sprint")
+        val titulo = findViewById<TextView>(R.id.categoryTitle)
+        val calendario = findViewById<TextView>(R.id.fullCalendarButton)
+        val voltar = findViewById<android.view.View>(R.id.backButton)
+        val cartaoCategoria = findViewById<LinearLayout>(R.id.categoryInfoCard)
+        val rotuloCategoria = findViewById<TextView>(R.id.categoryEyebrow)
+        val tituloCalendario = findViewById<TextView>(R.id.calendarSectionTitle)
 
-        // Os nomes já vêm prontos no JSON (Treino Livre 1, Classificação 2, Warm-up...).
-        val nomeExibido = nomeOriginal.uppercase(localePt)
+        titulo.text = when (categoria) {
+            "F1" -> "FÓRMULA 1"
+            "F2" -> "FÓRMULA 2"
+            "F3" -> "FÓRMULA 3"
+            "IndyCar" -> "INDYCAR"
+            "MotoGP" -> "MOTOGP"
+            "Moto2" -> "MOTO2"
+            "Moto3" -> "MOTO3"
+            else -> "FÓRMULA E"
+        }
 
-        val cartao = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
+        val rotuloTemporada = findViewById<TextView>(R.id.categorySeasonLabel)
+        val anosTemporada = todasEtapas
+            .filter { it.categoria == categoria }
+            .mapNotNull { parseDataSegura(it.dataInicio)?.year }
+            .distinct()
+            .sorted()
+        val temporadaTexto = when {
+            anosTemporada.isEmpty() -> java.time.LocalDate.now().year.toString()
+            anosTemporada.size == 1 -> anosTemporada.first().toString()
+            else -> anosTemporada.first().toString() + "/" +
+                anosTemporada.drop(1).joinToString("/") {
+                    (it % 100).toString().padStart(2, '0')
+                }
+        }
+        rotuloTemporada.text = "Temporada $temporadaTexto"
 
-            background = GradientDrawable().apply {
-                cornerRadius = dp(9).toFloat()
+        // Todas as categorias usam a identidade visual padrão verde fluorescente.
+        val corCategoria = android.graphics.Color.rgb(57, 255, 20)
 
-                setColor(
-                    if (corridaPrincipal) {
-                        Color.rgb(15, 45, 15)
-                    } else {
-                        fundoCard
-                    }
+        findViewById<android.view.View>(R.id.categoryAccentLine)
+            .setBackgroundColor(corCategoria)
+        rotuloCategoria.setTextColor(corCategoria)
+        tituloCalendario.setTextColor(corCategoria)
+        cartaoCategoria.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            setColor(android.graphics.Color.BLACK)
+            cornerRadius = 8f * resources.displayMetrics.density
+            setStroke(
+                (1 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
+                android.graphics.Color.argb(
+                    150,
+                    android.graphics.Color.red(corCategoria),
+                    android.graphics.Color.green(corCategoria),
+                    android.graphics.Color.blue(corCategoria)
                 )
+            )
+        }
+        calendario.setTextColor(corCategoria)
+        calendario.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            setColor(android.graphics.Color.BLACK)
+            cornerRadius = 14f * resources.displayMetrics.density
+            setStroke(
+                (2 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
+                corCategoria
+            )
+        }
 
-                setStroke(
-                    dp(if (corridaPrincipal) 2 else 1),
-                    if (corridaPrincipal) verde else verdeEscuro
-                )
+        voltar.setOnClickListener {
+            categoriaAtual = ""
+            mostrarMenu()
+            overridePendingTransition(
+                R.anim.slide_in_left,
+                R.anim.slide_out_right
+            )
+        }
+
+        calendario.setOnClickListener {
+            when (categoriaAtual) {
+                "F1" -> {
+                    startActivity(Intent(this, F1CalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "F2" -> {
+                    startActivity(Intent(this, F2CalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "F3" -> {
+                    startActivity(Intent(this, F3CalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "Formula E" -> {
+                    startActivity(Intent(this, FormulaECalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "IndyCar" -> {
+                    startActivity(Intent(this, IndyCarCalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "MotoGP", "Moto2", "Moto3" -> {
+                    startActivity(
+                        Intent(this, MotoCalendarActivity::class.java)
+                            .putExtra(ClasseMoto.EXTRA, categoriaAtual)
+                    )
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                else -> {
+                    // Categoria sem calendário.
+                }
+            }
+        }
+    }
+
+    private fun abrirEventoF1PelaEtapa(etapa: Etapa) {
+        val dataCorrida = fimDaEtapa(etapa).toString()
+        val localizacao = JSONObject().apply {
+            put("locality", etapa.circuito)
+            put("country", etapa.pais)
+        }
+        val circuito = JSONObject().apply {
+            put("circuitId", etapa.circuitId)
+            put("circuitName", etapa.circuito)
+            put("Location", localizacao)
+        }
+        val corrida = JSONObject().apply {
+            put("season", dataCorrida.take(4))
+            put("raceName", etapa.circuito + " Grand Prix")
+            put("date", dataCorrida)
+            put("Circuit", circuito)
+        }
+
+        val intent = Intent(this, F1Activity::class.java)
+        intent.putExtra("CIRCUIT_ID_F1", etapa.circuitId)
+        intent.putExtra("RACE", corrida.toString())
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
+
+    private fun abrirEventoF2PelaEtapa(etapa: Etapa) {
+        var encontrado: F2Event? = null
+
+        for (item in F2CalendarJson.carregar(this)) {
+            if (item.circuito.equals(etapa.circuito, ignoreCase = true)) {
+                encontrado = item
+                break
             }
         }
 
-        val nome = TextView(this).apply {
-            text = nomeExibido
-            textSize = 13f
-            setTextColor(
-                if (corridaPrincipal) verde else branco
-            )
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            letterSpacing = 0.02f
+        if (encontrado != null) {
+            abrirEventoF2Item(encontrado)
+        } else {
+            abrirCategoria("F2")
         }
-
-        cartao.addView(
-            nome,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        val horarioTexto = sessao.horario
-            .trim()
-            .ifBlank { "A CONFIRMAR" }
-
-        val horario = TextView(this).apply {
-            text = horarioTexto
-            textSize = 14f
-            setTextColor(
-                if (corridaPrincipal) verde else branco
-            )
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            gravity = Gravity.END
-        }
-
-        cartao.addView(
-            horario,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                leftMargin = dp(10)
-            }
-        )
-
-        conteudo.addView(
-            cartao,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
-        )
     }
 
-    private fun adicionarTexto(
-        texto: String,
-        tamanho: Float,
-        cor: Int,
-        negrito: Boolean
-    ): TextView {
-        val view = TextView(this).apply {
-            text = texto
-            textSize = tamanho
-            setTextColor(cor)
+    private fun abrirEventoF2Item(evento: F2Event) {
+        val intent = Intent(this, F2Activity::class.java)
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
 
-            if (negrito) {
-                typeface = Typeface.create(
-                    "sans-serif",
-                    Typeface.BOLD
-                )
+    private fun abrirEventoMotoPelaEtapa(etapa: Etapa) {
+        val classe = ClasseMoto.porRotulo(etapa.categoria) ?: return
+
+        val encontrado = MotoCalendarJson.carregar(this, classe)
+            .firstOrNull { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+
+        if (encontrado != null) {
+            val intent = Intent(this, MotoActivity::class.java)
+            intent.putExtra(ClasseMoto.EXTRA, classe.rotulo)
+            intent.putExtra("ETAPA", encontrado.etapa)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        } else {
+            abrirCategoria(classe.rotulo)
+        }
+    }
+
+    private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
+        var encontrado: F3Event? = null
+
+        for (item in F3CalendarJson.carregar(this)) {
+            if (item.circuito.equals(etapa.circuito, ignoreCase = true)) {
+                encontrado = item
+                break
             }
         }
 
-        conteudo.addView(
-            view,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        )
-
-        return view
+        if (encontrado != null) {
+            abrirEventoF3Item(encontrado)
+        } else {
+            abrirCategoria("F3")
+        }
     }
 
-    private fun obterRecursoBandeira(pais: String): Int {
-        val nome = when (pais.trim().lowercase(localePt)) {
-            "bahrain", "bahrein" -> "flag_bh"
-            "saudi arabia", "arábia saudita" -> "flag_sa"
-            "australia", "austrália" -> "flag_au"
-            "japan", "japão" -> "flag_jp"
-            "china" -> "flag_cn"
-            "united states", "estados unidos", "usa" -> "flag_us"
-            "canada", "canadá" -> "flag_ca"
-            "monaco", "mônaco" -> "flag_mc"
-            "spain", "espanha" -> "flag_es"
-            "austria", "áustria" -> "flag_at"
-            "united kingdom", "great britain", "reino unido" -> "flag_gb"
-            "belgium", "bélgica" -> "flag_be"
-            "hungary", "hungria" -> "flag_hu"
-            "netherlands", "holanda", "países baixos" -> "flag_nl"
-            "italy", "itália" -> "flag_it"
-            "azerbaijan", "azerbaijão" -> "flag_az"
-            "singapore", "singapura" -> "flag_sg"
-            "mexico", "méxico" -> "flag_mx"
-            "brazil", "brasil" -> "flag_br"
-            "united arab emirates", "emirados árabes unidos" -> "flag_ae"
-            "qatar", "catar" -> "flag_qa"
-            "portugal" -> "flag_pt"
-            "france", "frança" -> "flag_fr"
-            "germany", "alemanha" -> "flag_de"
-            "thailand", "tailândia" -> "flag_th"
-            "indonesia", "indonésia" -> "flag_id"
-            "czechia", "czech republic", "república tcheca", "tchéquia" -> "flag_cz"
-            "san marino" -> "flag_sm"
-            "malaysia", "malásia" -> "flag_my"
-            else -> ""
+    private fun abrirEventoF3Item(evento: F3Event) {
+        val intent = Intent(this, F3Activity::class.java)
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
+
+    private fun abrirEventoFormulaEPelaEtapa(etapa: Etapa) {
+        var encontrado: FormulaEEvent? = null
+
+        for (item in FormulaECalendarJson.carregar(this)) {
+            if (
+                item.circuito.equals(etapa.circuito, ignoreCase = true) &&
+                item.inicio.takeLast(4) == etapa.dataInicio.take(4)
+            ) {
+                encontrado = item
+                break
+            }
         }
 
-        if (nome.isBlank()) return 0
-
-        return resources.getIdentifier(
-            nome,
-            "drawable",
-            packageName
-        )
+        if (encontrado != null) {
+            abrirEventoFormulaEItem(encontrado)
+        } else {
+            abrirCategoria("Formula E")
+        }
     }
 
-    private fun formatarData(data: String): String {
-        if (data.isBlank()) return ""
-
-        val convertida = converterData(data) ?: return data
-
-        return SimpleDateFormat(
-            "dd MMM",
-            localePt
-        ).format(convertida)
+    private fun abrirEventoFormulaEItem(evento: FormulaEEvent) {
+        val intent = Intent(this, FormulaEActivity::class.java)
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
-    private fun converterData(data: String): Date? {
-        val formatos = listOf(
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd",
-            "dd/MM/yyyy",
-            "dd-MM-yyyy"
-        )
+    private fun abrirEventoIndyCarPelaEtapa(etapa: Etapa) {
+        var encontrado: IndyCarEvent? = null
+        val formato = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-        for (formato in formatos) {
+        for (item in IndyCarCalendarJson.carregar(this)) {
             try {
-                val parser = SimpleDateFormat(
-                    formato,
-                    localePt
-                )
-                parser.isLenient = false
-
-                val resultado = parser.parse(data)
-
-                if (resultado != null) {
-                    return resultado
+                val inicioIso = java.time.LocalDate.parse(item.inicio, formato).toString()
+                if (
+                    item.circuito.equals(etapa.circuito, ignoreCase = true) &&
+                    inicioIso == etapa.dataInicio
+                ) {
+                    encontrado = item
+                    break
                 }
             } catch (e: Exception) {
-                registrarDescarte("MotoActivity.converterData", e)
-                // Tenta o próximo formato.
+                registrarDescarte("MainActivity.abrirEventoIndyCarPelaEtapa", e)
+                // Ignora etapa com data inválida.
             }
         }
 
-        return null
-    }
-
-    private fun extrairMinutos(horario: String): Int {
-        val partes = horario.trim().split(":")
-
-        if (partes.size < 2) return Int.MAX_VALUE
-
-        return try {
-            partes[0].toInt() * 60 + partes[1].take(2).toInt()
-        } catch (e: Exception) {
-            registrarDescarte("MotoActivity.extrairMinutos", e)
-            Int.MAX_VALUE
+        if (encontrado != null) {
+            abrirEventoIndyCarItem(encontrado)
+        } else {
+            abrirCategoria("IndyCar")
         }
     }
 
-    private fun dp(valor: Int): Int {
-        return (
-            valor * resources.displayMetrics.density
-        ).toInt()
+    private fun abrirEventoIndyCarItem(evento: IndyCarEvent) {
+        val intent = Intent(this, IndyCarActivity::class.java)
+        intent.putExtra("ETAPA", evento.etapa)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 }
