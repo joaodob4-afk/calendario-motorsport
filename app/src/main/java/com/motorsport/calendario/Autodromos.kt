@@ -45,7 +45,11 @@ object Autodromos {
         "sepang" to "Petronas Sepang International Circuit",
         "portimão" to "Autódromo Internacional do Algarve",
         "portimao" to "Autódromo Internacional do Algarve",
-        "valencia" to "Circuit Ricardo Tormo"
+        "valencia" to "Circuit Ricardo Tormo",
+        "imola" to "Autodromo Internazionale Enzo e Dino Ferrari",
+        "interlagos" to "Autódromo José Carlos Pace",
+        "fuji" to "Fuji Speedway",
+        "circuit de la sarthe" to "Circuit de la Sarthe"
     )
 
     fun nome(circuito: String): String {

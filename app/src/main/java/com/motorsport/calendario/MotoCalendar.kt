@@ -18,8 +18,8 @@ internal data class MotoEvent(
 )
 
 /**
- * As três classes de moto usam as mesmas telas e o mesmo formato de JSON; só mudam o nome
- * e os arquivos. Para incluir outra classe no futuro, basta uma linha aqui, uma em
+ * Campeonatos que usam as mesmas telas e o mesmo formato de JSON (MotoGP, Moto2, Moto3 e WEC);
+ * só mudam o nome e os arquivos. Para incluir outro no futuro, basta uma linha aqui, uma em
  * [Categorias] e o arquivo de dados.
  */
 internal enum class ClasseMoto(
@@ -31,7 +31,8 @@ internal enum class ClasseMoto(
 ) {
     MOTOGP("MotoGP", "MOTOGP", "motogp_calendar.json", "motogp_calendar_cache.json"),
     MOTO2("Moto2", "MOTO2", "moto2_calendar.json", "moto2_calendar_cache.json"),
-    MOTO3("Moto3", "MOTO3", "moto3_calendar.json", "moto3_calendar_cache.json");
+    MOTO3("Moto3", "MOTO3", "moto3_calendar.json", "moto3_calendar_cache.json"),
+    WEC("WEC", "WEC", "wec_calendar.json", "wec_calendar_cache.json");
 
     companion object {
         /** Nome do extra da Intent que informa a classe às telas. */

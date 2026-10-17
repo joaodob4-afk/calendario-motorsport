@@ -25,7 +25,8 @@ internal object Categorias {
         CategoriaInfo("Formula E", "#22D3EE"),
         CategoriaInfo("MotoGP", "#FFD60A"),
         CategoriaInfo("Moto2", "#FF5FA2"),
-        CategoriaInfo("Moto3", "#2EE6A6")
+        CategoriaInfo("Moto3", "#2EE6A6"),
+        CategoriaInfo("WEC", "#CBD5E1")
     )
 
     fun info(nome: String): CategoriaInfo? =

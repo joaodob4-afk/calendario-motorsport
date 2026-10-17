@@ -1,0 +1,116 @@
+{
+  "temporada": 2026,
+  "categoria": "WEC",
+  "etapas": [
+    {
+      "etapa": 1,
+      "circuito": "Imola",
+      "pais": "Itália",
+      "inicio": "17/04/2026",
+      "fim": "19/04/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 2,
+      "circuito": "Spa-Francorchamps",
+      "pais": "Bélgica",
+      "inicio": "07/05/2026",
+      "fim": "09/05/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 3,
+      "circuito": "Circuit de la Sarthe",
+      "pais": "França",
+      "inicio": "10/06/2026",
+      "fim": "14/06/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 4,
+      "circuito": "Interlagos",
+      "pais": "Brasil",
+      "inicio": "10/07/2026",
+      "fim": "12/07/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 5,
+      "circuito": "Austin",
+      "pais": "Estados Unidos",
+      "inicio": "04/09/2026",
+      "fim": "06/09/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 6,
+      "circuito": "Fuji",
+      "pais": "Japão",
+      "inicio": "25/09/2026",
+      "fim": "27/09/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 7,
+      "circuito": "Barcelona",
+      "pais": "Espanha",
+      "inicio": "16/10/2026",
+      "fim": "18/10/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "16/10/2026",
+          "horario": "06:30"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "16/10/2026",
+          "horario": "11:30"
+        },
+        {
+          "nome": "Treino Livre 3 LMGT3",
+          "data": "17/10/2026",
+          "horario": "03:50"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "17/10/2026",
+          "horario": "06:50"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "17/10/2026",
+          "horario": "07:10"
+        },
+        {
+          "nome": "Treino Livre 3 Hypercar",
+          "data": "17/10/2026",
+          "horario": "07:40"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "17/10/2026",
+          "horario": "10:40"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "17/10/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "18/10/2026",
+          "horario": "07:00"
+        }
+      ]
+    },
+    {
+      "etapa": 8,
+      "circuito": "Monza",
+      "pais": "Itália",
+      "inicio": "06/11/2026",
+      "fim": "08/11/2026",
+      "sessoes": []
+    }
+  ]
+}

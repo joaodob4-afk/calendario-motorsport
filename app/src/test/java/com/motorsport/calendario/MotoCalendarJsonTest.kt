@@ -29,7 +29,7 @@ class MotoCalendarJsonTest {
         "inicio": "$inicio", "fim": "$fim", "sessoes": [$sessoes]}"""
 
     @Test
-    fun jsonsEmbutidosDasTresClassesSaoValidos() {
+    fun jsonsEmbutidosDeTodasAsClassesSaoValidos() {
         val context = RuntimeEnvironment.getApplication()
 
         for (classe in ClasseMoto.values()) {
@@ -44,12 +44,12 @@ class MotoCalendarJsonTest {
     }
 
     @Test
-    fun etapasDeTodasJuntaAsTresClasses() {
+    fun etapasDeTodasJuntaTodasAsClasses() {
         val context = RuntimeEnvironment.getApplication()
 
         val categorias = MotoCalendarJson.etapasDeTodas(context).map { it.categoria }.toSet()
 
-        assertEquals(setOf("MotoGP", "Moto2", "Moto3"), categorias)
+        assertEquals(setOf("MotoGP", "Moto2", "Moto3", "WEC"), categorias)
     }
 
     @Test
@@ -114,6 +114,29 @@ class MotoCalendarJsonTest {
             ZonedDateTime.of(2026, 3, 1, 5, 0, 0, 0, PlanoDeAvisos.BRASILIA).toInstant(),
             corrida!!.inicio.toInstant()
         )
+    }
+
+    @Test
+    fun avisosIncluemSessoesDoWecEmHorarioDeBrasilia() {
+        val context = RuntimeEnvironment.getApplication()
+
+        val corrida = ColetorDeSessoes.coletar(context).firstOrNull {
+            it.categoria == "WEC" && it.nome == "Corrida" && it.local == "Barcelona"
+        }
+
+        assertNotNull("Corrida do WEC em Barcelona não encontrada", corrida)
+        // 12:00 em Barcelona (CEST, UTC+2) são 07:00 em Brasília.
+        assertEquals(
+            ZonedDateTime.of(2026, 10, 18, 7, 0, 0, 0, PlanoDeAvisos.BRASILIA).toInstant(),
+            corrida!!.inicio.toInstant()
+        )
+    }
+
+    @Test
+    fun classificacaoEHyperpoleDoWecNaoContamComoCorrida() {
+        listOf("Classificação Hypercar", "Hyperpole LMGT3", "Treino Livre 3 Hypercar").forEach {
+            assertTrue(it, !PlanoDeAvisos.ehCorrida(it))
+        }
     }
 
     @Test
