@@ -8,7 +8,48 @@
       "pais": "Itália",
       "inicio": "17/04/2026",
       "fim": "19/04/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "17/04/2026",
+          "horario": "05:15"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "17/04/2026",
+          "horario": "10:15"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "18/04/2026",
+          "horario": "05:30"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "18/04/2026",
+          "horario": "09:30"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "18/04/2026",
+          "horario": "09:50"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "18/04/2026",
+          "horario": "10:10"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "18/04/2026",
+          "horario": "10:30"
+        },
+        {
+          "nome": "Corrida",
+          "data": "19/04/2026",
+          "horario": "08:00"
+        }
+      ]
     },
     {
       "etapa": 2,
@@ -16,7 +57,48 @@
       "pais": "Bélgica",
       "inicio": "07/05/2026",
       "fim": "09/05/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "07/05/2026",
+          "horario": "06:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "07/05/2026",
+          "horario": "10:40"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "08/05/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "08/05/2026",
+          "horario": "09:30"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "08/05/2026",
+          "horario": "09:55"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "08/05/2026",
+          "horario": "10:20"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "08/05/2026",
+          "horario": "10:45"
+        },
+        {
+          "nome": "Corrida",
+          "data": "09/05/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 3,
@@ -24,7 +106,68 @@
       "pais": "França",
       "inicio": "10/06/2026",
       "fim": "14/06/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "10/06/2026",
+          "horario": "09:00"
+        },
+        {
+          "nome": "Classificação LMP2 & LMGT3",
+          "data": "10/06/2026",
+          "horario": "13:45"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "10/06/2026",
+          "horario": "14:30"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "10/06/2026",
+          "horario": "17:00"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "11/06/2026",
+          "horario": "09:45"
+        },
+        {
+          "nome": "Hyperpole 1 LMP2 & LMGT3",
+          "data": "11/06/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Hyperpole 2 LMP2 & LMGT3",
+          "data": "11/06/2026",
+          "horario": "15:35"
+        },
+        {
+          "nome": "Hyperpole 1 Hypercar",
+          "data": "11/06/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Hyperpole 2 Hypercar",
+          "data": "11/06/2026",
+          "horario": "16:40"
+        },
+        {
+          "nome": "Treino Livre 4",
+          "data": "11/06/2026",
+          "horario": "18:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "13/06/2026",
+          "horario": "07:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "13/06/2026",
+          "horario": "11:00"
+        }
+      ]
     },
     {
       "etapa": 4,
@@ -32,7 +175,48 @@
       "pais": "Brasil",
       "inicio": "10/07/2026",
       "fim": "12/07/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "10/07/2026",
+          "horario": "06:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "10/07/2026",
+          "horario": "10:50"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "11/07/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "11/07/2026",
+          "horario": "09:30"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "11/07/2026",
+          "horario": "09:50"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "11/07/2026",
+          "horario": "10:10"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "11/07/2026",
+          "horario": "10:30"
+        },
+        {
+          "nome": "Corrida",
+          "data": "12/07/2026",
+          "horario": "06:30"
+        }
+      ]
     },
     {
       "etapa": 5,
@@ -40,7 +224,48 @@
       "pais": "Estados Unidos",
       "inicio": "04/09/2026",
       "fim": "06/09/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "04/09/2026",
+          "horario": "06:30"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "04/09/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "05/09/2026",
+          "horario": "06:00"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "05/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "05/09/2026",
+          "horario": "10:20"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "05/09/2026",
+          "horario": "10:40"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "05/09/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "06/09/2026",
+          "horario": "08:00"
+        }
+      ]
     },
     {
       "etapa": 6,
@@ -48,7 +273,48 @@
       "pais": "Japão",
       "inicio": "25/09/2026",
       "fim": "27/09/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "25/09/2026",
+          "horario": "05:15"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "25/09/2026",
+          "horario": "09:30"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "26/09/2026",
+          "horario": "04:30"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "26/09/2026",
+          "horario": "09:00"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "26/09/2026",
+          "horario": "09:20"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "26/09/2026",
+          "horario": "09:40"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "26/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "27/09/2026",
+          "horario": "06:00"
+        }
+      ]
     },
     {
       "etapa": 7,
@@ -110,7 +376,48 @@
       "pais": "Itália",
       "inicio": "06/11/2026",
       "fim": "08/11/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "06/11/2026",
+          "horario": "06:30"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "06/11/2026",
+          "horario": "10:30"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "07/11/2026",
+          "horario": "06:30"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "07/11/2026",
+          "horario": "10:20"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "07/11/2026",
+          "horario": "10:40"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "07/11/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "07/11/2026",
+          "horario": "11:20"
+        },
+        {
+          "nome": "Corrida",
+          "data": "08/11/2026",
+          "horario": "07:00"
+        }
+      ]
     }
   ]
 }
