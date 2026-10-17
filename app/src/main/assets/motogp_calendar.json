@@ -57,7 +57,48 @@
       "pais": "Brasil",
       "inicio": "20/03/2026",
       "fim": "22/03/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "20/03/2026",
+          "horario": "12:05"
+        },
+        {
+          "nome": "Practice",
+          "data": "20/03/2026",
+          "horario": "16:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "21/03/2026",
+          "horario": "10:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "21/03/2026",
+          "horario": "10:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "21/03/2026",
+          "horario": "11:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "21/03/2026",
+          "horario": "16:20"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "22/03/2026",
+          "horario": "10:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "22/03/2026",
+          "horario": "15:00"
+        }
+      ]
     },
     {
       "etapa": 3,
@@ -65,7 +106,48 @@
       "pais": "Estados Unidos",
       "inicio": "27/03/2026",
       "fim": "29/03/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "27/03/2026",
+          "horario": "12:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "27/03/2026",
+          "horario": "17:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "28/03/2026",
+          "horario": "12:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "28/03/2026",
+          "horario": "12:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "28/03/2026",
+          "horario": "13:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "28/03/2026",
+          "horario": "17:10"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "29/03/2026",
+          "horario": "12:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "29/03/2026",
+          "horario": "17:00"
+        }
+      ]
     },
     {
       "etapa": 4,
@@ -73,7 +155,48 @@
       "pais": "Espanha",
       "inicio": "24/04/2026",
       "fim": "26/04/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "24/04/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "24/04/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "25/04/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "25/04/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "25/04/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "25/04/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "26/04/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "26/04/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 5,
@@ -81,7 +204,48 @@
       "pais": "França",
       "inicio": "08/05/2026",
       "fim": "10/05/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "08/05/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "08/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "09/05/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "09/05/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "09/05/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "09/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "10/05/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "10/05/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 6,
@@ -89,7 +253,48 @@
       "pais": "Espanha",
       "inicio": "15/05/2026",
       "fim": "17/05/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "15/05/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "15/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "16/05/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "16/05/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "16/05/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "16/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "17/05/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "17/05/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 7,
@@ -97,7 +302,48 @@
       "pais": "Itália",
       "inicio": "29/05/2026",
       "fim": "31/05/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "29/05/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "29/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "30/05/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "30/05/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "30/05/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "30/05/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "31/05/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "31/05/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 8,
@@ -105,7 +351,48 @@
       "pais": "Hungria",
       "inicio": "05/06/2026",
       "fim": "07/06/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "05/06/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "05/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "06/06/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "06/06/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "06/06/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "06/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "07/06/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "07/06/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 9,
@@ -113,7 +400,48 @@
       "pais": "República Tcheca",
       "inicio": "19/06/2026",
       "fim": "21/06/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "19/06/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "19/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "20/06/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "20/06/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "20/06/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "20/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "21/06/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "21/06/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 10,
@@ -121,7 +449,48 @@
       "pais": "Holanda",
       "inicio": "26/06/2026",
       "fim": "28/06/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "26/06/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "26/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "27/06/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "27/06/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "27/06/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "27/06/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "28/06/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "28/06/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 11,
@@ -129,7 +498,48 @@
       "pais": "Alemanha",
       "inicio": "10/07/2026",
       "fim": "12/07/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "10/07/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "10/07/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "11/07/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "11/07/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "11/07/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "11/07/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "12/07/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "12/07/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 12,
@@ -137,7 +547,48 @@
       "pais": "Reino Unido",
       "inicio": "07/08/2026",
       "fim": "09/08/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "07/08/2026",
+          "horario": "07:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "07/08/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "08/08/2026",
+          "horario": "07:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "08/08/2026",
+          "horario": "07:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "08/08/2026",
+          "horario": "08:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "08/08/2026",
+          "horario": "12:05"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "09/08/2026",
+          "horario": "05:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "09/08/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 13,
@@ -145,7 +596,48 @@
       "pais": "Espanha",
       "inicio": "28/08/2026",
       "fim": "30/08/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "28/08/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "28/08/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "29/08/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "29/08/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "29/08/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "29/08/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "30/08/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "30/08/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 14,
@@ -153,7 +645,48 @@
       "pais": "San Marino",
       "inicio": "11/09/2026",
       "fim": "13/09/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "11/09/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "11/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "12/09/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "12/09/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "12/09/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "12/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "13/09/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "13/09/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 15,
@@ -161,7 +694,48 @@
       "pais": "Áustria",
       "inicio": "18/09/2026",
       "fim": "20/09/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "18/09/2026",
+          "horario": "05:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "18/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "19/09/2026",
+          "horario": "05:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "19/09/2026",
+          "horario": "05:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "19/09/2026",
+          "horario": "06:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "19/09/2026",
+          "horario": "10:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "20/09/2026",
+          "horario": "04:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "20/09/2026",
+          "horario": "09:00"
+        }
+      ]
     },
     {
       "etapa": 16,
@@ -169,7 +743,48 @@
       "pais": "Japão",
       "inicio": "02/10/2026",
       "fim": "04/10/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "01/10/2026",
+          "horario": "22:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "02/10/2026",
+          "horario": "03:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "02/10/2026",
+          "horario": "22:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "02/10/2026",
+          "horario": "22:58"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "02/10/2026",
+          "horario": "23:23"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "03/10/2026",
+          "horario": "03:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "03/10/2026",
+          "horario": "21:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "04/10/2026",
+          "horario": "02:00"
+        }
+      ]
     },
     {
       "etapa": 17,
@@ -177,7 +792,48 @@
       "pais": "Indonésia",
       "inicio": "09/10/2026",
       "fim": "11/10/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "08/10/2026",
+          "horario": "23:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "09/10/2026",
+          "horario": "04:35"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "09/10/2026",
+          "horario": "23:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "09/10/2026",
+          "horario": "23:55"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "10/10/2026",
+          "horario": "00:20"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "10/10/2026",
+          "horario": "04:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "10/10/2026",
+          "horario": "23:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "11/10/2026",
+          "horario": "04:00"
+        }
+      ]
     },
     {
       "etapa": 18,
@@ -185,7 +841,48 @@
       "pais": "Austrália",
       "inicio": "23/10/2026",
       "fim": "25/10/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "22/10/2026",
+          "horario": "20:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "23/10/2026",
+          "horario": "01:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "23/10/2026",
+          "horario": "20:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "23/10/2026",
+          "horario": "20:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "23/10/2026",
+          "horario": "21:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "24/10/2026",
+          "horario": "01:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "24/10/2026",
+          "horario": "19:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "25/10/2026",
+          "horario": "00:00"
+        }
+      ]
     },
     {
       "etapa": 19,
@@ -193,7 +890,48 @@
       "pais": "Malásia",
       "inicio": "30/10/2026",
       "fim": "01/11/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "29/10/2026",
+          "horario": "23:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "30/10/2026",
+          "horario": "04:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "30/10/2026",
+          "horario": "23:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "30/10/2026",
+          "horario": "23:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "31/10/2026",
+          "horario": "00:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "31/10/2026",
+          "horario": "04:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "31/10/2026",
+          "horario": "23:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "01/11/2026",
+          "horario": "04:00"
+        }
+      ]
     },
     {
       "etapa": 20,
@@ -201,7 +939,48 @@
       "pais": "Catar",
       "inicio": "06/11/2026",
       "fim": "08/11/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "06/11/2026",
+          "horario": "09:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "06/11/2026",
+          "horario": "14:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "07/11/2026",
+          "horario": "09:00"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "07/11/2026",
+          "horario": "09:40"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "07/11/2026",
+          "horario": "10:05"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "07/11/2026",
+          "horario": "14:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "08/11/2026",
+          "horario": "09:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "08/11/2026",
+          "horario": "14:00"
+        }
+      ]
     },
     {
       "etapa": 21,
@@ -209,7 +988,48 @@
       "pais": "Portugal",
       "inicio": "20/11/2026",
       "fim": "22/11/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "20/11/2026",
+          "horario": "07:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "20/11/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "21/11/2026",
+          "horario": "07:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "21/11/2026",
+          "horario": "07:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "21/11/2026",
+          "horario": "08:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "21/11/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "22/11/2026",
+          "horario": "06:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "22/11/2026",
+          "horario": "10:00"
+        }
+      ]
     },
     {
       "etapa": 22,
@@ -217,7 +1037,48 @@
       "pais": "Espanha",
       "inicio": "27/11/2026",
       "fim": "29/11/2026",
-      "sessoes": []
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "27/11/2026",
+          "horario": "06:45"
+        },
+        {
+          "nome": "Practice",
+          "data": "27/11/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "28/11/2026",
+          "horario": "06:10"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "28/11/2026",
+          "horario": "06:50"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "28/11/2026",
+          "horario": "07:15"
+        },
+        {
+          "nome": "Corrida Sprint",
+          "data": "28/11/2026",
+          "horario": "11:00"
+        },
+        {
+          "nome": "Warm-up",
+          "data": "29/11/2026",
+          "horario": "05:40"
+        },
+        {
+          "nome": "Corrida",
+          "data": "29/11/2026",
+          "horario": "10:00"
+        }
+      ]
     }
   ]
 }
