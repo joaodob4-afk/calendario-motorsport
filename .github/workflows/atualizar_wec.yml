@@ -1,0 +1,35 @@
+name: Atualizar calendario WEC
+
+on:
+  schedule:
+    - cron: '50 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Atualizar calendário do WEC
+        run: python .github/scripts/atualizar_wec.py
+
+      - name: Salvar mudanças
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/wec_calendar.json
+          if git diff --cached --quiet; then
+            echo "Sem mudanças no calendário."
+          else
+            git commit -m "Atualizar calendário WEC"
+            git pull --rebase
+            git push
+          fi
