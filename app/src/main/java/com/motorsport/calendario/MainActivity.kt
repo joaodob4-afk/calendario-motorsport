@@ -103,50 +103,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
-        F2CalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
-            redesenharListaDepois()
-        }
-
-        etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
-        F3CalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
-            redesenharListaDepois()
-        }
-
-        etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
-        IndyCarCalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
-            redesenharListaDepois()
-        }
-
-        etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
-        FormulaECalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
-            redesenharListaDepois()
-        }
-
-        // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
-        etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
-        for (classe in ClasseMoto.values()) {
-            MotoCalendarJson.atualizar(this, classe) {
-                AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-                etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
-                redesenharListaDepois()
-            }
-        }
-
-        etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
-        F1CalendarApi.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
-            redesenharListaDepois()
-        }
+        carregarCalendarios()
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -175,6 +132,100 @@ class MainActivity : AppCompatActivity() {
         )
 
         mostrarMenu()
+    }
+
+    /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
+    private var carregandoCalendarios = true
+
+    private fun lerEtapas(origem: String, bloco: () -> List<Etapa>): List<Etapa>? =
+        try {
+            bloco()
+        } catch (e: Exception) {
+            registrarFalha("MainActivity.carregarCalendarios.$origem", e)
+            null
+        }
+
+    /**
+     * Lê os calendários (cache ou JSON do APK) fora da thread principal, para a primeira tela
+     * aparecer logo. O download das versões novas só começa depois, para uma leitura antiga
+     * nunca sobrescrever uma atualização.
+     */
+    private fun carregarCalendarios() {
+        val app = applicationContext
+
+        Thread {
+            val f1 = lerEtapas("F1") { F1CalendarApi.carregarCache(app) }
+            val f2 = lerEtapas("F2") { F2CalendarJson.comoEtapas(F2CalendarJson.carregar(app)) }
+            val f3 = lerEtapas("F3") { F3CalendarJson.comoEtapas(F3CalendarJson.carregar(app)) }
+            val indy = lerEtapas("IndyCar") {
+                IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(app))
+            }
+            val fe = lerEtapas("FormulaE") {
+                FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
+            }
+            val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
+
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+
+                etapasF1Dinamicas = f1
+                etapasF2Dinamicas = f2
+                etapasF3Dinamicas = f3
+                etapasIndyCarDinamicas = indy
+                etapasFormulaEDinamicas = fe
+                etapasMotoDinamicas = moto
+                carregandoCalendarios = false
+
+                if (categoriaAtual.isEmpty()) {
+                    atualizarProximaEtapa()
+                    mostrarEtapas(todasEtapas)
+                }
+
+                baixarCalendariosNovos()
+            }
+        }.start()
+    }
+
+    /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
+    private fun baixarCalendariosNovos() {
+        F2CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        F3CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        IndyCarCalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        FormulaECalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
+            redesenharListaDepois()
+        }
+
+        // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
+        for (classe in ClasseMoto.values()) {
+            MotoCalendarJson.atualizar(this, classe) {
+                AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+                etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
+                redesenharListaDepois()
+            }
+        }
+
+        F1CalendarApi.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
+            redesenharListaDepois()
+        }
     }
 
     override fun onResume() {
@@ -514,6 +565,9 @@ class MainActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
 
         if (etapasOrdenadas.isEmpty()) {
+            // Ainda lendo os calendários: melhor mostrar nada do que "nenhuma etapa".
+            if (carregandoCalendarios) return
+
             val vazio = TextView(this)
             vazio.text = "Nenhuma etapa encontrada."
             vazio.setTextColor(android.graphics.Color.WHITE)
