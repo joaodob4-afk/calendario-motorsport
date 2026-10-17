@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Agenda no Android um alarme para cada sessão próxima, de acordo com a escolha feita
@@ -25,14 +26,29 @@ internal object AgendadorDeAvisos {
 
     private val trava = Any()
 
-    /** Para chamar de telas: lê os calendários fora da thread principal. */
+    /** Verdadeiro enquanto há um reagendamento esperando para rodar. */
+    private val agendamentoPendente = AtomicBoolean(false)
+
+    /** Espera que junta chamadas seguidas (vários calendários terminam de baixar juntos). */
+    private const val ESPERA_PARA_JUNTAR_CHAMADAS_MS = 1500L
+
+    /**
+     * Para chamar de telas: lê os calendários fora da thread principal. Chamadas seguidas
+     * viram uma só, feita depois de uma pequena espera e já com os dados mais novos.
+     */
     fun reagendarEmSegundoPlano(context: Context) {
+        if (!agendamentoPendente.compareAndSet(false, true)) return
+
         val app = context.applicationContext
 
         Thread {
             try {
+                Thread.sleep(ESPERA_PARA_JUNTAR_CHAMADAS_MS)
+                // Libera antes de rodar: um pedido que chegar durante o trabalho agenda outra rodada.
+                agendamentoPendente.set(false)
                 reagendar(app)
             } catch (e: Exception) {
+                agendamentoPendente.set(false)
                 registrarFalha("AgendadorDeAvisos.reagendar", e)
             }
         }.start()
