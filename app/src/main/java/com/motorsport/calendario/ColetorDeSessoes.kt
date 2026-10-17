@@ -53,6 +53,15 @@ internal object ColetorDeSessoes {
                         sessao("Formula E", evento.circuito, it.nome, it.data, it.horario)
                     }
                 }
+            } +
+            protegido("Moto") {
+                ClasseMoto.values().flatMap { classe ->
+                    MotoCalendarJson.carregar(context, classe).flatMap { evento ->
+                        evento.sessoes.mapNotNull {
+                            sessao(classe.rotulo, evento.circuito, it.nome, it.data, it.horario)
+                        }
+                    }
+                }
             }
 
     private fun sessao(

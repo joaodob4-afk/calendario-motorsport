@@ -65,6 +65,14 @@
             android:name=".IndyCarCalendarActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".MotoActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MotoCalendarActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".AvisoReceiver"
             android:exported="false">

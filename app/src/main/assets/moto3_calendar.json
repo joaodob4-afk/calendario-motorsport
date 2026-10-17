@@ -1,0 +1,213 @@
+{
+  "temporada": 2026,
+  "categoria": "Moto3",
+  "etapas": [
+    {
+      "etapa": 1,
+      "circuito": "Buriram",
+      "pais": "Tailândia",
+      "inicio": "27/02/2026",
+      "fim": "01/03/2026",
+      "sessoes": [
+        {
+          "nome": "Treino Livre 1",
+          "data": "26/02/2026",
+          "horario": "23:00"
+        },
+        {
+          "nome": "Practice",
+          "data": "27/02/2026",
+          "horario": "03:15"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "27/02/2026",
+          "horario": "22:40"
+        },
+        {
+          "nome": "Classificação 1",
+          "data": "28/02/2026",
+          "horario": "02:45"
+        },
+        {
+          "nome": "Classificação 2",
+          "data": "28/02/2026",
+          "horario": "03:10"
+        },
+        {
+          "nome": "Corrida",
+          "data": "01/03/2026",
+          "horario": "02:00"
+        }
+      ]
+    },
+    {
+      "etapa": 2,
+      "circuito": "Goiânia",
+      "pais": "Brasil",
+      "inicio": "20/03/2026",
+      "fim": "22/03/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 3,
+      "circuito": "Austin",
+      "pais": "Estados Unidos",
+      "inicio": "27/03/2026",
+      "fim": "29/03/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 4,
+      "circuito": "Jerez",
+      "pais": "Espanha",
+      "inicio": "24/04/2026",
+      "fim": "26/04/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 5,
+      "circuito": "Le Mans",
+      "pais": "França",
+      "inicio": "08/05/2026",
+      "fim": "10/05/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 6,
+      "circuito": "Barcelona",
+      "pais": "Espanha",
+      "inicio": "15/05/2026",
+      "fim": "17/05/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 7,
+      "circuito": "Mugello",
+      "pais": "Itália",
+      "inicio": "29/05/2026",
+      "fim": "31/05/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 8,
+      "circuito": "Balaton Park",
+      "pais": "Hungria",
+      "inicio": "05/06/2026",
+      "fim": "07/06/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 9,
+      "circuito": "Brno",
+      "pais": "República Tcheca",
+      "inicio": "19/06/2026",
+      "fim": "21/06/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 10,
+      "circuito": "Assen",
+      "pais": "Holanda",
+      "inicio": "26/06/2026",
+      "fim": "28/06/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 11,
+      "circuito": "Sachsenring",
+      "pais": "Alemanha",
+      "inicio": "10/07/2026",
+      "fim": "12/07/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 12,
+      "circuito": "Silverstone",
+      "pais": "Reino Unido",
+      "inicio": "07/08/2026",
+      "fim": "09/08/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 13,
+      "circuito": "Aragón",
+      "pais": "Espanha",
+      "inicio": "28/08/2026",
+      "fim": "30/08/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 14,
+      "circuito": "Misano",
+      "pais": "San Marino",
+      "inicio": "11/09/2026",
+      "fim": "13/09/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 15,
+      "circuito": "Spielberg",
+      "pais": "Áustria",
+      "inicio": "18/09/2026",
+      "fim": "20/09/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 16,
+      "circuito": "Motegi",
+      "pais": "Japão",
+      "inicio": "02/10/2026",
+      "fim": "04/10/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 17,
+      "circuito": "Mandalika",
+      "pais": "Indonésia",
+      "inicio": "09/10/2026",
+      "fim": "11/10/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 18,
+      "circuito": "Phillip Island",
+      "pais": "Austrália",
+      "inicio": "23/10/2026",
+      "fim": "25/10/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 19,
+      "circuito": "Sepang",
+      "pais": "Malásia",
+      "inicio": "30/10/2026",
+      "fim": "01/11/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 20,
+      "circuito": "Lusail",
+      "pais": "Catar",
+      "inicio": "06/11/2026",
+      "fim": "08/11/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 21,
+      "circuito": "Portimão",
+      "pais": "Portugal",
+      "inicio": "20/11/2026",
+      "fim": "22/11/2026",
+      "sessoes": []
+    },
+    {
+      "etapa": 22,
+      "circuito": "Valencia",
+      "pais": "Espanha",
+      "inicio": "27/11/2026",
+      "fim": "29/11/2026",
+      "sessoes": []
+    }
+  ]
+}
