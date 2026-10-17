@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private var etapasF3Dinamicas: List<Etapa>? = null
     private var etapasFormulaEDinamicas: List<Etapa>? = null
     private var etapasIndyCarDinamicas: List<Etapa>? = null
+    private var etapasMotoDinamicas: List<Etapa>? = null
 
     private val todasEtapas: List<Etapa>
         get() =
@@ -68,7 +69,8 @@ class MainActivity : AppCompatActivity() {
                 (etapasF2Dinamicas ?: emptyList()) +
                 (etapasF3Dinamicas ?: emptyList()) +
                 (etapasFormulaEDinamicas ?: emptyList()) +
-                (etapasIndyCarDinamicas ?: emptyList())
+                (etapasIndyCarDinamicas ?: emptyList()) +
+                (etapasMotoDinamicas ?: emptyList())
 
     private fun parseDataSegura(data: String?): java.time.LocalDate? {
         if (data.isNullOrBlank()) return null
@@ -120,6 +122,19 @@ class MainActivity : AppCompatActivity() {
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
                 mostrarEtapas(todasEtapas)
+            }
+        }
+
+        // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
+        etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
+        for (classe in ClasseMoto.values()) {
+            MotoCalendarJson.atualizar(this, classe) {
+                AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+                etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
+                if (categoriaAtual.isEmpty()) {
+                    atualizarProximaEtapa()
+                    mostrarEtapas(todasEtapas)
+                }
             }
         }
 
@@ -302,6 +317,7 @@ class MainActivity : AppCompatActivity() {
                 "F3" -> abrirEventoF3PelaEtapa(proxima)
                 "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
                 "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
+                "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(proxima)
             }
         }
     }
@@ -571,6 +587,7 @@ class MainActivity : AppCompatActivity() {
                     "F3" -> abrirEventoF3PelaEtapa(etapa)
                     "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
                     "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
+                    "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(etapa)
                 }
             }
 
@@ -622,6 +639,13 @@ class MainActivity : AppCompatActivity() {
             "Catar" -> "flag_qa"
             "China" -> "flag_cn"
             "Alemanha" -> "flag_de"
+            "Tailândia" -> "flag_th"
+            "França" -> "flag_fr"
+            "República Tcheca" -> "flag_cz"
+            "Indonésia" -> "flag_id"
+            "Malásia" -> "flag_my"
+            "San Marino" -> "flag_sm"
+            "Portugal" -> "flag_pt"
             "Abu Dhabi", "Emirados Árabes Unidos" -> "flag_ae"
             else -> return 0
         }
@@ -649,6 +673,9 @@ class MainActivity : AppCompatActivity() {
             "F2" -> "FÓRMULA 2"
             "F3" -> "FÓRMULA 3"
             "IndyCar" -> "INDYCAR"
+            "MotoGP" -> "MOTOGP"
+            "Moto2" -> "MOTO2"
+            "Moto3" -> "MOTO3"
             else -> "FÓRMULA E"
         }
 
@@ -736,6 +763,14 @@ class MainActivity : AppCompatActivity() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
 
+                "MotoGP", "Moto2", "Moto3" -> {
+                    startActivity(
+                        Intent(this, MotoCalendarActivity::class.java)
+                            .putExtra(ClasseMoto.EXTRA, categoriaAtual)
+                    )
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
                 else -> {
                     // Categoria sem calendário.
                 }
@@ -790,6 +825,23 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("ETAPA", evento.etapa)
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
+
+    private fun abrirEventoMotoPelaEtapa(etapa: Etapa) {
+        val classe = ClasseMoto.porRotulo(etapa.categoria) ?: return
+
+        val encontrado = MotoCalendarJson.carregar(this, classe)
+            .firstOrNull { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+
+        if (encontrado != null) {
+            val intent = Intent(this, MotoActivity::class.java)
+            intent.putExtra(ClasseMoto.EXTRA, classe.rotulo)
+            intent.putExtra("ETAPA", encontrado.etapa)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        } else {
+            abrirCategoria(classe.rotulo)
+        }
     }
 
     private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
