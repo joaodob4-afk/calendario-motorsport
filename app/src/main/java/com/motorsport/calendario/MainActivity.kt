@@ -56,6 +56,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    private val handlerRedesenho = Handler(Looper.getMainLooper())
+
+    private val redesenhoDaLista = Runnable {
+        if (categoriaAtual.isEmpty()) {
+            atualizarProximaEtapa()
+            mostrarEtapas(todasEtapas)
+        }
+    }
+
+    /**
+     * Ao abrir o app, vários calendários terminam de baixar quase ao mesmo tempo. Em vez de
+     * refazer a lista inteira a cada um, agrupa tudo em um único redesenho.
+     */
+    private fun redesenharListaDepois() {
+        handlerRedesenho.removeCallbacks(redesenhoDaLista)
+        handlerRedesenho.postDelayed(redesenhoDaLista, 400)
+    }
+
     private var etapasF1Dinamicas: List<Etapa>? = null
     private var etapasF2Dinamicas: List<Etapa>? = null
     private var etapasF3Dinamicas: List<Etapa>? = null
@@ -89,40 +107,28 @@ class MainActivity : AppCompatActivity() {
         F2CalendarJson.atualizar(this) {
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
-            if (categoriaAtual.isEmpty()) {
-                atualizarProximaEtapa()
-                mostrarEtapas(todasEtapas)
-            }
+            redesenharListaDepois()
         }
 
         etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
         F3CalendarJson.atualizar(this) {
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
-            if (categoriaAtual.isEmpty()) {
-                atualizarProximaEtapa()
-                mostrarEtapas(todasEtapas)
-            }
+            redesenharListaDepois()
         }
 
         etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
         IndyCarCalendarJson.atualizar(this) {
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
-            if (categoriaAtual.isEmpty()) {
-                atualizarProximaEtapa()
-                mostrarEtapas(todasEtapas)
-            }
+            redesenharListaDepois()
         }
 
         etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
         FormulaECalendarJson.atualizar(this) {
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
-            if (categoriaAtual.isEmpty()) {
-                atualizarProximaEtapa()
-                mostrarEtapas(todasEtapas)
-            }
+            redesenharListaDepois()
         }
 
         // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
@@ -131,10 +137,7 @@ class MainActivity : AppCompatActivity() {
             MotoCalendarJson.atualizar(this, classe) {
                 AgendadorDeAvisos.reagendarEmSegundoPlano(this)
                 etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
-                if (categoriaAtual.isEmpty()) {
-                    atualizarProximaEtapa()
-                    mostrarEtapas(todasEtapas)
-                }
+                redesenharListaDepois()
             }
         }
 
@@ -142,10 +145,7 @@ class MainActivity : AppCompatActivity() {
         F1CalendarApi.atualizar(this) {
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
-            if (categoriaAtual.isEmpty()) {
-                atualizarProximaEtapa()
-                mostrarEtapas(todasEtapas)
-            }
+            redesenharListaDepois()
         }
 
         onBackPressedDispatcher.addCallback(
@@ -194,6 +194,7 @@ class MainActivity : AppCompatActivity() {
             handlerPesquisa.removeCallbacks(it)
         }
         handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
+        handlerRedesenho.removeCallbacks(redesenhoDaLista)
         super.onDestroy()
     }
 

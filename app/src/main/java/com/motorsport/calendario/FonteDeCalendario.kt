@@ -28,14 +28,30 @@ internal class FonteDeCalendario<T>(
 ) {
     private val trava = Any()
 
+    // O mesmo texto é interpretado várias vezes (cache, asset e o escolhido, a cada tela que
+    // abre). Guardamos o resultado dos últimos textos para não repetir o trabalho; um texto
+    // diferente sempre é interpretado de novo.
+    private val memoria = object : LinkedHashMap<String, List<T>?>(8, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, List<T>?>?): Boolean =
+            size > 6
+    }
+
     /** Eventos do texto, ou null se o texto for inválido ou não tiver etapas. */
-    private fun eventosValidos(texto: String): List<T>? =
-        try {
+    private fun eventosValidos(texto: String): List<T>? {
+        synchronized(memoria) {
+            if (memoria.containsKey(texto)) return memoria[texto]
+        }
+
+        val resultado = try {
             interpretar(texto).takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
             registrarDescarte("$nome.validar", e)
             null
         }
+
+        synchronized(memoria) { memoria[texto] = resultado }
+        return resultado
+    }
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
     fun carregar(context: Context): List<T> {
