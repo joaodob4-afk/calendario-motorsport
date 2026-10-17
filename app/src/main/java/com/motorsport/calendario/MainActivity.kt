@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity() {
 
         etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
         F2CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -94,6 +95,7 @@ class MainActivity : AppCompatActivity() {
 
         etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
         F3CalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -103,6 +105,7 @@ class MainActivity : AppCompatActivity() {
 
         etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
         IndyCarCalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -112,6 +115,7 @@ class MainActivity : AppCompatActivity() {
 
         etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
         FormulaECalendarJson.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -121,6 +125,7 @@ class MainActivity : AppCompatActivity() {
 
         etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
         F1CalendarApi.atualizar(this) {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
             if (categoriaAtual.isEmpty()) {
                 atualizarProximaEtapa()
@@ -155,6 +160,18 @@ class MainActivity : AppCompatActivity() {
         )
 
         mostrarMenu()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Refaz os avisos ao abrir o app e depois do pedido de permissão de notificações.
+        AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+
+        // O painel lateral mostra o estado das notificações; atualiza ao voltar das configurações.
+        findViewById<LinearLayout>(R.id.containerMenuLateral)?.let {
+            MenuPrincipal.montar(this, it)
+        }
     }
 
     override fun onDestroy() {
