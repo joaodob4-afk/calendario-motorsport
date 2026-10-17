@@ -369,7 +369,7 @@ class MainActivity : AppCompatActivity() {
                 "F3" -> abrirEventoF3PelaEtapa(proxima)
                 "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
                 "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
-                "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(proxima)
+                "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(proxima)
             }
         }
     }
@@ -642,7 +642,7 @@ class MainActivity : AppCompatActivity() {
                     "F3" -> abrirEventoF3PelaEtapa(etapa)
                     "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
                     "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
-                    "MotoGP", "Moto2", "Moto3" -> abrirEventoMotoPelaEtapa(etapa)
+                    "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
                 }
             }
 
@@ -731,6 +731,7 @@ class MainActivity : AppCompatActivity() {
             "MotoGP" -> "MOTOGP"
             "Moto2" -> "MOTO2"
             "Moto3" -> "MOTO3"
+            "WEC" -> "WEC"
             else -> "FÓRMULA E"
         }
 
@@ -818,7 +819,7 @@ class MainActivity : AppCompatActivity() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
 
-                "MotoGP", "Moto2", "Moto3" -> {
+                "MotoGP", "Moto2", "Moto3", "WEC" -> {
                     startActivity(
                         Intent(this, MotoCalendarActivity::class.java)
                             .putExtra(ClasseMoto.EXTRA, categoriaAtual)
