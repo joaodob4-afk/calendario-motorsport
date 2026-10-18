@@ -32,7 +32,8 @@ class F1Activity : AppCompatActivity() {
     private val fundoCard = Color.rgb(15, 20, 15)
     private val verdeEscuro = Color.rgb(20, 75, 20)
 
-    private val brasilia = ZoneId.of("America/Sao_Paulo")
+    // Apesar do nome, é o fuso atual do aparelho (os horários da F1 vêm em UTC).
+    private val brasilia: ZoneId = ZoneId.systemDefault()
     private val localePt = Locale("pt", "BR")
 
     private lateinit var conteudo: LinearLayout

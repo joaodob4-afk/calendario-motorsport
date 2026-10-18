@@ -42,10 +42,10 @@ internal object MenuPrincipal {
 
         container.addView(cabecalho(activity))
 
-        container.addView(rotuloDeSecao(activity, "LEMBRETES"))
+        container.addView(rotuloDeSecao(activity, activity.getString(R.string.menu_secao_lembretes)))
         container.addView(cartaoDeLembretes(activity, container, minutos))
 
-        container.addView(rotuloDeSecao(activity, "POR CAMPEONATO"))
+        container.addView(rotuloDeSecao(activity, activity.getString(R.string.menu_secao_campeonato)))
         container.addView(cartaoPorCampeonato(activity, container, ativo))
 
         if (ativo && !Notificacoes.permitidas(activity)) {
@@ -58,7 +58,7 @@ internal object MenuPrincipal {
         container.addView(
             texto(
                 activity,
-                "Mais funções em breve.",
+                activity.getString(R.string.menu_em_breve),
                 13f,
                 activity.getColor(R.color.texto_suave),
                 Typeface.NORMAL
@@ -89,10 +89,10 @@ internal object MenuPrincipal {
             orientation = LinearLayout.VERTICAL
             layoutParams = parametros(activity, inicio = 14f)
             addView(
-                texto(activity, "CALENDÁRIO MOTORSPORT", 11f, activity.getColor(R.color.texto_suave), Typeface.NORMAL)
+                texto(activity, activity.getString(R.string.menu_marca), 11f, activity.getColor(R.color.texto_suave), Typeface.NORMAL)
                     .apply { letterSpacing = 0.12f }
             )
-            addView(texto(activity, "Notificações", 24f, Color.WHITE, Typeface.BOLD))
+            addView(texto(activity, activity.getString(R.string.menu_titulo), 24f, Color.WHITE, Typeface.BOLD))
         }
 
         return LinearLayout(activity).apply {
@@ -143,11 +143,11 @@ internal object MenuPrincipal {
         val titulos = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(texto(activity, "Avisar antes das sessões", 16f, Color.WHITE, Typeface.BOLD))
+            addView(texto(activity, activity.getString(R.string.lembrete_titulo), 16f, Color.WHITE, Typeface.BOLD))
             addView(
                 texto(
                     activity,
-                    if (ativo) "${PreferenciasDeAviso.descricao(minutos)} da sessão" else "Desligado",
+                    if (ativo) descricaoDaAntecedencia(activity, minutos) else activity.getString(R.string.desligado),
                     13f,
                     if (ativo) verde else suave,
                     Typeface.NORMAL
@@ -160,7 +160,7 @@ internal object MenuPrincipal {
             gravity = Gravity.CENTER_VERTICAL
             isClickable = true
             isFocusable = true
-            contentDescription = if (ativo) "Desligar avisos" else "Ligar avisos"
+            contentDescription = if (ativo) activity.getString(R.string.cd_desligar_avisos) else activity.getString(R.string.cd_ligar_avisos)
             background = comToque(activity, Color.TRANSPARENT, null, 10f)
             addView(titulos)
             addView(chave)
@@ -196,7 +196,7 @@ internal object MenuPrincipal {
                         if (selecionada) Typeface.BOLD else Typeface.NORMAL
                     ).apply {
                         gravity = Gravity.CENTER
-                        contentDescription = PreferenciasDeAviso.descricao(opcao)
+                        contentDescription = descricaoDaAntecedencia(activity, opcao)
                         isClickable = true
                         isFocusable = true
                         background = if (selecionada) {
@@ -247,11 +247,11 @@ internal object MenuPrincipal {
         val titulos = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(texto(activity, "Avisar na hora de começar", 15f, Color.WHITE, Typeface.BOLD))
+            addView(texto(activity, activity.getString(R.string.na_hora_titulo), 15f, Color.WHITE, Typeface.BOLD))
             addView(
                 texto(
                     activity,
-                    if (ligado) "Uma notificação \"Começando agora\"" else "Desligado",
+                    if (ligado) activity.getString(R.string.na_hora_ligado) else activity.getString(R.string.desligado),
                     13f,
                     if (ligado) verde else suave,
                     Typeface.NORMAL
@@ -265,7 +265,7 @@ internal object MenuPrincipal {
             isClickable = true
             isFocusable = true
             alpha = if (ativo) 1f else 0.45f
-            contentDescription = if (ligado) "Desligar aviso na hora" else "Ligar aviso na hora"
+            contentDescription = if (ligado) activity.getString(R.string.cd_desligar_na_hora) else activity.getString(R.string.cd_ligar_na_hora)
             background = comToque(activity, Color.TRANSPARENT, null, 10f)
             layoutParams = parametros(activity, topo = 16f)
             addView(titulos)
@@ -286,7 +286,7 @@ internal object MenuPrincipal {
             // Esmaecido quando os avisos estão desligados; as escolhas continuam valendo.
             alpha = if (ativo) 1f else 0.45f
 
-            addView(texto(activity, "Escolha o que avisar em cada campeonato.", 13f, suave, Typeface.NORMAL))
+            addView(texto(activity, activity.getString(R.string.campeonato_intro), 13f, suave, Typeface.NORMAL))
 
             Categorias.todas.forEach { categoria ->
                 val modoAtual = PreferenciasDeAviso.modoDaCategoria(activity, categoria.nome)
@@ -323,7 +323,7 @@ internal object MenuPrincipal {
             addView(
                 texto(
                     activity,
-                    "Todas: treinos, classificações e corridas.\nCorridas: sprints e corridas principais.",
+                    activity.getString(R.string.campeonato_legenda),
                     12f,
                     suave,
                     Typeface.NORMAL
@@ -369,7 +369,7 @@ internal object MenuPrincipal {
                 addView(
                     texto(
                         activity,
-                        modo.rotulo,
+                        rotuloDoModo(activity, modo),
                         13f,
                         corDoTexto,
                         if (marcado) Typeface.BOLD else Typeface.NORMAL
@@ -377,7 +377,7 @@ internal object MenuPrincipal {
                         gravity = Gravity.CENTER
                         isClickable = true
                         isFocusable = true
-                        contentDescription = modo.rotulo
+                        contentDescription = rotuloDoModo(activity, modo)
                         background = if (marcado) {
                             comToque(activity, corMarcada, null, 9f)
                         } else {
@@ -404,11 +404,11 @@ internal object MenuPrincipal {
             background = comToque(activity, Color.parseColor("#2A2113"), corDoAviso, 14f)
             setPadding(activity.emPx(16f), activity.emPx(14f), activity.emPx(16f), activity.emPx(14f))
             layoutParams = parametros(activity, topo = 16f)
-            addView(texto(activity, "Notificações bloqueadas", 15f, corDoAviso, Typeface.BOLD))
+            addView(texto(activity, activity.getString(R.string.bloqueio_titulo), 15f, corDoAviso, Typeface.BOLD))
             addView(
                 texto(
                     activity,
-                    "Toque para permitir nas configurações do aparelho.",
+                    activity.getString(R.string.bloqueio_texto),
                     13f,
                     activity.getColor(R.color.texto_suave),
                     Typeface.NORMAL
@@ -426,7 +426,7 @@ internal object MenuPrincipal {
     private fun botaoDeTeste(activity: Activity): View {
         val verde = activity.getColor(R.color.acento)
 
-        return texto(activity, "Enviar notificação de teste", 15f, verde, Typeface.BOLD).apply {
+        return texto(activity, activity.getString(R.string.botao_teste), 15f, verde, Typeface.BOLD).apply {
             gravity = Gravity.CENTER
             isClickable = true
             isFocusable = true
@@ -453,7 +453,7 @@ internal object MenuPrincipal {
     private fun botaoDeBateria(activity: Activity): View =
         texto(
             activity,
-            "Avisos não chegam? Ajustar bateria",
+            activity.getString(R.string.botao_bateria),
             13f,
             activity.getColor(R.color.texto_suave),
             Typeface.NORMAL
@@ -486,6 +486,23 @@ internal object MenuPrincipal {
     }
 
     // ------------------------------------------------------------- apoio
+
+    /** "30 minutos antes da sessão" / "30 minutes before the session". */
+    private fun descricaoDaAntecedencia(activity: Activity, minutos: Int): String =
+        if (minutos == 60) {
+            activity.getString(R.string.antecedencia_hora)
+        } else {
+            activity.getString(R.string.antecedencia_minutos, minutos)
+        }
+
+    private fun rotuloDoModo(activity: Activity, modo: ModoDeAviso): String =
+        activity.getString(
+            when (modo) {
+                ModoDeAviso.TODAS -> R.string.modo_todas
+                ModoDeAviso.CORRIDAS -> R.string.modo_corridas
+                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
+            }
+        )
 
     private fun forma(activity: Activity, preenchimento: Int, borda: Int?, raioDp: Float) =
         GradientDrawable().apply {

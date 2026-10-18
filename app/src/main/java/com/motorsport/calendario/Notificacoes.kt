@@ -84,10 +84,10 @@ internal object Notificacoes {
 
         val canal = NotificationChannel(
             CANAL_AVISOS,
-            "Avisos de sessões",
+            context.getString(R.string.canal_nome),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Lembretes antes do início de treinos, classificações e corridas."
+            description = context.getString(R.string.canal_descricao)
         }
 
         context.getSystemService(NotificationManager::class.java)
@@ -132,8 +132,8 @@ internal object Notificacoes {
         mostrar(
             context,
             CODIGO_TESTE,
-            "Notificação de teste",
-            "Os avisos de sessão vão aparecer assim."
+            context.getString(R.string.teste_titulo),
+            context.getString(R.string.teste_texto)
         )
     }
 }

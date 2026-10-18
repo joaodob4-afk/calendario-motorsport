@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="traduzir_sessoes">false</bool>
+
+    <string name="app_name">Calendário Motorsport</string>
+
+    <string name="menu_marca">CALENDÁRIO MOTORSPORT</string>
+    <string name="menu_titulo">Notificações</string>
+    <string name="menu_secao_lembretes">LEMBRETES</string>
+    <string name="menu_secao_campeonato">POR CAMPEONATO</string>
+    <string name="menu_em_breve">Mais funções em breve.</string>
+
+    <string name="lembrete_titulo">Avisar antes das sessões</string>
+    <string name="desligado">Desligado</string>
+    <string name="antecedencia_hora">1 hora antes da sessão</string>
+    <string name="antecedencia_minutos">%d minutos antes da sessão</string>
+    <string name="cd_desligar_avisos">Desligar avisos</string>
+    <string name="cd_ligar_avisos">Ligar avisos</string>
+
+    <string name="na_hora_titulo">Avisar na hora de começar</string>
+    <string name="na_hora_ligado">Uma notificação \"Começando agora\"</string>
+    <string name="cd_desligar_na_hora">Desligar aviso na hora</string>
+    <string name="cd_ligar_na_hora">Ligar aviso na hora</string>
+
+    <string name="campeonato_intro">Escolha o que avisar em cada campeonato.</string>
+    <string name="campeonato_legenda">Todas: treinos, classificações e corridas.\nCorridas: sprints e corridas principais.</string>
+    <string name="modo_todas">Todas</string>
+    <string name="modo_corridas">Corridas</string>
+    <string name="modo_nenhuma">Nenhuma</string>
+
+    <string name="bloqueio_titulo">Notificações bloqueadas</string>
+    <string name="bloqueio_texto">Toque para permitir nas configurações do aparelho.</string>
+    <string name="botao_teste">Enviar notificação de teste</string>
+    <string name="botao_bateria">Avisos não chegam? Ajustar bateria</string>
+
+    <string name="canal_nome">Avisos de sessões</string>
+    <string name="canal_descricao">Lembretes antes do início de treinos, classificações e corridas.</string>
+    <string name="teste_titulo">Notificação de teste</string>
+    <string name="teste_texto">Os avisos de sessão vão aparecer assim.</string>
+
+    <string name="aviso_comecando_agora">Começando agora</string>
+    <string name="aviso_em_min">Começa em %d min</string>
+    <string name="aviso_em_h">Começa em %d h</string>
+    <string name="aviso_em_h_min">Começa em %1$d h %2$d min</string>
+</resources>

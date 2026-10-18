@@ -375,7 +375,7 @@ IndyCarCalendarJson.atualizar(this) {
         val horaValida = Regex("^\\d{1,2}:\\d{2}$")
         val resultado = mutableListOf<Sessao>()
 
-        for (sessao in evento.sessoes) {
+        for (sessao in evento.sessoes.map { it.noFusoDoAparelho() }) {
             val data = lerData(sessao.data) ?: continue
 
             val horario = sessao.horario.trim().takeIf {
