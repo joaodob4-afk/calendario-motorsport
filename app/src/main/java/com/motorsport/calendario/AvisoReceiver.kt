@@ -42,10 +42,14 @@ class AvisoReceiver : BroadcastReceiver() {
 
         if (inicioMs == 0L || nome.isBlank()) return
 
+        val naHora = intent.getBooleanExtra(AgendadorDeAvisos.EXTRA_NA_HORA, false)
+
         val restanteMs = inicioMs - System.currentTimeMillis()
         if (!PlanoDeAvisos.aindaVale(restanteMs)) return
 
-        val minutos = Math.round(restanteMs / 60_000.0)
+        // No aviso da hora de começar o texto é sempre "Começando agora", mesmo que o
+        // Android tenha atrasado o alarme em alguns segundos.
+        val minutos = if (naHora) 0L else Math.round(restanteMs / 60_000.0)
 
         val titulo = if (categoria.isBlank()) nome else "$categoria · $nome"
         val antecedencia = PlanoDeAvisos.textoDeAntecedencia(minutos)

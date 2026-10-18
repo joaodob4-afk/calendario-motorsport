@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -20,6 +21,7 @@ internal object AgendadorDeAvisos {
     const val EXTRA_NOME = "nome"
     const val EXTRA_INICIO_MS = "inicio_ms"
     const val EXTRA_CODIGO = "codigo"
+    const val EXTRA_NA_HORA = "na_hora_de_comecar"
 
     private const val ARQUIVO = "avisos_agendados"
     private const val CHAVE_CODIGOS = "codigos"
@@ -67,10 +69,11 @@ internal object AgendadorDeAvisos {
                 return
             }
 
-            val avisos = PlanoDeAvisos.calcular(
+            val avisos = PlanoDeAvisos.calcularTodos(
                 ColetorDeSessoes.coletar(app),
                 Instant.now(),
                 minutos,
+                avisarNaHora = PreferenciasDeAviso.avisarNaHora(app),
                 modoDaCategoria = { PreferenciasDeAviso.modoDaCategoria(app, it) }
             )
 
@@ -84,23 +87,18 @@ internal object AgendadorDeAvisos {
                     .putExtra(EXTRA_NOME, sessao.nome)
                     .putExtra(EXTRA_INICIO_MS, sessao.inicio.toInstant().toEpochMilli())
                     .putExtra(EXTRA_CODIGO, sessao.codigo)
+                    .putExtra(EXTRA_NA_HORA, aviso.naHoraDeComecar)
 
                 val pendente = PendingIntent.getBroadcast(
                     app,
-                    sessao.codigo,
+                    aviso.codigoDoAlarme,
                     intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
                 try {
-                    // Dispara mesmo com o aparelho em economia de bateria. Pode atrasar
-                    // alguns minutos, o que não atrapalha um aviso de 15 a 60 minutos.
-                    alarmes.setAndAllowWhileIdle(
-                        AlarmManager.RTC_WAKEUP,
-                        aviso.dispararEm.toEpochMilli(),
-                        pendente
-                    )
-                    agendados.add(sessao.codigo.toString())
+                    agendarAlarme(alarmes, aviso.dispararEm.toEpochMilli(), pendente)
+                    agendados.add(aviso.codigoDoAlarme.toString())
                 } catch (e: Exception) {
                     registrarFalha("AgendadorDeAvisos.agendar", e)
                 }
@@ -108,6 +106,26 @@ internal object AgendadorDeAvisos {
 
             guardarCodigos(app, agendados)
         }
+    }
+
+    /**
+     * Alarme exato e que dispara mesmo em modo de economia (Doze). Se o Android não permitir
+     * alarmes exatos (Android 12/12L com a permissão desligada), cai para o alarme comum.
+     */
+    private fun agendarAlarme(alarmes: AlarmManager, quandoMs: Long, pendente: PendingIntent) {
+        val exatoPermitido = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            alarmes.canScheduleExactAlarms()
+
+        if (exatoPermitido) {
+            try {
+                alarmes.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, quandoMs, pendente)
+                return
+            } catch (e: SecurityException) {
+                registrarFalha("AgendadorDeAvisos.alarmeExato", e)
+            }
+        }
+
+        alarmes.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, quandoMs, pendente)
     }
 
     private fun intentBase(context: Context): Intent =

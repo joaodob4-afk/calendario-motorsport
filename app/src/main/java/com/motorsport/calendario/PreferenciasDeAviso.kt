@@ -13,6 +13,7 @@ internal object PreferenciasDeAviso {
     private const val CHAVE_MINUTOS = "aviso_minutos_antes"
     private const val CHAVE_ULTIMOS_MINUTOS = "aviso_ultimos_minutos"
     private const val PREFIXO_MODO = "aviso_modo_"
+    private const val CHAVE_NA_HORA = "aviso_na_hora_de_comecar"
 
     const val DESATIVADO = 0
 
@@ -47,6 +48,14 @@ internal object PreferenciasDeAviso {
             putInt(CHAVE_MINUTOS, valido)
             if (valido != DESATIVADO) putInt(CHAVE_ULTIMOS_MINUTOS, valido)
         }.apply()
+    }
+
+    /** Se também deve avisar na hora exata em que a sessão começa. Ligado por padrão. */
+    fun avisarNaHora(context: Context): Boolean =
+        arquivo(context).getBoolean(CHAVE_NA_HORA, true)
+
+    fun definirAvisarNaHora(context: Context, ligado: Boolean) {
+        arquivo(context).edit().putBoolean(CHAVE_NA_HORA, ligado).apply()
     }
 
     private fun chaveDoModo(categoria: String) =

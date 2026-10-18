@@ -22,12 +22,22 @@ internal data class SessaoParaAviso(
     /** Serve de código do alarme e de id da notificação. */
     val codigo: Int
         get() = chave.hashCode()
+
+    /** Código do alarme da hora de início (diferente do alarme de antecedência). */
+    val codigoDoInicio: Int
+        get() = "$chave|inicio".hashCode()
 }
 
 internal data class AvisoPlanejado(
     val sessao: SessaoParaAviso,
-    val dispararEm: Instant
-)
+    val dispararEm: Instant,
+    /** Verdadeiro para o aviso "começando agora", que dispara na hora exata da sessão. */
+    val naHoraDeComecar: Boolean = false
+) {
+    /** Código do alarme no Android. Cada tipo de aviso da mesma sessão tem o seu. */
+    val codigoDoAlarme: Int
+        get() = if (naHoraDeComecar) sessao.codigoDoInicio else sessao.codigo
+}
 
 /** O que avisar de uma categoria. */
 internal enum class ModoDeAviso(val rotulo: String) {
@@ -105,6 +115,50 @@ internal object PlanoDeAvisos {
             .map { AvisoPlanejado(it, it.inicio.toInstant().minus(antecedencia)) }
             .filter { it.dispararEm.isAfter(agora) }
             .sortedBy { it.dispararEm }
+            .take(limite)
+    }
+
+    /**
+     * Avisos "começando agora": um por sessão, na hora exata do início. Respeita o modo de
+     * cada categoria, como [calcular]. Não depende da antecedência escolhida.
+     */
+    fun calcularNaHoraDeComecar(
+        sessoes: List<SessaoParaAviso>,
+        agora: Instant,
+        limite: Int = LIMITE_DE_ALARMES,
+        modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
+    ): List<AvisoPlanejado> =
+        sessoes
+            .filter { modoDaCategoria(it.categoria).permite(it.nome) }
+            .distinctBy { it.chave }
+            .map { AvisoPlanejado(it, it.inicio.toInstant(), naHoraDeComecar = true) }
+            .filter { it.dispararEm.isAfter(agora) }
+            .sortedBy { it.dispararEm }
+            .take(limite)
+
+    /**
+     * Junta os avisos de antecedência e os da hora de começar, do mais próximo ao mais
+     * distante, respeitando o limite total de alarmes.
+     */
+    fun calcularTodos(
+        sessoes: List<SessaoParaAviso>,
+        agora: Instant,
+        minutosAntes: Int,
+        avisarNaHora: Boolean = true,
+        limite: Int = LIMITE_DE_ALARMES,
+        modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
+    ): List<AvisoPlanejado> {
+        if (minutosAntes <= 0) return emptyList()
+
+        val antes = calcular(sessoes, agora, minutosAntes, limite, modoDaCategoria)
+        val naHora = if (avisarNaHora) {
+            calcularNaHoraDeComecar(sessoes, agora, limite, modoDaCategoria)
+        } else {
+            emptyList()
+        }
+
+        return (antes + naHora)
+            .sortedWith(compareBy<AvisoPlanejado>({ it.dispararEm }, { it.naHoraDeComecar }))
             .take(limite)
     }
 

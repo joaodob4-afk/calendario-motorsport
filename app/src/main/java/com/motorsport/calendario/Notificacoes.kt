@@ -58,6 +58,27 @@ internal object Notificacoes {
         }
     }
 
+    /**
+     * Abre a lista de apps sem restrição de bateria. Em vários aparelhos (Xiaomi, Samsung,
+     * Huawei, Motorola...) a economia de bateria encerra o app e apaga os alarmes.
+     */
+    fun abrirConfiguracoesDeBateria(activity: Activity) {
+        val tentativas = listOf(
+            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.parse("package:${activity.packageName}"))
+        )
+
+        for (intent in tentativas) {
+            try {
+                activity.startActivity(intent)
+                return
+            } catch (e: Exception) {
+                registrarFalha("Notificacoes.abrirConfiguracoesDeBateria", e)
+            }
+        }
+    }
+
     private fun criarCanal(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
