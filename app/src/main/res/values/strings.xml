@@ -104,4 +104,17 @@
     <string name="categoria_descricao">Browse the rounds and the full season schedule.</string>
     <string name="calendario_titulo">CALENDAR</string>
     <string name="ver_programacao">VIEW FULL SCHEDULE</string>
+    <!-- Demais categorias -->
+    <string name="categoria_calendario">%1$s\n\n%2$s CALENDAR</string>
+    <string name="calendario_indisponivel">CALENDAR UNAVAILABLE</string>
+    <string name="sem_proxima_etapa_calendario">Could not find an upcoming round in the calendar.</string>
+    <string name="sessao_corrida_principal">FEATURE RACE</string>
+    <string name="sessao_treino_livre">FREE PRACTICE</string>
+    <string name="a_confirmar">TBC</string>
+    <string name="formato_dia_mes">MMM dd</string>
+    <string name="fe_formato_unico">Race format: E-Prix (45 min).</string>
+    <string name="nome_formula_e">Formula E</string>
+    <string name="nome_indycar">IndyCar</string>
+    <string name="calendario_nao_carregado">The %1$s calendar has not been loaded yet. Open the app with internet access and try again.</string>
+    <string name="temporada_terminou">The %1$s season is over.</string>
 </resources>

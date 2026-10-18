@@ -85,8 +85,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "FÓRMULA E\n\n" +
-                    "CALENDÁRIO ${descreverTemporada(eventos)}"
+                    getString(R.string.categoria_calendario, getString(R.string.formula_e), descreverTemporada(eventos))
 
                 textSize = 27f
 
@@ -121,8 +120,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
                 TextView(this).apply {
 
                     text =
-                        "O calendário da Fórmula E ainda não foi carregado.\n\n" +
-                        "Abra o app com internet e tente novamente."
+                        getString(R.string.calendario_nao_carregado, getString(R.string.nome_formula_e))
 
                     textSize = 17f
 
@@ -209,7 +207,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
         return TextView(this).apply {
 
             text =
-                "‹  VOLTAR"
+                getString(R.string.voltar_botao)
 
             textSize = 15f
 
@@ -265,26 +263,18 @@ class FormulaECalendarActivity : AppCompatActivity() {
 
         val datas =
             if (evento.inicio == evento.fim) {
-                evento.inicio
+                Idioma.data(this, evento.inicio)
             } else {
-                "${evento.inicio} – ${evento.fim}"
-            }
-
-        val corridas =
-            if (evento.sessoes.size > 1) {
-                "\n\n🏁 Rodada dupla"
-            } else {
-                ""
+                "${Idioma.data(this, evento.inicio)} – ${Idioma.data(this, evento.fim)}"
             }
 
         val card =
             TextView(this).apply {
 
                 text =
-                    "⚡ ${evento.circuito} E-Prix\n\n" +
-                    "$bandeira ${evento.pais}\n\n" +
-                    "📅 $datas" +
-                    corridas
+                    "⚡ ${Idioma.lugar(context, evento.circuito)} E-Prix\n\n" +
+                    "$bandeira ${Idioma.lugar(context, evento.pais)}\n\n" +
+                    "📅 $datas"
 
                 textSize = 17f
 
