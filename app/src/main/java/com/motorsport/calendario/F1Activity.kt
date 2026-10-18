@@ -411,7 +411,12 @@ class F1Activity : AppCompatActivity() {
     private fun mostrarEvento(race: JSONObject) {
         conteudo.removeAllViews()
 
-        val nomeGP = obterTituloGrandPrix(
+        // Mesmo nome da tela inicial; se o circuito for novo, usa o nome que vem da API.
+        val nomeGP = NomesDeEventos.nome(
+            "F1",
+            "",
+            race.optJSONObject("Circuit")?.optString("circuitId", "").orEmpty()
+        ) ?: obterTituloGrandPrix(
             race.optString("raceName", "Grande Prêmio")
         )
 

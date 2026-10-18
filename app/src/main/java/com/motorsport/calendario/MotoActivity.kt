@@ -248,7 +248,8 @@ class MotoActivity : AppCompatActivity() {
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            classe.tituloGrande,
+            NomesDeEventos.nome(classe.rotulo, evento.circuito)?.uppercase(localePt)
+                ?: classe.tituloGrande,
             28f,
             branco,
             true
@@ -287,14 +288,7 @@ class MotoActivity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text =
-                if (nomeAutodromo.isNotBlank() &&
-                    !nomeAutodromo.equals(evento.circuito, ignoreCase = true)
-                ) {
-                    "${evento.circuito}, ${evento.pais}"
-                } else {
-                    evento.pais
-                }
+            text = "${evento.circuito}, ${evento.pais}"
             textSize = 13f
             setTextColor(cinza)
         }

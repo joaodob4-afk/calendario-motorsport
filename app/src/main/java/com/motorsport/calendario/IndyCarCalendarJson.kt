@@ -95,7 +95,9 @@ object IndyCarCalendarJson {
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
-                        dataFim = fim.toString()
+                        dataFim = fim.toString(),
+                        nomeEvento = evento.nome,
+                        local = evento.local
                     )
                 )
             } catch (e: Exception) {
