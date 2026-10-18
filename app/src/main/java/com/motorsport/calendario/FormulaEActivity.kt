@@ -217,7 +217,8 @@ class FormulaEActivity : AppCompatActivity() {
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            "${evento.circuito} E-Prix".uppercase(localePt),
+            (NomesDeEventos.nome("Formula E", evento.circuito) ?: "${evento.circuito} E-Prix")
+                .uppercase(localePt),
             28f,
             branco,
             true

@@ -29,7 +29,11 @@ class MainActivity : AppCompatActivity() {
         val data: String,
         val dataInicio: String = "",
         val circuitId: String = "",
-        val dataFim: String = ""
+        val dataFim: String = "",
+        /** Nome do evento quando a própria fonte já traz um (IndyCar). Vazio: ver [NomesDeEventos]. */
+        val nomeEvento: String = "",
+        /** Cidade ou local legível, quando a fonte traz um. Vazio: usa [circuito]. */
+        val local: String = ""
     )
 
     private lateinit var listaEtapas: LinearLayout
@@ -337,7 +341,8 @@ class MainActivity : AppCompatActivity() {
             android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         titulo.text = textoTitulo
-        nome.text = proxima.pais
+        val nomeDaProxima = nomeDoEvento(proxima)
+        nome.text = nomeDaProxima.ifBlank { proxima.pais }
 
         val idBandeira = recursoBandeira(proxima.pais)
         if (idBandeira != 0) {
@@ -348,7 +353,7 @@ class MainActivity : AppCompatActivity() {
             bandeira.visibility = android.view.View.GONE
         }
 
-        circuito.text = proxima.circuito
+        circuito.text = localDaEtapa(proxima, nomeDaProxima)
         data.text = proxima.data
 
         val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
@@ -523,6 +528,7 @@ class MainActivity : AppCompatActivity() {
                         Formatacao.normalizar(it.categoria).contains(texto) ||
                             Formatacao.normalizar(it.pais).contains(texto) ||
                             Formatacao.normalizar(it.circuito).contains(texto) ||
+                            Formatacao.normalizar(nomeDoEvento(it)).contains(texto) ||
                             Formatacao.normalizar(it.data).contains(texto)
                     }
 
@@ -534,6 +540,23 @@ class MainActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
+
+    /** Nome do evento (ex.: "GP da Austrália"), ou vazio quando não há um conhecido. */
+    private fun nomeDoEvento(etapa: Etapa): String =
+        etapa.nomeEvento.ifBlank {
+            NomesDeEventos.nome(etapa.categoria, etapa.circuito, etapa.circuitId).orEmpty()
+        }
+
+    /**
+     * "Cidade, País". Sem nome de evento conhecido, mantém só o circuito, como antes, porque
+     * nesse caso o país é que aparece como título.
+     */
+    private fun localDaEtapa(etapa: Etapa, nomeEvento: String): String {
+        if (nomeEvento.isBlank()) return etapa.circuito
+
+        val cidade = etapa.local.ifBlank { etapa.circuito }
+        return "$cidade, ${etapa.pais}"
     }
 
     private fun mostrarEtapas(etapas: List<Etapa>) {
@@ -612,8 +635,9 @@ class MainActivity : AppCompatActivity() {
                 imagemBandeira.visibility = android.view.View.INVISIBLE
             }
 
-            item.findViewById<TextView>(R.id.itemPais).text = etapa.pais
-            item.findViewById<TextView>(R.id.itemCircuito).text = etapa.circuito
+            val nomeEvento = nomeDoEvento(etapa)
+            item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { etapa.pais }
+            item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
 
             // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
             val periodo = Formatacao.periodo(
@@ -633,7 +657,8 @@ class MainActivity : AppCompatActivity() {
             estilizarContorno(itemStatus, corStatus)
 
             item.contentDescription =
-                "${etapa.categoria}, ${etapa.pais}, ${etapa.circuito}, $periodo, $status"
+                "${etapa.categoria}, ${nomeEvento.ifBlank { etapa.pais }}, " +
+                    "${localDaEtapa(etapa, nomeEvento)}, $periodo, $status"
 
             item.setOnClickListener {
                 when (etapa.categoria) {

@@ -243,7 +243,7 @@ class F2Activity : AppCompatActivity() {
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            "FÓRMULA 2",
+            NomesDeEventos.nome("F2", evento.circuito)?.uppercase(localePt) ?: "FÓRMULA 2",
             28f,
             branco,
             true
@@ -282,14 +282,7 @@ class F2Activity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text =
-                if (nomeAutodromo.isNotBlank() &&
-                    !nomeAutodromo.equals(evento.circuito, ignoreCase = true)
-                ) {
-                    "${evento.circuito}, ${evento.pais}"
-                } else {
-                    evento.pais
-                }
+            text = "${evento.circuito}, ${evento.pais}"
             textSize = 13f
             setTextColor(cinza)
         }
