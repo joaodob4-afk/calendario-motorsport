@@ -103,4 +103,17 @@
     <string name="categoria_descricao">Consulte as etapas e a programação completa da temporada.</string>
     <string name="calendario_titulo">CALENDÁRIO</string>
     <string name="ver_programacao">VER PROGRAMAÇÃO COMPLETA</string>
+    <!-- Demais categorias -->
+    <string name="categoria_calendario">%1$s\n\nCALENDÁRIO %2$s</string>
+    <string name="calendario_indisponivel">CALENDÁRIO INDISPONÍVEL</string>
+    <string name="sem_proxima_etapa_calendario">Não foi possível encontrar uma próxima etapa no calendário.</string>
+    <string name="sessao_corrida_principal">CORRIDA PRINCIPAL</string>
+    <string name="sessao_treino_livre">TREINO LIVRE</string>
+    <string name="a_confirmar">A CONFIRMAR</string>
+    <string name="formato_dia_mes">dd MMM</string>
+    <string name="fe_formato_unico">Formato da corrida: E-Prix (45 min).</string>
+    <string name="nome_formula_e">Fórmula E</string>
+    <string name="nome_indycar">IndyCar</string>
+    <string name="calendario_nao_carregado">O calendário da %1$s ainda não foi carregado. Abra o app com internet e tente novamente.</string>
+    <string name="temporada_terminou">A temporada da %1$s já terminou.</string>
 </resources>

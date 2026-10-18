@@ -54,18 +54,14 @@ class AvisoReceiver : BroadcastReceiver() {
         val nomeExibido = nomeParaExibir(context, nome)
         val titulo = if (categoria.isBlank()) nomeExibido else "$categoria · $nomeExibido"
         val antecedencia = textoDeAntecedencia(context, minutos)
-        val texto = if (local.isBlank()) antecedencia else "$antecedencia · $local"
+        val texto = if (local.isBlank()) antecedencia else "$antecedencia · ${Idioma.lugar(context, local)}"
 
         Notificacoes.mostrar(context, codigo, titulo, texto)
     }
 
     /** Em inglês, traduz o nome da sessão só para exibir. */
     private fun nomeParaExibir(context: Context, nome: String): String =
-        if (context.resources.getBoolean(R.bool.traduzir_sessoes)) {
-            TraducaoDeSessoes.paraIngles(nome)
-        } else {
-            nome
-        }
+        Idioma.sessao(context, nome)
 
     /** "Começa em 30 min" / "Starts in 30 min", conforme o idioma do aparelho. */
     private fun textoDeAntecedencia(context: Context, minutos: Long): String {

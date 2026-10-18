@@ -26,7 +26,7 @@ class MotoActivity : AppCompatActivity() {
     private val fundoCard = Color.rgb(15, 20, 15)
     private val verdeEscuro = Color.rgb(20, 75, 20)
 
-    private val localePt = Locale("pt", "BR")
+    private val idioma: Locale by lazy { Idioma.locale(this) }
 
     private lateinit var conteudo: LinearLayout
 
@@ -84,13 +84,13 @@ class MotoActivity : AppCompatActivity() {
             mostrarEvento(evento)
         } else {
             adicionarTexto(
-                "CALENDÁRIO INDISPONÍVEL",
+                getString(R.string.calendario_indisponivel),
                 17f,
                 verde,
                 true
             )
             adicionarTexto(
-                "Não foi possível encontrar uma próxima etapa no calendário.",
+                getString(R.string.sem_proxima_etapa_calendario),
                 14f,
                 cinza,
                 false
@@ -148,7 +148,7 @@ class MotoActivity : AppCompatActivity() {
                 setColorFilter(verde)
             }
 
-            contentDescription = "Voltar"
+            contentDescription = getString(R.string.cd_voltar)
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(dp(4), dp(4), dp(12), dp(4))
 
@@ -241,14 +241,14 @@ class MotoActivity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            if (etapaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
+            if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
             12f,
             verde,
             true
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            NomesDeEventos.nome(classe.rotulo, evento.circuito)?.uppercase(localePt)
+            NomesDeEventos.nome(classe.rotulo, evento.circuito)?.let { Idioma.evento(this, it) }?.uppercase(idioma)
                 ?: classe.tituloGrande,
             28f,
             branco,
@@ -288,7 +288,7 @@ class MotoActivity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text = "${evento.circuito}, ${evento.pais}"
+            text = "${Idioma.lugar(context, evento.circuito)}, ${Idioma.lugar(context, evento.pais)}"
             textSize = 13f
             setTextColor(cinza)
         }
@@ -324,7 +324,7 @@ class MotoActivity : AppCompatActivity() {
         }
 
         adicionarTexto(
-            intervalo.uppercase(localePt),
+            intervalo.uppercase(idioma),
             16f,
             branco,
             true
@@ -333,7 +333,7 @@ class MotoActivity : AppCompatActivity() {
         adicionarSeparador()
 
         adicionarTexto(
-            "PROGRAMAÇÃO",
+            getString(R.string.programacao),
             15f,
             verde,
             true
@@ -344,7 +344,7 @@ class MotoActivity : AppCompatActivity() {
 
         if (evento.sessoes.isEmpty()) {
             adicionarTexto(
-                "Os horários desta etapa ainda não estão disponíveis.",
+                getString(R.string.horarios_indisponiveis),
                 14f,
                 cinza,
                 false
@@ -409,7 +409,7 @@ class MotoActivity : AppCompatActivity() {
         )
 
         val texto = TextView(this).apply {
-            text = data.uppercase(localePt)
+            text = data.uppercase(idioma)
             textSize = 12f
             setTextColor(branco)
             typeface = Typeface.create(
@@ -441,7 +441,7 @@ class MotoActivity : AppCompatActivity() {
 
     private fun adicionarSessao(sessao: MotoSession) {
         val nomeOriginal = sessao.nome.trim()
-        val nomeNormalizado = nomeOriginal.lowercase(localePt)
+        val nomeNormalizado = nomeOriginal.lowercase(idioma)
 
         val corridaPrincipal =
             nomeNormalizado.contains("feature") ||
@@ -452,7 +452,7 @@ class MotoActivity : AppCompatActivity() {
         val sprint = nomeNormalizado.contains("sprint")
 
         // Os nomes já vêm prontos no JSON (Treino Livre 1, Classificação 2, Warm-up...).
-        val nomeExibido = nomeOriginal.uppercase(localePt)
+        val nomeExibido = Idioma.sessao(this, nomeOriginal).uppercase(idioma)
 
         val cartao = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -501,7 +501,13 @@ class MotoActivity : AppCompatActivity() {
 
         val horarioTexto = sessao.horario
             .trim()
-            .ifBlank { "A CONFIRMAR" }
+            .let {
+                if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
+                    getString(R.string.a_confirmar)
+                } else {
+                    it
+                }
+            }
 
         val horario = TextView(this).apply {
             text = horarioTexto
@@ -568,7 +574,7 @@ class MotoActivity : AppCompatActivity() {
     }
 
     private fun obterRecursoBandeira(pais: String): Int {
-        val nome = when (pais.trim().lowercase(localePt)) {
+        val nome = when (pais.trim().lowercase(idioma)) {
             "bahrain", "bahrein" -> "flag_bh"
             "saudi arabia", "arábia saudita" -> "flag_sa"
             "australia", "austrália" -> "flag_au"
@@ -615,10 +621,7 @@ class MotoActivity : AppCompatActivity() {
 
         val convertida = converterData(data) ?: return data
 
-        return SimpleDateFormat(
-            "dd MMM",
-            localePt
-        ).format(convertida)
+        return SimpleDateFormat(getString(R.string.formato_dia_mes), idioma).format(convertida)
     }
 
     private fun converterData(data: String): Date? {
@@ -634,7 +637,7 @@ class MotoActivity : AppCompatActivity() {
             try {
                 val parser = SimpleDateFormat(
                     formato,
-                    localePt
+                    idioma
                 )
                 parser.isLenient = false
 

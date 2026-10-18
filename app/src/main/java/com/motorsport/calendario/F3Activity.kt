@@ -26,7 +26,7 @@ class F3Activity : AppCompatActivity() {
     private val fundoCard = Color.rgb(15, 20, 15)
     private val verdeEscuro = Color.rgb(20, 75, 20)
 
-    private val localePt = Locale("pt", "BR")
+    private val idioma: Locale by lazy { Idioma.locale(this) }
 
     private lateinit var conteudo: LinearLayout
 
@@ -79,13 +79,13 @@ class F3Activity : AppCompatActivity() {
             mostrarEvento(evento)
         } else {
             adicionarTexto(
-                "CALENDÁRIO INDISPONÍVEL",
+                getString(R.string.calendario_indisponivel),
                 17f,
                 verde,
                 true
             )
             adicionarTexto(
-                "Não foi possível encontrar uma próxima etapa no calendário.",
+                getString(R.string.sem_proxima_etapa_calendario),
                 14f,
                 cinza,
                 false
@@ -143,7 +143,7 @@ class F3Activity : AppCompatActivity() {
                 setColorFilter(verde)
             }
 
-            contentDescription = "Voltar"
+            contentDescription = getString(R.string.cd_voltar)
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(dp(4), dp(4), dp(12), dp(4))
 
@@ -158,7 +158,7 @@ class F3Activity : AppCompatActivity() {
         )
 
         val tituloTela = TextView(this).apply {
-            text = "FÓRMULA 3"
+            text = getString(R.string.formula_3)
             textSize = 23f
             setTextColor(branco)
             typeface = Typeface.create(
@@ -236,14 +236,15 @@ class F3Activity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            if (etapaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
+            if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
             12f,
             verde,
             true
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            NomesDeEventos.nome("F3", evento.circuito)?.uppercase(localePt) ?: "FÓRMULA 3",
+            NomesDeEventos.nome("F3", evento.circuito)?.let { Idioma.evento(this, it) }?.uppercase(idioma)
+                ?: getString(R.string.formula_3),
             28f,
             branco,
             true
@@ -282,7 +283,7 @@ class F3Activity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text = "${evento.circuito}, ${evento.pais}"
+            text = "${Idioma.lugar(context, evento.circuito)}, ${Idioma.lugar(context, evento.pais)}"
             textSize = 13f
             setTextColor(cinza)
         }
@@ -318,7 +319,7 @@ class F3Activity : AppCompatActivity() {
         }
 
         adicionarTexto(
-            intervalo.uppercase(localePt),
+            intervalo.uppercase(idioma),
             16f,
             branco,
             true
@@ -327,7 +328,7 @@ class F3Activity : AppCompatActivity() {
         adicionarSeparador()
 
         adicionarTexto(
-            "PROGRAMAÇÃO",
+            getString(R.string.programacao),
             15f,
             verde,
             true
@@ -338,7 +339,7 @@ class F3Activity : AppCompatActivity() {
 
         if (evento.sessoes.isEmpty()) {
             adicionarTexto(
-                "Os horários desta etapa ainda não estão disponíveis.",
+                getString(R.string.horarios_indisponiveis),
                 14f,
                 cinza,
                 false
@@ -403,7 +404,7 @@ class F3Activity : AppCompatActivity() {
         )
 
         val texto = TextView(this).apply {
-            text = data.uppercase(localePt)
+            text = data.uppercase(idioma)
             textSize = 12f
             setTextColor(branco)
             typeface = Typeface.create(
@@ -435,7 +436,7 @@ class F3Activity : AppCompatActivity() {
 
     private fun adicionarSessao(sessao: F3Session) {
         val nomeOriginal = sessao.nome.trim()
-        val nomeNormalizado = nomeOriginal.lowercase(localePt)
+        val nomeNormalizado = nomeOriginal.lowercase(idioma)
 
         val corridaPrincipal =
             nomeNormalizado.contains("feature") ||
@@ -447,24 +448,24 @@ class F3Activity : AppCompatActivity() {
 
         val nomeExibido = when {
             nomeNormalizado.contains("feature") ->
-                "CORRIDA PRINCIPAL"
+                getString(R.string.sessao_corrida_principal)
 
             nomeNormalizado.contains("practice") ||
             nomeNormalizado.contains("treino") ->
-                "TREINO LIVRE"
+                getString(R.string.sessao_treino_livre)
 
             nomeNormalizado.contains("qualifying") ||
             nomeNormalizado.contains("classificação") ->
-                "CLASSIFICAÇÃO"
+                getString(R.string.sessao_classificacao)
 
             sprint ->
-                "CORRIDA SPRINT"
+                getString(R.string.sessao_corrida_sprint)
 
             nomeNormalizado.contains("corrida") ||
             nomeNormalizado == "race" ->
-                "CORRIDA"
+                getString(R.string.sessao_corrida)
 
-            else -> nomeOriginal.uppercase(localePt)
+            else -> Idioma.sessao(this, nomeOriginal).uppercase(idioma)
         }
 
         val cartao = LinearLayout(this).apply {
@@ -514,7 +515,13 @@ class F3Activity : AppCompatActivity() {
 
         val horarioTexto = sessao.horario
             .trim()
-            .ifBlank { "A CONFIRMAR" }
+            .let {
+                if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
+                    getString(R.string.a_confirmar)
+                } else {
+                    it
+                }
+            }
 
         val horario = TextView(this).apply {
             text = horarioTexto
@@ -581,7 +588,7 @@ class F3Activity : AppCompatActivity() {
     }
 
     private fun obterRecursoBandeira(pais: String): Int {
-        val nome = when (pais.trim().lowercase(localePt)) {
+        val nome = when (pais.trim().lowercase(idioma)) {
             "bahrain", "bahrein" -> "flag_bh"
             "saudi arabia", "arábia saudita" -> "flag_sa"
             "australia", "austrália" -> "flag_au"
@@ -623,10 +630,7 @@ class F3Activity : AppCompatActivity() {
 
         val convertida = converterData(data) ?: return data
 
-        return SimpleDateFormat(
-            "dd MMM",
-            localePt
-        ).format(convertida)
+        return SimpleDateFormat(getString(R.string.formato_dia_mes), idioma).format(convertida)
     }
 
     private fun converterData(data: String): Date? {
@@ -642,7 +646,7 @@ class F3Activity : AppCompatActivity() {
             try {
                 val parser = SimpleDateFormat(
                     formato,
-                    localePt
+                    idioma
                 )
                 parser.isLenient = false
 

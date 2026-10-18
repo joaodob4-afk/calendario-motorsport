@@ -92,8 +92,7 @@ class MotoCalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    classe.tituloGrande + "\n\n" +
-                    "CALENDÁRIO ${MotoCalendarJson.carregar(this@MotoCalendarActivity, classe).firstOrNull()?.inicio?.takeLast(4) ?: java.time.LocalDate.now().year}"
+                    getString(R.string.categoria_calendario, classe.tituloGrande, MotoCalendarJson.carregar(this@MotoCalendarActivity, classe).firstOrNull()?.inicio?.takeLast(4) ?: java.time.LocalDate.now().year)
 
                 textSize = 27f
 
@@ -177,7 +176,7 @@ class MotoCalendarActivity : AppCompatActivity() {
         return TextView(this).apply {
 
             text =
-                "‹  VOLTAR"
+                getString(R.string.voltar_botao)
 
             textSize = 15f
 
@@ -237,10 +236,10 @@ class MotoCalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "🏁 ETAPA ${evento.etapa}\n\n" +
-                    evento.circuito + "\n" +
-                    "$bandeira ${evento.pais}\n\n" +
-                    "📅 ${evento.inicio} — ${evento.fim}"
+                    "🏁 ${getString(R.string.etapa)} ${evento.etapa}\n\n" +
+                    Idioma.lugar(context, evento.circuito) + "\n" +
+                    "$bandeira ${Idioma.lugar(context, evento.pais)}\n\n" +
+                    "📅 ${Idioma.data(context, evento.inicio)} — ${Idioma.data(context, evento.fim)}"
 
                 textSize = 17f
 

@@ -25,7 +25,7 @@ class FormulaEActivity : AppCompatActivity() {
     private val fundoCard = Color.rgb(15, 20, 15)
     private val verdeEscuro = Color.rgb(20, 75, 20)
 
-    private val localePt = Locale("pt", "BR")
+    private val idioma: Locale by lazy { Idioma.locale(this) }
     private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     private lateinit var conteudo: LinearLayout
@@ -77,7 +77,7 @@ class FormulaEActivity : AppCompatActivity() {
                 setColorFilter(verde)
             }
 
-            contentDescription = "Voltar"
+            contentDescription = getString(R.string.cd_voltar)
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(dp(4), dp(4), dp(12), dp(4))
 
@@ -96,7 +96,7 @@ class FormulaEActivity : AppCompatActivity() {
         )
 
         val tituloTela = TextView(this).apply {
-            text = "FÓRMULA E"
+            text = getString(R.string.formula_e)
             textSize = 23f
             setTextColor(branco)
             typeface = Typeface.create(
@@ -178,8 +178,7 @@ class FormulaEActivity : AppCompatActivity() {
 
         if (eventos.isEmpty()) {
             mostrarErro(
-                "O calendário da Fórmula E ainda não foi carregado. " +
-                    "Abra o app com internet e tente novamente."
+                getString(R.string.calendario_nao_carregado, getString(R.string.nome_formula_e))
             )
             return
         }
@@ -196,7 +195,7 @@ class FormulaEActivity : AppCompatActivity() {
         val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximo
 
         if (evento == null) {
-            mostrarErro("A temporada da Fórmula E já terminou.")
+            mostrarErro(getString(R.string.temporada_terminou, getString(R.string.nome_formula_e)))
             return
         }
 
@@ -210,39 +209,26 @@ class FormulaEActivity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            if (ehProxima) "PRÓXIMA ETAPA" else "ETAPA",
+            if (ehProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
             12f,
             verde,
             true
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            (NomesDeEventos.nome("Formula E", evento.circuito) ?: "${evento.circuito} E-Prix")
-                .uppercase(localePt),
+            Idioma.evento(
+                this,
+                NomesDeEventos.nome("Formula E", evento.circuito)
+                    ?: "${Idioma.lugar(this, evento.circuito)} E-Prix"
+            ).uppercase(idioma),
             28f,
             branco,
             true
         ).setPadding(0, dp(5), 0, dp(5))
 
-        if (evento.sessoes.size > 1) {
+        if (evento.sessoes.size <= 1) {
             adicionarTexto(
-                "Rodada dupla",
-                12f,
-                cinza,
-                false
-            ).setPadding(0, 0, 0, dp(5))
-
-            adicionarTexto(
-                "Este evento terá os dois formatos: E-PrixUnleashed (sprint de 30 min) " +
-                    "e E-Prix (corrida de 45 min). A ordem de cada formato por data " +
-                    "será confirmada na programação oficial.",
-                13f,
-                cinza,
-                false
-            ).setPadding(0, 0, 0, dp(12))
-        } else {
-            adicionarTexto(
-                "Formato da corrida: E-Prix (45 min).",
+                getString(R.string.fe_formato_unico),
                 13f,
                 cinza,
                 false
@@ -273,7 +259,7 @@ class FormulaEActivity : AppCompatActivity() {
         )
 
         val localTexto = TextView(this).apply {
-            text = "${evento.circuito}, ${evento.pais}"
+            text = "${Idioma.lugar(context, evento.circuito)}, ${Idioma.lugar(context, evento.pais)}"
             textSize = 13f
             setTextColor(cinza)
         }
@@ -301,7 +287,7 @@ class FormulaEActivity : AppCompatActivity() {
         adicionarSeparador()
 
         adicionarTexto(
-            "PROGRAMAÇÃO",
+            getString(R.string.programacao),
             15f,
             verde,
             true
@@ -314,7 +300,7 @@ class FormulaEActivity : AppCompatActivity() {
 
         if (sessoes.isEmpty()) {
             adicionarTexto(
-                "Os horários desta etapa ainda não estão disponíveis.",
+                getString(R.string.horarios_indisponiveis),
                 14f,
                 cinza,
                 false
@@ -332,15 +318,6 @@ class FormulaEActivity : AppCompatActivity() {
             }
         }
 
-        if (sessoes.any { it.horario == null }) {
-            adicionarTexto(
-                "Horários em Brasília, divulgados pela Fórmula E " +
-                    "perto da data da etapa.",
-                12f,
-                cinza,
-                false
-            ).setPadding(0, dp(8), 0, 0)
-        }
     }
 
     private fun adicionarIntervalo(evento: FormulaEEvent) {
@@ -349,28 +326,38 @@ class FormulaEActivity : AppCompatActivity() {
 
         if (inicio == null || fim == null) return
 
-        val formatoDia = DateTimeFormatter.ofPattern("dd", localePt)
-        val formatoMes = DateTimeFormatter.ofPattern("MMM", localePt)
-        val formatoMesCompleto = DateTimeFormatter.ofPattern("MMMM", localePt)
+        if (Idioma.ingles(this)) {
+            adicionarTexto(
+                Formatacao.periodoEmIngles(inicio, fim).orEmpty().uppercase(idioma),
+                16f,
+                branco,
+                true
+            ).setPadding(0, dp(1), 0, dp(15))
+            return
+        }
+
+        val formatoDia = DateTimeFormatter.ofPattern("dd", idioma)
+        val formatoMes = DateTimeFormatter.ofPattern("MMM", idioma)
+        val formatoMesCompleto = DateTimeFormatter.ofPattern("MMMM", idioma)
 
         val intervalo = when {
             inicio == fim ->
                 fim.format(
-                    DateTimeFormatter.ofPattern("dd MMMM yyyy", localePt)
+                    DateTimeFormatter.ofPattern("dd MMMM yyyy", idioma)
                 )
 
             inicio.year != fim.year ->
-                "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", localePt))} – " +
-                    fim.format(DateTimeFormatter.ofPattern("dd MMM yyyy", localePt))
+                "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", idioma))} – " +
+                    fim.format(DateTimeFormatter.ofPattern("dd MMM yyyy", idioma))
 
             inicio.month != fim.month ->
                 "${inicio.format(formatoDia)} ${inicio.format(formatoMes)} – " +
-                    fim.format(DateTimeFormatter.ofPattern("dd MMM", localePt))
+                    fim.format(DateTimeFormatter.ofPattern("dd MMM", idioma))
 
             else ->
                 "${inicio.format(formatoDia)} – ${fim.format(formatoDia)} " +
                     fim.format(formatoMesCompleto)
-        }.uppercase(localePt)
+        }.uppercase(idioma)
 
         adicionarTexto(
             intervalo,
@@ -393,7 +380,7 @@ class FormulaEActivity : AppCompatActivity() {
 
             resultado.add(
                 Sessao(
-                    nome = sessao.nome.uppercase(localePt),
+                    nome = Idioma.sessao(this, sessao.nome).uppercase(idioma),
                     data = data,
                     horario = horario,
                     corrida = sessao.nome.contains("corrida", ignoreCase = true)
@@ -423,10 +410,10 @@ class FormulaEActivity : AppCompatActivity() {
     private fun adicionarGrupoDia(data: LocalDate) {
         val titulo = data.format(
             DateTimeFormatter.ofPattern(
-                "EEEE, dd 'DE' MMMM",
-                localePt
+                getString(R.string.formato_dia_semana),
+                idioma
             )
-        ).uppercase(localePt)
+        ).uppercase(idioma)
 
         val linha = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -520,7 +507,7 @@ class FormulaEActivity : AppCompatActivity() {
         )
 
         val horario = TextView(this).apply {
-            text = sessao.horario ?: "A CONFIRMAR"
+            text = sessao.horario ?: getString(R.string.a_confirmar)
             textSize = if (sessao.horario != null) 16f else 12f
             setTextColor(if (sessao.corrida) verde else branco)
             typeface = Typeface.create(
@@ -585,7 +572,7 @@ class FormulaEActivity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            "NÃO FOI POSSÍVEL CARREGAR",
+            getString(R.string.f1_nao_foi_possivel),
             17f,
             verde,
             true
@@ -599,7 +586,7 @@ class FormulaEActivity : AppCompatActivity() {
         ).setPadding(0, dp(10), 0, dp(15))
 
         val tentarNovamente = TextView(this).apply {
-            text = "TOQUE AQUI PARA TENTAR NOVAMENTE"
+            text = getString(R.string.f1_tentar_novamente)
             textSize = 13f
             setTextColor(verde)
             typeface = Typeface.DEFAULT_BOLD
