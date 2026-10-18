@@ -75,4 +75,33 @@
     <string name="f1_erro_calendario">Error loading the calendar.\n\nError: %1$s</string>
     <string name="circuito_nao_informado">Circuit not provided</string>
     <string name="data_nao_informada">Date not provided</string>
+    <!-- Tela inicial, categorias e barra inferior -->
+    <string name="cd_menu">Open menu</string>
+    <string name="busca_hint">Search race, country or circuit...</string>
+    <string name="cd_filtros">Filters</string>
+    <string name="cd_bandeira_proxima">Next round flag</string>
+    <string name="cd_bandeira_pais">Country flag</string>
+    <string name="contador_hoje">TODAY</string>
+    <string name="contador_amanha">TOMORROW</string>
+    <string name="contador_dias">%1$d DAYS</string>
+    <string name="status_em_andamento">IN PROGRESS</string>
+    <string name="status_finalizada">FINISHED</string>
+    <string name="status_proxima">NEXT</string>
+    <string name="status_agendada">SCHEDULED</string>
+    <string name="lista_vazia">No rounds found.</string>
+    <string name="filtros_em_breve">Filters: coming soon</string>
+    <string name="barra_inicio">Home</string>
+    <string name="barra_calendario">Calendar</string>
+    <string name="barra_classificacao">Standings</string>
+    <string name="barra_mais">More</string>
+    <string name="barra_em_breve">%1$s: coming soon</string>
+    <string name="formula_2">FORMULA 2</string>
+    <string name="formula_3">FORMULA 3</string>
+    <string name="formula_e">FORMULA E</string>
+    <string name="temporada">Season %1$s</string>
+    <string name="central_categoria">CATEGORY HUB</string>
+    <string name="temporada_atual">Current season</string>
+    <string name="categoria_descricao">Browse the rounds and the full season schedule.</string>
+    <string name="calendario_titulo">CALENDAR</string>
+    <string name="ver_programacao">VIEW FULL SCHEDULE</string>
 </resources>

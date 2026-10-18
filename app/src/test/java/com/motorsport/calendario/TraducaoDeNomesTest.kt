@@ -34,4 +34,20 @@ class TraducaoDeNomesTest {
         listOf("Lone Star Le Mans", "Firestone Grand Prix of St. Petersburg", "Qualquer coisa")
             .forEach { assertEquals(it, t(it)) }
     }
+
+    @Test
+    fun traduzPaisesECidades() {
+        assertEquals("Brazil", TraducaoDeNomes.lugar("Brasil"))
+        assertEquals("United States", TraducaoDeNomes.lugar("Estados Unidos"))
+        assertEquals("Czech Republic", TraducaoDeNomes.lugar("República Tcheca"))
+        assertEquals("Shanghai", TraducaoDeNomes.lugar("Xangai"))
+        assertEquals("Mexico City", TraducaoDeNomes.lugar("Cidade do México"))
+    }
+
+    @Test
+    fun lugaresIguaisOuDesconhecidosFicamComoEstao() {
+        assertEquals("Interlagos", TraducaoDeNomes.lugar("Interlagos"))
+        assertEquals("Austin", TraducaoDeNomes.lugar("Austin"))
+        assertEquals("Portugal", TraducaoDeNomes.lugar("Portugal"))
+    }
 }

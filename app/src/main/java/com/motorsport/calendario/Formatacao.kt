@@ -3,6 +3,7 @@ package com.motorsport.calendario
 import java.text.Normalizer
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * Funções de texto sem dependência do Android. Ficam fora das telas para poderem ser
@@ -50,6 +51,7 @@ internal object Formatacao {
     }
 
     private val formatoDiaMes = DateTimeFormatter.ofPattern("dd/MM")
+    private val formatoMesDiaIngles = DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH)
 
     /**
      * Período da etapa em DD/MM, sem nome de mês nem ano (o mês e o ano já aparecem no
@@ -63,5 +65,20 @@ internal object Formatacao {
             return inicio.format(formatoDiaMes)
         }
         return "${inicio.format(formatoDiaMes)} – ${fim.format(formatoDiaMes)}"
+    }
+
+    /**
+     * Mesmo período em inglês, com o mês escrito para não confundir com o formato dos
+     * Estados Unidos: "Oct 23–25", "Oct 30 – Nov 1" ou "Oct 23". Null sem data de início.
+     */
+    fun periodoEmIngles(inicio: LocalDate?, fim: LocalDate?): String? {
+        if (inicio == null) return null
+        if (fim == null || fim.isBefore(inicio) || fim == inicio) {
+            return inicio.format(formatoMesDiaIngles)
+        }
+        if (inicio.month == fim.month && inicio.year == fim.year) {
+            return "${inicio.format(formatoMesDiaIngles)}–${fim.dayOfMonth}"
+        }
+        return "${inicio.format(formatoMesDiaIngles)} – ${fim.format(formatoMesDiaIngles)}"
     }
 }

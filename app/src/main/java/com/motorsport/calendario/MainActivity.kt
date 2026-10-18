@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity() {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
         }
         findViewById<android.view.View>(R.id.btnFiltro).setOnClickListener {
-            android.widget.Toast.makeText(this, "Filtros: em breve", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(this, getString(R.string.filtros_em_breve), android.widget.Toast.LENGTH_SHORT).show()
         }
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
@@ -332,7 +332,7 @@ class MainActivity : AppCompatActivity() {
         val data = findViewById<TextView>(R.id.dataProximaEtapa)
         val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
 
-        val prefixo = "PRÓXIMA ETAPA  •  "
+        val prefixo = getString(R.string.etapa_proxima) + "  •  "
         val textoTitulo = android.text.SpannableString(prefixo + proxima.categoria)
         textoTitulo.setSpan(
             android.text.style.ForegroundColorSpan(getColor(R.color.acento)),
@@ -342,7 +342,7 @@ class MainActivity : AppCompatActivity() {
         )
         titulo.text = textoTitulo
         val nomeDaProxima = nomeDoEvento(proxima)
-        nome.text = nomeDaProxima.ifBlank { proxima.pais }
+        nome.text = nomeDaProxima.ifBlank { lugarExibido(proxima.pais) }
 
         val idBandeira = recursoBandeira(proxima.pais)
         if (idBandeira != 0) {
@@ -354,16 +354,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         circuito.text = localDaEtapa(proxima, nomeDaProxima)
-        data.text = proxima.data
+        data.text = periodoDoCartao(proxima)
 
         val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
         val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
 
         contador.text = when {
-            dias == 0L -> "HOJE"
-            dias == 1L -> "AMANHÃ"
-            dias > 1L -> "$dias DIAS"
-            else -> "EM ANDAMENTO"
+            dias == 0L -> getString(R.string.contador_hoje)
+            dias == 1L -> getString(R.string.contador_amanha)
+            dias > 1L -> getString(R.string.contador_dias, dias.toInt())
+            else -> getString(R.string.status_em_andamento)
         }
         estilizarChipDestaque(contador)
 
@@ -471,10 +471,7 @@ class MainActivity : AppCompatActivity() {
 
     /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
     private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
-        val nomes = listOf(
-            "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
-            "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
-        )
+        val idiomaApp = Idioma.locale(this)
         val anoAtual = java.time.LocalDate.now().year
 
         val coluna = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -493,7 +490,8 @@ class MainActivity : AppCompatActivity() {
 
         coluna.addView(
             TextView(this).apply {
-                text = nomes[data.monthValue - 1] + if (data.year != anoAtual) " ${data.year}" else ""
+                text = data.month.getDisplayName(java.time.format.TextStyle.FULL, idiomaApp)
+                    .uppercase(idiomaApp) + if (data.year != anoAtual) " ${data.year}" else ""
                 setTextColor(getColor(R.color.texto_suave))
                 textSize = 13f
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
@@ -527,7 +525,9 @@ class MainActivity : AppCompatActivity() {
                     val filtradas = todasEtapas.filter {
                         Formatacao.normalizar(it.categoria).contains(texto) ||
                             Formatacao.normalizar(it.pais).contains(texto) ||
+                            Formatacao.normalizar(lugarExibido(it.pais)).contains(texto) ||
                             Formatacao.normalizar(it.circuito).contains(texto) ||
+                            Formatacao.normalizar(lugarExibido(it.circuito)).contains(texto) ||
                             Formatacao.normalizar(nomeDoEvento(it)).contains(texto) ||
                             Formatacao.normalizar(it.data).contains(texto)
                     }
@@ -544,8 +544,34 @@ class MainActivity : AppCompatActivity() {
 
     /** Nome do evento (ex.: "GP da Austrália"), ou vazio quando não há um conhecido. */
     private fun nomeDoEvento(etapa: Etapa): String =
-        etapa.nomeEvento.ifBlank {
-            NomesDeEventos.nome(etapa.categoria, etapa.circuito, etapa.circuitId).orEmpty()
+        Idioma.evento(
+            this,
+            etapa.nomeEvento.ifBlank {
+                NomesDeEventos.nome(etapa.categoria, etapa.circuito, etapa.circuitId).orEmpty()
+            }
+        )
+
+    /** País ou cidade no idioma do app (em inglês, traduz os nomes em português). */
+    private fun lugarExibido(nome: String): String =
+        if (Idioma.ingles(this)) TraducaoDeNomes.lugar(nome) else nome
+
+    /** Período mostrado no cartão de destaque: "23–25 OUT" ou "OCT 23–25". */
+    private fun periodoDoCartao(etapa: Etapa): String {
+        if (!Idioma.ingles(this)) return etapa.data
+
+        return Formatacao.periodoEmIngles(
+            parseDataSegura(etapa.dataInicio),
+            parseDataSegura(etapa.dataFim)
+        )?.uppercase(java.util.Locale.ENGLISH) ?: etapa.data
+    }
+
+    /** Texto do status; os códigos em português continuam sendo usados só na lógica. */
+    private fun textoDoStatus(codigo: String): String =
+        when (codigo) {
+            "FINALIZADA" -> getString(R.string.status_finalizada)
+            "PRÓXIMA" -> getString(R.string.status_proxima)
+            "EM ANDAMENTO" -> getString(R.string.status_em_andamento)
+            else -> getString(R.string.status_agendada)
         }
 
     /**
@@ -553,10 +579,10 @@ class MainActivity : AppCompatActivity() {
      * nesse caso o país é que aparece como título.
      */
     private fun localDaEtapa(etapa: Etapa, nomeEvento: String): String {
-        if (nomeEvento.isBlank()) return etapa.circuito
+        if (nomeEvento.isBlank()) return lugarExibido(etapa.circuito)
 
         val cidade = etapa.local.ifBlank { etapa.circuito }
-        return "$cidade, ${etapa.pais}"
+        return "${lugarExibido(cidade)}, ${lugarExibido(etapa.pais)}"
     }
 
     private fun mostrarEtapas(etapas: List<Etapa>) {
@@ -592,7 +618,7 @@ class MainActivity : AppCompatActivity() {
             if (carregandoCalendarios) return
 
             val vazio = TextView(this)
-            vazio.text = "Nenhuma etapa encontrada."
+            vazio.text = getString(R.string.lista_vazia)
             vazio.setTextColor(android.graphics.Color.WHITE)
             vazio.textSize = 15f
             vazio.gravity = android.view.Gravity.CENTER
@@ -636,7 +662,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val nomeEvento = nomeDoEvento(etapa)
-            item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { etapa.pais }
+            item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
             item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
 
             // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
@@ -644,10 +670,18 @@ class MainActivity : AppCompatActivity() {
                 parseDataSegura(etapa.dataInicio),
                 parseDataSegura(etapa.dataFim)
             ) ?: etapa.data
-            item.findViewById<TextView>(R.id.itemData).text = periodo
+            val periodoExibido = if (Idioma.ingles(this)) {
+                Formatacao.periodoEmIngles(
+                    parseDataSegura(etapa.dataInicio),
+                    parseDataSegura(etapa.dataFim)
+                ) ?: periodo
+            } else {
+                periodo
+            }
+            item.findViewById<TextView>(R.id.itemData).text = periodoExibido
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
-            itemStatus.text = status
+            itemStatus.text = textoDoStatus(status)
 
             val corStatus = when (status) {
                 "FINALIZADA" -> getColor(R.color.texto_suave)
@@ -657,8 +691,8 @@ class MainActivity : AppCompatActivity() {
             estilizarContorno(itemStatus, corStatus)
 
             item.contentDescription =
-                "${etapa.categoria}, ${nomeEvento.ifBlank { etapa.pais }}, " +
-                    "${localDaEtapa(etapa, nomeEvento)}, $periodo, $status"
+                "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
+                    "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
 
             item.setOnClickListener {
                 when (etapa.categoria) {
@@ -749,15 +783,15 @@ class MainActivity : AppCompatActivity() {
         val tituloCalendario = findViewById<TextView>(R.id.calendarSectionTitle)
 
         titulo.text = when (categoria) {
-            "F1" -> "FÓRMULA 1"
-            "F2" -> "FÓRMULA 2"
-            "F3" -> "FÓRMULA 3"
+            "F1" -> getString(R.string.formula_1)
+            "F2" -> getString(R.string.formula_2)
+            "F3" -> getString(R.string.formula_3)
             "IndyCar" -> "INDYCAR"
             "MotoGP" -> "MOTOGP"
             "Moto2" -> "MOTO2"
             "Moto3" -> "MOTO3"
             "WEC" -> "WEC"
-            else -> "FÓRMULA E"
+            else -> getString(R.string.formula_e)
         }
 
         val rotuloTemporada = findViewById<TextView>(R.id.categorySeasonLabel)
@@ -774,7 +808,7 @@ class MainActivity : AppCompatActivity() {
                     (it % 100).toString().padStart(2, '0')
                 }
         }
-        rotuloTemporada.text = "Temporada $temporadaTexto"
+        rotuloTemporada.text = getString(R.string.temporada, temporadaTexto)
 
         // Todas as categorias usam a identidade visual padrão verde fluorescente.
         val corCategoria = android.graphics.Color.rgb(57, 255, 20)

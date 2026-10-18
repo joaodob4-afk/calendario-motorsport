@@ -31,7 +31,7 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:contentDescription="Abrir menu" />
+                android:contentDescription="@string/cd_menu" />
 
             <HorizontalScrollView
                 android:layout_width="0dp"
@@ -80,7 +80,7 @@
                         android:id="@+id/tituloProximaEtapa"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="PRÓXIMA ETAPA"
+                        android:text="@string/etapa_proxima"
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/texto_suave"
@@ -100,7 +100,7 @@
                             android:layout_width="44dp"
                             android:layout_height="30dp"
                             android:layout_marginEnd="14dp"
-                            android:contentDescription="Bandeira da próxima etapa"
+                            android:contentDescription="@string/cd_bandeira_proxima"
                             android:scaleType="centerCrop"
                             android:visibility="gone" />
 
@@ -202,7 +202,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="12dp"
                         android:background="@android:color/transparent"
-                        android:hint="Buscar corrida, país ou circuito..."
+                        android:hint="@string/busca_hint"
                         android:textColor="#FFFFFF"
                         android:textColorHint="@color/texto_suave"
                         android:textSize="15sp"
@@ -220,7 +220,7 @@
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:clickable="true"
                         android:focusable="true"
-                        android:contentDescription="Filtros" />
+                        android:contentDescription="@string/cd_filtros" />
                 </LinearLayout>
 
                 <!-- A lista controla as margens dos cards -->
