@@ -53,6 +53,7 @@ internal object MenuPrincipal {
         }
 
         container.addView(botaoDeTeste(activity))
+        container.addView(botaoDeBateria(activity))
 
         container.addView(
             texto(
@@ -220,6 +221,60 @@ internal object MenuPrincipal {
         return cartao(activity).apply {
             addView(linhaPrincipal)
             addView(chips)
+            addView(linhaNaHora(activity, container, ativo))
+        }
+    }
+
+    /** Liga/desliga o aviso extra "começando agora", na hora exata da sessão. */
+    private fun linhaNaHora(activity: Activity, container: LinearLayout, ativo: Boolean): View {
+        val verde = activity.getColor(R.color.acento)
+        val suave = activity.getColor(R.color.texto_suave)
+        val ligado = PreferenciasDeAviso.avisarNaHora(activity)
+
+        val chave = Switch(activity).apply {
+            isChecked = ligado
+            isClickable = false
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            val estados = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+            thumbTintList = ColorStateList(estados, intArrayOf(verde, Color.parseColor("#B0B6BC")))
+            trackTintList = ColorStateList(
+                estados,
+                intArrayOf(Color.parseColor("#664CAF50"), Color.parseColor("#33FFFFFF"))
+            )
+        }
+
+        val titulos = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            addView(texto(activity, "Avisar na hora de começar", 15f, Color.WHITE, Typeface.BOLD))
+            addView(
+                texto(
+                    activity,
+                    if (ligado) "Uma notificação \"Começando agora\"" else "Desligado",
+                    13f,
+                    if (ligado) verde else suave,
+                    Typeface.NORMAL
+                ).apply { setPadding(0, activity.emPx(2f), 0, 0) }
+            )
+        }
+
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            alpha = if (ativo) 1f else 0.45f
+            contentDescription = if (ligado) "Desligar aviso na hora" else "Ligar aviso na hora"
+            background = comToque(activity, Color.TRANSPARENT, null, 10f)
+            layoutParams = parametros(activity, topo = 16f)
+            addView(titulos)
+            addView(chave)
+            setOnClickListener {
+                PreferenciasDeAviso.definirAvisarNaHora(activity, !ligado)
+                AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
+                montar(activity, container)
+            }
         }
     }
 
@@ -393,6 +448,26 @@ internal object MenuPrincipal {
             }
         }
     }
+
+    /** Atalho para quem para de receber avisos: o Android ou o fabricante pode estar "dormindo" o app. */
+    private fun botaoDeBateria(activity: Activity): View =
+        texto(
+            activity,
+            "Avisos não chegam? Ajustar bateria",
+            13f,
+            activity.getColor(R.color.texto_suave),
+            Typeface.NORMAL
+        ).apply {
+            gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
+            background = comToque(activity, Color.TRANSPARENT, null, 10f)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                activity.emPx(44f)
+            ).apply { topMargin = activity.emPx(8f) }
+            setOnClickListener { Notificacoes.abrirConfiguracoesDeBateria(activity) }
+        }
 
     // --------------------------------------------------------------- ações
 
