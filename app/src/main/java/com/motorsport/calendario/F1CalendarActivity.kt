@@ -95,8 +95,7 @@ class F1CalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "FÓRMULA 1\n\n" +
-                    "CALENDÁRIO ${java.time.LocalDate.now().year}"
+                    getString(R.string.f1_calendario_titulo, java.time.LocalDate.now().year)
 
                 textSize = 27f
 
@@ -130,7 +129,7 @@ class F1CalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "Carregando calendário..."
+                    getString(R.string.f1_carregando_calendario)
 
                 textSize = 17f
 
@@ -177,7 +176,7 @@ class F1CalendarActivity : AppCompatActivity() {
         return TextView(this).apply {
 
             text =
-                "‹  VOLTAR"
+                getString(R.string.voltar_botao)
 
             textSize = 15f
 
@@ -290,9 +289,7 @@ class F1CalendarActivity : AppCompatActivity() {
                 runOnUiThread {
 
                     carregando.text =
-                        "Erro ao carregar calendário.\n\n" +
-                        "Erro: " +
-                        e.javaClass.simpleName
+                        getString(R.string.f1_erro_calendario, e.javaClass.simpleName)
 
                     // Mesmo em caso de erro,
                     // mantém o botão no fundo.
@@ -334,7 +331,7 @@ class F1CalendarActivity : AppCompatActivity() {
         val nome =
             race.optString(
                 "raceName",
-                "Grande Prêmio"
+                getString(R.string.grande_premio_nome)
             )
 
         val circuito =
@@ -342,9 +339,9 @@ class F1CalendarActivity : AppCompatActivity() {
                 .optJSONObject("Circuit")
                 ?.optString(
                     "circuitName",
-                    "Circuito não informado"
+                    getString(R.string.circuito_nao_informado)
                 )
-                ?: "Circuito não informado"
+                ?: getString(R.string.circuito_nao_informado)
 
         val localizacao =
             race
@@ -474,9 +471,7 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
 
             val formato =
-                DateTimeFormatter.ofPattern(
-                    "dd/MM/yyyy - HH:mm"
-                )
+                DateTimeFormatter.ofPattern(getString(R.string.formato_data_hora), Idioma.locale(this))
 
             horarioBrasil.format(
                 formato
@@ -493,9 +488,7 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
                         java.time.LocalDate
                             .parse(data)
                             .format(
-                                DateTimeFormatter.ofPattern(
-                                    "dd/MM/yyyy"
-                                )
+                                DateTimeFormatter.ofPattern(getString(R.string.formato_data), Idioma.locale(this))
                             )
 
                     dataFormatada
@@ -508,7 +501,7 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
 
             } else {
 
-                "Data não informada"
+                getString(R.string.data_nao_informada)
             }
         }
     }
