@@ -74,4 +74,33 @@
     <string name="f1_erro_calendario">Erro ao carregar calendário.\n\nErro: %1$s</string>
     <string name="circuito_nao_informado">Circuito não informado</string>
     <string name="data_nao_informada">Data não informada</string>
+    <!-- Tela inicial, categorias e barra inferior -->
+    <string name="cd_menu">Abrir menu</string>
+    <string name="busca_hint">Buscar corrida, país ou circuito...</string>
+    <string name="cd_filtros">Filtros</string>
+    <string name="cd_bandeira_proxima">Bandeira da próxima etapa</string>
+    <string name="cd_bandeira_pais">Bandeira do país</string>
+    <string name="contador_hoje">HOJE</string>
+    <string name="contador_amanha">AMANHÃ</string>
+    <string name="contador_dias">%1$d DIAS</string>
+    <string name="status_em_andamento">EM ANDAMENTO</string>
+    <string name="status_finalizada">FINALIZADA</string>
+    <string name="status_proxima">PRÓXIMA</string>
+    <string name="status_agendada">AGENDADA</string>
+    <string name="lista_vazia">Nenhuma etapa encontrada.</string>
+    <string name="filtros_em_breve">Filtros: em breve</string>
+    <string name="barra_inicio">Início</string>
+    <string name="barra_calendario">Calendário</string>
+    <string name="barra_classificacao">Classificação</string>
+    <string name="barra_mais">Mais</string>
+    <string name="barra_em_breve">%1$s: em breve</string>
+    <string name="formula_2">FÓRMULA 2</string>
+    <string name="formula_3">FÓRMULA 3</string>
+    <string name="formula_e">FÓRMULA E</string>
+    <string name="temporada">Temporada %1$s</string>
+    <string name="central_categoria">CENTRAL DA CATEGORIA</string>
+    <string name="temporada_atual">Temporada atual</string>
+    <string name="categoria_descricao">Consulte as etapas e a programação completa da temporada.</string>
+    <string name="calendario_titulo">CALENDÁRIO</string>
+    <string name="ver_programacao">VER PROGRAMAÇÃO COMPLETA</string>
 </resources>

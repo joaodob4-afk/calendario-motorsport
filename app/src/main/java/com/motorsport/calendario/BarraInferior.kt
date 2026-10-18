@@ -1,6 +1,7 @@
 package com.motorsport.calendario
 
 import android.app.Activity
+import androidx.annotation.StringRes
 import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
@@ -10,7 +11,9 @@ import android.widget.TextView
 import android.widget.Toast
 
 internal data class ItemDaBarra(
+    /** Identifica o item (usado nos testes); o texto exibido vem de [rotuloRes]. */
     val rotulo: String,
+    @StringRes val rotuloRes: Int,
     val icone: Int,
     /** false: o item ainda é só uma ideia e mostra "em breve" ao tocar. */
     val pronto: Boolean = false
@@ -26,10 +29,10 @@ internal data class ItemDaBarra(
 internal object BarraInferior {
 
     val itens = listOf(
-        ItemDaBarra("Início", R.drawable.ic_nav_inicio, pronto = true),
-        ItemDaBarra("Calendário", R.drawable.ic_nav_agenda),
-        ItemDaBarra("Classificação", R.drawable.ic_nav_resultados),
-        ItemDaBarra("Mais", R.drawable.ic_nav_mais)
+        ItemDaBarra("Início", R.string.barra_inicio, R.drawable.ic_nav_inicio, pronto = true),
+        ItemDaBarra("Calendário", R.string.barra_calendario, R.drawable.ic_nav_agenda),
+        ItemDaBarra("Classificação", R.string.barra_classificacao, R.drawable.ic_nav_resultados),
+        ItemDaBarra("Mais", R.string.barra_mais, R.drawable.ic_nav_mais)
     )
 
     fun montar(activity: Activity, container: LinearLayout, selecionado: Int = 0) {
@@ -49,7 +52,7 @@ internal object BarraInferior {
             }
 
             val rotulo = TextView(activity).apply {
-                text = item.rotulo
+                text = activity.getString(item.rotuloRes)
                 setTextColor(cor)
                 textSize = 12f
                 typeface = Typeface.create("sans-serif", Typeface.NORMAL)
@@ -63,7 +66,7 @@ internal object BarraInferior {
                 gravity = Gravity.CENTER
                 isClickable = true
                 isFocusable = true
-                contentDescription = item.rotulo
+                contentDescription = activity.getString(item.rotuloRes)
                 background = fundoDeToque()
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
                 setOnClickListener { aoTocar(activity, item) }
@@ -77,7 +80,11 @@ internal object BarraInferior {
 
     private fun aoTocar(activity: Activity, item: ItemDaBarra) {
         if (!item.pronto) {
-            Toast.makeText(activity, "${item.rotulo}: em breve", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.barra_em_breve, activity.getString(item.rotuloRes)),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }

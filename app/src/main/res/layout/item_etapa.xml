@@ -37,7 +37,7 @@
                 android:layout_height="32dp"
                 android:layout_marginEnd="14dp"
                 android:scaleType="centerCrop"
-                android:contentDescription="Bandeira do país" />
+                android:contentDescription="@string/cd_bandeira_pais" />
 
             <LinearLayout
                 android:layout_width="0dp"

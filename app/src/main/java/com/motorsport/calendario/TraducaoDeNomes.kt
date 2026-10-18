@@ -59,16 +59,43 @@ internal object TraducaoDeNomes {
         "8 Horas do Bahrein" to "8 Hours of Bahrain"
     )
 
-    /** Cidades da Fórmula E cujo nome em português é diferente do inglês. */
-    private val cidades = mapOf(
-        "Berlim" to "Berlin",
-        "Cidade do México" to "Mexico City",
-        "Tóquio" to "Tokyo",
-        "Xangai" to "Shanghai",
+    /** Países e cidades cujo nome em português é diferente do inglês. */
+    private val lugares = mapOf(
+        // Países
+        "Alemanha" to "Germany",
+        "Arábia Saudita" to "Saudi Arabia",
+        "Austrália" to "Australia",
+        "Azerbaijão" to "Azerbaijan",
+        "Brasil" to "Brazil",
+        "Bélgica" to "Belgium",
+        "Canadá" to "Canada",
+        "Catar" to "Qatar",
+        "Emirados Árabes Unidos" to "United Arab Emirates",
+        "Espanha" to "Spain",
+        "Estados Unidos" to "United States",
+        "França" to "France",
+        "Holanda" to "Netherlands",
+        "Hungria" to "Hungary",
+        "Indonésia" to "Indonesia",
+        "Itália" to "Italy",
+        "Japão" to "Japan",
+        "Malásia" to "Malaysia",
+        "México" to "Mexico",
         "Mônaco" to "Monaco",
-        "Portimão" to "Portimao",
+        "Reino Unido" to "United Kingdom",
+        "República Tcheca" to "Czech Republic",
+        "Singapura" to "Singapore",
+        "Tailândia" to "Thailand",
+        "Áustria" to "Austria",
+        "Bahrein" to "Bahrain",
+        // Cidades
+        "Berlim" to "Berlin",
+        "Budapeste" to "Budapest",
+        "Cidade do México" to "Mexico City",
         "Goiânia" to "Goiania",
-        "Budapeste" to "Budapest"
+        "Portimão" to "Portimao",
+        "Tóquio" to "Tokyo",
+        "Xangai" to "Shanghai"
     )
 
     private val eprix = Regex("^E-Prix d[aeo] (.+)$")
@@ -78,9 +105,12 @@ internal object TraducaoDeNomes {
 
         eprix.matchEntire(nome.trim())?.let {
             val cidade = it.groupValues[1]
-            return "${cidades[cidade] ?: cidade} E-Prix"
+            return "${lugar(cidade)} E-Prix"
         }
 
         return nome
     }
+
+    /** País ou cidade em inglês; nomes que já são iguais ou desconhecidos ficam como estão. */
+    fun lugar(nome: String): String = lugares[nome.trim()] ?: nome
 }
