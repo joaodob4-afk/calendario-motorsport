@@ -466,9 +466,7 @@ class F1CalendarActivity : AppCompatActivity() {
                 )
 
             val brasilia =
-                ZoneId.of(
-                    "America/Sao_Paulo"
-                )
+                ZoneId.systemDefault()
 
             val horarioBrasil =
                 horarioUtc.atZoneSameInstant(

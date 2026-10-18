@@ -346,7 +346,7 @@ class F2Activity : AppCompatActivity() {
             return
         }
 
-        val sessoesOrdenadas = evento.sessoes.sortedWith(
+        val sessoesOrdenadas = evento.sessoes.map { it.noFusoDoAparelho() }.sortedWith(
             compareBy<F2Session> {
                 converterData(it.data)?.time ?: Long.MAX_VALUE
             }.thenBy {

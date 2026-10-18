@@ -352,7 +352,7 @@ class MotoActivity : AppCompatActivity() {
             return
         }
 
-        val sessoesOrdenadas = evento.sessoes.sortedWith(
+        val sessoesOrdenadas = evento.sessoes.map { it.noFusoDoAparelho() }.sortedWith(
             compareBy<MotoSession> {
                 converterData(it.data)?.time ?: Long.MAX_VALUE
             }.thenBy {

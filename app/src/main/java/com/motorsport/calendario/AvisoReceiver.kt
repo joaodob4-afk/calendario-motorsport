@@ -51,10 +51,35 @@ class AvisoReceiver : BroadcastReceiver() {
         // Android tenha atrasado o alarme em alguns segundos.
         val minutos = if (naHora) 0L else Math.round(restanteMs / 60_000.0)
 
-        val titulo = if (categoria.isBlank()) nome else "$categoria · $nome"
-        val antecedencia = PlanoDeAvisos.textoDeAntecedencia(minutos)
+        val nomeExibido = nomeParaExibir(context, nome)
+        val titulo = if (categoria.isBlank()) nomeExibido else "$categoria · $nomeExibido"
+        val antecedencia = textoDeAntecedencia(context, minutos)
         val texto = if (local.isBlank()) antecedencia else "$antecedencia · $local"
 
         Notificacoes.mostrar(context, codigo, titulo, texto)
+    }
+
+    /** Em inglês, traduz o nome da sessão só para exibir. */
+    private fun nomeParaExibir(context: Context, nome: String): String =
+        if (context.resources.getBoolean(R.bool.traduzir_sessoes)) {
+            TraducaoDeSessoes.paraIngles(nome)
+        } else {
+            nome
+        }
+
+    /** "Começa em 30 min" / "Starts in 30 min", conforme o idioma do aparelho. */
+    private fun textoDeAntecedencia(context: Context, minutos: Long): String {
+        if (minutos <= 0L) return context.getString(R.string.aviso_comecando_agora)
+
+        if (minutos < 60L) return context.getString(R.string.aviso_em_min, minutos.toInt())
+
+        val horas = (minutos / 60L).toInt()
+        val resto = (minutos % 60L).toInt()
+
+        return if (resto == 0) {
+            context.getString(R.string.aviso_em_h, horas)
+        } else {
+            context.getString(R.string.aviso_em_h_min, horas, resto)
+        }
     }
 }

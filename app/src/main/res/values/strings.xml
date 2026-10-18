@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Inglês é o idioma padrão: quem usa um idioma sem tradução vê inglês. -->
+    <bool name="traduzir_sessoes">true</bool>
+
+    <string name="app_name">Motorsport Calendar</string>
+
+    <string name="menu_marca">MOTORSPORT CALENDAR</string>
+    <string name="menu_titulo">Notifications</string>
+    <string name="menu_secao_lembretes">REMINDERS</string>
+    <string name="menu_secao_campeonato">BY CHAMPIONSHIP</string>
+    <string name="menu_em_breve">More features coming soon.</string>
+
+    <string name="lembrete_titulo">Remind before sessions</string>
+    <string name="desligado">Off</string>
+    <string name="antecedencia_hora">1 hour before the session</string>
+    <string name="antecedencia_minutos">%d minutes before the session</string>
+    <string name="cd_desligar_avisos">Turn off reminders</string>
+    <string name="cd_ligar_avisos">Turn on reminders</string>
+
+    <string name="na_hora_titulo">Remind at start time</string>
+    <string name="na_hora_ligado">A \"Starting now\" alert</string>
+    <string name="cd_desligar_na_hora">Turn off start-time alert</string>
+    <string name="cd_ligar_na_hora">Turn on start-time alert</string>
+
+    <string name="campeonato_intro">Choose what to be notified about in each championship.</string>
+    <string name="campeonato_legenda">All: practice, qualifying and races.\nRaces: sprints and main races.</string>
+    <string name="modo_todas">All</string>
+    <string name="modo_corridas">Races</string>
+    <string name="modo_nenhuma">None</string>
+
+    <string name="bloqueio_titulo">Notifications blocked</string>
+    <string name="bloqueio_texto">Tap to allow in the device settings.</string>
+    <string name="botao_teste">Send test notification</string>
+    <string name="botao_bateria">Not getting alerts? Adjust battery settings</string>
+
+    <string name="canal_nome">Session alerts</string>
+    <string name="canal_descricao">Reminders before practice, qualifying and races start.</string>
+    <string name="teste_titulo">Test notification</string>
+    <string name="teste_texto">Session alerts will look like this.</string>
+
+    <string name="aviso_comecando_agora">Starting now</string>
+    <string name="aviso_em_min">Starts in %d min</string>
+    <string name="aviso_em_h">Starts in %d h</string>
+    <string name="aviso_em_h_min">Starts in %1$d h %2$d min</string>
+</resources>
