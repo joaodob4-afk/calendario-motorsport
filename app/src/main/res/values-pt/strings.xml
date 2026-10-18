@@ -42,4 +42,36 @@
     <string name="aviso_em_min">Começa em %d min</string>
     <string name="aviso_em_h">Começa em %d h</string>
     <string name="aviso_em_h_min">Começa em %1$d h %2$d min</string>
+
+    <!-- Telas da Fórmula 1 -->
+    <string name="formula_1">FÓRMULA 1</string>
+    <string name="cd_voltar">Voltar</string>
+    <string name="voltar_botao">‹  VOLTAR</string>
+    <string name="f1_carregando">CARREGANDO PROGRAMAÇÃO...</string>
+    <string name="f1_sem_proxima">Não foi encontrada uma próxima etapa.</string>
+    <string name="f1_erro_carregar">Não foi possível carregar a programação. Verifique sua conexão.</string>
+    <string name="f1_nao_foi_possivel">NÃO FOI POSSÍVEL CARREGAR</string>
+    <string name="f1_tentar_novamente">TOQUE AQUI PARA TENTAR NOVAMENTE</string>
+    <string name="f1_falha_conexao">Falha na conexão. Tente novamente.</string>
+    <string name="etapa_proxima">PRÓXIMA ETAPA</string>
+    <string name="etapa">ETAPA</string>
+    <string name="programacao">PROGRAMAÇÃO</string>
+    <string name="horarios_indisponiveis">Os horários desta etapa ainda não estão disponíveis.</string>
+    <string name="grande_premio_nome">Grande Prêmio</string>
+    <string name="grande_premio_titulo">GRANDE PRÊMIO</string>
+    <string name="sessao_treino_livre_1">TREINO LIVRE 1</string>
+    <string name="sessao_treino_livre_2">TREINO LIVRE 2</string>
+    <string name="sessao_treino_livre_3">TREINO LIVRE 3</string>
+    <string name="sessao_classificacao_sprint">CLASSIFICAÇÃO SPRINT</string>
+    <string name="sessao_corrida_sprint">CORRIDA SPRINT</string>
+    <string name="sessao_classificacao">CLASSIFICAÇÃO</string>
+    <string name="sessao_corrida">CORRIDA</string>
+    <string name="formato_dia_semana">EEEE, dd \'DE\' MMMM</string>
+    <string name="formato_data">dd/MM/yyyy</string>
+    <string name="formato_data_hora">dd/MM/yyyy - HH:mm</string>
+    <string name="f1_calendario_titulo">FÓRMULA 1\n\nCALENDÁRIO %1$d</string>
+    <string name="f1_carregando_calendario">Carregando calendário...</string>
+    <string name="f1_erro_calendario">Erro ao carregar calendário.\n\nErro: %1$s</string>
+    <string name="circuito_nao_informado">Circuito não informado</string>
+    <string name="data_nao_informada">Data não informada</string>
 </resources>

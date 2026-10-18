@@ -34,7 +34,7 @@ class F1Activity : AppCompatActivity() {
 
     // Apesar do nome, é o fuso atual do aparelho (os horários da F1 vêm em UTC).
     private val brasilia: ZoneId = ZoneId.systemDefault()
-    private val localePt = Locale("pt", "BR")
+    private val idioma: Locale by lazy { Idioma.locale(this) }
 
     private lateinit var conteudo: LinearLayout
     private lateinit var scrollView: ScrollView
@@ -52,7 +52,7 @@ class F1Activity : AppCompatActivity() {
         montarTela()
 
         adicionarTexto(
-            "CARREGANDO PROGRAMAÇÃO...",
+            getString(R.string.f1_carregando),
             14f,
             verde,
             true
@@ -67,7 +67,7 @@ class F1Activity : AppCompatActivity() {
                         mostrarEvento(corrida)
                     } else {
                         mostrarErro(
-                            "Não foi encontrada uma próxima etapa."
+                            getString(R.string.f1_sem_proxima)
                         )
                     }
                 }
@@ -75,7 +75,7 @@ class F1Activity : AppCompatActivity() {
                 registrarFalha("F1Activity.onCreate", e)
                 runOnUiThread {
                     mostrarErro(
-                        "Não foi possível carregar a programação. Verifique sua conexão."
+                        getString(R.string.f1_erro_carregar)
                     )
                 }
             }
@@ -110,7 +110,7 @@ class F1Activity : AppCompatActivity() {
                 setColorFilter(verde)
             }
 
-            contentDescription = "Voltar"
+            contentDescription = getString(R.string.cd_voltar)
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(dp(4), dp(4), dp(12), dp(4))
 
@@ -129,7 +129,7 @@ class F1Activity : AppCompatActivity() {
         )
 
         val tituloTela = TextView(this).apply {
-            text = "FÓRMULA 1"
+            text = getString(R.string.formula_1)
             textSize = 23f
             setTextColor(branco)
             typeface = Typeface.create(
@@ -413,12 +413,15 @@ class F1Activity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         // Mesmo nome da tela inicial; se o circuito for novo, usa o nome que vem da API.
-        val nomeGP = NomesDeEventos.nome(
-            "F1",
-            "",
-            race.optJSONObject("Circuit")?.optString("circuitId", "").orEmpty()
-        ) ?: obterTituloGrandPrix(
-            race.optString("raceName", "Grande Prêmio")
+        val nomeGP = Idioma.evento(
+            this,
+            NomesDeEventos.nome(
+                "F1",
+                "",
+                race.optJSONObject("Circuit")?.optString("circuitId", "").orEmpty()
+            ) ?: obterTituloGrandPrix(
+                race.optString("raceName", getString(R.string.grande_premio_nome))
+            )
         )
 
         val circuito = race.optJSONObject("Circuit")
@@ -437,14 +440,14 @@ class F1Activity : AppCompatActivity() {
         }
 
         adicionarTexto(
-            if (corridaEhProxima) "PRÓXIMA ETAPA" else "ETAPA",
+            if (corridaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
             12f,
             verde,
             true
         ).letterSpacing = 0.16f
 
         adicionarTexto(
-            nomeGP.uppercase(localePt),
+            nomeGP.uppercase(idioma),
             28f,
             branco,
             true
@@ -514,7 +517,7 @@ class F1Activity : AppCompatActivity() {
         adicionarSeparador()
 
         adicionarTexto(
-            "PROGRAMAÇÃO",
+            getString(R.string.programacao),
             15f,
             verde,
             true
@@ -527,7 +530,7 @@ class F1Activity : AppCompatActivity() {
 
         if (sessoes.isEmpty()) {
             adicionarTexto(
-                "Os horários desta etapa ainda não estão disponíveis.",
+                getString(R.string.horarios_indisponiveis),
                 14f,
                 cinza,
                 false
@@ -552,7 +555,7 @@ class F1Activity : AppCompatActivity() {
         val titulo = nome.trim()
 
         if (titulo.isBlank()) {
-            return "GRANDE PRÊMIO"
+            return getString(R.string.grande_premio_titulo)
         }
 
         return if (titulo.endsWith("Grand Prix", ignoreCase = true)) {
@@ -597,31 +600,31 @@ class F1Activity : AppCompatActivity() {
 
         val formatoDia = DateTimeFormatter.ofPattern(
             "dd",
-            localePt
+            idioma
         )
 
         val formatoMes = DateTimeFormatter.ofPattern(
             "MMM",
-            localePt
+            idioma
         )
 
         val formatoMesCompleto = DateTimeFormatter.ofPattern(
             "MMMM",
-            localePt
+            idioma
         )
 
         val intervalo = when {
             inicio.year != fim.year -> {
-                "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", localePt))} – " +
+                "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", idioma))} – " +
                     fim.format(
-                        DateTimeFormatter.ofPattern("dd MMM yyyy", localePt)
+                        DateTimeFormatter.ofPattern("dd MMM yyyy", idioma)
                     )
             }
 
             inicio.month != fim.month -> {
                 "${inicio.format(formatoDia)} " +
                     "${inicio.format(formatoMes)} – " +
-                    "${fim.format(DateTimeFormatter.ofPattern("dd MMM", localePt))}"
+                    "${fim.format(DateTimeFormatter.ofPattern("dd MMM", idioma))}"
             }
 
             else -> {
@@ -629,7 +632,7 @@ class F1Activity : AppCompatActivity() {
                     "${fim.format(formatoDia)} " +
                     fim.format(formatoMesCompleto)
             }
-        }.uppercase(localePt)
+        }.uppercase(idioma)
 
         adicionarTexto(
             intervalo,
@@ -643,13 +646,13 @@ class F1Activity : AppCompatActivity() {
         val resultado = mutableListOf<Sessao>()
 
         val campos = listOf(
-            "FirstPractice" to "TREINO LIVRE 1",
-            "SecondPractice" to "TREINO LIVRE 2",
-            "ThirdPractice" to "TREINO LIVRE 3",
-            "SprintQualifying" to "CLASSIFICAÇÃO SPRINT",
-            "SprintShootout" to "CLASSIFICAÇÃO SPRINT",
-            "Sprint" to "CORRIDA SPRINT",
-            "Qualifying" to "CLASSIFICAÇÃO"
+            "FirstPractice" to getString(R.string.sessao_treino_livre_1),
+            "SecondPractice" to getString(R.string.sessao_treino_livre_2),
+            "ThirdPractice" to getString(R.string.sessao_treino_livre_3),
+            "SprintQualifying" to getString(R.string.sessao_classificacao_sprint),
+            "SprintShootout" to getString(R.string.sessao_classificacao_sprint),
+            "Sprint" to getString(R.string.sessao_corrida_sprint),
+            "Qualifying" to getString(R.string.sessao_classificacao)
         )
 
         val nomesAdicionados = mutableSetOf<String>()
@@ -701,7 +704,7 @@ class F1Activity : AppCompatActivity() {
 
             resultado.add(
                 Sessao(
-                    nome = "CORRIDA",
+                    nome = getString(R.string.sessao_corrida),
                     data = horarioCorrida?.toLocalDate() ?: dataCorrida,
                     horario = horarioCorrida,
                     corrida = true
@@ -753,10 +756,10 @@ class F1Activity : AppCompatActivity() {
     private fun adicionarGrupoDia(data: LocalDate) {
         val titulo = data.format(
             DateTimeFormatter.ofPattern(
-                "EEEE, dd 'DE' MMMM",
-                localePt
+                getString(R.string.formato_dia_semana),
+                idioma
             )
-        ).uppercase(localePt)
+        ).uppercase(idioma)
 
         val linha = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -919,7 +922,7 @@ class F1Activity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         adicionarTexto(
-            "NÃO FOI POSSÍVEL CARREGAR",
+            getString(R.string.f1_nao_foi_possivel),
             17f,
             verde,
             true
@@ -933,7 +936,7 @@ class F1Activity : AppCompatActivity() {
         ).setPadding(0, dp(10), 0, dp(15))
 
         val tentarNovamente = TextView(this).apply {
-            text = "TOQUE AQUI PARA TENTAR NOVAMENTE"
+            text = getString(R.string.f1_tentar_novamente)
             textSize = 13f
             setTextColor(verde)
             typeface = Typeface.DEFAULT_BOLD
@@ -943,7 +946,7 @@ class F1Activity : AppCompatActivity() {
                 conteudo.removeAllViews()
 
                 adicionarTexto(
-                    "CARREGANDO PROGRAMAÇÃO...",
+                    getString(R.string.f1_carregando),
                     14f,
                     verde,
                     true
@@ -958,7 +961,7 @@ class F1Activity : AppCompatActivity() {
                                 mostrarEvento(corrida)
                             } else {
                                 mostrarErro(
-                                    "Não foi encontrada uma próxima etapa."
+                                    getString(R.string.f1_sem_proxima)
                                 )
                             }
                         }
@@ -966,7 +969,7 @@ class F1Activity : AppCompatActivity() {
                         registrarFalha("F1Activity.mostrarErro", e)
                         runOnUiThread {
                             mostrarErro(
-                                "Falha na conexão. Tente novamente."
+                                getString(R.string.f1_falha_conexao)
                             )
                         }
                     }
@@ -990,7 +993,7 @@ class F1Activity : AppCompatActivity() {
     }
 
     private fun obterBandeira(pais: String): String {
-        return when (pais.trim().lowercase(localePt)) {
+        return when (pais.trim().lowercase(idioma)) {
             "bahrain" -> "flag_bh"
             "saudi arabia" -> "flag_sa"
             "australia" -> "flag_au"

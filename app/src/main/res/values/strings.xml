@@ -43,4 +43,36 @@
     <string name="aviso_em_min">Starts in %d min</string>
     <string name="aviso_em_h">Starts in %d h</string>
     <string name="aviso_em_h_min">Starts in %1$d h %2$d min</string>
+
+    <!-- Telas da Fórmula 1 -->
+    <string name="formula_1">FORMULA 1</string>
+    <string name="cd_voltar">Back</string>
+    <string name="voltar_botao">‹  BACK</string>
+    <string name="f1_carregando">LOADING SCHEDULE...</string>
+    <string name="f1_sem_proxima">No upcoming round was found.</string>
+    <string name="f1_erro_carregar">Could not load the schedule. Check your connection.</string>
+    <string name="f1_nao_foi_possivel">UNABLE TO LOAD</string>
+    <string name="f1_tentar_novamente">TAP HERE TO TRY AGAIN</string>
+    <string name="f1_falha_conexao">Connection failed. Try again.</string>
+    <string name="etapa_proxima">NEXT ROUND</string>
+    <string name="etapa">ROUND</string>
+    <string name="programacao">SCHEDULE</string>
+    <string name="horarios_indisponiveis">Session times for this round are not available yet.</string>
+    <string name="grande_premio_nome">Grand Prix</string>
+    <string name="grande_premio_titulo">GRAND PRIX</string>
+    <string name="sessao_treino_livre_1">FREE PRACTICE 1</string>
+    <string name="sessao_treino_livre_2">FREE PRACTICE 2</string>
+    <string name="sessao_treino_livre_3">FREE PRACTICE 3</string>
+    <string name="sessao_classificacao_sprint">SPRINT QUALIFYING</string>
+    <string name="sessao_corrida_sprint">SPRINT RACE</string>
+    <string name="sessao_classificacao">QUALIFYING</string>
+    <string name="sessao_corrida">RACE</string>
+    <string name="formato_dia_semana">EEEE, MMMM dd</string>
+    <string name="formato_data">MMM dd, yyyy</string>
+    <string name="formato_data_hora">MMM dd, yyyy - HH:mm</string>
+    <string name="f1_calendario_titulo">FORMULA 1\n\n%1$d CALENDAR</string>
+    <string name="f1_carregando_calendario">Loading calendar...</string>
+    <string name="f1_erro_calendario">Error loading the calendar.\n\nError: %1$s</string>
+    <string name="circuito_nao_informado">Circuit not provided</string>
+    <string name="data_nao_informada">Date not provided</string>
 </resources>
