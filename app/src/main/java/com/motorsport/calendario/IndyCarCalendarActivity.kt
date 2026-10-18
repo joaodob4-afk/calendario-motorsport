@@ -85,8 +85,7 @@ class IndyCarCalendarActivity : AppCompatActivity() {
             TextView(this).apply {
 
                 text =
-                    "INDYCAR\n\n" +
-                    "CALENDÁRIO ${descreverTemporada(eventos)}"
+                    getString(R.string.categoria_calendario, "INDYCAR", descreverTemporada(eventos))
 
                 textSize = 27f
 
@@ -121,8 +120,7 @@ class IndyCarCalendarActivity : AppCompatActivity() {
                 TextView(this).apply {
 
                     text =
-                        "O calendário da IndyCar ainda não foi carregado.\n\n" +
-                        "Abra o app com internet e tente novamente."
+                        getString(R.string.calendario_nao_carregado, getString(R.string.nome_indycar))
 
                     textSize = 17f
 
@@ -209,7 +207,7 @@ class IndyCarCalendarActivity : AppCompatActivity() {
         return TextView(this).apply {
 
             text =
-                "‹  VOLTAR"
+                getString(R.string.voltar_botao)
 
             textSize = 15f
 
@@ -265,15 +263,15 @@ class IndyCarCalendarActivity : AppCompatActivity() {
 
         val datas =
             if (evento.inicio == evento.fim) {
-                evento.inicio
+                Idioma.data(this, evento.inicio)
             } else {
-                "${evento.inicio} – ${evento.fim}"
+                "${Idioma.data(this, evento.inicio)} – ${Idioma.data(this, evento.fim)}"
             }
 
         val corridas = ""
 
         val localTexto =
-            if (evento.local.isNotBlank()) evento.local else evento.pais
+            Idioma.lugar(this, if (evento.local.isNotBlank()) evento.local else evento.pais)
 
         val card =
             TextView(this).apply {

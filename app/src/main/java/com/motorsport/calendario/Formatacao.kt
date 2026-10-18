@@ -3,6 +3,7 @@ package com.motorsport.calendario
 import java.text.Normalizer
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import java.util.Locale
 
 /**
@@ -52,6 +53,9 @@ internal object Formatacao {
 
     private val formatoDiaMes = DateTimeFormatter.ofPattern("dd/MM")
     private val formatoMesDiaIngles = DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH)
+    private val formatoDataBrasileiraEstrito =
+        DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT)
+    private val formatoDataCompletaIngles = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
 
     /**
      * Período da etapa em DD/MM, sem nome de mês nem ano (o mês e o ano já aparecem no
@@ -80,5 +84,23 @@ internal object Formatacao {
             return "${inicio.format(formatoMesDiaIngles)}–${fim.dayOfMonth}"
         }
         return "${inicio.format(formatoMesDiaIngles)} – ${fim.format(formatoMesDiaIngles)}"
+    }
+
+    /**
+     * Data dos calendários (dd/MM/yyyy ou yyyy-MM-dd) escrita com o mês por extenso
+     * ("Oct 23, 2026"). Se o texto não for uma data conhecida, devolve o original.
+     */
+    fun dataEmIngles(texto: String): String {
+        val limpo = texto.trim()
+
+        val data = runCatching {
+            if (limpo.contains('/')) {
+                LocalDate.parse(limpo, formatoDataBrasileiraEstrito)
+            } else {
+                LocalDate.parse(limpo.take(10))
+            }
+        }.getOrNull() ?: return texto
+
+        return data.format(formatoDataCompletaIngles)
     }
 }

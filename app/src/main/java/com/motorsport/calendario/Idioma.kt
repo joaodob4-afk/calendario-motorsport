@@ -19,4 +19,16 @@ internal object Idioma {
     /** Nome de evento ("GP da Itália") no idioma do app. */
     fun evento(context: Context, nome: String): String =
         if (ingles(context)) TraducaoDeNomes.evento(nome) else nome
+
+    /** Nome de sessão ("Treino Livre 1") no idioma do app. */
+    fun sessao(context: Context, nome: String): String =
+        if (ingles(context)) TraducaoDeSessoes.paraIngles(nome) else nome
+
+    /** País ou cidade no idioma do app. */
+    fun lugar(context: Context, nome: String): String =
+        if (ingles(context)) TraducaoDeNomes.lugar(nome) else nome
+
+    /** Data dos calendários (dd/MM/yyyy ou yyyy-MM-dd) no formato do idioma do app. */
+    fun data(context: Context, texto: String): String =
+        if (ingles(context)) Formatacao.dataEmIngles(texto) else texto
 }
