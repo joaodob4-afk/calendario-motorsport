@@ -13,7 +13,9 @@ internal data class SessaoParaAviso(
     val categoria: String,
     val local: String,
     val nome: String,
-    val inicio: ZonedDateTime
+    val inicio: ZonedDateTime,
+    /** Nome do evento (\"GP da Austrália\"), só para exibir. Não entra na chave do aviso. */
+    val evento: String = ""
 ) {
     /** Identifica a sessão. Se o horário mudar, vira outra chave e o aviso antigo some. */
     val chave: String

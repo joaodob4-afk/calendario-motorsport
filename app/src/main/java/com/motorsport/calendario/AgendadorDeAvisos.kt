@@ -19,6 +19,7 @@ internal object AgendadorDeAvisos {
     const val EXTRA_CATEGORIA = "categoria"
     const val EXTRA_LOCAL = "local"
     const val EXTRA_NOME = "nome"
+    const val EXTRA_EVENTO = "evento"
     const val EXTRA_INICIO_MS = "inicio_ms"
     const val EXTRA_CODIGO = "codigo"
     const val EXTRA_NA_HORA = "na_hora_de_comecar"
@@ -90,6 +91,7 @@ internal object AgendadorDeAvisos {
                     .putExtra(EXTRA_CATEGORIA, sessao.categoria)
                     .putExtra(EXTRA_LOCAL, sessao.local)
                     .putExtra(EXTRA_NOME, sessao.nome)
+                    .putExtra(EXTRA_EVENTO, sessao.evento)
                     .putExtra(EXTRA_INICIO_MS, sessao.inicio.toInstant().toEpochMilli())
                     .putExtra(EXTRA_CODIGO, sessao.codigo)
                     .putExtra(EXTRA_NA_HORA, aviso.naHoraDeComecar)
