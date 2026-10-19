@@ -1,16 +1,5 @@
 package com.motorsport.calendario
 
-data class F3Session(
-    val nome: String,
-    val data: String,
-    val horario: String
-)
-
-data class F3Event(
-    val etapa: Int,
-    val circuito: String,
-    val pais: String,
-    val inicio: String,
-    val fim: String,
-    val sessoes: List<F3Session>
-)
+// F2 e F3 usam os mesmos tipos (ver FormulaJuniorCalendar.kt).
+typealias F3Session = FormulaJuniorSession
+typealias F3Event = FormulaJuniorEvent

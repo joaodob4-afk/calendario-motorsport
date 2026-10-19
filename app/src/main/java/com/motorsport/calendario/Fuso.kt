@@ -131,11 +131,7 @@ internal object Fuso {
 }
 
 /** Os eventos abaixo trazem início e fim já no fuso do celular (as sessões continuam em Brasília). */
-internal fun F2Event.noFusoDoAparelho(): F2Event =
-    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
-        .let { copy(inicio = it.first, fim = it.second) }
-
-internal fun F3Event.noFusoDoAparelho(): F3Event =
+internal fun FormulaJuniorEvent.noFusoDoAparelho(): FormulaJuniorEvent =
     Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
@@ -156,10 +152,7 @@ internal fun IndyCarEvent.noFusoDoAparelho(): IndyCarEvent =
     Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
-internal fun F2Session.noFusoDoAparelho(): F2Session =
-    Fuso.converter(data, horario)?.let { copy(data = it.first, horario = it.second) } ?: this
-
-internal fun F3Session.noFusoDoAparelho(): F3Session =
+internal fun FormulaJuniorSession.noFusoDoAparelho(): FormulaJuniorSession =
     Fuso.converter(data, horario)?.let { copy(data = it.first, horario = it.second) } ?: this
 
 internal fun MotoSession.noFusoDoAparelho(): MotoSession =
