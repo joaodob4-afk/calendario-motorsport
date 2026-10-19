@@ -37,6 +37,7 @@ class AvisoReceiver : BroadcastReceiver() {
         val categoria = intent.getStringExtra(AgendadorDeAvisos.EXTRA_CATEGORIA).orEmpty()
         val local = intent.getStringExtra(AgendadorDeAvisos.EXTRA_LOCAL).orEmpty()
         val nome = intent.getStringExtra(AgendadorDeAvisos.EXTRA_NOME).orEmpty()
+        val evento = intent.getStringExtra(AgendadorDeAvisos.EXTRA_EVENTO).orEmpty()
         val inicioMs = intent.getLongExtra(AgendadorDeAvisos.EXTRA_INICIO_MS, 0L)
         val codigo = intent.getIntExtra(AgendadorDeAvisos.EXTRA_CODIGO, 0)
 
@@ -51,12 +52,17 @@ class AvisoReceiver : BroadcastReceiver() {
         // Android tenha atrasado o alarme em alguns segundos.
         val minutos = if (naHora) 0L else Math.round(restanteMs / 60_000.0)
 
-        val nomeExibido = nomeParaExibir(context, nome)
-        val titulo = if (categoria.isBlank()) nomeExibido else "$categoria · $nomeExibido"
-        val antecedencia = textoDeAntecedencia(context, minutos)
-        val texto = if (local.isBlank()) antecedencia else "$antecedencia · ${Idioma.lugar(context, local)}"
+        // Linha 1: "F1 · GP da Austrália". Linha 2: "Classificação · Começa em 30 min".
+        // Sem nome de evento conhecido, mostra o local (cidade/circuito), como antes.
+        val eventoExibido = when {
+            evento.isNotBlank() -> Idioma.evento(context, evento)
+            local.isNotBlank() -> Idioma.lugar(context, local)
+            else -> ""
+        }
+        val titulo = listOf(categoria, eventoExibido).filter { it.isNotBlank() }.joinToString(" · ")
+        val texto = "${nomeParaExibir(context, nome)} · ${textoDeAntecedencia(context, minutos)}"
 
-        Notificacoes.mostrar(context, codigo, titulo, texto)
+        Notificacoes.mostrar(context, codigo, titulo.ifBlank { nomeParaExibir(context, nome) }, texto)
     }
 
     /** Em inglês, traduz o nome da sessão só para exibir. */

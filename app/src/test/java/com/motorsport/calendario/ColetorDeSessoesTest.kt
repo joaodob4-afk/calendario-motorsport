@@ -45,6 +45,23 @@ class ColetorDeSessoesTest {
     }
 
     @Test
+    fun guardaONomeDoEventoDaF1ParaAAparenciaDoAviso() {
+        val sessoes = ColetorDeSessoes.sessoesDaF1(json)
+
+        assertTrue(sessoes.filter { it.local == "Melbourne" }.all { it.evento == "GP da Austrália" })
+    }
+
+    @Test
+    fun nomeDoEventoNaoMudaACaveDoAviso() {
+        val inicio = ZonedDateTime.of(2026, 3, 8, 1, 0, 0, 0, PlanoDeAvisos.BRASILIA)
+        val a = SessaoParaAviso("F1", "Melbourne", "Corrida", inicio, "GP da Austrália")
+        val b = SessaoParaAviso("F1", "Melbourne", "Corrida", inicio)
+
+        assertEquals(a.chave, b.chave)
+        assertEquals(a.codigo, b.codigo)
+    }
+
+    @Test
     fun incluiTreinosEClassificacaoComNomesEmPortugues() {
         val nomes = ColetorDeSessoes.sessoesDaF1(json).map { it.nome }
 

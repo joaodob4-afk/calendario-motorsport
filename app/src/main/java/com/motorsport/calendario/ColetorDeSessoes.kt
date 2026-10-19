@@ -29,28 +29,28 @@ internal object ColetorDeSessoes {
             protegido("F2") {
                 F2CalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("F2", evento.circuito, it.nome, it.data, it.horario)
+                        sessao("F2", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("F2", evento.circuito))
                     }
                 }
             } +
             protegido("F3") {
                 F3CalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("F3", evento.circuito, it.nome, it.data, it.horario)
+                        sessao("F3", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("F3", evento.circuito))
                     }
                 }
             } +
             protegido("IndyCar") {
                 IndyCarCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("IndyCar", evento.circuito, it.nome, it.data, it.horario)
+                        sessao("IndyCar", evento.circuito, it.nome, it.data, it.horario, evento.nome)
                     }
                 }
             } +
             protegido("FormulaE") {
                 FormulaECalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("Formula E", evento.circuito, it.nome, it.data, it.horario)
+                        sessao("Formula E", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("Formula E", evento.circuito))
                     }
                 }
             } +
@@ -58,7 +58,7 @@ internal object ColetorDeSessoes {
                 ClasseMoto.values().flatMap { classe ->
                     MotoCalendarJson.carregar(context, classe).flatMap { evento ->
                         evento.sessoes.mapNotNull {
-                            sessao(classe.rotulo, evento.circuito, it.nome, it.data, it.horario)
+                            sessao(classe.rotulo, evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome(classe.rotulo, evento.circuito))
                         }
                     }
                 }
@@ -69,10 +69,11 @@ internal object ColetorDeSessoes {
         local: String,
         nome: String,
         data: String,
-        horario: String
+        horario: String,
+        evento: String?
     ): SessaoParaAviso? {
         val inicio = PlanoDeAvisos.inicioDaSessao(data, horario) ?: return null
-        return SessaoParaAviso(categoria, local, nome, inicio)
+        return SessaoParaAviso(categoria, local, nome, inicio, evento.orEmpty())
     }
 
     /** Um problema em uma categoria não pode impedir os avisos das outras. */
@@ -108,18 +109,26 @@ internal object ColetorDeSessoes {
                 .orEmpty()
                 .ifBlank { corrida.optString("raceName", "") }
 
+            val circuito = corrida.optJSONObject("Circuit")
+            val evento = NomesDeEventos.nome(
+                "F1",
+                circuito?.optJSONObject("Location")?.optString("locality", "").orEmpty(),
+                circuito?.optString("circuitId", "").orEmpty(),
+                circuito?.optJSONObject("Location")?.optString("country", "").orEmpty()
+            ) ?: corrida.optString("raceName", "")
+
             for ((campo, nome) in camposF1) {
                 val sessao = corrida.optJSONObject(campo) ?: continue
-                sessaoDaF1(local, nome, sessao)?.let { resultado.add(it) }
+                sessaoDaF1(local, evento, nome, sessao)?.let { resultado.add(it) }
             }
 
-            sessaoDaF1(local, "Corrida", corrida)?.let { resultado.add(it) }
+            sessaoDaF1(local, evento, "Corrida", corrida)?.let { resultado.add(it) }
         }
 
         return resultado
     }
 
-    private fun sessaoDaF1(local: String, nome: String, objeto: JSONObject): SessaoParaAviso? {
+    private fun sessaoDaF1(local: String, evento: String, nome: String, objeto: JSONObject): SessaoParaAviso? {
         val data = objeto.optString("date", "")
         val hora = objeto.optString("time", "")
 
@@ -129,7 +138,7 @@ internal object ColetorDeSessoes {
             val inicio = OffsetDateTime.parse("${data}T$hora")
                 .atZoneSameInstant(PlanoDeAvisos.BRASILIA)
 
-            SessaoParaAviso("F1", local, nome, inicio)
+            SessaoParaAviso("F1", local, nome, inicio, evento)
         } catch (e: Exception) {
             registrarDescarte("ColetorDeSessoes.sessaoDaF1", e)
             null

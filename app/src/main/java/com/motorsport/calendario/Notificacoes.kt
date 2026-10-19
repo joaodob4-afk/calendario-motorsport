@@ -133,6 +133,7 @@ internal object Notificacoes {
             .setSmallIcon(R.drawable.ic_notificacao)
             .setContentTitle(titulo)
             .setContentText(texto)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(texto))
             .setColor(app.getColor(R.color.acento))
             .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
