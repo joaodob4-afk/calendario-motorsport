@@ -93,6 +93,16 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.isClickable = false
         card.isFocusable = false
 
+        // Na tela inicial o espaço flexível iguala a altura dos cards do carrossel. Aqui ele
+        // esticaria o cartão até o fim da tela, então vira um espaço fixo.
+        card.findViewById<View>(R.id.destaqueEspaco).apply {
+            layoutParams = (layoutParams as LinearLayout.LayoutParams).apply {
+                height = dp(22f)
+                weight = 0f
+            }
+        }
+        card.minimumHeight = 0
+
         val raio = dp(20f).toFloat()
 
         card.background = GradientDrawable(
@@ -127,7 +137,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
                 when {
                     rotulo.length <= 3 -> 110f
                     rotulo.length <= 6 -> 68f
-                    else -> 50f
+                    else -> 44f
                 }
             )
             setTextColor(
@@ -165,7 +175,12 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         }
 
         card.findViewById<TextView>(R.id.destaqueLocal).text = local
-        card.findViewById<TextView>(R.id.destaqueData).text = periodo
+        card.findViewById<TextView>(R.id.destaqueData).apply {
+            text = periodo
+            // Meses por extenso ("18 – 19 DEZEMBRO") cabem em uma linha com letra um pouco menor.
+            textSize = 17f
+            letterSpacing = 0.02f
+        }
 
         card.findViewById<TextView>(R.id.destaqueStatus).apply {
             text = contador

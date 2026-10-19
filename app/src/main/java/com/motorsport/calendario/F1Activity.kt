@@ -391,7 +391,8 @@ class F1Activity : AppCompatActivity() {
         val pais = localizacao?.optString("country", "") ?: ""
 
         val dataCorrida = try {
-            LocalDate.parse(race.optString("date", ""))
+            Fuso.dataDaF1(race.optString("date", ""), race.optString("time", ""))
+                ?: throw IllegalArgumentException("data da corrida inválida")
         } catch (e: Exception) {
             registrarDescarte("F1Activity.mostrarEvento", e)
             LocalDate.now(brasilia)
@@ -491,7 +492,10 @@ class F1Activity : AppCompatActivity() {
             val dataTexto = sessao.optString("date", "")
 
             try {
-                datas.add(LocalDate.parse(dataTexto))
+                datas.add(
+                    Fuso.dataDaF1(dataTexto, sessao.optString("time", ""))
+                        ?: throw IllegalArgumentException("data da sessão inválida")
+                )
             } catch (e: Exception) {
                 registrarDescarte("F1Activity.adicionarFimDeSemana", e)
                 // Ignora datas ausentes ou inválidas.
