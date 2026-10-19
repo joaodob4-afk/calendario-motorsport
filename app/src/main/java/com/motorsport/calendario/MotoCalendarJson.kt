@@ -30,7 +30,12 @@ internal object MotoCalendarJson {
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
     fun carregar(context: Context, classe: ClasseMoto): List<MotoEvent> =
-        fontes.getValue(classe).carregar(context).map { it.noFusoDoAparelho() }.sortedBy { it.etapa }
+        fontes.getValue(classe).carregar(context)
+            .map {
+                // WEC: as corridas duram horas (Le Mans, 24h) e passam do dia da largada.
+                if (classe == ClasseMoto.WEC) it.noFusoDoAparelhoMantendoDatas() else it.noFusoDoAparelho()
+            }
+            .sortedBy { it.etapa }
 
     /** Atualiza em segundo plano; um JSON inválido nunca substitui o cache atual. */
     fun atualizar(context: Context, classe: ClasseMoto, aoTerminar: (() -> Unit)? = null) =

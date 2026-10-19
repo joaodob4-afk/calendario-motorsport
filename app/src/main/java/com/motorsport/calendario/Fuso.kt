@@ -41,11 +41,38 @@ internal object Fuso {
     }
 
     /**
-     * Início e fim da etapa (dd/MM/yyyy) como o celular os vê. A primeira sessão pode cair no
-     * dia anterior (ou seguinte) no fuso do aparelho, e a última também; então o início e o fim
-     * se deslocam os mesmos dias que a primeira e a última sessão. As [sessoes] são pares
-     * (data, horário) em Brasília. Sem sessão com horário confirmado, ou com datas inválidas,
-     * devolve os valores originais.
+     * Início e fim da etapa (dd/MM/yyyy) como o celular os vê, tirados das próprias sessões:
+     * do dia da primeira ao dia da última, já no fuso do aparelho. É o que bate com a
+     * programação mostrada na página da etapa. As datas cadastradas na etapa nem sempre servem
+     * (nas corridas da Ásia e da Austrália elas são as do circuito, e as sessões em Brasília
+     * caem um dia antes). As [sessoes] são pares (data, horário) em Brasília; uma sessão sem
+     * horário confirmado entra com a data cadastrada. Se nenhuma sessão tiver horário
+     * confirmado, devolve [inicio] e [fim] como estão.
+     */
+    fun periodoPelasSessoes(
+        inicio: String,
+        fim: String,
+        sessoes: List<Pair<String, String>>,
+        destino: ZoneId = doAparelho()
+    ): Pair<String, String> {
+        val temConfirmada = sessoes.any { (data, hora) ->
+            PlanoDeAvisos.inicioDaSessao(data, hora) != null
+        }
+        if (!temConfirmada) return inicio to fim
+
+        val datas = sessoes.mapNotNull { (data, hora) ->
+            lerData(converter(data, hora, destino)?.first ?: data)
+        }
+        val primeira = datas.minOrNull() ?: return inicio to fim
+        val ultima = datas.maxOrNull() ?: return inicio to fim
+
+        return primeira.format(formatoDataEstrito) to ultima.format(formatoDataEstrito)
+    }
+
+    /**
+     * Para etapas cujo fim é depois do início da última sessão (as 24 Horas de Le Mans, por
+     * exemplo): mantém as datas cadastradas e só as desloca pelos mesmos dias que a primeira
+     * e a última sessão mudam ao passar de Brasília para o fuso do aparelho.
      */
     fun periodo(
         inicio: String,
@@ -105,23 +132,28 @@ internal object Fuso {
 
 /** Os eventos abaixo trazem início e fim já no fuso do celular (as sessões continuam em Brasília). */
 internal fun F2Event.noFusoDoAparelho(): F2Event =
-    Fuso.periodo(inicio, fim, sessoes.map { it.data to it.horario })
+    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
 internal fun F3Event.noFusoDoAparelho(): F3Event =
-    Fuso.periodo(inicio, fim, sessoes.map { it.data to it.horario })
+    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
 internal fun MotoEvent.noFusoDoAparelho(): MotoEvent =
+    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
+        .let { copy(inicio = it.first, fim = it.second) }
+
+/** Versão para o WEC, que tem corridas longas (ver [Fuso.periodo]). */
+internal fun MotoEvent.noFusoDoAparelhoMantendoDatas(): MotoEvent =
     Fuso.periodo(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
 internal fun FormulaEEvent.noFusoDoAparelho(): FormulaEEvent =
-    Fuso.periodo(inicio, fim, sessoes.map { it.data to it.horario })
+    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
 internal fun IndyCarEvent.noFusoDoAparelho(): IndyCarEvent =
-    Fuso.periodo(inicio, fim, sessoes.map { it.data to it.horario })
+    Fuso.periodoPelasSessoes(inicio, fim, sessoes.map { it.data to it.horario })
         .let { copy(inicio = it.first, fim = it.second) }
 
 internal fun F2Session.noFusoDoAparelho(): F2Session =
