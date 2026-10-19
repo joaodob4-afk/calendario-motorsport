@@ -130,4 +130,49 @@ class FusoTest {
         )
         assertNull(Fuso.dataDaF1("data-ruim", "13:00:00Z", ZoneId.of("UTC")))
     }
+
+    @Test
+    fun periodoPelasSessoesCorrigeDatasDoCircuito() {
+        // Sepang: cadastrado 30/10 a 01/11 (dias do circuito), mas a 1ª sessão é 29/10 à noite
+        // em Brasília. O período tem que bater com a programação.
+        val sessoes = listOf("29/10/2026" to "23:45", "01/11/2026" to "04:00")
+
+        assertEquals(
+            "29/10/2026" to "01/11/2026",
+            Fuso.periodoPelasSessoes("30/10/2026", "01/11/2026", sessoes, PlanoDeAvisos.BRASILIA)
+        )
+    }
+
+    @Test
+    fun periodoPelasSessoesAcompanhaOFusoDoAparelho() {
+        val sessoes = listOf("29/10/2026" to "23:45", "01/11/2026" to "04:00")
+
+        // Em Tóquio (+12h em relação a Brasília) a etapa começa em 30/10.
+        assertEquals(
+            "30/10/2026" to "01/11/2026",
+            Fuso.periodoPelasSessoes("30/10/2026", "01/11/2026", sessoes, ZoneId.of("Asia/Tokyo"))
+        )
+    }
+
+    @Test
+    fun periodoPelasSessoesUsaADataCadastradaDaSessaoSemHorario() {
+        val sessoes = listOf("23/10/2026" to "08:00", "25/10/2026" to "A confirmar")
+
+        assertEquals(
+            "23/10/2026" to "25/10/2026",
+            Fuso.periodoPelasSessoes("23/10/2026", "25/10/2026", sessoes, PlanoDeAvisos.BRASILIA)
+        )
+    }
+
+    @Test
+    fun periodoPelasSessoesSemNenhumaConfirmadaFicaIgual() {
+        assertEquals(
+            "30/10/2026" to "01/11/2026",
+            Fuso.periodoPelasSessoes(
+                "30/10/2026", "01/11/2026",
+                listOf("30/10/2026" to "A confirmar"),
+                ZoneId.of("Asia/Tokyo")
+            )
+        )
+    }
 }
