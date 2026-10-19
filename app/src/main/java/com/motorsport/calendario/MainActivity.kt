@@ -323,6 +323,10 @@ class MainActivity : AppCompatActivity() {
                     parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
                 }
 
+        // Fim da temporada: sem próxima etapa o cartão some, em vez de mostrar dados de exemplo.
+        findViewById<android.view.View>(R.id.painelProximaEtapa)?.visibility =
+            if (proxima == null) android.view.View.GONE else android.view.View.VISIBLE
+
         if (proxima == null) return
 
         val titulo = findViewById<TextView>(R.id.tituloProximaEtapa)
