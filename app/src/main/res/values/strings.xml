@@ -6,7 +6,7 @@
     <string name="app_name">Motorsport Calendar</string>
 
     <string name="menu_marca">MOTORSPORT CALENDAR</string>
-    <string name="menu_titulo">Notifications</string>
+    <string name="menu_titulo">Alerts</string>
     <string name="menu_secao_lembretes">REMINDERS</string>
     <string name="menu_secao_campeonato">BY CHAMPIONSHIP</string>
     <string name="menu_em_breve">More features coming soon.</string>
@@ -117,4 +117,15 @@
     <string name="nome_indycar">IndyCar</string>
     <string name="calendario_nao_carregado">The %1$s calendar has not been loaded yet. Open the app with internet access and try again.</string>
     <string name="temporada_terminou">The %1$s season is over.</string>
+
+    <!-- Painel de avisos (novo visual) -->
+    <string name="geral_titulo">General</string>
+    <string name="avisos_ligados">Alerts on</string>
+    <string name="avisos_desligados">Alerts off</string>
+    <string name="avisos_ligados_desc">Get reminders before sessions</string>
+    <string name="antecedencia_titulo">Lead time</string>
+    <string name="antecedencia_chip_hora">1 hour</string>
+    <string name="na_hora_curto">Also alert when it starts</string>
+    <string name="por_categoria_titulo">By category</string>
+    <string name="modo_so_corridas">Races only</string>
 </resources>

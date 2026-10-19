@@ -25,14 +25,24 @@ internal fun fundoDeToque(): RippleDrawable =
 /**
  * Conteúdo do painel que abre pelo lado da tela inicial (botão no canto superior esquerdo).
  *
- * O painel é montado em blocos: cabeçalho, cartão de lembretes, cartão por campeonato,
- * aviso de bloqueio, botão de teste e rodapé. Para incluir uma função nova no futuro,
- * crie um bloco novo e chame-o em [montar].
+ * Visual compacto: cartão geral (liga/desliga), antecedência em botões arredondados,
+ * aviso na hora de começar e uma linha por categoria que abre para escolher o que avisar.
+ * Para incluir uma função nova no futuro, crie um bloco novo e chame-o em [montar].
  */
 internal object MenuPrincipal {
 
     private val corDoTextoSobreCor = Color.parseColor("#0E1012")
     private val corDoAviso = Color.parseColor("#FFB74D")
+    private val corFinalDoDegrade = Color.parseColor("#2DD4BF")
+    private val corDoContorno = Color.parseColor("#3A3F45")
+
+    /** Categoria com as opções abertas (uma por vez); null quando todas estão fechadas. */
+    private var categoriaAberta: String? = null
+
+    /** Fecha a linha de categoria que estiver aberta (usado ao reconstruir o painel e nos testes). */
+    internal fun reiniciar() {
+        categoriaAberta = null
+    }
 
     fun montar(activity: Activity, container: LinearLayout) {
         container.removeAllViews()
@@ -41,12 +51,17 @@ internal object MenuPrincipal {
         val ativo = minutos != PreferenciasDeAviso.DESATIVADO
 
         container.addView(cabecalho(activity))
+        container.addView(cartaoGeral(activity, container, ativo))
 
-        container.addView(rotuloDeSecao(activity, activity.getString(R.string.menu_secao_lembretes)))
-        container.addView(cartaoDeLembretes(activity, container, minutos))
+        container.addView(tituloDeSecao(activity, R.string.antecedencia_titulo, topo = 18f, baixo = 10f))
+        container.addView(botoesDeAntecedencia(activity, container, minutos))
+        container.addView(linhaNaHora(activity, container, ativo))
+        container.addView(divisoria(activity))
 
-        container.addView(rotuloDeSecao(activity, activity.getString(R.string.menu_secao_campeonato)))
-        container.addView(cartaoPorCampeonato(activity, container, ativo))
+        container.addView(tituloDeSecao(activity, R.string.por_categoria_titulo, topo = 14f, baixo = 8f))
+        Categorias.todas.forEach { categoria ->
+            container.addView(linhaDaCategoria(activity, container, categoria, ativo))
+        }
 
         if (ativo && !Notificacoes.permitidas(activity)) {
             container.addView(cartaoDeBloqueio(activity))
@@ -54,59 +69,43 @@ internal object MenuPrincipal {
 
         container.addView(botaoDeTeste(activity))
         container.addView(botaoDeBateria(activity))
-
-        container.addView(
-            texto(
-                activity,
-                activity.getString(R.string.menu_em_breve),
-                13f,
-                activity.getColor(R.color.texto_suave),
-                Typeface.NORMAL
-            ).apply {
-                gravity = Gravity.CENTER
-                layoutParams = parametros(activity, topo = 28f)
-            }
-        )
     }
 
     // ---------------------------------------------------------------- blocos
 
     private fun cabecalho(activity: Activity): View {
         val icone = ImageView(activity).apply {
-            setImageResource(R.drawable.ic_notificacao)
+            setImageResource(R.drawable.ic_sino)
             setColorFilter(activity.getColor(R.color.acento))
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setPadding(activity.emPx(10f), activity.emPx(10f), activity.emPx(10f), activity.emPx(10f))
+            setPadding(activity.emPx(8f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(activity.getColor(R.color.acento_escuro))
                 setStroke(activity.emPx(1f), activity.getColor(R.color.verde_borda))
             }
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(46f), activity.emPx(46f))
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(38f), activity.emPx(38f))
         }
 
-        val textos = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = parametros(activity, inicio = 14f)
-            addView(
-                texto(activity, activity.getString(R.string.menu_marca), 11f, activity.getColor(R.color.texto_suave), Typeface.NORMAL)
-                    .apply { letterSpacing = 0.12f }
-            )
-            addView(texto(activity, activity.getString(R.string.menu_titulo), 24f, Color.WHITE, Typeface.BOLD))
+        val titulo = texto(activity, activity.getString(R.string.menu_titulo), 22f, Color.WHITE, Typeface.BOLD).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = activity.emPx(12f) }
         }
 
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            layoutParams = parametros(activity, baixo = 16f)
             addView(icone)
-            addView(textos)
+            addView(titulo)
         }
     }
 
-    private fun rotuloDeSecao(activity: Activity, titulo: String) =
-        texto(activity, titulo, 12f, activity.getColor(R.color.texto_suave), Typeface.NORMAL).apply {
-            letterSpacing = 0.14f
-            layoutParams = parametros(activity, topo = 28f, baixo = 10f, inicio = 4f)
+    private fun tituloDeSecao(activity: Activity, textoRes: Int, topo: Float, baixo: Float) =
+        texto(activity, activity.getString(textoRes), 16f, Color.WHITE, Typeface.BOLD).apply {
+            layoutParams = parametros(activity, topo = topo, baixo = baixo, inicio = 2f)
         }
 
     private fun cartao(activity: Activity) = LinearLayout(activity).apply {
@@ -117,53 +116,69 @@ internal object MenuPrincipal {
             activity.getColor(R.color.borda_suave),
             16f
         )
-        setPadding(activity.emPx(16f), activity.emPx(16f), activity.emPx(16f), activity.emPx(16f))
+        setPadding(activity.emPx(16f), activity.emPx(14f), activity.emPx(16f), activity.emPx(14f))
         layoutParams = parametros(activity)
     }
 
-    /** Liga/desliga os avisos e escolhe a antecedência. */
-    private fun cartaoDeLembretes(activity: Activity, container: LinearLayout, minutos: Int): View {
-        val ativo = minutos != PreferenciasDeAviso.DESATIVADO
-        val verde = activity.getColor(R.color.acento)
-        val suave = activity.getColor(R.color.texto_suave)
+    private fun divisoria(activity: Activity) = View(activity).apply {
+        setBackgroundColor(activity.getColor(R.color.borda_suave))
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            activity.emPx(1f)
+        ).apply { topMargin = activity.emPx(4f) }
+    }
 
-        val chave = Switch(activity).apply {
-            isChecked = ativo
-            isClickable = false
-            isFocusable = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            val estados = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
-            thumbTintList = ColorStateList(estados, intArrayOf(verde, Color.parseColor("#B0B6BC")))
-            trackTintList = ColorStateList(
-                estados,
-                intArrayOf(Color.parseColor("#664CAF50"), Color.parseColor("#33FFFFFF"))
-            )
-        }
+    /** Interruptor só para exibir o estado; o toque é tratado pela linha inteira. */
+    private fun interruptor(activity: Activity, ligado: Boolean) = Switch(activity).apply {
+        isChecked = ligado
+        isClickable = false
+        isFocusable = false
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        val estados = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        thumbTintList = ColorStateList(
+            estados,
+            intArrayOf(activity.getColor(R.color.acento), Color.parseColor("#B0B6BC"))
+        )
+        trackTintList = ColorStateList(
+            estados,
+            intArrayOf(Color.parseColor("#664CAF50"), Color.parseColor("#33FFFFFF"))
+        )
+    }
+
+    /** "Geral": liga ou desliga todos os avisos. */
+    private fun cartaoGeral(activity: Activity, container: LinearLayout, ativo: Boolean): View {
+        val suave = activity.getColor(R.color.texto_suave)
 
         val titulos = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(texto(activity, activity.getString(R.string.lembrete_titulo), 16f, Color.WHITE, Typeface.BOLD))
             addView(
                 texto(
                     activity,
-                    if (ativo) descricaoDaAntecedencia(activity, minutos) else activity.getString(R.string.desligado),
-                    13f,
-                    if (ativo) verde else suave,
-                    Typeface.NORMAL
-                ).apply { setPadding(0, activity.emPx(2f), 0, 0) }
+                    activity.getString(if (ativo) R.string.avisos_ligados else R.string.avisos_desligados),
+                    16f,
+                    Color.WHITE,
+                    Typeface.BOLD
+                )
+            )
+            addView(
+                texto(activity, activity.getString(R.string.avisos_ligados_desc), 13f, suave, Typeface.NORMAL)
+                    .apply { setPadding(0, activity.emPx(2f), 0, 0) }
             )
         }
 
-        val linhaPrincipal = LinearLayout(activity).apply {
+        val linha = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             isClickable = true
             isFocusable = true
-            contentDescription = if (ativo) activity.getString(R.string.cd_desligar_avisos) else activity.getString(R.string.cd_ligar_avisos)
+            contentDescription = activity.getString(
+                if (ativo) R.string.cd_desligar_avisos else R.string.cd_ligar_avisos
+            )
             background = comToque(activity, Color.TRANSPARENT, null, 10f)
+            layoutParams = parametros(activity, topo = 8f)
             addView(titulos)
-            addView(chave)
+            addView(interruptor(activity, ativo))
             setOnClickListener {
                 val novo = if (ativo) {
                     PreferenciasDeAviso.DESATIVADO
@@ -174,25 +189,39 @@ internal object MenuPrincipal {
             }
         }
 
+        return cartao(activity).apply {
+            addView(texto(activity, activity.getString(R.string.geral_titulo), 14f, Color.WHITE, Typeface.BOLD))
+            addView(linha)
+        }
+    }
+
+    /** Antecedência: quatro botões arredondados; o escolhido ganha o degradê verde. */
+    private fun botoesDeAntecedencia(activity: Activity, container: LinearLayout, minutos: Int): View {
+        val ativo = minutos != PreferenciasDeAviso.DESATIVADO
+
         // Com os avisos desligados, a antecedência lembrada aparece esmaecida;
         // tocar em outra opção também religa os avisos.
         val marcada = if (ativo) minutos else PreferenciasDeAviso.ultimaAntecedencia(activity)
 
-        val chips = LinearLayout(activity).apply {
+        return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
-            layoutParams = parametros(activity, topo = 14f)
+            layoutParams = parametros(activity)
             alpha = if (ativo) 1f else 0.45f
 
             PreferenciasDeAviso.opcoes.reversed().forEachIndexed { indice, opcao ->
                 val selecionada = opcao == marcada
-                val rotulo = if (opcao == 60) "1 h" else "$opcao min"
+                val rotulo = if (opcao == 60) {
+                    activity.getString(R.string.antecedencia_chip_hora)
+                } else {
+                    "$opcao min"
+                }
 
                 addView(
                     texto(
                         activity,
                         rotulo,
-                        13f,
-                        if (selecionada) activity.getColor(R.color.acento_escuro) else suave,
+                        14f,
+                        if (selecionada) corDoTextoSobreCor else Color.WHITE,
                         if (selecionada) Typeface.BOLD else Typeface.NORMAL
                     ).apply {
                         gravity = Gravity.CENTER
@@ -200,76 +229,46 @@ internal object MenuPrincipal {
                         isClickable = true
                         isFocusable = true
                         background = if (selecionada) {
-                            comToque(activity, verde, null, 10f)
+                            comDegrade(activity, 20f)
                         } else {
                             comToque(
                                 activity,
-                                activity.getColor(R.color.fundo_tela),
+                                activity.getColor(R.color.superficie),
                                 activity.getColor(R.color.borda_suave),
-                                10f
+                                20f
                             )
                         }
-                        layoutParams = LinearLayout.LayoutParams(0, activity.emPx(38f), 1f).apply {
-                            if (indice > 0) marginStart = activity.emPx(6f)
+                        layoutParams = LinearLayout.LayoutParams(0, activity.emPx(40f), 1f).apply {
+                            if (indice > 0) marginStart = activity.emPx(8f)
                         }
                         setOnClickListener { aplicarAntecedencia(activity, container, opcao) }
                     }
                 )
             }
         }
-
-        return cartao(activity).apply {
-            addView(linhaPrincipal)
-            addView(chips)
-            addView(linhaNaHora(activity, container, ativo))
-        }
     }
 
     /** Liga/desliga o aviso extra "começando agora", na hora exata da sessão. */
     private fun linhaNaHora(activity: Activity, container: LinearLayout, ativo: Boolean): View {
-        val verde = activity.getColor(R.color.acento)
-        val suave = activity.getColor(R.color.texto_suave)
         val ligado = PreferenciasDeAviso.avisarNaHora(activity)
-
-        val chave = Switch(activity).apply {
-            isChecked = ligado
-            isClickable = false
-            isFocusable = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            val estados = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
-            thumbTintList = ColorStateList(estados, intArrayOf(verde, Color.parseColor("#B0B6BC")))
-            trackTintList = ColorStateList(
-                estados,
-                intArrayOf(Color.parseColor("#664CAF50"), Color.parseColor("#33FFFFFF"))
-            )
-        }
-
-        val titulos = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            addView(texto(activity, activity.getString(R.string.na_hora_titulo), 15f, Color.WHITE, Typeface.BOLD))
-            addView(
-                texto(
-                    activity,
-                    if (ligado) activity.getString(R.string.na_hora_ligado) else activity.getString(R.string.desligado),
-                    13f,
-                    if (ligado) verde else suave,
-                    Typeface.NORMAL
-                ).apply { setPadding(0, activity.emPx(2f), 0, 0) }
-            )
-        }
 
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = activity.emPx(48f)
             isClickable = true
             isFocusable = true
             alpha = if (ativo) 1f else 0.45f
-            contentDescription = if (ligado) activity.getString(R.string.cd_desligar_na_hora) else activity.getString(R.string.cd_ligar_na_hora)
+            contentDescription = activity.getString(
+                if (ligado) R.string.cd_desligar_na_hora else R.string.cd_ligar_na_hora
+            )
             background = comToque(activity, Color.TRANSPARENT, null, 10f)
-            layoutParams = parametros(activity, topo = 16f)
-            addView(titulos)
-            addView(chave)
+            layoutParams = parametros(activity, topo = 8f)
+            addView(
+                texto(activity, activity.getString(R.string.na_hora_curto), 15f, Color.WHITE, Typeface.NORMAL)
+                    .apply { layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
+            )
+            addView(interruptor(activity, ligado))
             setOnClickListener {
                 PreferenciasDeAviso.definirAvisarNaHora(activity, !ligado)
                 AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
@@ -278,60 +277,103 @@ internal object MenuPrincipal {
         }
     }
 
-    /** Para cada campeonato: avisar de todas as sessões, só das corridas ou de nenhuma. */
-    private fun cartaoPorCampeonato(activity: Activity, container: LinearLayout, ativo: Boolean): View {
+    /**
+     * Uma linha por categoria: selo colorido, nome, o que está escolhido e uma seta.
+     * Tocar na linha abre as três opções (todas, só corridas ou nenhuma).
+     */
+    private fun linhaDaCategoria(
+        activity: Activity,
+        container: LinearLayout,
+        categoria: CategoriaInfo,
+        ativo: Boolean
+    ): View {
         val suave = activity.getColor(R.color.texto_suave)
+        val modoAtual = PreferenciasDeAviso.modoDaCategoria(activity, categoria.nome)
+        val aberta = categoriaAberta == categoria.nome
+        val resumo = resumoDoModo(activity, modoAtual)
 
-        return cartao(activity).apply {
+        val selo = texto(activity, seloDaCategoria(categoria.nome), 12f, corDoTextoSobreCor, Typeface.BOLD).apply {
+            gravity = Gravity.CENTER
+            background = forma(activity, Color.parseColor(categoria.cor), null, 14f)
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(56f), activity.emPx(28f))
+        }
+
+        val nome = texto(activity, categoria.nome, 15f, Color.WHITE, Typeface.BOLD).apply {
+            maxLines = 1
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { marginStart = activity.emPx(12f) }
+        }
+
+        val seta = ImageView(activity).apply {
+            setImageResource(R.drawable.ic_seta_baixo)
+            setColorFilter(suave)
+            rotation = if (aberta) 180f else 0f
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
+                .apply { marginStart = activity.emPx(6f) }
+        }
+
+        val cabecalhoDaLinha = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = activity.emPx(44f)
+            setPadding(activity.emPx(8f), activity.emPx(4f), activity.emPx(10f), activity.emPx(4f))
+            isClickable = true
+            isFocusable = true
+            contentDescription = "${categoria.nome}, $resumo"
+            background = comToque(activity, Color.TRANSPARENT, null, 12f)
+            addView(selo)
+            addView(nome)
+            addView(texto(activity, resumo, 13f, suave, Typeface.NORMAL))
+            addView(seta)
+            setOnClickListener {
+                categoriaAberta = if (aberta) null else categoria.nome
+                montar(activity, container)
+            }
+        }
+
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            background = forma(
+                activity,
+                activity.getColor(R.color.superficie),
+                activity.getColor(R.color.borda_suave),
+                12f
+            )
             // Esmaecido quando os avisos estão desligados; as escolhas continuam valendo.
             alpha = if (ativo) 1f else 0.45f
+            layoutParams = parametros(activity, baixo = 6f)
+            addView(cabecalhoDaLinha)
 
-            addView(texto(activity, activity.getString(R.string.campeonato_intro), 13f, suave, Typeface.NORMAL))
-
-            Categorias.todas.forEach { categoria ->
-                val modoAtual = PreferenciasDeAviso.modoDaCategoria(activity, categoria.nome)
-
-                val ponto = View(activity).apply {
-                    background = GradientDrawable().apply {
-                        shape = GradientDrawable.OVAL
-                        setColor(Color.parseColor(categoria.cor))
-                    }
-                    layoutParams = LinearLayout.LayoutParams(activity.emPx(10f), activity.emPx(10f))
-                }
-
-                val nome = LinearLayout(activity).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = parametros(activity, topo = 16f, baixo = 8f)
-                    addView(ponto)
-                    addView(
-                        texto(activity, categoria.nome, 15f, Color.WHITE, Typeface.BOLD)
-                            .apply { setPadding(activity.emPx(10f), 0, 0, 0) }
-                    )
-                }
-
-                addView(nome)
+            if (aberta) {
                 addView(
                     seletorDeModo(activity, modoAtual, categoria.cor) { novo ->
                         PreferenciasDeAviso.definirModo(activity, categoria.nome, novo)
                         AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
+                        categoriaAberta = null
                         montar(activity, container)
+                    }.apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            activity.emPx(40f)
+                        ).apply {
+                            marginStart = activity.emPx(10f)
+                            marginEnd = activity.emPx(10f)
+                            topMargin = activity.emPx(2f)
+                        }
                     }
                 )
+                addView(
+                    texto(activity, activity.getString(R.string.campeonato_legenda), 12f, suave, Typeface.NORMAL)
+                        .apply {
+                            setLineSpacing(0f, 1.15f)
+                            layoutParams = parametros(activity, topo = 8f, baixo = 10f).apply {
+                                marginStart = activity.emPx(12f)
+                                marginEnd = activity.emPx(12f)
+                            }
+                        }
+                )
             }
-
-            addView(
-                texto(
-                    activity,
-                    activity.getString(R.string.campeonato_legenda),
-                    12f,
-                    suave,
-                    Typeface.NORMAL
-                ).apply {
-                    setLineSpacing(0f, 1.15f)
-                    layoutParams = parametros(activity, topo = 16f)
-                }
-            )
         }
     }
 
@@ -348,10 +390,6 @@ internal object MenuPrincipal {
             orientation = LinearLayout.HORIZONTAL
             background = forma(activity, activity.getColor(R.color.fundo_tela), activity.getColor(R.color.borda_suave), 12f)
             setPadding(activity.emPx(3f), activity.emPx(3f), activity.emPx(3f), activity.emPx(3f))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                activity.emPx(40f)
-            )
 
             ModoDeAviso.values().forEach { modo ->
                 val marcado = modo == atual
@@ -424,17 +462,27 @@ internal object MenuPrincipal {
         }
 
     private fun botaoDeTeste(activity: Activity): View {
-        val verde = activity.getColor(R.color.acento)
+        val sino = ImageView(activity).apply {
+            setImageResource(R.drawable.ic_sino)
+            setColorFilter(Color.WHITE)
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
+                .apply { marginEnd = activity.emPx(10f) }
+        }
 
-        return texto(activity, activity.getString(R.string.botao_teste), 15f, verde, Typeface.BOLD).apply {
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
             isClickable = true
             isFocusable = true
-            background = comToque(activity, Color.TRANSPARENT, verde, 14f)
+            contentDescription = activity.getString(R.string.botao_teste)
+            background = comToque(activity, Color.TRANSPARENT, corDoContorno, 14f)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                activity.emPx(48f)
-            ).apply { topMargin = activity.emPx(20f) }
+                activity.emPx(46f)
+            ).apply { topMargin = activity.emPx(14f) }
+            addView(sino)
+            addView(texto(activity, activity.getString(R.string.botao_teste), 15f, Color.WHITE, Typeface.BOLD))
             setOnClickListener {
                 when {
                     Notificacoes.precisaPedirPermissao(activity) ->
@@ -454,7 +502,7 @@ internal object MenuPrincipal {
         texto(
             activity,
             activity.getString(R.string.botao_bateria),
-            13f,
+            12f,
             activity.getColor(R.color.texto_suave),
             Typeface.NORMAL
         ).apply {
@@ -464,8 +512,8 @@ internal object MenuPrincipal {
             background = comToque(activity, Color.TRANSPARENT, null, 10f)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                activity.emPx(44f)
-            ).apply { topMargin = activity.emPx(8f) }
+                activity.emPx(40f)
+            ).apply { topMargin = activity.emPx(4f) }
             setOnClickListener { Notificacoes.abrirConfiguracoesDeBateria(activity) }
         }
 
@@ -495,6 +543,24 @@ internal object MenuPrincipal {
             activity.getString(R.string.antecedencia_minutos, minutos)
         }
 
+    /** Texto curto da linha da categoria: "Todas", "Só corridas" ou "Nenhuma". */
+    private fun resumoDoModo(activity: Activity, modo: ModoDeAviso): String =
+        activity.getString(
+            when (modo) {
+                ModoDeAviso.TODAS -> R.string.modo_todas
+                ModoDeAviso.CORRIDAS -> R.string.modo_so_corridas
+                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
+            }
+        )
+
+    /** Texto do selo colorido; nomes longos usam uma abreviação para caber. */
+    private fun seloDaCategoria(nome: String): String =
+        when (Formatacao.normalizar(nome)) {
+            "formula e" -> "FE"
+            "indycar" -> "INDY"
+            else -> nome.uppercase()
+        }
+
     private fun rotuloDoModo(activity: Activity, modo: ModoDeAviso): String =
         activity.getString(
             when (modo) {
@@ -517,6 +583,17 @@ internal object MenuPrincipal {
         RippleDrawable(
             ColorStateList.valueOf(Color.parseColor("#334CAF50")),
             forma(activity, preenchimento, borda, raioDp),
+            forma(activity, Color.WHITE, null, raioDp)
+        )
+
+    /** Botão arredondado com degradê verde e ondulação ao toque. */
+    private fun comDegrade(activity: Activity, raioDp: Float) =
+        RippleDrawable(
+            ColorStateList.valueOf(Color.parseColor("#33FFFFFF")),
+            GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                intArrayOf(activity.getColor(R.color.acento), corFinalDoDegrade)
+            ).apply { cornerRadius = activity.emPx(raioDp).toFloat() },
             forma(activity, Color.WHITE, null, raioDp)
         )
 
