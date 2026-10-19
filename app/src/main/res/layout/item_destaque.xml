@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Card do carrossel da tela inicial. Largura e fundo são definidos pelo Kotlin. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="210dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Foto opcional: aparece só se existir um drawable destaque_<categoria> -->
+    <ImageView
+        android:id="@+id/destaqueImagem"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
+
+    <View
+        android:id="@+id/destaqueVeu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/veu_destaque"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/destaqueTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/texto_suave"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.12"
+            tools:text="PRÓXIMA ETAPA  •  WEC" />
+
+        <TextView
+            android:id="@+id/destaqueNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:maxLines="3"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            tools:text="6 Horas de Barcelona" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/destaqueBandeira"
+                android:layout_width="28dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="10dp"
+                android:contentDescription="@string/cd_bandeira_proxima"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/destaqueLocal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif"
+                tools:text="Barcelona, Espanha" />
+        </LinearLayout>
+
+        <!-- Empurra data e botão para o pé do card, mesmo quando o título é curto -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:minHeight="16dp" />
+
+        <TextView
+            android:id="@+id/destaqueData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:letterSpacing="0.06"
+            android:fontFamily="sans-serif-medium"
+            tools:text="16–18 OUT" />
+
+        <TextView
+            android:id="@+id/destaqueStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:minWidth="190dp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="@color/acento_escuro"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.04"
+            android:fontFamily="sans-serif"
+            tools:text="EM ANDAMENTO" />
+    </LinearLayout>
+</FrameLayout>

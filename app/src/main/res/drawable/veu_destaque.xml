@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Escurece o lado esquerdo do card de destaque, para o texto ficar legível sobre uma foto -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="0"
+        android:startColor="#F2101214"
+        android:centerColor="#99101214"
+        android:endColor="#1A101214" />
+</shape>
