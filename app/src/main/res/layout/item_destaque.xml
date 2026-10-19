@@ -136,6 +136,7 @@
 
         <!-- Empurra a linha de baixo para o pé do card, mesmo quando o título é curto -->
         <View
+            android:id="@+id/destaqueEspaco"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"

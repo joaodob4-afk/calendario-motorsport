@@ -495,7 +495,7 @@ class MainActivity : AppCompatActivity() {
                 when {
                     rotuloCategoria.length <= 3 -> 110f
                     rotuloCategoria.length <= 6 -> 68f
-                    else -> 50f
+                    else -> 44f
                 }
             )
             setTextColor(android.graphics.Color.argb(
