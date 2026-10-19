@@ -63,12 +63,19 @@ class F1Activity : AppCompatActivity() {
                 val corrida = buscarCorridaSelecionada()
 
                 runOnUiThread {
-                    if (corrida != null) {
-                        mostrarEvento(corrida)
-                    } else {
-                        mostrarErro(
-                            getString(R.string.f1_sem_proxima)
-                        )
+                    try {
+                        if (corrida != null) {
+                            mostrarEvento(corrida)
+                        } else {
+                            mostrarErro(
+                                getString(R.string.f1_sem_proxima)
+                            )
+                        }
+                    } catch (e: Exception) {
+                        // Esta parte roda fora do try da thread: sem isto um dado
+                        // inesperado fecharia o app em vez de mostrar o erro.
+                        registrarFalha("F1Activity.mostrarEvento", e)
+                        mostrarErro(getString(R.string.f1_erro_carregar))
                     }
                 }
             } catch (e: Exception) {
@@ -957,12 +964,17 @@ class F1Activity : AppCompatActivity() {
                         val corrida = buscarCorridaSelecionada()
 
                         runOnUiThread {
-                            if (corrida != null) {
-                                mostrarEvento(corrida)
-                            } else {
-                                mostrarErro(
-                                    getString(R.string.f1_sem_proxima)
-                                )
+                            try {
+                                if (corrida != null) {
+                                    mostrarEvento(corrida)
+                                } else {
+                                    mostrarErro(
+                                        getString(R.string.f1_sem_proxima)
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                registrarFalha("F1Activity.mostrarEvento", e)
+                                mostrarErro(getString(R.string.f1_falha_conexao))
                             }
                         }
                     } catch (e: Exception) {

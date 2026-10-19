@@ -22,6 +22,9 @@ internal object Notificacoes {
 
     private const val CODIGO_TESTE = 1
 
+    private const val ARQUIVO_PERMISSAO = "permissao_notificacoes"
+    private const val CHAVE_JA_PEDIU = "ja_pediu"
+
     /** Falso se o usuário (ou o Android 13+, antes do primeiro pedido) bloqueou as notificações. */
     fun permitidas(context: Context): Boolean =
         NotificationManagerCompat.from(context.applicationContext).areNotificationsEnabled()
@@ -32,13 +35,30 @@ internal object Notificacoes {
             context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
 
+    /**
+     * Pede a permissão. Depois que o usuário nega duas vezes, o Android deixa de mostrar a
+     * caixa de pedido e o toque não faria nada; nesse caso abrimos as configurações do app.
+     */
     fun pedirPermissao(activity: Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.requestPermissions(
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                CODIGO_PEDIDO_PERMISSAO
-            )
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val arquivo = activity.getSharedPreferences(ARQUIVO_PERMISSAO, Context.MODE_PRIVATE)
+        val jaPediu = arquivo.getBoolean(CHAVE_JA_PEDIU, false)
+
+        val negadoParaSempre = jaPediu &&
+            !activity.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+
+        if (negadoParaSempre) {
+            abrirConfiguracoes(activity)
+            return
         }
+
+        arquivo.edit().putBoolean(CHAVE_JA_PEDIU, true).apply()
+
+        activity.requestPermissions(
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            CODIGO_PEDIDO_PERMISSAO
+        )
     }
 
     /** Abre a tela de notificações do app, para quem negou a permissão. */
