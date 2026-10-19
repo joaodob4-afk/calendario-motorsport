@@ -7,9 +7,10 @@ A pagina traz so datas (sem horarios de sessao); as sessoes ficam como
 import json
 import re
 import sys
-import urllib.request
 from datetime import date
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import baixar_texto as baixar, formatar_data as fmt, gravar_se_mudou  # noqa: E402
 
 URL = "https://www.fiaformulae.com/en/calendar"
 SAIDA = Path("app/src/main/assets/fe_calendar.json")
@@ -51,15 +52,6 @@ CIDADES = {
     "Tokyo": "Tóquio",
     "Berlin": "Berlim",
 }
-
-
-def baixar(url):
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
-    )
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
 
 
 def lista_do_calendario(html):
@@ -150,10 +142,6 @@ def agrupar_etapas(rodadas):
     return grupos
 
 
-def fmt(d):
-    return d.strftime("%d/%m/%Y")
-
-
 def rotulo_temporada(rodadas):
     """Monta o rótulo a partir dos anos presentes nas datas da fonte oficial."""
     anos = sorted({r["data"].year for r in rodadas})
@@ -211,13 +199,10 @@ def main():
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
     novo = {"temporada": rotulo_temporada(rodadas), "categoria": "Formula E", "etapas": etapas}
-    texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
-
-    if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
+    if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
 
-    SAIDA.write_text(texto, encoding="utf-8")
     print("Calendário atualizado:", SAIDA)
     return 0
 

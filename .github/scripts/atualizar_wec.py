@@ -15,6 +15,13 @@ import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import (  # noqa: E402
+    baixar_texto as baixar_texto_comum,
+    gravar_se_mudou,
+    ler_existente,
+    total_de_sessoes,
+)
 
 BASE = "https://www.fiawec.com"
 PAGINAS_INICIAIS = [BASE + "/en/", BASE + "/en/season/2026"]
@@ -68,16 +75,7 @@ CABECALHOS = {
 
 
 def baixar_texto(url):
-    ultimo = None
-    for tentativa in range(3):
-        try:
-            req = urllib.request.Request(url, headers=CABECALHOS)
-            with urllib.request.urlopen(req, timeout=30) as r:
-                return r.read().decode("utf-8", errors="replace")
-        except Exception as e:  # noqa: BLE001
-            ultimo = e
-            time.sleep(2 * (tentativa + 1))
-    raise ultimo
+    return baixar_texto_comum(url, tentativas=3, cabecalhos=CABECALHOS)
 
 
 # ------------------------------------------------------------------ descoberta
@@ -295,10 +293,6 @@ def montar(etapas, ano):
     }
 
 
-def total_de_sessoes(dados):
-    return sum(len(e.get("sessoes", [])) for e in dados.get("etapas", []))
-
-
 def validar(novo, antigo):
     """Recusa calendário vazio ou muito menor que o atual da mesma temporada."""
     if not novo["etapas"]:
@@ -319,17 +313,6 @@ def validar(novo, antigo):
             raise ValueError(
                 f"WEC: {total_de_sessoes(novo)} sessões (havia {total_de_sessoes(antigo)})"
             )
-
-
-def ler_existente(caminho):
-    try:
-        return json.loads(caminho.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-
-
-def serializar(dados):
-    return json.dumps(dados, ensure_ascii=False, indent=2) + "\n"
 
 
 def coletar(baixar=baixar_texto):
@@ -367,12 +350,10 @@ def main():
     novo = montar(por_ano[ano], ano)
     validar(novo, ler_existente(ARQUIVO))
 
-    texto = serializar(novo)
-    if ARQUIVO.exists() and ARQUIVO.read_text(encoding="utf-8") == texto:
+    if not gravar_se_mudou(ARQUIVO, novo):
         print("wec_calendar.json: sem mudanças")
         return
 
-    ARQUIVO.write_text(texto, encoding="utf-8")
     print(
         f"wec_calendar.json: atualizado ({len(novo['etapas'])} etapas, "
         f"{total_de_sessoes(novo)} sessões, temporada {ano})"

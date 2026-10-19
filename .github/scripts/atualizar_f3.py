@@ -7,11 +7,12 @@ Se qualquer etapa falhar na validacao, NAO altera o arquivo e sai com erro.
 import json
 import re
 import sys
-import urllib.request
 from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import baixar_texto as baixar, gravar_se_mudou, parse_utc  # noqa: E402
 
 BASE = "https://www.fiaformula3.com"
 TEMPORADAS_PREFERIDAS = (datetime.now().year,)
@@ -36,15 +37,6 @@ CIRCUITOS = {
     "lusail": ("Lusail", "Catar", "Asia/Qatar"),
     "yas-marina": ("Yas Marina", "Emirados Árabes Unidos", "Asia/Dubai"),
 }
-
-
-def baixar(url):
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
-    )
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return r.read().decode("utf-8", errors="replace")
 
 
 class LinksParser(HTMLParser):
@@ -118,10 +110,6 @@ def sub_eventos(html):
         if resultado:
             return resultado
     return []
-def parse_utc(texto):
-    return datetime.fromisoformat(texto.replace("Z", "+00:00"))
-
-
 def traduzir_sessoes(subs):
     """Retorna lista de (nome_pt, datetime_utc) em ordem cronologica."""
     itens = []
@@ -251,13 +239,10 @@ def main():
     ]
 
     novo = {"temporada": temporada, "categoria": "F3", "etapas": etapas}
-    texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
-
-    if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
+    if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
 
-    SAIDA.write_text(texto, encoding="utf-8")
     print("Calendário atualizado:", SAIDA)
     return 0
 
