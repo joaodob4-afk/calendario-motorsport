@@ -5,7 +5,7 @@
     <string name="app_name">Calendário Motorsport</string>
 
     <string name="menu_marca">CALENDÁRIO MOTORSPORT</string>
-    <string name="menu_titulo">Notificações</string>
+    <string name="menu_titulo">Avisos</string>
     <string name="menu_secao_lembretes">LEMBRETES</string>
     <string name="menu_secao_campeonato">POR CAMPEONATO</string>
     <string name="menu_em_breve">Mais funções em breve.</string>
@@ -116,4 +116,15 @@
     <string name="nome_indycar">IndyCar</string>
     <string name="calendario_nao_carregado">O calendário da %1$s ainda não foi carregado. Abra o app com internet e tente novamente.</string>
     <string name="temporada_terminou">A temporada da %1$s já terminou.</string>
+
+    <!-- Painel de avisos (novo visual) -->
+    <string name="geral_titulo">Geral</string>
+    <string name="avisos_ligados">Avisos ligados</string>
+    <string name="avisos_desligados">Avisos desligados</string>
+    <string name="avisos_ligados_desc">Receba lembretes antes das sessões</string>
+    <string name="antecedencia_titulo">Antecedência</string>
+    <string name="antecedencia_chip_hora">1 hora</string>
+    <string name="na_hora_curto">Também avisar na hora de começar</string>
+    <string name="por_categoria_titulo">Por categoria</string>
+    <string name="modo_so_corridas">Só corridas</string>
 </resources>
