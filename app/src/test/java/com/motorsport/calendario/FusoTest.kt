@@ -50,4 +50,84 @@ class FusoTest {
 
         assertEquals(sessao, sessao.noFusoDoAparelho())
     }
+
+    @Test
+    fun periodoNoMesmoFusoDeBrasiliaNaoMudaNada() {
+        val r = Fuso.periodo(
+            "23/10/2026", "25/10/2026",
+            listOf("23/10/2026" to "08:00", "25/10/2026" to "14:00"),
+            PlanoDeAvisos.BRASILIA
+        )
+
+        assertEquals("23/10/2026" to "25/10/2026", r)
+    }
+
+    @Test
+    fun periodoAvancaUmDiaNoJapao() {
+        // 08:00 de sexta em Brasília já é 20:00 de sexta em Tóquio (+12h); 14:00 de domingo vira
+        // 02:00 de segunda: a etapa termina um dia depois.
+        val r = Fuso.periodo(
+            "23/10/2026", "25/10/2026",
+            listOf("23/10/2026" to "08:00", "25/10/2026" to "14:00"),
+            ZoneId.of("Asia/Tokyo")
+        )
+
+        assertEquals("23/10/2026" to "26/10/2026", r)
+    }
+
+    @Test
+    fun periodoVoltaUmDiaQuandoOFusoEstaAtrasDeBrasilia() {
+        // 01:00 de sexta em Brasília ainda é quinta (22:00) em Honolulu.
+        val r = Fuso.periodo(
+            "23/10/2026", "25/10/2026",
+            listOf("23/10/2026" to "01:00", "25/10/2026" to "14:00"),
+            ZoneId.of("Pacific/Honolulu")
+        )
+
+        assertEquals("22/10/2026" to "25/10/2026", r)
+    }
+
+    @Test
+    fun periodoSemHorarioConfirmadoFicaIgual() {
+        val r = Fuso.periodo(
+            "23/10/2026", "25/10/2026",
+            listOf("23/10/2026" to "A confirmar"),
+            ZoneId.of("Asia/Tokyo")
+        )
+
+        assertEquals("23/10/2026" to "25/10/2026", r)
+    }
+
+    @Test
+    fun periodoComDataInvalidaFicaIgual() {
+        val r = Fuso.periodo(
+            "31/02/2026", "25/10/2026",
+            listOf("23/10/2026" to "08:00"),
+            ZoneId.of("Asia/Tokyo")
+        )
+
+        assertEquals("31/02/2026" to "25/10/2026", r)
+    }
+
+    @Test
+    fun dataDaF1UsaOFusoDoAparelho() {
+        // Corrida às 02:00 UTC de domingo: ainda é sábado à noite no Brasil.
+        assertEquals(
+            java.time.LocalDate.of(2026, 3, 14),
+            Fuso.dataDaF1("2026-03-15", "02:00:00Z", PlanoDeAvisos.BRASILIA)
+        )
+        assertEquals(
+            java.time.LocalDate.of(2026, 3, 15),
+            Fuso.dataDaF1("2026-03-15", "02:00:00Z", ZoneId.of("UTC"))
+        )
+    }
+
+    @Test
+    fun dataDaF1SemHoraUsaAPropriaData() {
+        assertEquals(
+            java.time.LocalDate.of(2026, 3, 15),
+            Fuso.dataDaF1("2026-03-15", "", ZoneId.of("Asia/Tokyo"))
+        )
+        assertNull(Fuso.dataDaF1("data-ruim", "13:00:00Z", ZoneId.of("UTC")))
+    }
 }

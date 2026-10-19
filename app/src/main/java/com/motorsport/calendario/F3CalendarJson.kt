@@ -30,7 +30,7 @@ object F3CalendarJson {
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
     fun carregar(context: Context): List<F3Event> =
-        fonte.carregar(context).sortedBy { it.etapa }
+        fonte.carregar(context).map { it.noFusoDoAparelho() }.sortedBy { it.etapa }
 
     /** Atualiza em segundo plano; um JSON inválido nunca substitui o cache atual. */
     fun atualizar(context: Context, aoTerminar: (() -> Unit)? = null) =

@@ -536,8 +536,10 @@ object F1CalendarApi {
                 val localidade = local?.optString("locality", "") ?: ""
                 val paisIngles = local?.optString("country", "") ?: ""
 
+                // Datas no fuso do celular: a corrida pode cair em outro dia que no horário UTC da API.
                 val fim = try {
-                    LocalDate.parse(corrida.getString("date"))
+                    Fuso.dataDaF1(corrida.getString("date"), corrida.optString("time", ""))
+                        ?: throw IllegalArgumentException("data da corrida inválida")
                 } catch (e: Exception) {
                     registrarDescarte("F1CalendarApi.interpretar", e)
                     continue
@@ -547,15 +549,17 @@ object F1CalendarApi {
                 var menor: LocalDate? = null
 
                 for (chave in SESSOES) {
-                    val texto = corrida.optJSONObject(chave)
-                        ?.optString("date", "") ?: ""
+                    val sessao = corrida.optJSONObject(chave)
+                    val texto = sessao?.optString("date", "") ?: ""
 
                     if (texto.isBlank()) continue
 
-                    val data = try {
-                        LocalDate.parse(texto)
-                    } catch (e: Exception) {
-                        registrarDescarte("F1CalendarApi.interpretar", e)
+                    val data = Fuso.dataDaF1(texto, sessao?.optString("time", "") ?: "")
+                    if (data == null) {
+                        registrarDescarte(
+                            "F1CalendarApi.interpretar",
+                            IllegalArgumentException("data da sessão inválida")
+                        )
                         continue
                     }
 
