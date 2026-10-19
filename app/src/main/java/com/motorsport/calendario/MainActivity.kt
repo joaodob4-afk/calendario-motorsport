@@ -533,10 +533,12 @@ class MainActivity : AppCompatActivity() {
                             Formatacao.normalizar(it.circuito).contains(texto) ||
                             Formatacao.normalizar(lugarExibido(it.circuito)).contains(texto) ||
                             Formatacao.normalizar(nomeDoEvento(it)).contains(texto) ||
-                            Formatacao.normalizar(it.data).contains(texto)
+                            Formatacao.normalizar(it.data).contains(texto) ||
+                            (Idioma.ingles(this@MainActivity) &&
+                                Formatacao.normalizar(datasEmIngles(it)).contains(texto))
                     }
 
-                    mostrarEtapas(filtradas)
+                    mostrarEtapas(filtradas, buscando = true)
                 }
 
                 handlerPesquisa.postDelayed(pesquisaRunnable!!, 250)
@@ -554,6 +556,24 @@ class MainActivity : AppCompatActivity() {
                 NomesDeEventos.nome(etapa.categoria, etapa.circuito, etapa.circuitId).orEmpty()
             }
         )
+
+    /** Datas da etapa em inglês ("Oct 23–25 october"), para a busca por mês funcionar. */
+    private fun datasEmIngles(etapa: Etapa): String {
+        val inicio = parseDataSegura(etapa.dataInicio)
+        val fim = parseDataSegura(etapa.dataFim)
+
+        val meses = listOfNotNull(inicio, fim)
+            .map {
+                it.month.getDisplayName(
+                    java.time.format.TextStyle.FULL,
+                    java.util.Locale.ENGLISH
+                )
+            }
+            .distinct()
+
+        return (listOf(Formatacao.periodoEmIngles(inicio, fim).orEmpty()) + meses)
+            .joinToString(" ")
+    }
 
     /** País ou cidade no idioma do app (em inglês, traduz os nomes em português). */
     private fun lugarExibido(nome: String): String =
@@ -589,7 +609,11 @@ class MainActivity : AppCompatActivity() {
         return "${lugarExibido(cidade)}, ${lugarExibido(etapa.pais)}"
     }
 
-    private fun mostrarEtapas(etapas: List<Etapa>) {
+    /**
+     * [buscando] vale quando a lista é o resultado de uma busca: aí a próxima etapa também
+     * entra, senão procurar o país dela mostraria "nenhuma etapa" mesmo havendo resultado.
+     */
+    private fun mostrarEtapas(etapas: List<Etapa>, buscando: Boolean = false) {
         val hoje = java.time.LocalDate.now()
 
         val proximaEtapa =
@@ -603,7 +627,7 @@ class MainActivity : AppCompatActivity() {
             if (categoriaAtual.isEmpty()) {
                 etapas.filter { etapa ->
                     !fimDaEtapa(etapa).isBefore(hoje) &&
-                        etapa != proximaEtapa
+                        (buscando || etapa != proximaEtapa)
                 }
             } else {
                 etapas
