@@ -5,14 +5,17 @@ calendário do motogp.com.
 Os horários da API vêm com fuso (ex.: 2026-02-27T10:45:00+0700); o JSON sai em horário de
 Brasília. Se qualquer validação falhar, NENHUM arquivo é alterado e o script sai com erro.
 """
-import json
 import math
 import sys
-import time
-import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import baixar_json, gravar_se_mudou, ler_existente, total_de_sessoes  # noqa: E402
+
+
+def baixar(url):
+    return baixar_json(url, tentativas=3)
 
 SERVIDORES = [
     "https://api.motogp.pulselive.com",
@@ -71,21 +74,6 @@ ETAPAS = {
 
 # Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
 FRACAO_MINIMA = 0.5
-
-
-def baixar(url):
-    ultimo = None
-    for tentativa in range(3):
-        try:
-            req = urllib.request.Request(
-                url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=30) as r:
-                return json.loads(r.read().decode("utf-8"))
-        except Exception as e:  # noqa: BLE001
-            ultimo = e
-            time.sleep(2 * (tentativa + 1))
-    raise ultimo
 
 
 def obter_eventos(ano):
@@ -221,10 +209,6 @@ def montar(eventos, sigla, rotulo, ano):
     return {"temporada": ano, "categoria": rotulo, "etapas": etapas}
 
 
-def total_de_sessoes(dados):
-    return sum(len(e.get("sessoes", [])) for e in dados.get("etapas", []))
-
-
 def validar(novo, antigo):
     """Recusa calendário vazio ou muito menor que o atual da mesma temporada."""
     if not novo["etapas"]:
@@ -250,17 +234,6 @@ def validar(novo, antigo):
             )
 
 
-def ler_existente(caminho):
-    try:
-        return json.loads(caminho.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
-
-
-def serializar(dados):
-    return json.dumps(dados, ensure_ascii=False, indent=2) + "\n"
-
-
 def main():
     ano_atual = datetime.now(BRASILIA).year
     ano, eventos = escolher_temporada(ano_atual)
@@ -274,11 +247,9 @@ def main():
     # Só grava depois que as três classes passaram na validação.
     for arquivo, dados in saidas.items():
         caminho = PASTA / arquivo
-        texto = serializar(dados)
-        if caminho.exists() and caminho.read_text(encoding="utf-8") == texto:
+        if not gravar_se_mudou(caminho, dados):
             print(f"{arquivo}: sem mudanças")
             continue
-        caminho.write_text(texto, encoding="utf-8")
         print(f"{arquivo}: atualizado ({len(dados['etapas'])} etapas, {total_de_sessoes(dados)} sessões)")
 
 

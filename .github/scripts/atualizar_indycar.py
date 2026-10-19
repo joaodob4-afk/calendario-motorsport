@@ -5,14 +5,17 @@ Horarios do site estao em ET (America/New_York); o JSON sai em horario de
 Brasilia. Se a validacao falhar, NAO altera o arquivo e sai com erro.
 """
 import html as htmllib
-import json
 import re
 import sys
-import time
-import urllib.request
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import baixar_texto, formatar_data as fmt, gravar_se_mudou  # noqa: E402
+
+
+def baixar(url):
+    return baixar_texto(url, tentativas=3)
 
 BASE = "https://www.indycar.com"
 LISTA = BASE + "/Schedule"
@@ -38,22 +41,6 @@ def validar_cartoes_fonte(cartoes):
     if not cartoes:
         raise ValueError("Nenhuma etapa encontrada na fonte oficial")
     return cartoes
-
-
-def baixar(url):
-    ultimo = None
-    for tentativa in range(3):
-        try:
-            req = urllib.request.Request(
-                url,
-                headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
-            )
-            with urllib.request.urlopen(req, timeout=30) as r:
-                return r.read().decode("utf-8", errors="replace")
-        except Exception as e:  # noqa: BLE001
-            ultimo = e
-            time.sleep(2 * (tentativa + 1))
-    raise ultimo
 
 
 def linhas_de_texto(trecho):
@@ -222,10 +209,6 @@ def extrair_sessoes(html, ano):
     return unicas
 
 
-def fmt(d):
-    return d.strftime("%d/%m/%Y")
-
-
 def filtrar_corrida_da_etapa(cartao, sessoes):
     """Se a página do fim de semana lista as duas corridas, associa cada uma ao cartão correto."""
     slug = str(cartao.get("slug", "")).casefold().replace("-", "")
@@ -336,13 +319,10 @@ def main():
 
     ano = next(iter(cartoes.values()))["ano"]
     novo = {"temporada": ano, "categoria": "IndyCar", "etapas": saida}
-    texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
-
-    if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
+    if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
 
-    SAIDA.write_text(texto, encoding="utf-8")
     print("Calendário atualizado:", SAIDA)
     return 0
 

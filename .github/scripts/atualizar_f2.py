@@ -12,6 +12,8 @@ import urllib.request
 from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, parse_utc  # noqa: E402
 
 BASE = "https://www.fiaformula2.com"
 TEMPORADA_ATUAL = datetime.now().year
@@ -43,7 +45,7 @@ def baixar_com_url(url):
     """Baixa a página e devolve também a URL final após redirecionamentos."""
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": "Mozilla/5.0", "Accept-Language": "en-US,en;q=0.9"},
+        headers=CABECALHOS_PAGINA,
     )
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read().decode("utf-8", errors="replace"), r.geturl()
@@ -145,10 +147,6 @@ def sub_eventos(html):
         if eventos:
             return eventos
     return []
-
-
-def parse_utc(texto):
-    return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
 
 def traduzir_sessoes(subs):
@@ -296,13 +294,10 @@ def main():
     ]
 
     novo = {"temporada": temporada, "categoria": "F2", "etapas": etapas}
-    texto = json.dumps(novo, ensure_ascii=False, indent=2) + "\n"
-
-    if SAIDA.exists() and SAIDA.read_text(encoding="utf-8") == texto:
+    if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
 
-    SAIDA.write_text(texto, encoding="utf-8")
     print("Calendário atualizado:", SAIDA)
     return 0
 
