@@ -76,7 +76,7 @@
     <string name="data_nao_informada">Data não informada</string>
     <!-- Tela inicial, categorias e barra inferior -->
     <string name="cd_menu">Abrir menu</string>
-    <string name="busca_hint">Buscar corrida, país ou circuito...</string>
+    <string name="busca_hint">Buscar corrida</string>
     <string name="cd_filtros">Filtros</string>
     <string name="cd_bandeira_proxima">Bandeira da próxima etapa</string>
     <string name="cd_bandeira_pais">Bandeira do país</string>

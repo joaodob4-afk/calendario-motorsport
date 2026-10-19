@@ -77,7 +77,7 @@
     <string name="data_nao_informada">Date not provided</string>
     <!-- Tela inicial, categorias e barra inferior -->
     <string name="cd_menu">Open menu</string>
-    <string name="busca_hint">Search race, country or circuit...</string>
+    <string name="busca_hint">Search race</string>
     <string name="cd_filtros">Filters</string>
     <string name="cd_bandeira_proxima">Next round flag</string>
     <string name="cd_bandeira_pais">Country flag</string>

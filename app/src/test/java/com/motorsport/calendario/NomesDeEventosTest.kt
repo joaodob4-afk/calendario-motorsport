@@ -67,4 +67,15 @@ class NomesDeEventosTest {
         assertNull(NomesDeEventos.nome("IndyCar", "Streets of St. Petersburg"))
         assertNull(NomesDeEventos.nome("Categoria Inexistente", "Monza"))
     }
+
+    @Test
+    fun f1ComCircuitoNovoUsaCidadeEmInglesOuPais() {
+        // Circuito desconhecido, mas cidade como a API escreve
+        assertEquals("GP da Cidade do México", NomesDeEventos.nome("F1", "Mexico City", "circuito_novo"))
+        // Nem circuito nem cidade conhecidos: cai no país, em português ou inglês
+        assertEquals("GP da Cidade do México", NomesDeEventos.nome("F1", "Outra", "circuito_novo", "México"))
+        assertEquals("GP da Cidade do México", NomesDeEventos.nome("F1", "Outra", "circuito_novo", "Mexico"))
+        // País com mais de uma corrida não adivinha
+        assertNull(NomesDeEventos.nome("F1", "Outra", "circuito_novo", "Estados Unidos"))
+    }
 }

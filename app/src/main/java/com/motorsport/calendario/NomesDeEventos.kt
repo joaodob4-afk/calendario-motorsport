@@ -66,7 +66,51 @@ internal object NomesDeEventos {
         "interlagos" to "GP de São Paulo",
         "las vegas" to "GP de Las Vegas",
         "lusail" to "GP do Catar",
-        "yas marina" to "GP de Abu Dhabi"
+        "yas marina" to "GP de Abu Dhabi",
+        // Nomes de cidade como a API da F1 também escreve (em inglês ou com outra grafia)
+        "mexico city" to "GP da Cidade do México",
+        "ciudad de mexico" to "GP da Cidade do México",
+        "sao paulo" to "GP de São Paulo",
+        "singapore" to "GP de Singapura",
+        "budapest" to "GP da Hungria",
+        "monaco" to "GP de Mônaco",
+        "monte-carlo" to "GP de Mônaco",
+        "abu dhabi" to "GP de Abu Dhabi",
+        "yas island" to "GP de Abu Dhabi",
+        "miami gardens" to "GP de Miami",
+        "lusail city" to "GP do Catar",
+        "doha" to "GP do Catar",
+        "spa" to "GP da Bélgica"
+    )
+
+    /**
+     * Último recurso da F1, quando nem o circuito nem a cidade são conhecidos: o país, só nos
+     * casos em que ele tem uma única corrida (EUA e Espanha têm mais de uma, ficam de fora).
+     * Aceita o país em português ou em inglês.
+     */
+    private val formula1PorPais = mapOf(
+        "mexico" to "GP da Cidade do México",
+        "brasil" to "GP de São Paulo", "brazil" to "GP de São Paulo",
+        "australia" to "GP da Austrália",
+        "china" to "GP da China",
+        "japao" to "GP do Japão", "japan" to "GP do Japão",
+        "bahrein" to "GP do Bahrein", "bahrain" to "GP do Bahrein",
+        "arabia saudita" to "GP da Arábia Saudita", "saudi arabia" to "GP da Arábia Saudita",
+        "canada" to "GP do Canadá",
+        "monaco" to "GP de Mônaco",
+        "austria" to "GP da Áustria",
+        "reino unido" to "GP da Grã-Bretanha", "uk" to "GP da Grã-Bretanha",
+        "united kingdom" to "GP da Grã-Bretanha", "great britain" to "GP da Grã-Bretanha",
+        "belgica" to "GP da Bélgica", "belgium" to "GP da Bélgica",
+        "hungria" to "GP da Hungria", "hungary" to "GP da Hungria",
+        "holanda" to "GP da Holanda", "netherlands" to "GP da Holanda",
+        "italia" to "GP da Itália", "italy" to "GP da Itália",
+        "azerbaijao" to "GP do Azerbaijão", "azerbaijan" to "GP do Azerbaijão",
+        "singapura" to "GP de Singapura", "singapore" to "GP de Singapura",
+        "catar" to "GP do Catar", "qatar" to "GP do Catar",
+        "abu dhabi" to "GP de Abu Dhabi", "uae" to "GP de Abu Dhabi",
+        "emirados arabes unidos" to "GP de Abu Dhabi",
+        "united arab emirates" to "GP de Abu Dhabi"
     )
 
     /** MotoGP, Moto2 e Moto3 correm juntas, então usam os mesmos nomes. */
@@ -110,14 +154,21 @@ internal object NomesDeEventos {
     )
 
     /**
-     * Nome do evento, ou null quando não há um conhecido. [circuitId] só vale para a F1
-     * (os nomes de circuito dela vêm da API).
+     * Nome do evento, ou null quando não há um conhecido. [circuitId] e [pais] só valem para a
+     * F1 (os dados dela vêm da API, que pode trazer circuitos e cidades que ainda não conhecemos).
      */
-    fun nome(categoria: String, circuito: String, circuitId: String = ""): String? {
+    fun nome(
+        categoria: String,
+        circuito: String,
+        circuitId: String = "",
+        pais: String = ""
+    ): String? {
         val cidade = Formatacao.normalizar(circuito)
 
         return when (Formatacao.normalizar(categoria)) {
-            "f1" -> formula1PorCircuito[circuitId.trim().lowercase()] ?: formulaPorCidade[cidade]
+            "f1" -> formula1PorCircuito[circuitId.trim().lowercase()]
+                ?: formulaPorCidade[cidade]
+                ?: formula1PorPais[Formatacao.normalizar(pais)]
             "f2", "f3" -> formulaPorCidade[cidade]
             "formula e" -> eprix(circuito)
             "motogp", "moto2", "moto3" -> motos[cidade]
