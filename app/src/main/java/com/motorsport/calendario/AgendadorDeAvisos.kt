@@ -69,12 +69,17 @@ internal object AgendadorDeAvisos {
                 return
             }
 
-            val avisos = PlanoDeAvisos.calcularTodos(
-                ColetorDeSessoes.coletar(app),
-                Instant.now(),
-                minutos,
-                avisarNaHora = PreferenciasDeAviso.avisarNaHora(app),
-                modoDaCategoria = { PreferenciasDeAviso.modoDaCategoria(app, it) }
+            val agora = Instant.now()
+
+            val avisos = PlanoDeAvisos.comAlarmeNoFuturo(
+                PlanoDeAvisos.calcularTodos(
+                    ColetorDeSessoes.coletar(app),
+                    agora,
+                    minutos,
+                    avisarNaHora = PreferenciasDeAviso.avisarNaHora(app),
+                    modoDaCategoria = { PreferenciasDeAviso.modoDaCategoria(app, it) }
+                ),
+                agora
             )
 
             val agendados = mutableSetOf<String>()
@@ -97,7 +102,7 @@ internal object AgendadorDeAvisos {
                 )
 
                 try {
-                    agendarAlarme(alarmes, aviso.dispararEm.toEpochMilli(), pendente)
+                    agendarAlarme(alarmes, PlanoDeAvisos.momentoDoAlarme(aviso).toEpochMilli(), pendente)
                     agendados.add(aviso.codigoDoAlarme.toString())
                 } catch (e: Exception) {
                     registrarFalha("AgendadorDeAvisos.agendar", e)

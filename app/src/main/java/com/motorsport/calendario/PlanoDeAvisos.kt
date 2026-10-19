@@ -69,6 +69,19 @@ internal object PlanoDeAvisos {
      */
     const val LIMITE_DE_ALARMES = 50
 
+    /**
+     * O aviso de antecedência dispara um pouco antes do horário calculado, porque o Android
+     * costuma entregar o alarme alguns segundos depois. O "começando agora" não é adiantado.
+     */
+    const val ADIANTAMENTO_DO_AVISO_ANTECIPADO_MS = 10_000L
+
+    /**
+     * Alarmes que disparariam dentro desta margem são ignorados ao refazer a fila. Sem isso, o
+     * alarme que acabou de tocar seria agendado de novo para um instante já passado, tocaria
+     * outra vez na hora e repetiria a notificação várias vezes.
+     */
+    const val MARGEM_MINIMA_DO_ALARME_MS = 2_000L
+
     /** Um aviso que chega com mais atraso que isto (aparelho desligado, por exemplo) é descartado. */
     const val TOLERANCIA_ATRASO_MINUTOS = 5L
 
@@ -161,6 +174,20 @@ internal object PlanoDeAvisos {
             .sortedWith(compareBy<AvisoPlanejado>({ it.dispararEm }, { it.naHoraDeComecar }))
             .take(limite)
     }
+
+    /** Instante em que o alarme deve tocar no Android (já com o adiantamento, se houver). */
+    fun momentoDoAlarme(aviso: AvisoPlanejado): Instant =
+        if (aviso.naHoraDeComecar) {
+            aviso.dispararEm
+        } else {
+            aviso.dispararEm.minusMillis(ADIANTAMENTO_DO_AVISO_ANTECIPADO_MS)
+        }
+
+    /** Só os avisos cujo alarme ainda está no futuro (com a margem de segurança). */
+    fun comAlarmeNoFuturo(avisos: List<AvisoPlanejado>, agora: Instant): List<AvisoPlanejado> =
+        avisos.filter {
+            momentoDoAlarme(it).isAfter(agora.plusMillis(MARGEM_MINIMA_DO_ALARME_MS))
+        }
 
     /**
      * Corridas são as sessões cujo nome começa com "Corrida": corrida principal, sprint,
