@@ -424,8 +424,11 @@ class F1Activity : AppCompatActivity() {
             this,
             NomesDeEventos.nome(
                 "F1",
-                "",
-                race.optJSONObject("Circuit")?.optString("circuitId", "").orEmpty()
+                race.optJSONObject("Circuit")?.optJSONObject("Location")
+                    ?.optString("locality", "").orEmpty(),
+                race.optJSONObject("Circuit")?.optString("circuitId", "").orEmpty(),
+                race.optJSONObject("Circuit")?.optJSONObject("Location")
+                    ?.optString("country", "").orEmpty()
             ) ?: obterTituloGrandPrix(
                 race.optString("raceName", getString(R.string.grande_premio_nome))
             )

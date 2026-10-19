@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:minHeight="210dp"
+    android:minHeight="190dp"
     android:clickable="true"
     android:focusable="true">
 
@@ -24,35 +24,76 @@
         android:background="@drawable/veu_destaque"
         android:visibility="gone" />
 
+    <!-- Letreiro gigante e translúcido com o nome da categoria (cor e tamanho vêm do Kotlin) -->
+    <TextView
+        android:id="@+id/destaqueMarca"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="-6dp"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textStyle="bold|italic"
+        android:fontFamily="sans-serif-black"
+        android:importantForAccessibility="no"
+        tools:text="F1"
+        tools:textSize="110sp" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:id="@+id/destaqueTitulo"
+        <!-- Selo da categoria + rótulo -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/texto_suave"
-            android:textSize="12sp"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.12"
-            tools:text="PRÓXIMA ETAPA  •  WEC" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/destaqueBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:maxLines="1"
+                android:textColor="#0B0D0F"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.06"
+                android:fontFamily="sans-serif"
+                tools:text="F1" />
+
+            <TextView
+                android:id="@+id/destaqueTitulo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="@string/etapa_proxima"
+                android:textColor="@color/texto_suave"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.12" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/destaqueNome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="14dp"
             android:maxLines="3"
             android:textColor="#FFFFFF"
             android:textSize="30sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif"
-            tools:text="6 Horas de Barcelona" />
+            tools:text="GP dos Estados Unidos" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -75,46 +116,60 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#FFFFFF"
+                android:textColor="#D5D8DC"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif"
-                tools:text="Barcelona, Espanha" />
+                tools:text="Austin, Estados Unidos" />
         </LinearLayout>
 
-        <!-- Empurra data e botão para o pé do card, mesmo quando o título é curto -->
+        <!-- Empurra a linha de baixo para o pé do card, mesmo quando o título é curto -->
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:minHeight="16dp" />
 
-        <TextView
-            android:id="@+id/destaqueData"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#26FFFFFF" />
+
+        <!-- Data à esquerda, contagem regressiva à direita -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:letterSpacing="0.06"
-            android:fontFamily="sans-serif-medium"
-            tools:text="16–18 OUT" />
+            android:layout_marginTop="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/destaqueStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:minWidth="190dp"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:gravity="center"
-            android:maxLines="1"
-            android:textColor="@color/acento_escuro"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.04"
-            android:fontFamily="sans-serif"
-            tools:text="EM ANDAMENTO" />
+            <TextView
+                android:id="@+id/destaqueData"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:letterSpacing="0.05"
+                android:fontFamily="sans-serif-medium"
+                tools:text="23–25 OUT" />
+
+            <TextView
+                android:id="@+id/destaqueStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="9dp"
+                android:paddingBottom="9dp"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="#0B0D0F"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.04"
+                android:fontFamily="sans-serif"
+                tools:text="4 DIAS" />
+        </LinearLayout>
     </LinearLayout>
 </FrameLayout>
