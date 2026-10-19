@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
@@ -18,137 +17,92 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:paddingStart="14dp"
         android:paddingEnd="14dp"
         android:paddingTop="14dp"
         android:paddingBottom="14dp">
 
-        <!-- Linha 1: bandeira, país e cidade, categoria -->
+        <!-- Esquerda: categoria, nome e local. Os textos quebram de linha, nunca encolhem nem cortam. -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/itemBandeira"
-                android:layout_width="46dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="14dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/cd_bandeira_pais" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/itemPais"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Brasil"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    app:autoSizeTextType="uniform"
-                    app:autoSizeMinTextSize="13sp"
-                    app:autoSizeMaxTextSize="18sp"
-                    app:autoSizeStepGranularity="0.5sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="15dp"
-                        android:layout_height="15dp"
-                        android:layout_marginEnd="4dp"
-                        android:src="@drawable/ic_pin"
-                        android:tint="@color/texto_suave"
-                        android:importantForAccessibility="no" />
-
-                    <TextView
-                        android:id="@+id/itemCircuito"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Interlagos"
-                        android:textColor="@color/texto_suave"
-                        android:textSize="14sp"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:fontFamily="sans-serif" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Categoria: a fonte se ajusta ao tamanho do nome (ex.: FORMULA E) -->
             <TextView
                 android:id="@+id/itemCategoria"
-                android:layout_width="78dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp"
-                android:gravity="center"
                 android:text="F1"
                 android:textColor="@color/acento"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold"
-                android:maxLines="1"
-                android:fontFamily="sans-serif"
-                app:autoSizeTextType="uniform"
-                app:autoSizeMinTextSize="8sp"
-                app:autoSizeMaxTextSize="12sp"
-                app:autoSizeStepGranularity="0.5sp" />
+                android:letterSpacing="0.1"
+                android:fontFamily="sans-serif" />
+
+            <TextView
+                android:id="@+id/itemPais"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="Brasil"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_pin"
+                    android:tint="@color/texto_suave"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/itemCircuito"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Interlagos"
+                    android:textColor="@color/texto_suave"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Linha 2: período em DD/MM e status -->
+        <!-- Direita: período e status -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginEnd="8dp"
-                android:src="@drawable/ic_nav_agenda"
-                android:tint="@color/texto_suave"
-                android:importantForAccessibility="no" />
+            android:layout_marginStart="12dp"
+            android:gravity="end"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/itemData"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:gravity="end"
                 android:text="30/10 – 01/11"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp"
-                android:fontFamily="sans-serif-medium"
-                android:maxLines="1"
-                app:autoSizeTextType="uniform"
-                app:autoSizeMinTextSize="10sp"
-                app:autoSizeMaxTextSize="14sp"
-                app:autoSizeStepGranularity="0.5sp" />
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif" />
 
             <TextView
                 android:id="@+id/itemStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginTop="8dp"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:paddingTop="5dp"
@@ -158,7 +112,6 @@
                 android:textColor="@color/status_azul"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                android:maxLines="1"
                 android:letterSpacing="0.04"
                 android:fontFamily="sans-serif" />
         </LinearLayout>

@@ -13,6 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import org.json.JSONObject
@@ -37,6 +38,9 @@ class MainActivity : AppCompatActivity() {
     )
 
     private lateinit var listaEtapas: LinearLayout
+
+    /** Resumo do que o carrossel mostra hoje; evita refazê-lo (e voltar ao 1º card) a cada minuto. */
+    private var assinaturaDestaques = ""
 
     private val handlerPesquisa =
         Handler(Looper.getMainLooper())
@@ -294,6 +298,7 @@ class MainActivity : AppCompatActivity() {
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
         configurarBusca()
+        assinaturaDestaques = ""
         atualizarProximaEtapa()
 
         handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
@@ -313,73 +318,216 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun atualizarProximaEtapa() {
+    /**
+     * Etapas do carrossel do topo. Se há etapas acontecendo hoje, são todas elas; se não, são
+     * todas as que começam na data mais próxima. Assim, duas ou mais etapas no mesmo dia
+     * aparecem juntas, uma em cada card, em vez de só uma delas.
+     */
+    private fun etapasDeDestaque(): List<Etapa> {
         val hoje = java.time.LocalDate.now()
 
-        val proxima =
-            todasEtapas
-                .filter { !fimDaEtapa(it).isBefore(hoje) }
-                .minByOrNull {
-                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
-                }
-
-        // Fim da temporada: sem próxima etapa o cartão some, em vez de mostrar dados de exemplo.
-        findViewById<android.view.View>(R.id.painelProximaEtapa)?.visibility =
-            if (proxima == null) android.view.View.GONE else android.view.View.VISIBLE
-
-        if (proxima == null) return
-
-        val titulo = findViewById<TextView>(R.id.tituloProximaEtapa)
-        val nome = findViewById<TextView>(R.id.nomeProximaEtapa)
-        val bandeira = findViewById<ImageView>(R.id.bandeiraProximaEtapa)
-        val circuito = findViewById<TextView>(R.id.circuitoProximaEtapa)
-        val data = findViewById<TextView>(R.id.dataProximaEtapa)
-        val contador = findViewById<TextView>(R.id.contadorProximaEtapa)
-
-        val prefixo = getString(R.string.etapa_proxima) + "  •  "
-        val textoTitulo = android.text.SpannableString(prefixo + proxima.categoria)
-        textoTitulo.setSpan(
-            android.text.style.ForegroundColorSpan(getColor(R.color.acento)),
-            prefixo.length,
-            textoTitulo.length,
-            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        titulo.text = textoTitulo
-        val nomeDaProxima = nomeDoEvento(proxima)
-        nome.text = nomeDaProxima.ifBlank { lugarExibido(proxima.pais) }
-
-        val idBandeira = recursoBandeira(proxima.pais)
-        if (idBandeira != 0) {
-            bandeira.setImageResource(idBandeira)
-            bandeira.visibility = android.view.View.VISIBLE
-            arredondar(bandeira, 6f)
-        } else {
-            bandeira.visibility = android.view.View.GONE
+        val abertas = todasEtapas.filter {
+            !fimDaEtapa(it).isBefore(hoje) && parseDataSegura(it.dataInicio) != null
         }
 
-        circuito.text = localDaEtapa(proxima, nomeDaProxima)
-        data.text = periodoDoCartao(proxima)
+        val emAndamento = abertas.filter { !parseDataSegura(it.dataInicio)!!.isAfter(hoje) }
 
-        val dataInicio = parseDataSegura(proxima.dataInicio) ?: hoje
+        val grupo = if (emAndamento.isNotEmpty()) {
+            emAndamento
+        } else {
+            val primeiroInicio = abertas.mapNotNull { parseDataSegura(it.dataInicio) }.minOrNull()
+                ?: return emptyList()
+            abertas.filter { parseDataSegura(it.dataInicio) == primeiroInicio }
+        }
+
+        return grupo.sortedWith(
+            compareBy<Etapa>(
+                { parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX },
+                { etapa ->
+                    Categorias.todas.indexOfFirst {
+                        Formatacao.normalizar(it.nome) == Formatacao.normalizar(etapa.categoria)
+                    }.let { if (it < 0) Int.MAX_VALUE else it }
+                }
+            )
+        )
+    }
+
+    /** Texto do botão do card: HOJE, AMANHÃ, "N DIAS" ou EM ANDAMENTO. */
+    private fun textoDoContador(etapa: Etapa, hoje: java.time.LocalDate): String {
+        val dataInicio = parseDataSegura(etapa.dataInicio) ?: hoje
         val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
 
-        contador.text = when {
+        return when {
             dias == 0L -> getString(R.string.contador_hoje)
             dias == 1L -> getString(R.string.contador_amanha)
             dias > 1L -> getString(R.string.contador_dias, dias.toInt())
             else -> getString(R.string.status_em_andamento)
         }
-        estilizarChipDestaque(contador)
+    }
 
-        findViewById<android.view.View>(R.id.painelProximaEtapa).setOnClickListener {
-            when (proxima.categoria) {
-                "F1" -> abrirEventoF1PelaEtapa(proxima)
-                "F2" -> abrirEventoF2PelaEtapa(proxima)
-                "F3" -> abrirEventoF3PelaEtapa(proxima)
-                "Formula E" -> abrirEventoFormulaEPelaEtapa(proxima)
-                "IndyCar" -> abrirEventoIndyCarPelaEtapa(proxima)
-                "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(proxima)
+    private fun atualizarProximaEtapa() {
+        val painel = findViewById<android.view.View>(R.id.painelProximaEtapa) ?: return
+        val container = findViewById<LinearLayout>(R.id.containerDestaques) ?: return
+        val carrossel = findViewById<CarrosselDestaque>(R.id.carrosselDestaque) ?: return
+        val indicadores = findViewById<LinearLayout>(R.id.indicadoresDestaque) ?: return
+
+        val hoje = java.time.LocalDate.now()
+        val destaques = etapasDeDestaque()
+
+        // Fim da temporada: sem próxima etapa o carrossel some, em vez de mostrar dados de exemplo.
+        painel.visibility = if (destaques.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        if (destaques.isEmpty()) {
+            assinaturaDestaques = ""
+            return
+        }
+
+        val textos = destaques.map { textoDoContador(it, hoje) }
+        val assinatura = destaques.indices.joinToString("#") { i ->
+            "${destaques[i].categoria}|${destaques[i].dataInicio}|${destaques[i].circuito}|${textos[i]}"
+        } + "|" + Idioma.ingles(this)
+
+        // Nada mudou desde a última vez: mantém os cards e a posição da rolagem.
+        if (assinatura == assinaturaDestaques && container.childCount == destaques.size) return
+        assinaturaDestaques = assinatura
+
+        val margem = emPx(10f)
+        val espaco = emPx(10f)
+        val espiada = emPx(24f) // quanto do próximo card aparece à direita
+
+        val larguraTela = findViewById<android.view.View>(R.id.drawerLayout)?.width
+            ?.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
+        val varios = destaques.size > 1
+        val larguraCard =
+            if (varios) larguraTela - margem - espaco - espiada else larguraTela - 2 * margem
+
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(this)
+
+        for ((i, etapa) in destaques.withIndex()) {
+            val card = inflater.inflate(R.layout.item_destaque, container, false)
+            preencherCardDestaque(card, etapa, textos[i])
+
+            container.addView(
+                card,
+                LinearLayout.LayoutParams(larguraCard, LinearLayout.LayoutParams.MATCH_PARENT)
+                    .apply { if (i < destaques.lastIndex) marginEnd = espaco }
+            )
+        }
+
+        carrossel.passo = larguraCard + espaco
+        carrossel.paginas = destaques.size
+        carrossel.reiniciar()
+
+        // Bolinhas: só aparecem quando há mais de um card.
+        indicadores.removeAllViews()
+        indicadores.visibility = if (varios) android.view.View.VISIBLE else android.view.View.GONE
+
+        if (varios) {
+            for (i in destaques.indices) {
+                indicadores.addView(
+                    android.view.View(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(emPx(7f), emPx(7f)).apply {
+                            marginStart = emPx(4f)
+                            marginEnd = emPx(4f)
+                        }
+                    }
+                )
             }
+            marcarIndicador(indicadores, 0)
+            carrossel.aoMudarPagina = { pagina -> marcarIndicador(indicadores, pagina) }
+        } else {
+            carrossel.aoMudarPagina = null
+        }
+    }
+
+    /** Pinta de branco a bolinha do card em foco e de cinza as outras. */
+    private fun marcarIndicador(indicadores: LinearLayout, pagina: Int) {
+        for (i in 0 until indicadores.childCount) {
+            indicadores.getChildAt(i).background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(
+                    if (i == pagina) android.graphics.Color.WHITE
+                    else android.graphics.Color.parseColor("#3A3D42")
+                )
+            }
+        }
+    }
+
+    private fun preencherCardDestaque(card: android.view.View, etapa: Etapa, textoContador: String) {
+        val cor = corDaCategoria(etapa.categoria)
+
+        // Fundo: tom escuro da cor da categoria, com bordas arredondadas.
+        card.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
+            intArrayOf(
+                ColorUtils.blendARGB(getColor(R.color.superficie), cor, 0.22f),
+                getColor(R.color.fundo_tela)
+            )
+        ).apply {
+            cornerRadius = emPx(20f).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
+        }
+        arredondar(card, 20f)
+
+        // Foto opcional: basta colocar res/drawable/destaque_f1.jpg (ou _wec, _formula_e...).
+        val chave = etapa.categoria.lowercase().replace(" ", "_")
+        val idFoto = resources.getIdentifier("destaque_$chave", "drawable", packageName)
+        if (idFoto != 0) {
+            card.findViewById<ImageView>(R.id.destaqueImagem).apply {
+                setImageResource(idFoto)
+                visibility = android.view.View.VISIBLE
+            }
+            card.findViewById<android.view.View>(R.id.destaqueVeu).visibility =
+                android.view.View.VISIBLE
+        }
+
+        val prefixo = getString(R.string.etapa_proxima) + "  •  "
+        val textoTitulo = android.text.SpannableString(prefixo + etapa.categoria)
+        textoTitulo.setSpan(
+            android.text.style.ForegroundColorSpan(cor),
+            prefixo.length,
+            textoTitulo.length,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        card.findViewById<TextView>(R.id.destaqueTitulo).text = textoTitulo
+
+        val nomeDaEtapa = nomeDoEvento(etapa)
+        card.findViewById<TextView>(R.id.destaqueNome).text =
+            nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }
+
+        val bandeira = card.findViewById<ImageView>(R.id.destaqueBandeira)
+        val idBandeira = recursoBandeira(etapa.pais)
+        if (idBandeira != 0) {
+            bandeira.setImageResource(idBandeira)
+            bandeira.visibility = android.view.View.VISIBLE
+            arredondar(bandeira, 4f)
+        } else {
+            bandeira.visibility = android.view.View.GONE
+        }
+
+        card.findViewById<TextView>(R.id.destaqueLocal).text = localDaEtapa(etapa, nomeDaEtapa)
+        card.findViewById<TextView>(R.id.destaqueData).text = periodoDoCartao(etapa)
+
+        val botao = card.findViewById<TextView>(R.id.destaqueStatus)
+        botao.text = textoContador
+        estilizarChipDestaque(botao)
+
+        card.contentDescription =
+            "${etapa.categoria}, ${nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }}, " +
+                "${localDaEtapa(etapa, nomeDaEtapa)}, ${periodoDoCartao(etapa)}, $textoContador"
+
+        card.setOnClickListener { abrirEtapa(etapa) }
+    }
+
+    /** Abre a tela da etapa, de acordo com a categoria (usado pelo carrossel e pela lista). */
+    private fun abrirEtapa(etapa: Etapa) {
+        when (etapa.categoria) {
+            "F1" -> abrirEventoF1PelaEtapa(etapa)
+            "F2" -> abrirEventoF2PelaEtapa(etapa)
+            "F3" -> abrirEventoF3PelaEtapa(etapa)
+            "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
+            "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
+            "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
         }
     }
 
@@ -412,7 +560,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun arredondar(imagem: ImageView, raioDp: Float) {
+    private fun arredondar(imagem: android.view.View, raioDp: Float) {
         val raio = emPx(raioDp).toFloat()
         imagem.outlineProvider = object : android.view.ViewOutlineProvider() {
             override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
@@ -616,18 +764,13 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarEtapas(etapas: List<Etapa>, buscando: Boolean = false) {
         val hoje = java.time.LocalDate.now()
 
-        val proximaEtapa =
-            todasEtapas
-                .filter { !fimDaEtapa(it).isBefore(hoje) }
-                .minByOrNull {
-                    parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
-                }
+        val etapasDoCarrossel = etapasDeDestaque()
 
         val etapasVisiveis =
             if (categoriaAtual.isEmpty()) {
                 etapas.filter { etapa ->
                     !fimDaEtapa(etapa).isBefore(hoje) &&
-                        (buscando || etapa != proximaEtapa)
+                        (buscando || etapa !in etapasDoCarrossel)
                 }
             } else {
                 etapas
@@ -671,23 +814,11 @@ class MainActivity : AppCompatActivity() {
 
             val status = statusEtapa(etapa, etapasOrdenadas)
 
+            // Categoria: só o texto na cor dela, acima do nome (sem cápsula nem bandeira)
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
             chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
-            estilizarCapsula(chipCategoria, corDaCategoria(etapa.categoria), 8f)
+            chipCategoria.setTextColor(corDaCategoria(etapa.categoria))
             estilizarCard(item, corDaCategoria(etapa.categoria))
-
-            val imagemBandeira = item.findViewById<ImageView>(R.id.itemBandeira)
-            val idBandeira = recursoBandeira(etapa.pais)
-
-            if (idBandeira != 0) {
-                imagemBandeira.setImageResource(idBandeira)
-                imagemBandeira.visibility = android.view.View.VISIBLE
-
-                arredondar(imagemBandeira, 6f)
-            } else {
-                // INVISIBLE mantém o espaço da bandeira e o texto continua alinhado
-                imagemBandeira.visibility = android.view.View.INVISIBLE
-            }
 
             val nomeEvento = nomeDoEvento(etapa)
             item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
@@ -706,32 +837,33 @@ class MainActivity : AppCompatActivity() {
             } else {
                 periodo
             }
-            item.findViewById<TextView>(R.id.itemData).text = periodoExibido
+            val itemData = item.findViewById<TextView>(R.id.itemData)
+            itemData.text = periodoExibido
 
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = textoDoStatus(status)
 
-            val corStatus = when (status) {
-                "FINALIZADA" -> getColor(R.color.texto_suave)
-                "PRÓXIMA", "EM ANDAMENTO" -> getColor(R.color.acento)
-                else -> getColor(R.color.status_azul)
+            // Próxima e em andamento: data em verde e selo preenchido, como no card de destaque
+            when (status) {
+                "PRÓXIMA", "EM ANDAMENTO" -> {
+                    itemData.setTextColor(getColor(R.color.acento))
+                    estilizarChipDestaque(itemStatus)
+                }
+                "FINALIZADA" -> {
+                    itemData.setTextColor(android.graphics.Color.WHITE)
+                    estilizarContorno(itemStatus, getColor(R.color.texto_suave))
+                }
+                else -> {
+                    itemData.setTextColor(android.graphics.Color.WHITE)
+                    estilizarContorno(itemStatus, getColor(R.color.status_azul))
+                }
             }
-            estilizarContorno(itemStatus, corStatus)
 
             item.contentDescription =
                 "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
                     "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
 
-            item.setOnClickListener {
-                when (etapa.categoria) {
-                    "F1" -> abrirEventoF1PelaEtapa(etapa)
-                    "F2" -> abrirEventoF2PelaEtapa(etapa)
-                    "F3" -> abrirEventoF3PelaEtapa(etapa)
-                    "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
-                    "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
-                    "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
-                }
-            }
+            item.setOnClickListener { abrirEtapa(etapa) }
 
             listaEtapas.addView(item)
         }
