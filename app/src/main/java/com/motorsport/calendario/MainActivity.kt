@@ -534,7 +534,7 @@ class MainActivity : AppCompatActivity() {
                             Formatacao.normalizar(lugarExibido(it.circuito)).contains(texto) ||
                             Formatacao.normalizar(nomeDoEvento(it)).contains(texto) ||
                             Formatacao.normalizar(it.data).contains(texto) ||
-                            (Idioma.ingles(this) &&
+                            (Idioma.ingles(this@MainActivity) &&
                                 Formatacao.normalizar(datasEmIngles(it)).contains(texto))
                     }
 
