@@ -481,15 +481,30 @@ class MainActivity : AppCompatActivity() {
                 android.view.View.VISIBLE
         }
 
-        val prefixo = getString(R.string.etapa_proxima) + "  •  "
-        val textoTitulo = android.text.SpannableString(prefixo + etapa.categoria)
-        textoTitulo.setSpan(
-            android.text.style.ForegroundColorSpan(cor),
-            prefixo.length,
-            textoTitulo.length,
-            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        card.findViewById<TextView>(R.id.destaqueTitulo).text = textoTitulo
+        // Categoria em destaque: selo preenchido e letreiro gigante translúcido ao fundo
+        val rotuloCategoria = Categorias.rotuloDoSelo(etapa.categoria)
+
+        val badge = card.findViewById<TextView>(R.id.destaqueBadge)
+        badge.text = rotuloCategoria
+        estilizarSeloPreenchido(badge, cor, 9f)
+
+        card.findViewById<TextView>(R.id.destaqueMarca).apply {
+            text = rotuloCategoria
+            setTextSize(
+                android.util.TypedValue.COMPLEX_UNIT_SP,
+                when {
+                    rotuloCategoria.length <= 3 -> 110f
+                    rotuloCategoria.length <= 6 -> 68f
+                    else -> 50f
+                }
+            )
+            setTextColor(android.graphics.Color.argb(
+                if (idFoto != 0) 0 else 38,
+                android.graphics.Color.red(cor),
+                android.graphics.Color.green(cor),
+                android.graphics.Color.blue(cor)
+            ))
+        }
 
         val nomeDaEtapa = nomeDoEvento(etapa)
         card.findViewById<TextView>(R.id.destaqueNome).text =
@@ -510,7 +525,7 @@ class MainActivity : AppCompatActivity() {
 
         val botao = card.findViewById<TextView>(R.id.destaqueStatus)
         botao.text = textoContador
-        estilizarChipDestaque(botao)
+        estilizarSeloPreenchido(botao, cor, 10f)
 
         card.contentDescription =
             "${etapa.categoria}, ${nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }}, " +
@@ -551,12 +566,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Selo preenchido em verde (contagem regressiva da próxima etapa). */
-    private fun estilizarChipDestaque(view: TextView) {
-        view.setTextColor(getColor(R.color.acento_escuro))
+    /** Selo preenchido na cor da categoria, com texto escuro (selo da categoria e botões). */
+    private fun estilizarSeloPreenchido(view: TextView, cor: Int, raioDp: Float) {
+        view.setTextColor(android.graphics.Color.parseColor("#0B0D0F"))
         view.background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(getColor(R.color.acento))
-            cornerRadius = emPx(8f).toFloat()
+            setColor(cor)
+            cornerRadius = emPx(raioDp).toFloat()
         }
     }
 
@@ -607,8 +622,13 @@ class MainActivity : AppCompatActivity() {
     private fun estilizarCard(item: android.view.View, cor: Int) {
         val raio = emPx(12f).toFloat()
 
-        item.background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(getColor(R.color.superficie))
+        item.background = android.graphics.drawable.GradientDrawable(
+            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(
+                ColorUtils.blendARGB(getColor(R.color.superficie), cor, 0.14f),
+                getColor(R.color.superficie)
+            )
+        ).apply {
             cornerRadius = raio
             setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
         }
@@ -701,7 +721,9 @@ class MainActivity : AppCompatActivity() {
         Idioma.evento(
             this,
             etapa.nomeEvento.ifBlank {
-                NomesDeEventos.nome(etapa.categoria, etapa.circuito, etapa.circuitId).orEmpty()
+                NomesDeEventos.nome(
+                    etapa.categoria, etapa.circuito, etapa.circuitId, etapa.pais
+                ).orEmpty()
             }
         )
 
@@ -814,11 +836,12 @@ class MainActivity : AppCompatActivity() {
 
             val status = statusEtapa(etapa, etapasOrdenadas)
 
-            // Categoria: só o texto na cor dela, acima do nome (sem cápsula nem bandeira)
+            // Categoria: selo preenchido na cor dela, acima do nome
+            val corItem = corDaCategoria(etapa.categoria)
             val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
             chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
-            chipCategoria.setTextColor(corDaCategoria(etapa.categoria))
-            estilizarCard(item, corDaCategoria(etapa.categoria))
+            estilizarSeloPreenchido(chipCategoria, corItem, 7f)
+            estilizarCard(item, corItem)
 
             val nomeEvento = nomeDoEvento(etapa)
             item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
@@ -843,18 +866,16 @@ class MainActivity : AppCompatActivity() {
             val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
             itemStatus.text = textoDoStatus(status)
 
-            // Próxima e em andamento: data em verde e selo preenchido, como no card de destaque
+            // Próxima e em andamento: selo preenchido na cor da categoria
+            itemData.setTextColor(android.graphics.Color.WHITE)
             when (status) {
                 "PRÓXIMA", "EM ANDAMENTO" -> {
-                    itemData.setTextColor(getColor(R.color.acento))
-                    estilizarChipDestaque(itemStatus)
+                    estilizarSeloPreenchido(itemStatus, corItem, 8f)
                 }
                 "FINALIZADA" -> {
-                    itemData.setTextColor(android.graphics.Color.WHITE)
                     estilizarContorno(itemStatus, getColor(R.color.texto_suave))
                 }
                 else -> {
-                    itemData.setTextColor(android.graphics.Color.WHITE)
                     estilizarContorno(itemStatus, getColor(R.color.status_azul))
                 }
             }
