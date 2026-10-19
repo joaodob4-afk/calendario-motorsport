@@ -24,13 +24,16 @@ import java.util.Locale
 
 class F1Activity : AppCompatActivity() {
 
-    private val preto = Color.BLACK
-    private val verde = Color.rgb(57, 255, 20)
+    // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
+    private val estilo by lazy { DetalheEstilo(this, "F1") }
+    private val preto: Int get() = estilo.fundo
+    private val verde: Int get() = estilo.cor
     private val branco = Color.WHITE
-    private val cinza = Color.rgb(175, 175, 175)
-    private val linhaCinza = Color.rgb(55, 55, 55)
-    private val fundoCard = Color.rgb(15, 20, 15)
-    private val verdeEscuro = Color.rgb(20, 75, 20)
+    private val cinza: Int get() = estilo.textoSuave
+    private val linhaCinza: Int get() = estilo.borda
+    private val fundoCard: Int get() = estilo.superficie
+    private val verdeEscuro: Int get() = estilo.borda
+    private val fundoCorrida: Int get() = estilo.fundoCorrida
 
     // Apesar do nome, é o fuso atual do aparelho (os horários da F1 vêm em UTC).
     private val brasilia: ZoneId = ZoneId.systemDefault()
@@ -96,78 +99,18 @@ class F1Activity : AppCompatActivity() {
             setPadding(dp(18), dp(12), dp(18), dp(20))
         }
 
-        val cabecalho = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val voltar = ImageView(this).apply {
-            val recurso = resources.getIdentifier(
-                "back_button",
-                "drawable",
-                packageName
-            )
-
-            if (recurso != 0) {
-                setImageResource(recurso)
-            } else {
-                setImageResource(
-                    android.R.drawable.ic_media_previous
-                )
-                setColorFilter(verde)
-            }
-
-            contentDescription = getString(R.string.cd_voltar)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(4), dp(4), dp(12), dp(4))
-
-            setOnClickListener {
+        raiz.addView(
+            estilo.cabecalho(getString(R.string.formula_1), getString(R.string.cd_voltar)) {
                 finish()
                 overridePendingTransition(
                     android.R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
-            }
-        }
-
-        cabecalho.addView(
-            voltar,
-            LinearLayout.LayoutParams(dp(42), dp(42))
-        )
-
-        val tituloTela = TextView(this).apply {
-            text = getString(R.string.formula_1)
-            textSize = 23f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-black",
-                Typeface.NORMAL
-            )
-            letterSpacing = 0.06f
-        }
-
-        cabecalho.addView(
-            tituloTela,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        raiz.addView(cabecalho)
-
-        val detalhe = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        raiz.addView(
-            detalhe,
+            },
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(2)
+                LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = dp(12)
                 bottomMargin = dp(14)
             }
         )
@@ -200,6 +143,11 @@ class F1Activity : AppCompatActivity() {
 
         setContentView(raiz)
         aplicarInsetsDasBarras()
+
+        // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(preto))
+        window.statusBarColor = preto
+        window.navigationBarColor = preto
     }
 
     // false quando o usuário abriu uma corrida específica (não a próxima).
@@ -449,82 +397,28 @@ class F1Activity : AppCompatActivity() {
             LocalDate.now(brasilia)
         }
 
-        adicionarTexto(
-            if (corridaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-            12f,
-            verde,
-            true
-        ).letterSpacing = 0.16f
-
-        adicionarTexto(
-            nomeGP.uppercase(idioma),
-            28f,
-            branco,
-            true
-        ).setPadding(0, dp(5), 0, dp(5))
-
-        if (nomeCircuito.isNotBlank()) {
-            adicionarTexto(
-                nomeCircuito,
-                12f,
-                cinza,
-                false
-            ).setPadding(0, 0, 0, dp(12))
-        }
-
-        val localLinha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val bandeira = ImageView(this).apply {
-            val id = obterRecursoBandeira(pais)
-
-            if (id != 0) {
-                setImageResource(id)
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            } else {
-                visibility = View.GONE
-            }
-        }
-
-        localLinha.addView(
-            bandeira,
-            LinearLayout.LayoutParams(dp(34), dp(23)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val localTexto = TextView(this).apply {
-            text = listOf(cidade, pais)
-                .filter { it.isNotBlank() }
-                .joinToString(", ")
-
-            textSize = 13f
-            setTextColor(cinza)
-        }
-
-        localLinha.addView(
-            localTexto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
+        val (intervalo, inicioFimDeSemana, fimFimDeSemana) =
+            intervaloDoFimDeSemana(race, dataCorrida)
 
         conteudo.addView(
-            localLinha,
+            estilo.heroi(
+                eyebrow = if (corridaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
+                nome = nomeGP,
+                circuito = nomeCircuito,
+                bandeiraRes = obterRecursoBandeira(pais),
+                local = listOf(cidade, pais)
+                    .filter { it.isNotBlank() }
+                    .joinToString(", "),
+                periodo = intervalo,
+                contador = estilo.contador(inicioFimDeSemana, fimFimDeSemana)
+            ),
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = dp(12)
+                bottomMargin = dp(18)
             }
         )
-
-        adicionarFimDeSemana(race, dataCorrida)
-        adicionarSeparador()
 
         adicionarTexto(
             getString(R.string.programacao),
@@ -575,10 +469,11 @@ class F1Activity : AppCompatActivity() {
         }
     }
 
-    private fun adicionarFimDeSemana(
+    /** Período do fim de semana (do 1º treino à corrida), mais a primeira e a última data. */
+    private fun intervaloDoFimDeSemana(
         race: JSONObject,
         dataCorrida: LocalDate
-    ) {
+    ): Triple<String, LocalDate, LocalDate> {
         val campos = listOf(
             "FirstPractice",
             "SecondPractice",
@@ -644,12 +539,7 @@ class F1Activity : AppCompatActivity() {
             }
         }.uppercase(idioma)
 
-        adicionarTexto(
-            intervalo,
-            16f,
-            branco,
-            true
-        ).setPadding(0, dp(1), 0, dp(15))
+        return Triple(intervalo, inicio, fim)
     }
 
     private fun obterSessoes(race: JSONObject): List<Sessao> {
@@ -825,11 +715,11 @@ class F1Activity : AppCompatActivity() {
             setPadding(dp(14), dp(14), dp(14), dp(14))
 
             background = GradientDrawable().apply {
-                cornerRadius = dp(9).toFloat()
+                cornerRadius = dp(12).toFloat()
 
                 setColor(
                     if (sessao.corrida) {
-                        Color.rgb(15, 45, 15)
+                        fundoCorrida
                     } else {
                         fundoCard
                     }

@@ -17,13 +17,16 @@ import java.util.Locale
 
 class FormulaEActivity : AppCompatActivity() {
 
-    private val preto = Color.BLACK
-    private val verde = Color.rgb(57, 255, 20)
+    // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
+    private val estilo by lazy { DetalheEstilo(this, "Formula E") }
+    private val preto: Int get() = estilo.fundo
+    private val verde: Int get() = estilo.cor
     private val branco = Color.WHITE
-    private val cinza = Color.rgb(175, 175, 175)
-    private val linhaCinza = Color.rgb(55, 55, 55)
-    private val fundoCard = Color.rgb(15, 20, 15)
-    private val verdeEscuro = Color.rgb(20, 75, 20)
+    private val cinza: Int get() = estilo.textoSuave
+    private val linhaCinza: Int get() = estilo.borda
+    private val fundoCard: Int get() = estilo.superficie
+    private val verdeEscuro: Int get() = estilo.borda
+    private val fundoCorrida: Int get() = estilo.fundoCorrida
 
     private val idioma: Locale by lazy { Idioma.locale(this) }
     private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -56,78 +59,18 @@ class FormulaEActivity : AppCompatActivity() {
             setPadding(dp(18), dp(12), dp(18), dp(20))
         }
 
-        val cabecalho = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val voltar = ImageView(this).apply {
-            val recurso = resources.getIdentifier(
-                "back_button",
-                "drawable",
-                packageName
-            )
-
-            if (recurso != 0) {
-                setImageResource(recurso)
-            } else {
-                setImageResource(
-                    android.R.drawable.ic_media_previous
-                )
-                setColorFilter(verde)
-            }
-
-            contentDescription = getString(R.string.cd_voltar)
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(4), dp(4), dp(12), dp(4))
-
-            setOnClickListener {
+        raiz.addView(
+            estilo.cabecalho(getString(R.string.formula_e), getString(R.string.cd_voltar)) {
                 finish()
                 overridePendingTransition(
                     android.R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
-            }
-        }
-
-        cabecalho.addView(
-            voltar,
-            LinearLayout.LayoutParams(dp(42), dp(42))
-        )
-
-        val tituloTela = TextView(this).apply {
-            text = getString(R.string.formula_e)
-            textSize = 23f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-black",
-                Typeface.NORMAL
-            )
-            letterSpacing = 0.06f
-        }
-
-        cabecalho.addView(
-            tituloTela,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        raiz.addView(cabecalho)
-
-        val detalhe = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        raiz.addView(
-            detalhe,
+            },
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(2)
+                LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = dp(12)
                 bottomMargin = dp(14)
             }
         )
@@ -160,6 +103,11 @@ class FormulaEActivity : AppCompatActivity() {
 
         setContentView(raiz)
         aplicarInsetsDasBarras()
+
+        // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(preto))
+        window.statusBarColor = preto
+        window.navigationBarColor = preto
     }
 
     private fun lerData(texto: String): LocalDate? {
@@ -208,83 +156,27 @@ class FormulaEActivity : AppCompatActivity() {
     ) {
         conteudo.removeAllViews()
 
-        adicionarTexto(
-            if (ehProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-            12f,
-            verde,
-            true
-        ).letterSpacing = 0.16f
-
-        adicionarTexto(
-            Idioma.evento(
-                this,
-                NomesDeEventos.nome("Formula E", evento.circuito)
-                    ?: "${Idioma.lugar(this, evento.circuito)} E-Prix"
-            ).uppercase(idioma),
-            28f,
-            branco,
-            true
-        ).setPadding(0, dp(5), 0, dp(5))
-
-        if (evento.sessoes.size <= 1) {
-            adicionarTexto(
-                getString(R.string.fe_formato_unico),
-                13f,
-                cinza,
-                false
-            ).setPadding(0, 0, 0, dp(12))
-        }
-
-        val localLinha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val bandeira = ImageView(this).apply {
-            val id = obterRecursoBandeira(evento.pais)
-
-            if (id != 0) {
-                setImageResource(id)
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            } else {
-                visibility = View.GONE
-            }
-        }
-
-        localLinha.addView(
-            bandeira,
-            LinearLayout.LayoutParams(dp(34), dp(23)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val localTexto = TextView(this).apply {
-            text = "${Idioma.lugar(context, evento.circuito)}, ${Idioma.lugar(context, evento.pais)}"
-            textSize = 13f
-            setTextColor(cinza)
-        }
-
-        localLinha.addView(
-            localTexto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
         conteudo.addView(
-            localLinha,
+            estilo.heroi(
+                eyebrow = if (ehProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
+                nome = Idioma.evento(
+                    this,
+                    NomesDeEventos.nome("Formula E", evento.circuito)
+                        ?: "${Idioma.lugar(this, evento.circuito)} E-Prix"
+                ),
+                circuito = if (evento.sessoes.size <= 1) getString(R.string.fe_formato_unico) else "",
+                bandeiraRes = obterRecursoBandeira(evento.pais),
+                local = "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}",
+                periodo = textoDoIntervalo(evento),
+                contador = estilo.contador(lerData(evento.inicio), lerData(evento.fim))
+            ),
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = dp(12)
+                bottomMargin = dp(18)
             }
         )
-
-        adicionarIntervalo(evento)
-        adicionarSeparador()
 
         adicionarTexto(
             getString(R.string.programacao),
@@ -320,27 +212,21 @@ class FormulaEActivity : AppCompatActivity() {
 
     }
 
-    private fun adicionarIntervalo(evento: FormulaEEvent) {
+    private fun textoDoIntervalo(evento: FormulaEEvent): String {
         val inicio = lerData(evento.inicio)
         val fim = lerData(evento.fim)
 
-        if (inicio == null || fim == null) return
+        if (inicio == null || fim == null) return ""
 
         if (Idioma.ingles(this)) {
-            adicionarTexto(
-                Formatacao.periodoEmIngles(inicio, fim).orEmpty().uppercase(idioma),
-                16f,
-                branco,
-                true
-            ).setPadding(0, dp(1), 0, dp(15))
-            return
+            return Formatacao.periodoEmIngles(inicio, fim).orEmpty().uppercase(idioma)
         }
 
         val formatoDia = DateTimeFormatter.ofPattern("dd", idioma)
         val formatoMes = DateTimeFormatter.ofPattern("MMM", idioma)
         val formatoMesCompleto = DateTimeFormatter.ofPattern("MMMM", idioma)
 
-        val intervalo = when {
+        return when {
             inicio == fim ->
                 fim.format(
                     DateTimeFormatter.ofPattern("dd MMMM yyyy", idioma)
@@ -358,13 +244,6 @@ class FormulaEActivity : AppCompatActivity() {
                 "${inicio.format(formatoDia)} – ${fim.format(formatoDia)} " +
                     fim.format(formatoMesCompleto)
         }.uppercase(idioma)
-
-        adicionarTexto(
-            intervalo,
-            16f,
-            branco,
-            true
-        ).setPadding(0, dp(1), 0, dp(15))
     }
 
     private fun obterSessoes(evento: FormulaEEvent): List<Sessao> {
@@ -469,11 +348,11 @@ class FormulaEActivity : AppCompatActivity() {
             setPadding(dp(14), dp(14), dp(14), dp(14))
 
             background = GradientDrawable().apply {
-                cornerRadius = dp(9).toFloat()
+                cornerRadius = dp(12).toFloat()
 
                 setColor(
                     if (sessao.corrida) {
-                        Color.rgb(15, 45, 15)
+                        fundoCorrida
                     } else {
                         fundoCard
                     }
