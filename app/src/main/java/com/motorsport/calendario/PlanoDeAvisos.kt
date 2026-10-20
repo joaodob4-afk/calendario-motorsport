@@ -34,11 +34,20 @@ internal data class AvisoPlanejado(
     val sessao: SessaoParaAviso,
     val dispararEm: Instant,
     /** Verdadeiro para o aviso "começando agora", que dispara na hora exata da sessão. */
-    val naHoraDeComecar: Boolean = false
+    val naHoraDeComecar: Boolean = false,
+    /** Antecedência deste aviso em minutos (zero no aviso da hora de começar). */
+    val minutosAntes: Int = 0
 ) {
-    /** Código do alarme no Android. Cada tipo de aviso da mesma sessão tem o seu. */
+    /**
+     * Código do alarme no Android. Cada aviso da mesma sessão tem o seu: o da hora de
+     * começar e um para cada antecedência escolhida.
+     */
     val codigoDoAlarme: Int
-        get() = if (naHoraDeComecar) sessao.codigoDoInicio else sessao.codigo
+        get() = when {
+            naHoraDeComecar -> sessao.codigoDoInicio
+            minutosAntes > 0 -> "${sessao.chave}|antes|$minutosAntes".hashCode()
+            else -> sessao.codigo
+        }
 }
 
 /** O que avisar de uma categoria. */
@@ -119,15 +128,35 @@ internal object PlanoDeAvisos {
         minutosAntes: Int,
         limite: Int = LIMITE_DE_ALARMES,
         modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
+    ): List<AvisoPlanejado> =
+        calcular(sessoes, agora, listOf(minutosAntes), limite, modoDaCategoria)
+
+    /**
+     * Igual ao anterior, mas com várias antecedências ao mesmo tempo (15 e 45 minutos, por
+     * exemplo): cada sessão recebe um aviso para cada uma. Valores repetidos ou menores que
+     * 1 são ignorados; sem nenhum valor válido, não há avisos.
+     */
+    fun calcular(
+        sessoes: List<SessaoParaAviso>,
+        agora: Instant,
+        minutosAntes: Collection<Int>,
+        limite: Int = LIMITE_DE_ALARMES,
+        modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
     ): List<AvisoPlanejado> {
-        if (minutosAntes <= 0) return emptyList()
+        val antecedencias = minutosAntes.filter { it > 0 }.distinct()
+        if (antecedencias.isEmpty()) return emptyList()
 
-        val antecedencia = Duration.ofMinutes(minutosAntes.toLong())
-
-        return sessoes
+        val permitidas = sessoes
             .filter { modoDaCategoria(it.categoria).permite(it.nome) }
             .distinctBy { it.chave }
-            .map { AvisoPlanejado(it, it.inicio.toInstant().minus(antecedencia)) }
+
+        return antecedencias
+            .flatMap { minutos ->
+                val antecedencia = Duration.ofMinutes(minutos.toLong())
+                permitidas.map {
+                    AvisoPlanejado(it, it.inicio.toInstant().minus(antecedencia), minutosAntes = minutos)
+                }
+            }
             .filter { it.dispararEm.isAfter(agora) }
             .sortedBy { it.dispararEm }
             .take(limite)
@@ -162,8 +191,19 @@ internal object PlanoDeAvisos {
         avisarNaHora: Boolean = true,
         limite: Int = LIMITE_DE_ALARMES,
         modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
+    ): List<AvisoPlanejado> =
+        calcularTodos(sessoes, agora, listOf(minutosAntes), avisarNaHora, limite, modoDaCategoria)
+
+    /** Versão com várias antecedências. Sem nenhuma válida, os avisos estão desligados. */
+    fun calcularTodos(
+        sessoes: List<SessaoParaAviso>,
+        agora: Instant,
+        minutosAntes: Collection<Int>,
+        avisarNaHora: Boolean = true,
+        limite: Int = LIMITE_DE_ALARMES,
+        modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
     ): List<AvisoPlanejado> {
-        if (minutosAntes <= 0) return emptyList()
+        if (minutosAntes.none { it > 0 }) return emptyList()
 
         val antes = calcular(sessoes, agora, minutosAntes, limite, modoDaCategoria)
         val naHora = if (avisarNaHora) {

@@ -11,7 +11,6 @@ import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Switch
 import android.widget.TextView
 
 /** Fundo com efeito de toque (ondulação verde) para linhas clicáveis. */
@@ -25,8 +24,9 @@ internal fun fundoDeToque(): RippleDrawable =
 /**
  * Conteúdo do painel que abre pelo lado da tela inicial (botão no canto superior esquerdo).
  *
- * Visual compacto: cartão geral (liga/desliga), antecedência em botões arredondados,
- * aviso na hora de começar e uma linha por categoria que abre para escolher o que avisar.
+ * Visual compacto: cartão geral (liga/desliga), antecedências em botões arredondados
+ * (dá para marcar mais de uma), aviso na hora de começar e uma linha por categoria com um
+ * botão que abre as opções. Só os botões e os interruptores respondem ao toque.
  * Para incluir uma função nova no futuro, crie um bloco novo e chame-o em [montar].
  */
 internal object MenuPrincipal {
@@ -47,14 +47,15 @@ internal object MenuPrincipal {
     fun montar(activity: Activity, container: LinearLayout) {
         container.removeAllViews()
 
-        val minutos = PreferenciasDeAviso.minutosAntes(activity)
-        val ativo = minutos != PreferenciasDeAviso.DESATIVADO
+        val selecionados = PreferenciasDeAviso.minutosSelecionados(activity)
+        val ativo = selecionados.isNotEmpty()
 
         container.addView(cabecalho(activity))
         container.addView(cartaoGeral(activity, container, ativo))
 
         container.addView(tituloDeSecao(activity, R.string.antecedencia_titulo, topo = 18f, baixo = 10f))
-        container.addView(botoesDeAntecedencia(activity, container, minutos))
+        container.addView(botoesDeAntecedencia(activity, container, selecionados))
+        container.addView(dicaDeAntecedencia(activity))
         container.addView(linhaNaHora(activity, container, ativo))
         container.addView(divisoria(activity))
 
@@ -128,21 +129,32 @@ internal object MenuPrincipal {
         ).apply { topMargin = activity.emPx(4f) }
     }
 
-    /** Interruptor só para exibir o estado; o toque é tratado pela linha inteira. */
-    private fun interruptor(activity: Activity, ligado: Boolean) = Switch(activity).apply {
-        isChecked = ligado
-        isClickable = false
-        isFocusable = false
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        val estados = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
-        thumbTintList = ColorStateList(
-            estados,
-            intArrayOf(activity.getColor(R.color.acento), Color.parseColor("#B0B6BC"))
-        )
-        trackTintList = ColorStateList(
-            estados,
-            intArrayOf(Color.parseColor("#664CAF50"), Color.parseColor("#33FFFFFF"))
-        )
+    /** Estado dos interruptores antes do toque; faz a bolinha deslizar quando o painel é refeito. */
+    private val estadoAnteriorDosInterruptores = mutableMapOf<String, Boolean>()
+
+    /** Só o interruptor responde ao toque; a linha em volta não. */
+    private fun interruptor(
+        activity: Activity,
+        chave: String,
+        ligado: Boolean,
+        descricao: String,
+        aoTocar: () -> Unit
+    ): View {
+        val anterior = estadoAnteriorDosInterruptores.remove(chave)
+
+        return InterruptorModerno(activity, ligado, anterior).apply {
+            contentDescription = descricao
+            isClickable = true
+            isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setOnClickListener {
+                estadoAnteriorDosInterruptores[chave] = ligado
+                aoTocar()
+            }
+        }
     }
 
     /** "Geral": liga ou desliga todos os avisos. */
@@ -163,30 +175,27 @@ internal object MenuPrincipal {
             )
             addView(
                 texto(activity, activity.getString(R.string.avisos_ligados_desc), 13f, suave, Typeface.NORMAL)
-                    .apply { setPadding(0, activity.emPx(2f), 0, 0) }
+                    .apply { setPadding(0, activity.emPx(2f), activity.emPx(8f), 0) }
             )
         }
 
         val linha = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(
-                if (ativo) R.string.cd_desligar_avisos else R.string.cd_ligar_avisos
-            )
-            background = comToque(activity, Color.TRANSPARENT, null, 10f)
-            layoutParams = parametros(activity, topo = 8f)
+            layoutParams = parametros(activity, topo = 6f)
             addView(titulos)
-            addView(interruptor(activity, ativo))
-            setOnClickListener {
-                val novo = if (ativo) {
-                    PreferenciasDeAviso.DESATIVADO
-                } else {
-                    PreferenciasDeAviso.ultimaAntecedencia(activity)
+            addView(
+                interruptor(
+                    activity,
+                    "geral",
+                    ativo,
+                    activity.getString(if (ativo) R.string.cd_desligar_avisos else R.string.cd_ligar_avisos)
+                ) {
+                    val novo: List<Int> =
+                        if (ativo) emptyList() else PreferenciasDeAviso.ultimasSelecionadas(activity)
+                    aplicarAntecedencia(activity, container, novo)
                 }
-                aplicarAntecedencia(activity, container, novo)
-            }
+            )
         }
 
         return cartao(activity).apply {
@@ -195,13 +204,20 @@ internal object MenuPrincipal {
         }
     }
 
-    /** Antecedência: quatro botões arredondados; o escolhido ganha o degradê verde. */
-    private fun botoesDeAntecedencia(activity: Activity, container: LinearLayout, minutos: Int): View {
-        val ativo = minutos != PreferenciasDeAviso.DESATIVADO
+    /**
+     * Antecedência: quatro botões arredondados, e dá para marcar mais de um. Os marcados
+     * ganham o degradê verde. Desmarcar o último desliga os avisos.
+     */
+    private fun botoesDeAntecedencia(
+        activity: Activity,
+        container: LinearLayout,
+        selecionados: List<Int>
+    ): View {
+        val ativo = selecionados.isNotEmpty()
 
-        // Com os avisos desligados, a antecedência lembrada aparece esmaecida;
-        // tocar em outra opção também religa os avisos.
-        val marcada = if (ativo) minutos else PreferenciasDeAviso.ultimaAntecedencia(activity)
+        // Com os avisos desligados, a última escolha aparece esmaecida;
+        // tocar em uma opção religa os avisos só com ela.
+        val marcadas = if (ativo) selecionados else PreferenciasDeAviso.ultimasSelecionadas(activity)
 
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -209,7 +225,7 @@ internal object MenuPrincipal {
             alpha = if (ativo) 1f else 0.45f
 
             PreferenciasDeAviso.opcoes.reversed().forEachIndexed { indice, opcao ->
-                val selecionada = opcao == marcada
+                val selecionada = opcao in marcadas
                 val rotulo = if (opcao == 60) {
                     activity.getString(R.string.antecedencia_chip_hora)
                 } else {
@@ -241,12 +257,23 @@ internal object MenuPrincipal {
                         layoutParams = LinearLayout.LayoutParams(0, activity.emPx(40f), 1f).apply {
                             if (indice > 0) marginStart = activity.emPx(8f)
                         }
-                        setOnClickListener { aplicarAntecedencia(activity, container, opcao) }
+                        setOnClickListener {
+                            val novo = when {
+                                !ativo -> listOf(opcao)
+                                opcao in selecionados -> selecionados - opcao
+                                else -> selecionados + opcao
+                            }
+                            aplicarAntecedencia(activity, container, novo)
+                        }
                     }
                 )
             }
         }
     }
+
+    private fun dicaDeAntecedencia(activity: Activity) =
+        texto(activity, activity.getString(R.string.antecedencia_dica), 12f, activity.getColor(R.color.texto_suave), Typeface.NORMAL)
+            .apply { layoutParams = parametros(activity, topo = 8f, inicio = 2f) }
 
     /** Liga/desliga o aviso extra "começando agora", na hora exata da sessão. */
     private fun linhaNaHora(activity: Activity, container: LinearLayout, ativo: Boolean): View {
@@ -256,30 +283,31 @@ internal object MenuPrincipal {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = activity.emPx(48f)
-            isClickable = true
-            isFocusable = true
             alpha = if (ativo) 1f else 0.45f
-            contentDescription = activity.getString(
-                if (ligado) R.string.cd_desligar_na_hora else R.string.cd_ligar_na_hora
-            )
-            background = comToque(activity, Color.TRANSPARENT, null, 10f)
-            layoutParams = parametros(activity, topo = 8f)
+            layoutParams = parametros(activity, topo = 6f)
             addView(
-                texto(activity, activity.getString(R.string.na_hora_curto), 15f, Color.WHITE, Typeface.NORMAL)
+                texto(activity, activity.getString(R.string.na_hora_curto), 14f, Color.WHITE, Typeface.NORMAL)
                     .apply { layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f) }
             )
-            addView(interruptor(activity, ligado))
-            setOnClickListener {
-                PreferenciasDeAviso.definirAvisarNaHora(activity, !ligado)
-                AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
-                montar(activity, container)
-            }
+            addView(
+                interruptor(
+                    activity,
+                    "nahora",
+                    ligado,
+                    activity.getString(if (ligado) R.string.cd_desligar_na_hora else R.string.cd_ligar_na_hora)
+                ) {
+                    PreferenciasDeAviso.definirAvisarNaHora(activity, !ligado)
+                    AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
+                    montar(activity, container)
+                }
+            )
         }
     }
 
     /**
-     * Uma linha por categoria: selo colorido, nome, o que está escolhido e uma seta.
-     * Tocar na linha abre as três opções (todas, só corridas ou nenhuma).
+     * Uma linha por categoria: o selo com a cor e o nome dela, e à direita um botão com o que
+     * está escolhido ("Todas", "Só corridas" ou "Nenhuma"). Só o botão responde ao toque e
+     * abre as três opções.
      */
     private fun linhaDaCategoria(
         activity: Activity,
@@ -292,16 +320,15 @@ internal object MenuPrincipal {
         val aberta = categoriaAberta == categoria.nome
         val resumo = resumoDoModo(activity, modoAtual)
 
-        val selo = texto(activity, seloDaCategoria(categoria.nome), 12f, corDoTextoSobreCor, Typeface.BOLD).apply {
+        val selo = texto(activity, categoria.nome, 13f, corDoTextoSobreCor, Typeface.BOLD).apply {
             gravity = Gravity.CENTER
-            background = forma(activity, Color.parseColor(categoria.cor), null, 14f)
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(56f), activity.emPx(28f))
-        }
-
-        val nome = texto(activity, categoria.nome, 15f, Color.WHITE, Typeface.BOLD).apply {
-            maxLines = 1
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginStart = activity.emPx(12f) }
+            isSingleLine = true
+            setPadding(activity.emPx(14f), 0, activity.emPx(14f), 0)
+            background = forma(activity, Color.parseColor(categoria.cor), null, 15f)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                activity.emPx(30f)
+            )
         }
 
         val seta = ImageView(activity).apply {
@@ -309,27 +336,42 @@ internal object MenuPrincipal {
             setColorFilter(suave)
             rotation = if (aberta) 180f else 0f
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
-                .apply { marginStart = activity.emPx(6f) }
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(18f), activity.emPx(18f))
+                .apply { marginStart = activity.emPx(4f) }
         }
 
-        val cabecalhoDaLinha = LinearLayout(activity).apply {
+        val botao = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = activity.emPx(44f)
-            setPadding(activity.emPx(8f), activity.emPx(4f), activity.emPx(10f), activity.emPx(4f))
+            setPadding(activity.emPx(12f), 0, activity.emPx(8f), 0)
             isClickable = true
             isFocusable = true
             contentDescription = "${categoria.nome}, $resumo"
-            background = comToque(activity, Color.TRANSPARENT, null, 12f)
-            addView(selo)
-            addView(nome)
-            addView(texto(activity, resumo, 13f, suave, Typeface.NORMAL))
+            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 16f)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                activity.emPx(32f)
+            )
+            addView(texto(activity, resumo, 13f, Color.WHITE, Typeface.NORMAL))
             addView(seta)
             setOnClickListener {
                 categoriaAberta = if (aberta) null else categoria.nome
                 montar(activity, container)
             }
+        }
+
+        val espaco = View(activity).apply {
+            layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
+        }
+
+        val cabecalhoDaLinha = LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = activity.emPx(46f)
+            setPadding(activity.emPx(8f), activity.emPx(4f), activity.emPx(8f), activity.emPx(4f))
+            addView(selo)
+            addView(espaco)
+            addView(botao)
         }
 
         return LinearLayout(activity).apply {
@@ -338,7 +380,7 @@ internal object MenuPrincipal {
                 activity,
                 activity.getColor(R.color.superficie),
                 activity.getColor(R.color.borda_suave),
-                12f
+                14f
             )
             // Esmaecido quando os avisos estão desligados; as escolhas continuam valendo.
             alpha = if (ativo) 1f else 0.45f
@@ -519,13 +561,11 @@ internal object MenuPrincipal {
 
     // --------------------------------------------------------------- ações
 
-    /** Salva a antecedência (ou desliga, com zero), pede permissão se preciso e redesenha. */
-    private fun aplicarAntecedencia(activity: Activity, container: LinearLayout, minutos: Int) {
-        PreferenciasDeAviso.definir(activity, minutos)
+    /** Salva as antecedências (lista vazia desliga), pede permissão se preciso e redesenha. */
+    private fun aplicarAntecedencia(activity: Activity, container: LinearLayout, minutos: Collection<Int>) {
+        PreferenciasDeAviso.definirSelecionados(activity, minutos)
 
-        if (minutos != PreferenciasDeAviso.DESATIVADO &&
-            Notificacoes.precisaPedirPermissao(activity)
-        ) {
+        if (minutos.isNotEmpty() && Notificacoes.precisaPedirPermissao(activity)) {
             Notificacoes.pedirPermissao(activity)
         }
 
@@ -552,14 +592,6 @@ internal object MenuPrincipal {
                 ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
             }
         )
-
-    /** Texto do selo colorido; nomes longos usam uma abreviação para caber. */
-    private fun seloDaCategoria(nome: String): String =
-        when (Formatacao.normalizar(nome)) {
-            "formula e" -> "FE"
-            "indycar" -> "INDY"
-            else -> nome.uppercase()
-        }
 
     private fun rotuloDoModo(activity: Activity, modo: ModoDeAviso): String =
         activity.getString(

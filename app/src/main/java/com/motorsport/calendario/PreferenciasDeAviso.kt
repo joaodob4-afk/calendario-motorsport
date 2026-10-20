@@ -4,7 +4,7 @@ import android.content.Context
 
 /**
  * Escolhas de notificação do usuário, salvas no aparelho:
- *  - quanto tempo antes de cada sessão avisar (0 significa "não avisar");
+ *  - quanto tempo antes de cada sessão avisar (uma ou mais antecedências; nenhuma = avisos desligados);
  *  - para cada categoria, avisar de todas as sessões, só das corridas ou de nenhuma.
  */
 internal object PreferenciasDeAviso {
@@ -12,6 +12,8 @@ internal object PreferenciasDeAviso {
     private const val ARQUIVO = "preferencias"
     private const val CHAVE_MINUTOS = "aviso_minutos_antes"
     private const val CHAVE_ULTIMOS_MINUTOS = "aviso_ultimos_minutos"
+    private const val CHAVE_LISTA = "aviso_minutos_lista"
+    private const val CHAVE_ULTIMA_LISTA = "aviso_ultimos_minutos_lista"
     private const val PREFIXO_MODO = "aviso_modo_"
     private const val CHAVE_NA_HORA = "aviso_na_hora_de_comecar"
 
@@ -26,28 +28,60 @@ internal object PreferenciasDeAviso {
     private fun arquivo(context: Context) =
         context.applicationContext.getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
 
-    /** Valor salvo. Qualquer valor fora das opções (ou nenhum) conta como desativado. */
-    fun minutosAntes(context: Context): Int {
-        val salvo = arquivo(context).getInt(CHAVE_MINUTOS, DESATIVADO)
+    /** Antecedências escolhidas, da menor para a maior. Vazia significa "avisos desligados". */
+    fun minutosSelecionados(context: Context): List<Int> {
+        val salvos = arquivo(context)
+        val lista = salvos.getString(CHAVE_LISTA, null)
 
-        return if (salvo in opcoes) salvo else DESATIVADO
+        if (lista != null) return converter(lista)
+
+        // Versões anteriores guardavam uma antecedência só.
+        val antigo = salvos.getInt(CHAVE_MINUTOS, DESATIVADO)
+
+        return if (antigo in opcoes) listOf(antigo) else emptyList()
     }
 
-    /** Última antecedência escolhida, mesmo que os avisos tenham sido desligados depois. */
-    fun ultimaAntecedencia(context: Context): Int {
-        val salvo = arquivo(context).getInt(CHAVE_ULTIMOS_MINUTOS, PADRAO_MINUTOS)
+    /** Última escolha feita, mesmo que os avisos tenham sido desligados depois. */
+    fun ultimasSelecionadas(context: Context): List<Int> {
+        val salvos = arquivo(context)
+        val lista = salvos.getString(CHAVE_ULTIMA_LISTA, null)?.let { converter(it) }
 
-        return if (salvo in opcoes) salvo else PADRAO_MINUTOS
+        if (!lista.isNullOrEmpty()) return lista
+
+        val antigo = salvos.getInt(CHAVE_ULTIMOS_MINUTOS, PADRAO_MINUTOS)
+
+        return listOf(if (antigo in opcoes) antigo else PADRAO_MINUTOS)
     }
 
-    /** Salva a escolha. Valores fora das opções são gravados como desativado. */
-    fun definir(context: Context, minutos: Int) {
-        val valido = if (minutos in opcoes) minutos else DESATIVADO
+    /** Salva as antecedências. Valores fora das opções são ignorados; lista vazia desliga. */
+    fun definirSelecionados(context: Context, minutos: Collection<Int>) {
+        val validos = minutos.filter { it in opcoes }.distinct().sorted()
+        val texto = validos.joinToString(",")
 
         arquivo(context).edit().apply {
-            putInt(CHAVE_MINUTOS, valido)
-            if (valido != DESATIVADO) putInt(CHAVE_ULTIMOS_MINUTOS, valido)
+            putString(CHAVE_LISTA, texto)
+            if (validos.isNotEmpty()) putString(CHAVE_ULTIMA_LISTA, texto)
         }.apply()
+    }
+
+    private fun converter(texto: String): List<Int> =
+        texto.split(",")
+            .mapNotNull { it.trim().toIntOrNull() }
+            .filter { it in opcoes }
+            .distinct()
+            .sorted()
+
+    /** Maior antecedência escolhida, ou [DESATIVADO]. Mantido para quem usa um valor só. */
+    fun minutosAntes(context: Context): Int =
+        minutosSelecionados(context).maxOrNull() ?: DESATIVADO
+
+    /** Maior antecedência da última escolha. Mantido para quem usa um valor só. */
+    fun ultimaAntecedencia(context: Context): Int =
+        ultimasSelecionadas(context).maxOrNull() ?: PADRAO_MINUTOS
+
+    /** Escolhe uma antecedência só (ou desliga, com zero ou valor inválido). */
+    fun definir(context: Context, minutos: Int) {
+        definirSelecionados(context, if (minutos in opcoes) listOf(minutos) else emptyList())
     }
 
     /** Se também deve avisar na hora exata em que a sessão começa. Ligado por padrão. */

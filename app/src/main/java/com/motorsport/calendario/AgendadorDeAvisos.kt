@@ -64,8 +64,8 @@ internal object AgendadorDeAvisos {
 
             cancelarAnteriores(app, alarmes)
 
-            val minutos = PreferenciasDeAviso.minutosAntes(app)
-            if (minutos == PreferenciasDeAviso.DESATIVADO || !Notificacoes.permitidas(app)) {
+            val minutos = PreferenciasDeAviso.minutosSelecionados(app)
+            if (minutos.isEmpty() || !Notificacoes.permitidas(app)) {
                 guardarCodigos(app, emptySet())
                 return
             }
