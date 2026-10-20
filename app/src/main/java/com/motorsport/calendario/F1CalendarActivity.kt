@@ -235,6 +235,7 @@ class F1CalendarActivity : AppCompatActivity() {
                     buscarCorridasF1()
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
                     layout.removeView(
                         carregando
@@ -287,6 +288,7 @@ class F1CalendarActivity : AppCompatActivity() {
             } catch (e: Exception) {
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
 
                     carregando.text =
                         getString(R.string.f1_erro_calendario, e.javaClass.simpleName)

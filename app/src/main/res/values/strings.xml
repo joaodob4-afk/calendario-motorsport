@@ -5,25 +5,14 @@
 
     <string name="app_name">Motorsport Calendar</string>
 
-    <string name="menu_marca">MOTORSPORT CALENDAR</string>
     <string name="menu_titulo">Alert management</string>
-    <string name="menu_secao_lembretes">REMINDERS</string>
-    <string name="menu_secao_campeonato">BY CHAMPIONSHIP</string>
-    <string name="menu_em_breve">More features coming soon.</string>
 
-    <string name="lembrete_titulo">Remind before sessions</string>
-    <string name="desligado">Off</string>
     <string name="antecedencia_hora">1 hour before the session</string>
     <string name="antecedencia_minutos">%d minutes before the session</string>
-    <string name="cd_desligar_avisos">Turn off reminders</string>
-    <string name="cd_ligar_avisos">Turn on reminders</string>
 
-    <string name="na_hora_titulo">Remind at start time</string>
-    <string name="na_hora_ligado">A \"Starting now\" alert</string>
     <string name="cd_desligar_na_hora">Turn off start-time alert</string>
     <string name="cd_ligar_na_hora">Turn on start-time alert</string>
 
-    <string name="campeonato_intro">Choose what to be notified about in each championship.</string>
     <string name="campeonato_legenda">All: practice, qualifying and races.\nRaces: sprints and main races.</string>
     <string name="modo_todas">All</string>
     <string name="modo_corridas">Races</string>
@@ -80,7 +69,6 @@
     <string name="busca_hint">Search race</string>
     <string name="cd_filtros">Filters</string>
     <string name="cd_bandeira_proxima">Next round flag</string>
-    <string name="cd_bandeira_pais">Country flag</string>
     <string name="contador_hoje">TODAY</string>
     <string name="contador_amanha">TOMORROW</string>
     <string name="contador_dias">%1$d DAYS</string>
@@ -119,10 +107,6 @@
     <string name="temporada_terminou">The %1$s season is over.</string>
 
     <!-- Painel de avisos (novo visual) -->
-    <string name="geral_titulo">General</string>
-    <string name="avisos_ligados">Alerts on</string>
-    <string name="avisos_desligados">Alerts off</string>
-    <string name="avisos_ligados_desc">Get reminders before sessions</string>
     <string name="antecedencia_titulo">By lead time</string>
     <string name="antecedencia_chip_hora">1 hour</string>
     <string name="na_hora_curto">Alert at start time</string>

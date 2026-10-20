@@ -66,6 +66,7 @@ class F1Activity : AppCompatActivity() {
                 val corrida = buscarCorridaSelecionada()
 
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     try {
                         if (corrida != null) {
                             mostrarEvento(corrida)
@@ -84,6 +85,7 @@ class F1Activity : AppCompatActivity() {
             } catch (e: Exception) {
                 registrarFalha("F1Activity.onCreate", e)
                 runOnUiThread {
+                    if (isFinishing || isDestroyed) return@runOnUiThread
                     mostrarErro(
                         getString(R.string.f1_erro_carregar)
                     )
@@ -103,7 +105,7 @@ class F1Activity : AppCompatActivity() {
             estilo.cabecalho(getString(R.string.formula_1), getString(R.string.cd_voltar)) {
                 finish()
                 overridePendingTransition(
-                    android.R.anim.slide_in_left,
+                    R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
             },
@@ -861,6 +863,7 @@ class F1Activity : AppCompatActivity() {
                         val corrida = buscarCorridaSelecionada()
 
                         runOnUiThread {
+                            if (isFinishing || isDestroyed) return@runOnUiThread
                             try {
                                 if (corrida != null) {
                                     mostrarEvento(corrida)
@@ -877,6 +880,7 @@ class F1Activity : AppCompatActivity() {
                     } catch (e: Exception) {
                         registrarFalha("F1Activity.mostrarErro", e)
                         runOnUiThread {
+                            if (isFinishing || isDestroyed) return@runOnUiThread
                             mostrarErro(
                                 getString(R.string.f1_falha_conexao)
                             )

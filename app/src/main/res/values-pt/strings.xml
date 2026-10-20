@@ -4,25 +4,14 @@
 
     <string name="app_name">Calendário Motorsport</string>
 
-    <string name="menu_marca">CALENDÁRIO MOTORSPORT</string>
     <string name="menu_titulo">Gerenciamento de alertas</string>
-    <string name="menu_secao_lembretes">LEMBRETES</string>
-    <string name="menu_secao_campeonato">POR CAMPEONATO</string>
-    <string name="menu_em_breve">Mais funções em breve.</string>
 
-    <string name="lembrete_titulo">Avisar antes das sessões</string>
-    <string name="desligado">Desligado</string>
     <string name="antecedencia_hora">1 hora antes da sessão</string>
     <string name="antecedencia_minutos">%d minutos antes da sessão</string>
-    <string name="cd_desligar_avisos">Desligar avisos</string>
-    <string name="cd_ligar_avisos">Ligar avisos</string>
 
-    <string name="na_hora_titulo">Avisar na hora de começar</string>
-    <string name="na_hora_ligado">Uma notificação \"Começando agora\"</string>
     <string name="cd_desligar_na_hora">Desligar aviso na hora</string>
     <string name="cd_ligar_na_hora">Ligar aviso na hora</string>
 
-    <string name="campeonato_intro">Escolha o que avisar em cada campeonato.</string>
     <string name="campeonato_legenda">Todas: treinos, classificações e corridas.\nCorridas: sprints e corridas principais.</string>
     <string name="modo_todas">Todas</string>
     <string name="modo_corridas">Corridas</string>
@@ -79,7 +68,6 @@
     <string name="busca_hint">Buscar corrida</string>
     <string name="cd_filtros">Filtros</string>
     <string name="cd_bandeira_proxima">Bandeira da próxima etapa</string>
-    <string name="cd_bandeira_pais">Bandeira do país</string>
     <string name="contador_hoje">HOJE</string>
     <string name="contador_amanha">AMANHÃ</string>
     <string name="contador_dias">%1$d DIAS</string>
@@ -118,10 +106,6 @@
     <string name="temporada_terminou">A temporada da %1$s já terminou.</string>
 
     <!-- Painel de avisos (novo visual) -->
-    <string name="geral_titulo">Geral</string>
-    <string name="avisos_ligados">Avisos ligados</string>
-    <string name="avisos_desligados">Avisos desligados</string>
-    <string name="avisos_ligados_desc">Receba lembretes antes das sessões</string>
     <string name="antecedencia_titulo">Por antecedência</string>
     <string name="antecedencia_chip_hora">1 hora</string>
     <string name="na_hora_curto">Alertar na hora de começar</string>

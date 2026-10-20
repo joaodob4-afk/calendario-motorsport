@@ -63,7 +63,7 @@ class FormulaEActivity : AppCompatActivity() {
             estilo.cabecalho(getString(R.string.formula_e), getString(R.string.cd_voltar)) {
                 finish()
                 overridePendingTransition(
-                    android.R.anim.slide_in_left,
+                    R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
             },
