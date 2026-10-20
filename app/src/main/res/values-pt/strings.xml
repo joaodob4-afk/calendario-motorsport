@@ -124,7 +124,8 @@
     <string name="avisos_ligados_desc">Receba lembretes antes das sessões</string>
     <string name="antecedencia_titulo">Antecedência</string>
     <string name="antecedencia_chip_hora">1 hora</string>
-    <string name="na_hora_curto">Também avisar na hora de começar</string>
+    <string name="na_hora_curto">Avisar na hora de começar</string>
     <string name="por_categoria_titulo">Por categoria</string>
     <string name="modo_so_corridas">Só corridas</string>
+    <string name="antecedencia_dica">Você pode escolher mais de um</string>
 </resources>

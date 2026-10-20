@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -102,5 +103,51 @@ class MenuPrincipalTest {
         assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
         assertEquals(0, textosIguais(corridas))
         assertTrue(activity.getString(R.string.modo_so_corridas) in textos())
+    }
+
+    private fun textView(texto: String): TextView =
+        todas(container).filterIsInstance<TextView>().first { it.text.toString() == texto }
+
+    @Test
+    fun podeMarcarMaisDeUmaAntecedenciaEDesmarcarOUltimaDesliga() {
+        textView("15 min").performClick()
+        assertEquals(listOf(15), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("45 min").performClick()
+        assertEquals(listOf(15, 45), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("15 min").performClick()
+        assertEquals(listOf(45), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("45 min").performClick()
+        assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
+        assertTrue(activity.getString(R.string.avisos_desligados) in textos())
+        assertEquals(listOf(45), PreferenciasDeAviso.ultimasSelecionadas(activity))
+    }
+
+    @Test
+    fun cadaCategoriaAparecePelaCorEPeloNomeUmaVezSo() {
+        Categorias.todas.forEach {
+            assertEquals("Nome repetido: ${it.nome}", 1, textosIguais(it.nome))
+        }
+    }
+
+    @Test
+    fun soOsBotoesDoCartaoRespondemAoToque() {
+        val selo = textView("MotoGP")
+        val linha = selo.parent as View
+        val cartao = linha.parent as View
+
+        assertFalse(selo.isClickable)
+        assertFalse(linha.isClickable)
+        assertFalse(cartao.isClickable)
+
+        val interruptores = todas(container).filterIsInstance<InterruptorModerno>()
+        assertEquals(2, interruptores.size)
+        assertTrue(interruptores.all { it.isClickable })
+
+        val titulo = textView(activity.getString(R.string.na_hora_curto))
+        assertFalse(titulo.isClickable)
+        assertFalse((titulo.parent as View).isClickable)
     }
 }

@@ -125,7 +125,8 @@
     <string name="avisos_ligados_desc">Get reminders before sessions</string>
     <string name="antecedencia_titulo">Lead time</string>
     <string name="antecedencia_chip_hora">1 hour</string>
-    <string name="na_hora_curto">Also alert when it starts</string>
+    <string name="na_hora_curto">Alert at start time</string>
     <string name="por_categoria_titulo">By category</string>
     <string name="modo_so_corridas">Races only</string>
+    <string name="antecedencia_dica">You can choose more than one</string>
 </resources>
