@@ -96,7 +96,9 @@ internal object AgendadorDeAvisos {
                     .putExtra(EXTRA_NOME, sessao.nome)
                     .putExtra(EXTRA_EVENTO, sessao.evento)
                     .putExtra(EXTRA_INICIO_MS, sessao.inicio.toInstant().toEpochMilli())
-                    .putExtra(EXTRA_CODIGO, sessao.codigo)
+                    // Id da notificação = id do alarme: cada aviso (1h, 30 min, início...) vira uma
+                    // notificação própria, em vez de substituir a anterior da mesma sessão.
+                    .putExtra(EXTRA_CODIGO, aviso.codigoDoAlarme)
                     .putExtra(EXTRA_NA_HORA, aviso.naHoraDeComecar)
 
                 val pendente = PendingIntent.getBroadcast(
