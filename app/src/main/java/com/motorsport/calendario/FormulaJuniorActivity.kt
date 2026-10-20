@@ -484,43 +484,8 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         return view
     }
 
-    private fun obterRecursoBandeira(pais: String): Int {
-        val nome = when (pais.trim().lowercase(idioma)) {
-            "bahrain", "bahrein" -> "flag_bh"
-            "saudi arabia", "arábia saudita" -> "flag_sa"
-            "australia", "austrália" -> "flag_au"
-            "japan", "japão" -> "flag_jp"
-            "china" -> "flag_cn"
-            "united states", "estados unidos", "usa" -> "flag_us"
-            "canada", "canadá" -> "flag_ca"
-            "monaco", "mônaco" -> "flag_mc"
-            "spain", "espanha" -> "flag_es"
-            "austria", "áustria" -> "flag_at"
-            "united kingdom", "great britain", "reino unido" -> "flag_gb"
-            "belgium", "bélgica" -> "flag_be"
-            "hungary", "hungria" -> "flag_hu"
-            "netherlands", "holanda", "países baixos" -> "flag_nl"
-            "italy", "itália" -> "flag_it"
-            "azerbaijan", "azerbaijão" -> "flag_az"
-            "singapore", "singapura" -> "flag_sg"
-            "mexico", "méxico" -> "flag_mx"
-            "brazil", "brasil" -> "flag_br"
-            "united arab emirates", "emirados árabes unidos" -> "flag_ae"
-            "qatar", "catar" -> "flag_qa"
-            "portugal" -> "flag_pt"
-            "france", "frança" -> "flag_fr"
-            "germany", "alemanha" -> "flag_de"
-            else -> ""
-        }
+    private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
 
-        if (nome.isBlank()) return 0
-
-        return resources.getIdentifier(
-            nome,
-            "drawable",
-            packageName
-        )
-    }
 
     private fun formatarData(data: String): String {
         if (data.isBlank()) return ""

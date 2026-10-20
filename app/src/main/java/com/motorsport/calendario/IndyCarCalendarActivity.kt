@@ -338,24 +338,8 @@ class IndyCarCalendarActivity : AppCompatActivity() {
         )
     }
 
-    private fun obterBandeira(pais: String): String {
-        return when (pais.trim()) {
-            "Arábia Saudita" -> "🇸🇦"
-            "México" -> "🇲🇽"
-            "Estados Unidos" -> "🇺🇸"
-            "Canadá" -> "🇨🇦"
-            "Brasil" -> "🇧🇷"
-            "Alemanha" -> "🇩🇪"
-            "Mônaco" -> "🇲🇨"
-            "Reino Unido" -> "🇬🇧"
-            "Holanda" -> "🇳🇱"
-            "Espanha" -> "🇪🇸"
-            "China" -> "🇨🇳"
-            "Japão" -> "🇯🇵"
-            "Itália" -> "🇮🇹"
-            else -> "🏳️"
-        }
-    }
+    private fun obterBandeira(pais: String): String = Bandeiras.emoji(pais, "🏳️")
+
 
     private fun abrirEtapa(
         evento: IndyCarEvent

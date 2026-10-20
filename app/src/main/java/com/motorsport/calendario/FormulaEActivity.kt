@@ -479,38 +479,8 @@ class FormulaEActivity : AppCompatActivity() {
         conteudo.addView(tentarNovamente)
     }
 
-    private fun obterRecursoBandeira(pais: String): Int {
-        val nome = when (pais.trim()) {
-            "Arábia Saudita" -> "flag_sa"
-            "México" -> "flag_mx"
-            "Estados Unidos" -> "flag_us"
-            "Brasil" -> "flag_br"
-            "Alemanha" -> "flag_de"
-            "Mônaco" -> "flag_mc"
-            "Reino Unido" -> "flag_gb"
-            "Holanda" -> "flag_nl"
-            "Espanha" -> "flag_es"
-            "China" -> "flag_cn"
-            "Japão" -> "flag_jp"
-            "Itália" -> "flag_it"
-            "Hungria" -> "flag_hu"
-            "Bélgica" -> "flag_be"
-            "Áustria" -> "flag_at"
-            "Austrália" -> "flag_au"
-            "Singapura" -> "flag_sg"
-            "Catar" -> "flag_qa"
-            "Emirados Árabes Unidos", "Abu Dhabi" -> "flag_ae"
-            else -> ""
-        }
+    private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
 
-        if (nome.isBlank()) return 0
-
-        return resources.getIdentifier(
-            nome,
-            "drawable",
-            packageName
-        )
-    }
 
     private fun dp(valor: Int): Int {
         return (

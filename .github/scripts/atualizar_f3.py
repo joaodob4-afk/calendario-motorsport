@@ -15,7 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import baixar_texto as baixar, gravar_se_mudou, parse_utc  # noqa: E402
 
 BASE = "https://www.fiaformula3.com"
-TEMPORADAS_PREFERIDAS = (datetime.now().year,)
+# Ano atual primeiro; o anterior só serve de reserva no começo do ano, antes de o site publicar
+# a nova temporada (assim o job não falha todos os dias de janeiro).
+TEMPORADAS_PREFERIDAS = (datetime.now().year, datetime.now().year - 1)
 SAIDA = Path("app/src/main/assets/f3_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 
