@@ -135,14 +135,6 @@ internal object MenuPrincipal {
         layoutParams = parametros(activity)
     }
 
-    private fun divisoria(activity: Activity) = View(activity).apply {
-        setBackgroundColor(activity.getColor(R.color.borda_suave))
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            activity.emPx(1f)
-        ).apply { topMargin = activity.emPx(4f) }
-    }
-
     /** Estado dos interruptores antes do toque; faz a bolinha deslizar quando o painel é refeito. */
     private val estadoAnteriorDosInterruptores = mutableMapOf<String, Boolean>()
 

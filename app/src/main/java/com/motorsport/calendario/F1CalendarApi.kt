@@ -160,7 +160,6 @@ object F1CalendarApi {
 
         Thread {
             var gravou = false
-            var conexao: HttpURLConnection? = null
 
             try {
                 // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.

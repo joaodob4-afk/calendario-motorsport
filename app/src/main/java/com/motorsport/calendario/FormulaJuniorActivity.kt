@@ -184,7 +184,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         finish()
 
         overridePendingTransition(
-            android.R.anim.slide_in_left,
+            R.anim.slide_in_left,
             R.anim.slide_out_right
         )
     }

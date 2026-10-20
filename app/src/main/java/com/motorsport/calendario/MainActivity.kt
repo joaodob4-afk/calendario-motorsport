@@ -21,6 +21,10 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
+    private companion object {
+        const val CHAVE_CATEGORIA = "categoria_atual"
+    }
+
     private var categoriaAtual = ""
 
     data class Etapa(
@@ -78,6 +82,7 @@ class MainActivity : AppCompatActivity() {
      * refazer a lista inteira a cada um, agrupa tudo em um único redesenho.
      */
     private fun redesenharListaDepois() {
+        if (isFinishing || isDestroyed) return
         handlerRedesenho.removeCallbacks(redesenhoDaLista)
         handlerRedesenho.postDelayed(redesenhoDaLista, 400)
     }
@@ -111,7 +116,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        carregarCalendarios()
+        // Em rotação/recriação, não baixa tudo de novo (o cache já está atualizado).
+        carregarCalendarios(baixar = savedInstanceState == null)
 
         onBackPressedDispatcher.addCallback(
             this,
@@ -140,6 +146,15 @@ class MainActivity : AppCompatActivity() {
         )
 
         mostrarMenu()
+
+        savedInstanceState?.getString(CHAVE_CATEGORIA)
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { abrirCategoria(it) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(CHAVE_CATEGORIA, categoriaAtual)
     }
 
     /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
@@ -158,7 +173,7 @@ class MainActivity : AppCompatActivity() {
      * aparecer logo. O download das versões novas só começa depois, para uma leitura antiga
      * nunca sobrescrever uma atualização.
      */
-    private fun carregarCalendarios() {
+    private fun carregarCalendarios(baixar: Boolean = true) {
         val app = applicationContext
 
         Thread {
@@ -189,7 +204,7 @@ class MainActivity : AppCompatActivity() {
                     mostrarEtapas(todasEtapas)
                 }
 
-                baixarCalendariosNovos()
+                if (baixar) baixarCalendariosNovos()
             }
         }.start()
     }
@@ -197,43 +212,48 @@ class MainActivity : AppCompatActivity() {
     /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
     private fun baixarCalendariosNovos() {
         F2CalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF2Dinamicas = F2CalendarJson.comoEtapas(F2CalendarJson.carregar(this))
-            redesenharListaDepois()
+            recarregar({ F2CalendarJson.comoEtapas(F2CalendarJson.carregar(applicationContext)) }) { etapasF2Dinamicas = it }
         }
 
         F3CalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF3Dinamicas = F3CalendarJson.comoEtapas(F3CalendarJson.carregar(this))
-            redesenharListaDepois()
+            recarregar({ F3CalendarJson.comoEtapas(F3CalendarJson.carregar(applicationContext)) }) { etapasF3Dinamicas = it }
         }
 
         IndyCarCalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasIndyCarDinamicas = IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(this))
-            redesenharListaDepois()
+            recarregar({ IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(applicationContext)) }) { etapasIndyCarDinamicas = it }
         }
 
         FormulaECalendarJson.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasFormulaEDinamicas = FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(this))
-            redesenharListaDepois()
+            recarregar({ FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(applicationContext)) }) { etapasFormulaEDinamicas = it }
         }
 
-        // MotoGP, Moto2 e Moto3 usam as mesmas telas; cada classe tem o seu calendário.
+        // MotoGP, Moto2, Moto3 e WEC usam as mesmas telas; cada classe tem o seu calendário.
         for (classe in ClasseMoto.values()) {
             MotoCalendarJson.atualizar(this, classe) {
-                AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-                etapasMotoDinamicas = MotoCalendarJson.etapasDeTodas(this)
-                redesenharListaDepois()
+                recarregar({ MotoCalendarJson.etapasDeTodas(applicationContext) }) { etapasMotoDinamicas = it }
             }
         }
 
         F1CalendarApi.atualizar(this) {
-            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-            etapasF1Dinamicas = F1CalendarApi.carregarCache(this)
-            redesenharListaDepois()
+            recarregar({ F1CalendarApi.carregarCache(applicationContext) }) { etapasF1Dinamicas = it }
         }
+    }
+
+    /**
+     * Relê um calendário fora da thread principal (disco + JSON), reagenda os avisos e só então
+     * aplica o resultado na tela, se ela ainda existir.
+     */
+    private fun recarregar(carga: () -> List<Etapa>?, aplicar: (List<Etapa>?) -> Unit) {
+        val app = applicationContext
+        Thread {
+            val etapas = lerEtapas("recarregar", carga)
+            AgendadorDeAvisos.reagendarEmSegundoPlano(app)
+            runOnUiThread {
+                if (isFinishing || isDestroyed) return@runOnUiThread
+                aplicar(etapas)
+                redesenharListaDepois()
+            }
+        }.start()
     }
 
     override fun onResume() {
@@ -309,13 +329,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate {
         val inicio = parseDataSegura(etapa.dataInicio) ?: java.time.LocalDate.now()
-        return try {
-            val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
-            if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
-        } catch (e: Exception) {
-            registrarDescarte("MainActivity.fimDaEtapa", e)
-            inicio.plusDays(2)
-        }
+        val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
+        return if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
     }
 
     /**
@@ -330,7 +345,7 @@ class MainActivity : AppCompatActivity() {
             !fimDaEtapa(it).isBefore(hoje) && parseDataSegura(it.dataInicio) != null
         }
 
-        val emAndamento = abertas.filter { !parseDataSegura(it.dataInicio)!!.isAfter(hoje) }
+        val emAndamento = abertas.filter { parseDataSegura(it.dataInicio)?.isAfter(hoje) == false }
 
         val grupo = if (emAndamento.isNotEmpty()) {
             emAndamento
@@ -1099,15 +1114,18 @@ class MainActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
+    /** O início do evento (dd/MM/yyyy) é o mesmo da etapa (yyyy-MM-dd)? Desempata circuitos repetidos. */
+    private fun mesmaData(inicio: String, etapa: Etapa): Boolean =
+        runCatching {
+            java.time.LocalDate.parse(inicio, DateTimeFormatter.ofPattern("dd/MM/uuuu")).toString() == etapa.dataInicio
+        }.getOrDefault(false)
+
     private fun abrirEventoF2PelaEtapa(etapa: Etapa) {
         var encontrado: F2Event? = null
 
-        for (item in F2CalendarJson.carregar(this)) {
-            if (item.circuito.equals(etapa.circuito, ignoreCase = true)) {
-                encontrado = item
-                break
-            }
-        }
+        val doCircuito = F2CalendarJson.carregar(this)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        encontrado = doCircuito.firstOrNull { mesmaData(it.inicio, etapa) } ?: doCircuito.firstOrNull()
 
         if (encontrado != null) {
             abrirEventoF2Item(encontrado)
@@ -1126,8 +1144,9 @@ class MainActivity : AppCompatActivity() {
     private fun abrirEventoMotoPelaEtapa(etapa: Etapa) {
         val classe = ClasseMoto.porRotulo(etapa.categoria) ?: return
 
-        val encontrado = MotoCalendarJson.carregar(this, classe)
-            .firstOrNull { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        val doCircuito = MotoCalendarJson.carregar(this, classe)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        val encontrado = doCircuito.firstOrNull { mesmaData(it.inicio, etapa) } ?: doCircuito.firstOrNull()
 
         if (encontrado != null) {
             val intent = Intent(this, MotoActivity::class.java)
@@ -1143,12 +1162,9 @@ class MainActivity : AppCompatActivity() {
     private fun abrirEventoF3PelaEtapa(etapa: Etapa) {
         var encontrado: F3Event? = null
 
-        for (item in F3CalendarJson.carregar(this)) {
-            if (item.circuito.equals(etapa.circuito, ignoreCase = true)) {
-                encontrado = item
-                break
-            }
-        }
+        val doCircuito = F3CalendarJson.carregar(this)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        encontrado = doCircuito.firstOrNull { mesmaData(it.inicio, etapa) } ?: doCircuito.firstOrNull()
 
         if (encontrado != null) {
             abrirEventoF3Item(encontrado)
@@ -1167,15 +1183,9 @@ class MainActivity : AppCompatActivity() {
     private fun abrirEventoFormulaEPelaEtapa(etapa: Etapa) {
         var encontrado: FormulaEEvent? = null
 
-        for (item in FormulaECalendarJson.carregar(this)) {
-            if (
-                item.circuito.equals(etapa.circuito, ignoreCase = true) &&
-                item.inicio.takeLast(4) == etapa.dataInicio.take(4)
-            ) {
-                encontrado = item
-                break
-            }
-        }
+        val doCircuito = FormulaECalendarJson.carregar(this)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        encontrado = doCircuito.firstOrNull { mesmaData(it.inicio, etapa) } ?: doCircuito.firstOrNull()
 
         if (encontrado != null) {
             abrirEventoFormulaEItem(encontrado)

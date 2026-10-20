@@ -10,8 +10,6 @@ import json
 import math
 import re
 import sys
-import time
-import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo

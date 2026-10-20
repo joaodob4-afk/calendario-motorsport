@@ -68,7 +68,7 @@ IndyCarCalendarJson.atualizar(this) {
             estilo.cabecalho("INDYCAR", getString(R.string.cd_voltar)) {
                 finish()
                 overridePendingTransition(
-                    android.R.anim.slide_in_left,
+                    R.anim.slide_in_left,
                     R.anim.slide_out_right
                 )
             },
