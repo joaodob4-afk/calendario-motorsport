@@ -926,42 +926,8 @@ class MainActivity : AppCompatActivity() {
         return if (proxima == etapa) "PRÓXIMA" else "AGENDADA"
     }
 
-    private fun recursoBandeira(pais: String): Int {
-        val arquivo = when (pais) {
-            "Austrália" -> "flag_au"
-            "Japão" -> "flag_jp"
-            "Bahrein" -> "flag_bh"
-            "Arábia Saudita" -> "flag_sa"
-            "Estados Unidos" -> "flag_us"
-            "Canadá" -> "flag_ca"
-            "Mônaco" -> "flag_mc"
-            "Espanha" -> "flag_es"
-            "Áustria" -> "flag_at"
-            "Reino Unido" -> "flag_gb"
-            "Bélgica" -> "flag_be"
-            "Hungria" -> "flag_hu"
-            "Holanda" -> "flag_nl"
-            "Itália" -> "flag_it"
-            "Azerbaijão" -> "flag_az"
-            "Singapura" -> "flag_sg"
-            "México" -> "flag_mx"
-            "Brasil" -> "flag_br"
-            "Catar" -> "flag_qa"
-            "China" -> "flag_cn"
-            "Alemanha" -> "flag_de"
-            "Tailândia" -> "flag_th"
-            "França" -> "flag_fr"
-            "República Tcheca" -> "flag_cz"
-            "Indonésia" -> "flag_id"
-            "Malásia" -> "flag_my"
-            "San Marino" -> "flag_sm"
-            "Portugal" -> "flag_pt"
-            "Abu Dhabi", "Emirados Árabes Unidos" -> "flag_ae"
-            else -> return 0
-        }
+    private fun recursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
 
-        return resources.getIdentifier(arquivo, "drawable", packageName)
-    }
 
     private fun abrirCategoria(categoria: String) {
         categoriaAtual = categoria

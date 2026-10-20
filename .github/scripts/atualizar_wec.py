@@ -22,7 +22,8 @@ from utilitarios import (  # noqa: E402
 )
 
 BASE = "https://www.fiawec.com"
-PAGINAS_INICIAIS = [BASE + "/en/", BASE + "/en/season/2026"]
+# A home vem primeiro; a página da temporada (ano atual) é só reserva.
+PAGINAS_INICIAIS = [BASE + "/en/", f"{BASE}/en/season/{datetime.now().year}"]
 ARQUIVO = Path("app/src/main/assets/wec_calendar.json")
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 CATEGORIA = "WEC"

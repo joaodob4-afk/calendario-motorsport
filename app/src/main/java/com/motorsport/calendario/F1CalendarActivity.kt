@@ -508,63 +508,8 @@ registrarDescarte("F1CalendarActivity.converterParaBrasilia", e)
         }
     }
 
-    private fun obterBandeira(
-        pais: String
-    ): String {
+    private fun obterBandeira(pais: String): String = Bandeiras.emoji(pais, "🏳️")
 
-        return when (
-            pais.lowercase()
-        ) {
-
-            "australia" -> "🇦🇺"
-
-            "japan" -> "🇯🇵"
-
-            "bahrain" -> "🇧🇭"
-
-            "saudi arabia" -> "🇸🇦"
-
-            "usa" -> "🇺🇸"
-
-            "united states" -> "🇺🇸"
-
-            "italy" -> "🇮🇹"
-
-            "monaco" -> "🇲🇨"
-
-            "spain" -> "🇪🇸"
-
-            "canada" -> "🇨🇦"
-
-            "austria" -> "🇦🇹"
-
-            "uk" -> "🇬🇧"
-
-            "united kingdom" -> "🇬🇧"
-
-            "belgium" -> "🇧🇪"
-
-            "hungary" -> "🇭🇺"
-
-            "netherlands" -> "🇳🇱"
-
-            "azerbaijan" -> "🇦🇿"
-
-            "singapore" -> "🇸🇬"
-
-            "mexico" -> "🇲🇽"
-
-            "brazil" -> "🇧🇷"
-
-            "qatar" -> "🇶🇦"
-
-            "uae" -> "🇦🇪"
-
-            "united arab emirates" -> "🇦🇪"
-
-            else -> "🏳️"
-        }
-    }
 
     private fun abrirEtapa(
         race: JSONObject

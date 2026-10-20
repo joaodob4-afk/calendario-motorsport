@@ -85,7 +85,9 @@ def descobrir_calendario():
     Só aceitamos a página se o ano final corresponder à temporada procurada,
     evitando trocar de temporada antes da hora.
     """
-    temporadas = (TEMPORADA_ATUAL,)
+    # No começo do ano, enquanto o site não publica a nova temporada, mantém a anterior
+    # (o arquivo não muda) em vez de falhar todos os dias.
+    temporadas = (TEMPORADA_ATUAL, TEMPORADA_ATUAL - 1)
 
     for temporada in temporadas:
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
