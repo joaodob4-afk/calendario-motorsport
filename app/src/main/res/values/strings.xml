@@ -6,7 +6,7 @@
     <string name="app_name">Motorsport Calendar</string>
 
     <string name="menu_marca">MOTORSPORT CALENDAR</string>
-    <string name="menu_titulo">Alerts</string>
+    <string name="menu_titulo">Alert management</string>
     <string name="menu_secao_lembretes">REMINDERS</string>
     <string name="menu_secao_campeonato">BY CHAMPIONSHIP</string>
     <string name="menu_em_breve">More features coming soon.</string>
@@ -32,7 +32,7 @@
     <string name="bloqueio_titulo">Notifications blocked</string>
     <string name="bloqueio_texto">Tap to allow in the device settings.</string>
     <string name="botao_teste">Send test notification</string>
-    <string name="botao_bateria">Not getting alerts? Adjust battery settings</string>
+    <string name="botao_bateria">Disable optimization restriction</string>
 
     <string name="canal_nome">Session alerts</string>
     <string name="canal_descricao">Reminders before practice, qualifying and races start.</string>
@@ -123,10 +123,12 @@
     <string name="avisos_ligados">Alerts on</string>
     <string name="avisos_desligados">Alerts off</string>
     <string name="avisos_ligados_desc">Get reminders before sessions</string>
-    <string name="antecedencia_titulo">Lead time</string>
+    <string name="antecedencia_titulo">By lead time</string>
     <string name="antecedencia_chip_hora">1 hour</string>
     <string name="na_hora_curto">Alert at start time</string>
     <string name="por_categoria_titulo">By category</string>
     <string name="modo_so_corridas">Races only</string>
     <string name="antecedencia_dica">You can choose more than one</string>
+    <string name="menu_titulo_curto">Manage Alerts</string>
+    <string name="alertas_nao_chegam">Alerts not arriving?</string>
 </resources>

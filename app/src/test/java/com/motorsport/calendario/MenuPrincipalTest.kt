@@ -16,7 +16,7 @@ import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** Confere que o painel de avisos monta sem erro e que os toques principais funcionam. */
+/** Confere que o painel de alertas monta sem erro, na ordem certa, e que os toques funcionam. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class MenuPrincipalTest {
@@ -48,6 +48,34 @@ class MenuPrincipalTest {
 
     private fun textosIguais(texto: String) = textos().count { it == texto }
 
+    private fun textView(texto: String): TextView =
+        todas(container).filterIsInstance<TextView>().first { it.text.toString() == texto }
+
+    private fun comDescricao(descricao: String): View =
+        todas(container).first { it.contentDescription == descricao }
+
+    private fun cartaoDaCategoria(categoria: String) = (linhaDa(categoria).parent as View).parent as View
+
+    @Test
+    fun asSecoesAparecemNaOrdemPedida() {
+        val textos = textos()
+        val ordem = listOf(
+            R.string.menu_titulo,
+            R.string.na_hora_curto,
+            R.string.antecedencia_titulo,
+            R.string.antecedencia_dica,
+            R.string.por_categoria_titulo,
+            R.string.botao_teste,
+            R.string.alertas_nao_chegam,
+            R.string.botao_bateria
+        ).map { activity.getString(it) }
+
+        val posicoes = ordem.map { textos.indexOf(it) }
+
+        posicoes.forEachIndexed { i, posicao -> assertTrue("Falta: ${ordem[i]}", posicao >= 0) }
+        assertEquals("Fora de ordem: $posicoes", posicoes.sorted(), posicoes)
+    }
+
     @Test
     fun mostraOsQuatroBotoesDeAntecedenciaEUmaLinhaPorCategoria() {
         val textos = textos()
@@ -61,18 +89,48 @@ class MenuPrincipalTest {
     }
 
     @Test
-    fun semEscolhaOsAvisosAparecemDesligados() {
-        assertTrue(activity.getString(R.string.avisos_desligados) in textos())
+    fun cadaCategoriaAparecePelaCorEPeloNomeUmaVezSo() {
+        Categorias.todas.forEach {
+            assertEquals("Nome repetido: ${it.nome}", 1, textosIguais(it.nome))
+        }
     }
 
     @Test
-    fun tocarNoCartaoGeralLigaOsAvisosComAUltimaAntecedencia() {
-        todas(container)
-            .first { it.contentDescription == activity.getString(R.string.cd_ligar_avisos) }
-            .performClick()
+    fun oAvisoDaHoraDeComecarVemLigadoNoAndroid12EAnteriores() {
+        assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
+        assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
+        assertEquals(1f, cartaoDaCategoria("F1").alpha, 0.001f)
+    }
 
-        assertEquals(PreferenciasDeAviso.PADRAO_MINUTOS, PreferenciasDeAviso.minutosAntes(activity))
-        assertTrue(activity.getString(R.string.avisos_ligados) in textos())
+    @Test
+    fun ligarEDesligarOAvisoDaHoraDeComecarFuncionaSemNenhumaAntecedencia() {
+        comDescricao(activity.getString(R.string.cd_desligar_na_hora)).performClick()
+        assertFalse(PreferenciasDeAviso.avisarNaHora(activity))
+        // Sem antecedência e sem aviso na hora, nada é avisado: as categorias ficam esmaecidas.
+        assertEquals(0.45f, cartaoDaCategoria("F1").alpha, 0.001f)
+
+        comDescricao(activity.getString(R.string.cd_ligar_na_hora)).performClick()
+        assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
+        assertEquals(1f, cartaoDaCategoria("F1").alpha, 0.001f)
+    }
+
+    @Test
+    fun podeMarcarMaisDeUmaAntecedenciaEDesmarcarTodasSemMexerNoAvisoNaHora() {
+        textView("15 min").performClick()
+        assertEquals(listOf(15), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("45 min").performClick()
+        assertEquals(listOf(15, 45), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("15 min").performClick()
+        assertEquals(listOf(45), PreferenciasDeAviso.minutosSelecionados(activity))
+
+        textView("45 min").performClick()
+        assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
+        assertEquals(listOf(45), PreferenciasDeAviso.ultimasSelecionadas(activity))
+
+        // O aviso da hora de começar não depende das antecedências.
+        assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
     }
 
     @Test
@@ -105,35 +163,8 @@ class MenuPrincipalTest {
         assertTrue(activity.getString(R.string.modo_so_corridas) in textos())
     }
 
-    private fun textView(texto: String): TextView =
-        todas(container).filterIsInstance<TextView>().first { it.text.toString() == texto }
-
     @Test
-    fun podeMarcarMaisDeUmaAntecedenciaEDesmarcarOUltimaDesliga() {
-        textView("15 min").performClick()
-        assertEquals(listOf(15), PreferenciasDeAviso.minutosSelecionados(activity))
-
-        textView("45 min").performClick()
-        assertEquals(listOf(15, 45), PreferenciasDeAviso.minutosSelecionados(activity))
-
-        textView("15 min").performClick()
-        assertEquals(listOf(45), PreferenciasDeAviso.minutosSelecionados(activity))
-
-        textView("45 min").performClick()
-        assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
-        assertTrue(activity.getString(R.string.avisos_desligados) in textos())
-        assertEquals(listOf(45), PreferenciasDeAviso.ultimasSelecionadas(activity))
-    }
-
-    @Test
-    fun cadaCategoriaAparecePelaCorEPeloNomeUmaVezSo() {
-        Categorias.todas.forEach {
-            assertEquals("Nome repetido: ${it.nome}", 1, textosIguais(it.nome))
-        }
-    }
-
-    @Test
-    fun soOsBotoesDoCartaoRespondemAoToque() {
+    fun soOsBotoesERespondemAoToque() {
         val selo = textView("MotoGP")
         val linha = selo.parent as View
         val cartao = linha.parent as View
@@ -143,11 +174,12 @@ class MenuPrincipalTest {
         assertFalse(cartao.isClickable)
 
         val interruptores = todas(container).filterIsInstance<InterruptorModerno>()
-        assertEquals(2, interruptores.size)
+        assertEquals(1, interruptores.size)
         assertTrue(interruptores.all { it.isClickable })
 
         val titulo = textView(activity.getString(R.string.na_hora_curto))
         assertFalse(titulo.isClickable)
         assertFalse((titulo.parent as View).isClickable)
+        assertFalse(((titulo.parent as View).parent as View).isClickable)
     }
 }

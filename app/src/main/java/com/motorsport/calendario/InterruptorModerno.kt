@@ -5,15 +5,13 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Shader
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 
 /**
- * Interruptor no estilo moderno: trilha arredondada que ganha degradê verde quando ligada e
+ * Interruptor no estilo moderno: trilha arredondada que fica num verde vivo quando ligada e
  * uma bolinha que desliza. A área de toque é a própria view (um pouco maior que o desenho).
  *
  * [animarDe] é o estado de antes do toque: o painel é refeito a cada mudança, então a nova
@@ -26,8 +24,7 @@ internal class InterruptorModerno(
 ) : View(context) {
 
     private val densidade = resources.displayMetrics.density
-    private val corDoAcento = context.getColor(R.color.acento)
-    private val corFinal = Color.parseColor("#2DD4BF")
+    private val corLigado = Color.parseColor("#1ED760")
     private val corDaTrilha = Color.parseColor("#2B3035")
     private val corDoContorno = Color.parseColor("#3A3F45")
     private val corDaBolinhaApagada = Color.parseColor("#9AA0A6")
@@ -38,7 +35,7 @@ internal class InterruptorModerno(
         color = corDoContorno
         strokeWidth = densidade
     }
-    private val degrade = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ligadoPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = corLigado }
     private val bolinha = Paint(Paint.ANTI_ALIAS_FLAG)
     private val area = RectF()
     private val avaliadorDeCor = ArgbEvaluator()
@@ -92,12 +89,8 @@ internal class InterruptorModerno(
         contorno.alpha = ((1f - progresso) * 255).toInt()
         canvas.drawRoundRect(area, raio, raio, contorno)
 
-        degrade.shader = LinearGradient(
-            area.left, 0f, area.right, 0f,
-            intArrayOf(corDoAcento, corFinal), null, Shader.TileMode.CLAMP
-        )
-        degrade.alpha = (progresso * 255).toInt()
-        canvas.drawRoundRect(area, raio, raio, degrade)
+        ligadoPaint.alpha = (progresso * 255).toInt()
+        canvas.drawRoundRect(area, raio, raio, ligadoPaint)
 
         val margem = dp(3f)
         val raioDaBolinha = raio - margem
