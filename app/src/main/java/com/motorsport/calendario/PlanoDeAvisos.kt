@@ -78,7 +78,7 @@ internal object PlanoDeAvisos {
      * qualquer data; os seguintes entram sozinhos a cada aviso mostrado e a cada
      * abertura do app.
      */
-    const val LIMITE_DE_ALARMES = 50
+    const val LIMITE_DE_ALARMES = 200
 
     /**
      * O aviso de antecedência dispara um pouco antes do horário calculado, porque o Android
