@@ -194,7 +194,10 @@ internal object PlanoDeAvisos {
     ): List<AvisoPlanejado> =
         calcularTodos(sessoes, agora, listOf(minutosAntes), avisarNaHora, limite, modoDaCategoria)
 
-    /** Versão com várias antecedências. Sem nenhuma válida, os avisos estão desligados. */
+    /**
+     * Versão com várias antecedências. Sem nenhuma antecedência válida, sobra só o aviso da
+     * hora de começar (se [avisarNaHora]); sem os dois, não há avisos.
+     */
     fun calcularTodos(
         sessoes: List<SessaoParaAviso>,
         agora: Instant,
@@ -203,8 +206,6 @@ internal object PlanoDeAvisos {
         limite: Int = LIMITE_DE_ALARMES,
         modoDaCategoria: (String) -> ModoDeAviso = { ModoDeAviso.TODAS }
     ): List<AvisoPlanejado> {
-        if (minutosAntes.none { it > 0 }) return emptyList()
-
         val antes = calcular(sessoes, agora, minutosAntes, limite, modoDaCategoria)
         val naHora = if (avisarNaHora) {
             calcularNaHoraDeComecar(sessoes, agora, limite, modoDaCategoria)

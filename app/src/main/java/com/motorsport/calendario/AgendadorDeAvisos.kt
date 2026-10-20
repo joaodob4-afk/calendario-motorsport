@@ -65,7 +65,10 @@ internal object AgendadorDeAvisos {
             cancelarAnteriores(app, alarmes)
 
             val minutos = PreferenciasDeAviso.minutosSelecionados(app)
-            if (minutos.isEmpty() || !Notificacoes.permitidas(app)) {
+            val naHora = PreferenciasDeAviso.avisarNaHora(app)
+
+            // Sem nenhuma antecedência e sem o aviso da hora de começar, não há o que agendar.
+            if ((minutos.isEmpty() && !naHora) || !Notificacoes.permitidas(app)) {
                 guardarCodigos(app, emptySet())
                 return
             }
@@ -77,7 +80,7 @@ internal object AgendadorDeAvisos {
                     ColetorDeSessoes.coletar(app),
                     agora,
                     minutos,
-                    avisarNaHora = PreferenciasDeAviso.avisarNaHora(app),
+                    avisarNaHora = naHora,
                     modoDaCategoria = { PreferenciasDeAviso.modoDaCategoria(app, it) }
                 ),
                 agora

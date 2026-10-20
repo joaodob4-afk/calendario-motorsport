@@ -45,7 +45,17 @@ class AntecedenciaMultiplaTest {
     fun semNenhumaAntecedenciaValidaNaoHaAvisos() {
         assertTrue(PlanoDeAvisos.calcular(listOf(corrida), agora, emptyList<Int>()).isEmpty())
         assertTrue(PlanoDeAvisos.calcular(listOf(corrida), agora, listOf(0, -5)).isEmpty())
-        assertTrue(PlanoDeAvisos.calcularTodos(listOf(corrida), agora, emptyList<Int>()).isEmpty())
+        assertTrue(
+            PlanoDeAvisos.calcularTodos(listOf(corrida), agora, emptyList<Int>(), avisarNaHora = false).isEmpty()
+        )
+    }
+
+    @Test
+    fun semAntecedenciaOAvisoDaHoraDeComecarContinuaFuncionando() {
+        val avisos = PlanoDeAvisos.calcularTodos(listOf(corrida), agora, emptyList<Int>())
+
+        assertEquals(1, avisos.size)
+        assertTrue(avisos.single().naHoraDeComecar)
     }
 
     @Test

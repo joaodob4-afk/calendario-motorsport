@@ -50,8 +50,20 @@ class AvisoNaHoraDeComecarTest {
     }
 
     @Test
-    fun avisosDesativadosNaoGeramNada() {
-        assertTrue(PlanoDeAvisos.calcularTodos(listOf(sessao("Corrida", 18, 10)), agora, 0).isEmpty())
+    fun semAntecedenciaSobraSoOAvisoDaHoraDeComecar() {
+        val avisos = PlanoDeAvisos.calcularTodos(listOf(sessao("Corrida", 18, 10)), agora, 0)
+
+        assertEquals(1, avisos.size)
+        assertTrue(avisos.single().naHoraDeComecar)
+    }
+
+    @Test
+    fun semAntecedenciaEComAvisoNaHoraDesligadoNaoHaNada() {
+        assertTrue(
+            PlanoDeAvisos.calcularTodos(
+                listOf(sessao("Corrida", 18, 10)), agora, 0, avisarNaHora = false
+            ).isEmpty()
+        )
     }
 
     @Test

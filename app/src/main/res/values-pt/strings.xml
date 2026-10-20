@@ -5,7 +5,7 @@
     <string name="app_name">Calendário Motorsport</string>
 
     <string name="menu_marca">CALENDÁRIO MOTORSPORT</string>
-    <string name="menu_titulo">Avisos</string>
+    <string name="menu_titulo">Gerenciamento de alertas</string>
     <string name="menu_secao_lembretes">LEMBRETES</string>
     <string name="menu_secao_campeonato">POR CAMPEONATO</string>
     <string name="menu_em_breve">Mais funções em breve.</string>
@@ -31,7 +31,7 @@
     <string name="bloqueio_titulo">Notificações bloqueadas</string>
     <string name="bloqueio_texto">Toque para permitir nas configurações do aparelho.</string>
     <string name="botao_teste">Enviar notificação de teste</string>
-    <string name="botao_bateria">Avisos não chegam? Ajustar bateria</string>
+    <string name="botao_bateria">Desativar restrição de otimização</string>
 
     <string name="canal_nome">Avisos de sessões</string>
     <string name="canal_descricao">Lembretes antes do início de treinos, classificações e corridas.</string>
@@ -122,10 +122,12 @@
     <string name="avisos_ligados">Avisos ligados</string>
     <string name="avisos_desligados">Avisos desligados</string>
     <string name="avisos_ligados_desc">Receba lembretes antes das sessões</string>
-    <string name="antecedencia_titulo">Antecedência</string>
+    <string name="antecedencia_titulo">Por antecedência</string>
     <string name="antecedencia_chip_hora">1 hora</string>
-    <string name="na_hora_curto">Avisar na hora de começar</string>
+    <string name="na_hora_curto">Alertar na hora de começar</string>
     <string name="por_categoria_titulo">Por categoria</string>
     <string name="modo_so_corridas">Só corridas</string>
     <string name="antecedencia_dica">Você pode escolher mais de um</string>
+    <string name="menu_titulo_curto">Gerenciar Alertas</string>
+    <string name="alertas_nao_chegam">Os alertas não chegam?</string>
 </resources>

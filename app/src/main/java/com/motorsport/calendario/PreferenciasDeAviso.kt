@@ -1,6 +1,7 @@
 package com.motorsport.calendario
 
 import android.content.Context
+import android.os.Build
 
 /**
  * Escolhas de notificação do usuário, salvas no aparelho:
@@ -57,8 +58,14 @@ internal object PreferenciasDeAviso {
     fun definirSelecionados(context: Context, minutos: Collection<Int>) {
         val validos = minutos.filter { it in opcoes }.distinct().sorted()
         val texto = validos.joinToString(",")
+        val salvos = arquivo(context)
 
-        arquivo(context).edit().apply {
+        // Fixa o aviso da hora de começar que valia até agora, para a mudança da
+        // antecedência não alterar essa escolha por baixo dos panos.
+        val naHoraAtual = avisarNaHora(context)
+
+        salvos.edit().apply {
+            if (!salvos.contains(CHAVE_NA_HORA)) putBoolean(CHAVE_NA_HORA, naHoraAtual)
             putString(CHAVE_LISTA, texto)
             if (validos.isNotEmpty()) putString(CHAVE_ULTIMA_LISTA, texto)
         }.apply()
@@ -84,9 +91,24 @@ internal object PreferenciasDeAviso {
         definirSelecionados(context, if (minutos in opcoes) listOf(minutos) else emptyList())
     }
 
-    /** Se também deve avisar na hora exata em que a sessão começa. Ligado por padrão. */
-    fun avisarNaHora(context: Context): Boolean =
-        arquivo(context).getBoolean(CHAVE_NA_HORA, true)
+    /**
+     * Se deve avisar na hora exata em que a sessão começa, mesmo sem nenhuma antecedência.
+     *
+     * Sem escolha salva: quem já usava o app continua como estava (avisos ligados = ligado,
+     * avisos desligados = desligado); quem abre pela primeira vez recebe ligado no Android
+     * 12 e anterior, onde não é preciso pedir permissão de notificação.
+     */
+    fun avisarNaHora(context: Context): Boolean {
+        val salvos = arquivo(context)
+
+        if (salvos.contains(CHAVE_NA_HORA)) return salvos.getBoolean(CHAVE_NA_HORA, true)
+
+        if (!salvos.contains(CHAVE_LISTA) && salvos.contains(CHAVE_MINUTOS)) {
+            return salvos.getInt(CHAVE_MINUTOS, DESATIVADO) in opcoes
+        }
+
+        return Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2
+    }
 
     fun definirAvisarNaHora(context: Context, ligado: Boolean) {
         arquivo(context).edit().putBoolean(CHAVE_NA_HORA, ligado).apply()
