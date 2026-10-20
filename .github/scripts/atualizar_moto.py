@@ -35,7 +35,7 @@ CLASSES = {
 # Nome da sessão pela sigla da API (o nome da API traz patrocinador e espaços sobrando).
 NOMES_SESSAO = {
     "FP1": "Treino Livre 1",
-    "PR": "Practice",
+    "PR": "Treino",
     "FP2": "Treino Livre 2",
     "Q1": "Classificação 1",
     "Q2": "Classificação 2",
