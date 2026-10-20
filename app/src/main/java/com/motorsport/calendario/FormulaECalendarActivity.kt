@@ -41,19 +41,10 @@ class FormulaECalendarActivity : AppCompatActivity() {
                 orientation =
                     LinearLayout.VERTICAL
 
-                setPadding(
-                    20,
-                    20,
-                    20,
-                    20
-                )
+                setPadding(emPx(20f), emPx(20f), emPx(20f), emPx(20f))
 
                 setBackgroundColor(
-                    Color.rgb(
-                        7,
-                        26,
-                        45
-                    )
+                    getColor(R.color.fundo_tela)
                 )
             }
 
@@ -69,12 +60,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
         parametrosTopo.gravity =
             Gravity.LEFT
 
-        parametrosTopo.setMargins(
-            0,
-            0,
-            0,
-            10
-        )
+        parametrosTopo.setMargins(0, 0, 0, emPx(10f))
 
         layout.addView(
             voltarTopo,
@@ -103,12 +89,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
 
                 letterSpacing = 0.04f
 
-                setPadding(
-                    0,
-                    10,
-                    0,
-                    28
-                )
+                setPadding(0, emPx(10f), 0, emPx(28f))
             }
 
         layout.addView(
@@ -131,12 +112,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
                     gravity =
                         Gravity.CENTER
 
-                    setPadding(
-                        0,
-                        20,
-                        0,
-                        20
-                    )
+                    setPadding(0, emPx(20f), 0, emPx(20f))
                 }
 
             layout.addView(
@@ -163,12 +139,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
         parametrosFundo.gravity =
             Gravity.LEFT
 
-        parametrosFundo.setMargins(
-            0,
-            24,
-            0,
-            20
-        )
+        parametrosFundo.setMargins(0, emPx(24f), 0, emPx(20f))
 
         layout.addView(
             voltarFundo,
@@ -227,12 +198,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
             gravity =
                 Gravity.LEFT
 
-            setPadding(
-                0,
-                8,
-                0,
-                8
-            )
+            setPadding(0, emPx(8f), 0, emPx(8f))
 
             isClickable = true
             isFocusable = true
@@ -290,12 +256,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
                 gravity =
                     Gravity.CENTER
 
-                setPadding(
-                    20,
-                    20,
-                    20,
-                    20
-                )
+                setPadding(emPx(20f), emPx(20f), emPx(20f), emPx(20f))
 
                 background =
                     getDrawable(
@@ -319,12 +280,7 @@ class FormulaECalendarActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-        parametros.setMargins(
-            0,
-            6,
-            0,
-            6
-        )
+        parametros.setMargins(0, emPx(6f), 0, emPx(6f))
 
         layout.addView(
             card,
