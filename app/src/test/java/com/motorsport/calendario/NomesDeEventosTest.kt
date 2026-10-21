@@ -14,6 +14,13 @@ class NomesDeEventosTest {
     }
 
     @Test
+    fun formula1NaMalasiaUsaCidadeOuPaisQuandoOIdentificadorEDesconhecido() {
+        val esperado = "GP do Bahrein na Malásia"
+        assertEquals(esperado, NomesDeEventos.nome("F1", "Kuala Lumpur", "circuit_tqQTg7rI", "Malaysia"))
+        assertEquals(esperado, NomesDeEventos.nome("F1", "", "circuit_tqQTg7rI", "Malaysia"))
+    }
+
+    @Test
     fun formula1SemIdentificadorUsaACidade() {
         assertEquals("GP da Itália", NomesDeEventos.nome("F1", "Monza"))
     }
