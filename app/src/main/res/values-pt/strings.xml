@@ -80,6 +80,14 @@
     <string name="status_finalizada">FINALIZADA</string>
     <string name="status_proxima">PRÓXIMA</string>
     <string name="status_agendada">AGENDADA</string>
+    <string name="cd_topo">Voltar ao topo</string>
+    <string name="filtros_titulo">Filtros</string>
+    <string name="filtros_limpar">Limpar</string>
+    <string name="filtros_finalizadas_titulo">Etapas finalizadas</string>
+    <string name="filtros_finalizadas_opcao">Mostrar etapas finalizadas</string>
+    <string name="filtros_pais">País</string>
+    <string name="filtros_mes">Mês</string>
+    <string name="filtros_mostrar">Mostrar etapas (%1$d)</string>
     <string name="lista_vazia">Nenhuma etapa encontrada.</string>
     <string name="filtros_em_breve">Filtros: em breve</string>
     <string name="barra_inicio">Início</string>

@@ -4,12 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.widget.EditText
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -23,8 +22,13 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val CHAVE_CATEGORIA = "categoria_atual"
+        const val CHAVE_FILTRO_CATEGORIA = "filtro_categoria"
+        const val CHAVE_FILTRO_FINALIZADAS = "filtro_finalizadas"
+        const val CHAVE_FILTRO_PAISES = "filtro_paises"
+        const val CHAVE_FILTRO_MESES = "filtro_meses"
     }
 
+    /** Diferente de vazio enquanto a tela de detalhe de uma categoria está aberta. */
     private var categoriaAtual = ""
 
     data class Etapa(
@@ -43,40 +47,24 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var listaEtapas: LinearLayout
 
-    /** Resumo do que o carrossel mostra hoje; evita refazê-lo (e voltar ao 1º card) a cada minuto. */
-    private var assinaturaDestaques = ""
+    /** Categoria escolhida nos botões do topo e opções do painel de filtros. */
+    private var filtros = FiltrosDeEtapas()
 
-    /** Sessões com horário confirmado, lidas fora da tela principal; alimentam o card de destaque. */
-    private var sessoesDoCarrossel: Map<String, List<SessaoParaAviso>> = emptyMap()
+    private var painelDeFiltros: PainelDeFiltros? = null
 
-    private val handlerPesquisa =
-        Handler(Looper.getMainLooper())
+    /** Botões do topo, na ordem de [Categorias.todas]; guardados para destacar o escolhido. */
+    private val botoesCategorias = mutableListOf<Pair<String, TextView>>()
 
-    private var pesquisaRunnable: Runnable? = null
+    private var botaoTopoVisivel = false
 
-    private val handlerProximaEtapa =
-        Handler(Looper.getMainLooper())
-
-    private val atualizadorProximaEtapa =
-        object : Runnable {
-            override fun run() {
-                if (categoriaAtual.isEmpty()) {
-                    atualizarProximaEtapa()
-                }
-
-                handlerProximaEtapa.postDelayed(
-                    this,
-                    60000
-                )
-            }
-        }
+    /** Dia em que a lista foi desenhada pela última vez; se o dia mudar, ela é refeita. */
+    private var dataDaUltimaLista: java.time.LocalDate? = null
 
     private val handlerRedesenho = Handler(Looper.getMainLooper())
 
     private val redesenhoDaLista = Runnable {
         if (categoriaAtual.isEmpty()) {
-            atualizarProximaEtapa()
-            mostrarEtapas(todasEtapas)
+            mostrarEtapas()
         }
     }
 
@@ -119,6 +107,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        savedInstanceState?.let {
+            filtros = FiltrosDeEtapas(
+                categoria = it.getString(CHAVE_FILTRO_CATEGORIA).orEmpty(),
+                mostrarFinalizadas = it.getBoolean(CHAVE_FILTRO_FINALIZADAS),
+                paises = it.getStringArrayList(CHAVE_FILTRO_PAISES)?.toSet().orEmpty(),
+                meses = it.getStringArrayList(CHAVE_FILTRO_MESES)?.toSet().orEmpty()
+            )
+        }
+
         // Em rotação/recriação, não baixa tudo de novo (o cache já está atualizado).
         carregarCalendarios(baixar = savedInstanceState == null)
 
@@ -158,6 +155,10 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(CHAVE_CATEGORIA, categoriaAtual)
+        outState.putString(CHAVE_FILTRO_CATEGORIA, filtros.categoria)
+        outState.putBoolean(CHAVE_FILTRO_FINALIZADAS, filtros.mostrarFinalizadas)
+        outState.putStringArrayList(CHAVE_FILTRO_PAISES, ArrayList(filtros.paises))
+        outState.putStringArrayList(CHAVE_FILTRO_MESES, ArrayList(filtros.meses))
     }
 
     /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
@@ -190,12 +191,9 @@ class MainActivity : AppCompatActivity() {
                 FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
             }
             val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
-            val sessoes = lerSessoes(app)
 
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
-
-                sessoesDoCarrossel = sessoes
 
                 etapasF1Dinamicas = f1
                 etapasF2Dinamicas = f2
@@ -205,9 +203,13 @@ class MainActivity : AppCompatActivity() {
                 etapasMotoDinamicas = moto
                 carregandoCalendarios = false
 
+                // Filtros restaurados de uma rotação podem apontar para algo que não existe mais.
+                filtros = RegrasDeFiltro.podar(todasEtapas, filtros, java.time.LocalDate.now())
+
                 if (categoriaAtual.isEmpty()) {
-                    atualizarProximaEtapa()
-                    mostrarEtapas(todasEtapas)
+                    atualizarBotoesCategorias()
+                    atualizarBotaoFiltro()
+                    mostrarEtapas()
                 }
 
                 if (baixar) baixarCalendariosNovos()
@@ -215,14 +217,6 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    /** Sessões agrupadas pela categoria normalizada; roda fora da thread principal. */
-    private fun lerSessoes(app: android.content.Context): Map<String, List<SessaoParaAviso>> =
-        try {
-            ColetorDeSessoes.coletar(app).groupBy { Formatacao.normalizar(it.categoria) }
-        } catch (e: Exception) {
-            registrarFalha("MainActivity.lerSessoes", e)
-            emptyMap()
-        }
 
     /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
     private fun baixarCalendariosNovos() {
@@ -262,14 +256,11 @@ class MainActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val etapas = lerEtapas("recarregar", carga)
-            val sessoes = lerSessoes(app)
             AgendadorDeAvisos.reagendarEmSegundoPlano(app)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
-                sessoesDoCarrossel = sessoes
                 aplicar(etapas)
                 redesenharListaDepois()
-                if (categoriaAtual.isEmpty()) atualizarProximaEtapa()
             }
         }.start()
     }
@@ -284,16 +275,20 @@ class MainActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.containerMenuLateral)?.let {
             MenuPrincipal.montar(this, it)
         }
+
+        // Etapas passam a "finalizadas" na virada do dia: se o app ficou aberto, refaz a lista.
+        val ultima = dataDaUltimaLista
+        if (categoriaAtual.isEmpty() && ultima != null && ultima != java.time.LocalDate.now()) {
+            mostrarEtapas()
+        }
     }
 
     override fun onDestroy() {
-        pesquisaRunnable?.let {
-            handlerPesquisa.removeCallbacks(it)
-        }
-        handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
+        painelDeFiltros?.fechar()
         handlerRedesenho.removeCallbacks(redesenhoDaLista)
         super.onDestroy()
     }
+
 
     /**
      * A tela inicial usa um cinza-escuro no lugar do preto. A janela e as barras do sistema
@@ -327,362 +322,112 @@ class MainActivity : AppCompatActivity() {
         criarBotoesCategorias()
 
         MenuPrincipal.montar(this, findViewById(R.id.containerMenuLateral))
-        findViewById<android.view.View>(R.id.btnMenu).setOnClickListener {
+        findViewById<View>(R.id.btnMenu).setOnClickListener {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
         }
-        findViewById<android.view.View>(R.id.btnFiltro).setOnClickListener {
-            android.widget.Toast.makeText(this, getString(R.string.filtros_em_breve), android.widget.Toast.LENGTH_SHORT).show()
-        }
+        findViewById<View>(R.id.btnFiltro).setOnClickListener { abrirPainelDeFiltros() }
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
-        configurarBusca()
-        assinaturaDestaques = ""
-        atualizarProximaEtapa()
+        configurarBotaoTopo()
+        atualizarBotaoFiltro()
 
-        handlerProximaEtapa.removeCallbacks(atualizadorProximaEtapa)
-        handlerProximaEtapa.post(atualizadorProximaEtapa)
-
-        mostrarEtapas(todasEtapas)
+        mostrarEtapas()
     }
 
-    private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate {
-        val inicio = parseDataSegura(etapa.dataInicio) ?: java.time.LocalDate.now()
-        val fim = parseDataSegura(etapa.dataFim) ?: inicio.plusDays(2)
-        return if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
-    }
-
-    /**
-     * Etapas do carrossel do topo. Se há etapas acontecendo hoje, são todas elas; se não, são
-     * todas as que começam na data mais próxima. Assim, duas ou mais etapas no mesmo dia
-     * aparecem juntas, uma em cada card, em vez de só uma delas.
-     */
-    private fun etapasDeDestaque(): List<Etapa> {
-        val hoje = java.time.LocalDate.now()
-
-        val agora = java.time.Instant.now()
-        val abertas = todasEtapas.filter {
-            val fim = fimDaEtapa(it)
-            // Um evento só pode ter acabado no seu último dia (fim == hoje); nos demais não vale
-            // a pena nem olhar as sessões. Isso mantém a função leve: ela roda a cada minuto.
-            !fim.isBefore(hoje) &&
-                parseDataSegura(it.dataInicio) != null &&
-                !(fim == hoje && eventoJaEncerrado(it, agora))
-        }
-
-        val emAndamento = abertas.filter { parseDataSegura(it.dataInicio)?.isAfter(hoje) == false }
-
-        val grupo = if (emAndamento.isNotEmpty()) {
-            emAndamento
-        } else {
-            val primeiroInicio = abertas.mapNotNull { parseDataSegura(it.dataInicio) }.minOrNull()
-                ?: return emptyList()
-            abertas.filter { parseDataSegura(it.dataInicio) == primeiroInicio }
-        }
-
-        return grupo.sortedWith(
-            compareBy<Etapa>(
-                { parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX },
-                { etapa ->
-                    Categorias.todas.indexOfFirst {
-                        Formatacao.normalizar(it.nome) == Formatacao.normalizar(etapa.categoria)
-                    }.let { if (it < 0) Int.MAX_VALUE else it }
-                }
-            )
+    /** O botão de filtros fica verde enquanto há algum filtro do painel ligado. */
+    private fun atualizarBotaoFiltro() {
+        val botao = findViewById<ImageView>(R.id.btnFiltro) ?: return
+        botao.setColorFilter(
+            if (filtros.quantosAtivos > 0) getColor(R.color.acento) else android.graphics.Color.WHITE
         )
     }
 
-    /** Sessões com horário confirmado que pertencem a esta etapa (mesma categoria e mesmas datas). */
-    private fun sessoesDaEtapa(etapa: Etapa): List<SessaoParaAviso> {
-        val inicio = parseDataSegura(etapa.dataInicio) ?: return emptyList()
-        val daCategoria = sessoesDoCarrossel[Formatacao.normalizar(etapa.categoria)] ?: return emptyList()
-        return SessaoDoCartao.sessoesDaEtapa(
-            daCategoria, etapa.categoria, inicio, fimDaEtapa(etapa), java.time.ZoneId.systemDefault()
-        )
+    private fun abrirPainelDeFiltros() {
+        painelDeFiltros?.fechar()
+
+        painelDeFiltros = PainelDeFiltros(
+            activity = this,
+            todasEtapas = { todasEtapas },
+            filtros = filtros,
+            rotuloDoPais = { lugarExibido(it) },
+            aoMudar = { novos ->
+                filtros = novos
+                atualizarBotaoFiltro()
+                mostrarEtapas()
+            }
+        ).also { it.mostrar() }
     }
 
-    /** Todas as sessões conhecidas já terminaram (e a última é do último dia): o evento sai do card. */
-    private fun eventoJaEncerrado(etapa: Etapa, agora: java.time.Instant): Boolean =
-        SessaoDoCartao.encerrado(
-            sessoesDaEtapa(etapa), fimDaEtapa(etapa), agora, java.time.ZoneId.systemDefault()
+    /** Toque num botão do topo: mostra só aquela categoria; tocar de novo volta a mostrar todas. */
+    private fun selecionarCategoria(nome: String) {
+        val jaSelecionada =
+            Formatacao.normalizar(filtros.categoria) == Formatacao.normalizar(nome)
+
+        filtros = RegrasDeFiltro.podar(
+            todasEtapas,
+            filtros.copy(categoria = if (jaSelecionada) "" else nome),
+            java.time.LocalDate.now()
         )
 
-    /** O que o bloco de sessão do card mostra. */
-    private data class DadosDaSessao(
-        val rotulo: String,
-        val nome: String,
-        val hora: String,
-        val dia: String,
-        val contagem: String
-    ) {
-        /** Só o que exige refazer o card; rótulo e contagem se renovam sozinhos a cada minuto. */
-        val assinatura: String get() = "$nome|$hora|$dia"
+        atualizarBotoesCategorias()
+        atualizarBotaoFiltro()
+        mostrarEtapas()
+        findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
     }
 
-    /**
-     * Sessão em andamento ou a próxima da etapa (nome, dia, hora e contagem regressiva).
-     * Nulo quando não há horários confirmados ou todas as sessões já terminaram.
-     */
-    private fun dadosDaSessao(etapa: Etapa): DadosDaSessao? {
-        val agora = java.time.Instant.now()
-        val sessoes = sessoesDaEtapa(etapa)
-        val sessao = SessaoDoCartao.atual(sessoes, agora) ?: return null
+    /** Botão do topo da categoria escolhida: preenchido na cor dela; os outros, só contorno. */
+    private fun atualizarBotoesCategorias() {
+        val alvo = Formatacao.normalizar(filtros.categoria)
 
-        val locale = Idioma.locale(this)
-        val inicio = sessao.inicio.withZoneSameInstant(java.time.ZoneId.systemDefault())
-        val emAndamento = !sessao.inicio.toInstant().isAfter(agora)
+        for ((nome, botao) in botoesCategorias) {
+            val cor = corDaCategoria(nome)
+            val selecionado = alvo.isNotEmpty() && Formatacao.normalizar(nome) == alvo
 
-        val numero = getString(R.string.sessao_n_de_total, sessoes.indexOf(sessao) + 1, sessoes.size)
-        val rotulo = getString(if (emAndamento) R.string.sessao_agora else R.string.sessao_proxima) + " · " + numero
-        val contagem =
-            if (emAndamento) {
-                getString(
-                    R.string.sessao_comecou_ha,
-                    SessaoDoCartao.duracaoCurta(java.time.Duration.between(sessao.inicio.toInstant(), agora))
-                )
+            if (selecionado) {
+                estilizarSeloPreenchido(botao, cor, 12f)
             } else {
-                getString(
-                    R.string.sessao_em,
-                    SessaoDoCartao.duracaoCurta(java.time.Duration.between(agora, sessao.inicio.toInstant()))
-                )
+                estilizarCapsula(botao, cor, 12f)
             }
-
-        return DadosDaSessao(
-            rotulo = rotulo,
-            nome = Idioma.sessao(this, sessao.nome),
-            hora = inicio.format(DateTimeFormatter.ofPattern("HH:mm")),
-            dia = inicio.format(DateTimeFormatter.ofPattern("EEE d MMM", locale)).replace(".", "").uppercase(locale),
-            contagem = contagem
-        )
-    }
-
-    /** Preenche (ou renova) o bloco de sessão do card, ajustando os textos ao espaço disponível. */
-    private fun aplicarSessaoNoCard(card: android.view.View, dados: DadosDaSessao?) {
-        val bloco = card.findViewById<android.view.View>(R.id.destaqueBlocoSessao) ?: return
-        if (dados == null) {
-            bloco.visibility = android.view.View.GONE
-            return
-        }
-        bloco.visibility = android.view.View.VISIBLE
-
-        fun texto(id: Int, valor: String, minSp: Float, maxSp: Float, linhas: Int) {
-            card.findViewById<TextView>(id).apply {
-                text = valor
-                AjusteDeTexto.aplicar(this, minSp, maxSp, linhas)
-            }
-        }
-        texto(R.id.destaqueSessaoRotulo, dados.rotulo, 9f, 11f, 1)
-        texto(R.id.destaqueSessao, dados.nome, 14f, 20f, 2)
-        texto(R.id.destaqueSessaoContagem, dados.contagem, 10f, 13f, 1)
-        texto(R.id.destaqueSessaoHora, dados.hora, 20f, 32f, 1)
-        texto(R.id.destaqueSessaoDia, dados.dia, 9f, 12f, 1)
-    }
-
-    /** Texto do botão do card: HOJE, AMANHÃ, "N DIAS" ou EM ANDAMENTO. */
-    private fun textoDoContador(etapa: Etapa, hoje: java.time.LocalDate): String {
-        val dataInicio = parseDataSegura(etapa.dataInicio) ?: hoje
-        val dias = java.time.temporal.ChronoUnit.DAYS.between(hoje, dataInicio)
-
-        return when {
-            dias == 0L -> getString(R.string.contador_hoje)
-            dias == 1L -> getString(R.string.contador_amanha)
-            dias > 1L -> getString(R.string.contador_dias, dias.toInt())
-            else -> getString(R.string.status_em_andamento)
+            botao.isSelected = selecionado
         }
     }
 
-    private fun atualizarProximaEtapa() {
-        val painel = findViewById<android.view.View>(R.id.painelProximaEtapa) ?: return
-        val container = findViewById<LinearLayout>(R.id.containerDestaques) ?: return
-        val carrossel = findViewById<CarrosselDestaque>(R.id.carrosselDestaque) ?: return
-        val indicadores = findViewById<LinearLayout>(R.id.indicadoresDestaque) ?: return
+    /** Botão redondo que aparece ao rolar a lista para baixo e leva de volta ao topo. */
+    private fun configurarBotaoTopo() {
+        val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
+        val botao = findViewById<View>(R.id.btnTopo) ?: return
 
-        val hoje = java.time.LocalDate.now()
-        val destaques = etapasDeDestaque()
+        botaoTopoVisivel = false
+        val limite = emPx(240f)
 
-        // Fim da temporada: sem próxima etapa o carrossel some, em vez de mostrar dados de exemplo.
-        painel.visibility = if (destaques.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
-        if (destaques.isEmpty()) {
-            assinaturaDestaques = ""
-            return
+        rolagem.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            mostrarBotaoTopo(botao, scrollY > limite)
         }
+        botao.setOnClickListener { rolagem.smoothScrollTo(0, 0) }
+    }
 
-        val textos = destaques.map { textoDoContador(it, hoje) }
-        val dadosSessao = destaques.map { dadosDaSessao(it) }
-        val assinatura = destaques.indices.joinToString("#") { i ->
-            "${destaques[i].categoria}|${destaques[i].dataInicio}|${destaques[i].circuito}|${textos[i]}|" +
-                dadosSessao[i]?.assinatura.orEmpty()
-        } + "|" + Idioma.ingles(this)
+    private fun mostrarBotaoTopo(botao: View, mostrar: Boolean) {
+        if (mostrar == botaoTopoVisivel) return
+        botaoTopoVisivel = mostrar
 
-        // Nada mudou desde a última vez: mantém os cards e a posição da rolagem, só renova a contagem.
-        if (assinatura == assinaturaDestaques && container.childCount == destaques.size) {
-            for (i in destaques.indices) {
-                container.getChildAt(i)?.let { aplicarSessaoNoCard(it, dadosSessao[i]) }
-            }
-            return
-        }
-        assinaturaDestaques = assinatura
+        botao.animate().cancel()
 
-        val margem = emPx(10f)
-        val espaco = emPx(10f)
-        val espiada = emPx(24f) // quanto do próximo card aparece à direita
-
-        val larguraTela = findViewById<android.view.View>(R.id.drawerLayout)?.width
-            ?.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
-        val varios = destaques.size > 1
-        val larguraCard =
-            if (varios) larguraTela - margem - espaco - espiada else larguraTela - 2 * margem
-
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(this)
-
-        for ((i, etapa) in destaques.withIndex()) {
-            val card = inflater.inflate(R.layout.item_destaque, container, false)
-            preencherCardDestaque(card, etapa, textos[i], dadosSessao[i])
-
-            container.addView(
-                card,
-                LinearLayout.LayoutParams(larguraCard, LinearLayout.LayoutParams.MATCH_PARENT)
-                    .apply { if (i < destaques.lastIndex) marginEnd = espaco }
-            )
-        }
-
-        carrossel.passo = larguraCard + espaco
-        carrossel.paginas = destaques.size
-        carrossel.reiniciar()
-
-        // Bolinhas: só aparecem quando há mais de um card.
-        indicadores.removeAllViews()
-        indicadores.visibility = if (varios) android.view.View.VISIBLE else android.view.View.GONE
-
-        if (varios) {
-            for (i in destaques.indices) {
-                indicadores.addView(
-                    android.view.View(this).apply {
-                        layoutParams = LinearLayout.LayoutParams(emPx(7f), emPx(7f)).apply {
-                            marginStart = emPx(4f)
-                            marginEnd = emPx(4f)
-                        }
-                    }
-                )
-            }
-            marcarIndicador(indicadores, 0)
-            carrossel.aoMudarPagina = { pagina -> marcarIndicador(indicadores, pagina) }
+        if (mostrar) {
+            botao.alpha = 0f
+            botao.visibility = View.VISIBLE
+            botao.animate().alpha(1f).setDuration(180).start()
         } else {
-            carrossel.aoMudarPagina = null
+            botao.animate().alpha(0f).setDuration(180)
+                .withEndAction { botao.visibility = View.GONE }
+                .start()
         }
     }
 
-    /** Pinta de branco a bolinha do card em foco e de cinza as outras. */
-    private fun marcarIndicador(indicadores: LinearLayout, pagina: Int) {
-        for (i in 0 until indicadores.childCount) {
-            indicadores.getChildAt(i).background = android.graphics.drawable.GradientDrawable().apply {
-                shape = android.graphics.drawable.GradientDrawable.OVAL
-                setColor(
-                    if (i == pagina) android.graphics.Color.WHITE
-                    else android.graphics.Color.parseColor("#3A3D42")
-                )
-            }
-        }
-    }
+    private fun fimDaEtapa(etapa: Etapa): java.time.LocalDate =
+        RegrasDeFiltro.fim(etapa, java.time.LocalDate.now())
 
-    private fun preencherCardDestaque(
-        card: android.view.View,
-        etapa: Etapa,
-        textoContador: String,
-        dadosSessao: DadosDaSessao?
-    ) {
-        val cor = corDaCategoria(etapa.categoria)
 
-        // Fundo: tom escuro da cor da categoria, com bordas arredondadas.
-        card.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.TL_BR,
-            intArrayOf(
-                ColorUtils.blendARGB(getColor(R.color.superficie), cor, 0.22f),
-                getColor(R.color.fundo_tela)
-            )
-        ).apply {
-            cornerRadius = emPx(20f).toFloat()
-            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
-        }
-        arredondar(card, 20f)
-
-        // Foto opcional: basta colocar res/drawable/destaque_f1.jpg (ou _wec, _formula_e...).
-        val chave = etapa.categoria.lowercase().replace(" ", "_")
-        val idFoto = resources.getIdentifier("destaque_$chave", "drawable", packageName)
-        if (idFoto != 0) {
-            card.findViewById<ImageView>(R.id.destaqueImagem).apply {
-                setImageResource(idFoto)
-                visibility = android.view.View.VISIBLE
-            }
-            card.findViewById<android.view.View>(R.id.destaqueVeu).visibility =
-                android.view.View.VISIBLE
-        }
-
-        // Categoria em destaque: selo preenchido e letreiro gigante translúcido ao fundo
-        val rotuloCategoria = Categorias.rotuloDoSelo(etapa.categoria)
-
-        val badge = card.findViewById<TextView>(R.id.destaqueBadge)
-        badge.text = rotuloCategoria
-        estilizarSeloPreenchido(badge, cor, 9f)
-
-        card.findViewById<TextView>(R.id.destaqueMarca).apply {
-            text = rotuloCategoria
-            setTextSize(
-                android.util.TypedValue.COMPLEX_UNIT_SP,
-                when {
-                    rotuloCategoria.length <= 3 -> 110f
-                    rotuloCategoria.length <= 6 -> 68f
-                    else -> 44f
-                }
-            )
-            setTextColor(android.graphics.Color.argb(
-                if (idFoto != 0) 0 else 38,
-                android.graphics.Color.red(cor),
-                android.graphics.Color.green(cor),
-                android.graphics.Color.blue(cor)
-            ))
-        }
-
-        val nomeDaEtapa = nomeDoEvento(etapa)
-        card.findViewById<TextView>(R.id.destaqueNome).apply {
-            text = nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }
-            AjusteDeTexto.aplicar(this, 18f, 30f, 2)
-        }
-
-        val bandeira = card.findViewById<ImageView>(R.id.destaqueBandeira)
-        val idBandeira = recursoBandeira(etapa.pais)
-        if (idBandeira != 0) {
-            bandeira.setImageResource(idBandeira)
-            bandeira.visibility = android.view.View.VISIBLE
-            arredondar(bandeira, 4f)
-        } else {
-            bandeira.visibility = android.view.View.GONE
-        }
-
-        card.findViewById<TextView>(R.id.destaqueLocal).apply {
-            text = localDaEtapa(etapa, nomeDaEtapa)
-            AjusteDeTexto.aplicar(this, 12f, 15f, 2)
-        }
-        card.findViewById<TextView>(R.id.destaqueData).apply {
-            text = periodoDoCartao(etapa)
-            AjusteDeTexto.aplicar(this, 14f, 20f, 1)
-        }
-
-        aplicarSessaoNoCard(card, dadosSessao)
-
-        val botao = card.findViewById<TextView>(R.id.destaqueStatus)
-        botao.text = textoContador
-        estilizarSeloPreenchido(botao, cor, 10f)
-
-        card.contentDescription =
-            "${etapa.categoria}, ${nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeDaEtapa)}, ${periodoDoCartao(etapa)}, $textoContador" +
-                (dadosSessao?.let { ", ${it.nome}, ${it.dia} ${it.hora}, ${it.contagem}" } ?: "")
-
-        card.setOnClickListener { abrirEtapa(etapa) }
-    }
-
-    /** Abre a tela da etapa, de acordo com a categoria (usado pelo carrossel e pela lista). */
+    /** Abre a tela da etapa, de acordo com a categoria (usado pela lista). */
     private fun abrirEtapa(etapa: Etapa) {
         when (etapa.categoria) {
             "F1" -> abrirEventoF1PelaEtapa(etapa)
@@ -723,16 +468,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun arredondar(imagem: android.view.View, raioDp: Float) {
-        val raio = emPx(raioDp).toFloat()
-        imagem.outlineProvider = object : android.view.ViewOutlineProvider() {
-            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, raio)
-            }
-        }
-        imagem.clipToOutline = true
-    }
-
     /** Cor de destaque da categoria; categorias fora da lista usam o verde padrão. */
     private fun corDaCategoria(categoria: String): Int =
         Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
@@ -741,6 +476,7 @@ class MainActivity : AppCompatActivity() {
     private fun criarBotoesCategorias() {
         val container = findViewById<LinearLayout>(R.id.containerCategorias)
         container.removeAllViews()
+        botoesCategorias.clear()
 
         for (categoria in Categorias.todas) {
             val botao = TextView(this).apply {
@@ -760,11 +496,14 @@ class MainActivity : AppCompatActivity() {
                 ).apply { marginEnd = emPx(8f) }
             }
 
-            estilizarCapsula(botao, corDaCategoria(categoria.nome), 12f)
-            botao.setOnClickListener { abrirCategoria(categoria.nome) }
+            botao.setOnClickListener { selecionarCategoria(categoria.nome) }
             container.addView(botao)
+            botoesCategorias.add(categoria.nome to botao)
         }
+
+        atualizarBotoesCategorias()
     }
+
 
     /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
@@ -823,47 +562,6 @@ class MainActivity : AppCompatActivity() {
         return coluna
     }
 
-    private fun configurarBusca() {
-        val busca = findViewById<EditText>(R.id.searchEtapa)
-
-        busca.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                pesquisaRunnable?.let {
-                    handlerPesquisa.removeCallbacks(it)
-                }
-
-                val texto = Formatacao.normalizar(s?.toString() ?: "")
-
-                pesquisaRunnable = Runnable {
-                    if (texto.isEmpty()) {
-                        mostrarEtapas(todasEtapas)
-                        return@Runnable
-                    }
-
-                    val filtradas = todasEtapas.filter {
-                        Formatacao.normalizar(it.categoria).contains(texto) ||
-                            Formatacao.normalizar(it.pais).contains(texto) ||
-                            Formatacao.normalizar(lugarExibido(it.pais)).contains(texto) ||
-                            Formatacao.normalizar(it.circuito).contains(texto) ||
-                            Formatacao.normalizar(lugarExibido(it.circuito)).contains(texto) ||
-                            Formatacao.normalizar(nomeDoEvento(it)).contains(texto) ||
-                            Formatacao.normalizar(it.data).contains(texto) ||
-                            (Idioma.ingles(this@MainActivity) &&
-                                Formatacao.normalizar(datasEmIngles(it)).contains(texto))
-                    }
-
-                    mostrarEtapas(filtradas, buscando = true)
-                }
-
-                handlerPesquisa.postDelayed(pesquisaRunnable!!, 250)
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
-
     /** Nome do evento (ex.: "GP da Austrália"), ou vazio quando não há um conhecido. */
     private fun nomeDoEvento(etapa: Etapa): String =
         Idioma.evento(
@@ -875,37 +573,9 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-    /** Datas da etapa em inglês ("Oct 23–25 october"), para a busca por mês funcionar. */
-    private fun datasEmIngles(etapa: Etapa): String {
-        val inicio = parseDataSegura(etapa.dataInicio)
-        val fim = parseDataSegura(etapa.dataFim)
-
-        val meses = listOfNotNull(inicio, fim)
-            .map {
-                it.month.getDisplayName(
-                    java.time.format.TextStyle.FULL,
-                    java.util.Locale.ENGLISH
-                )
-            }
-            .distinct()
-
-        return (listOf(Formatacao.periodoEmIngles(inicio, fim).orEmpty()) + meses)
-            .joinToString(" ")
-    }
-
     /** País ou cidade no idioma do app (em inglês, traduz os nomes em português). */
     private fun lugarExibido(nome: String): String =
         if (Idioma.ingles(this)) TraducaoDeNomes.lugar(nome) else nome
-
-    /** Período mostrado no cartão de destaque: "23–25 OUT" ou "OCT 23–25". */
-    private fun periodoDoCartao(etapa: Etapa): String {
-        if (!Idioma.ingles(this)) return etapa.data
-
-        return Formatacao.periodoEmIngles(
-            parseDataSegura(etapa.dataInicio),
-            parseDataSegura(etapa.dataFim)
-        )?.uppercase(java.util.Locale.ENGLISH) ?: etapa.data
-    }
 
     /** Texto do status; os códigos em português continuam sendo usados só na lógica. */
     private fun textoDoStatus(codigo: String): String =
@@ -927,29 +597,12 @@ class MainActivity : AppCompatActivity() {
         return "${lugarExibido(cidade)}, ${lugarExibido(etapa.pais)}"
     }
 
-    /**
-     * [buscando] vale quando a lista é o resultado de uma busca: aí a próxima etapa também
-     * entra, senão procurar o país dela mostraria "nenhuma etapa" mesmo havendo resultado.
-     */
-    private fun mostrarEtapas(etapas: List<Etapa>, buscando: Boolean = false) {
+    /** Desenha a lista da tela inicial com a categoria e os filtros escolhidos. */
+    private fun mostrarEtapas() {
         val hoje = java.time.LocalDate.now()
+        dataDaUltimaLista = hoje
 
-        val etapasDoCarrossel = etapasDeDestaque()
-
-        val etapasVisiveis =
-            if (categoriaAtual.isEmpty()) {
-                etapas.filter { etapa ->
-                    !fimDaEtapa(etapa).isBefore(hoje) &&
-                        (buscando || etapa !in etapasDoCarrossel)
-                }
-            } else {
-                etapas
-            }
-
-        val etapasOrdenadas =
-            etapasVisiveis.sortedBy {
-                parseDataSegura(it.dataInicio) ?: java.time.LocalDate.MAX
-            }
+        val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje)
 
         listaEtapas.removeAllViews()
         val inflater = LayoutInflater.from(this)
@@ -1028,6 +681,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
+            // Etapas finalizadas (só aparecem se o usuário pedir nos filtros) ficam apagadas.
+            item.alpha = if (status == "FINALIZADA") 0.45f else 1f
+
             item.contentDescription =
                 "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
                     "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
@@ -1037,6 +693,7 @@ class MainActivity : AppCompatActivity() {
             listaEtapas.addView(item)
         }
     }
+
 
     private fun statusEtapa(
         etapa: Etapa,
@@ -1058,9 +715,6 @@ class MainActivity : AppCompatActivity() {
 
         return if (proxima == etapa) "PRÓXIMA" else "AGENDADA"
     }
-
-    private fun recursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
-
 
     private fun abrirCategoria(categoria: String) {
         categoriaAtual = categoria

@@ -81,6 +81,14 @@
     <string name="status_finalizada">FINISHED</string>
     <string name="status_proxima">NEXT</string>
     <string name="status_agendada">SCHEDULED</string>
+    <string name="cd_topo">Back to top</string>
+    <string name="filtros_titulo">Filters</string>
+    <string name="filtros_limpar">Clear</string>
+    <string name="filtros_finalizadas_titulo">Finished rounds</string>
+    <string name="filtros_finalizadas_opcao">Show finished rounds</string>
+    <string name="filtros_pais">Country</string>
+    <string name="filtros_mes">Month</string>
+    <string name="filtros_mostrar">Show rounds (%1$d)</string>
     <string name="lista_vazia">No rounds found.</string>
     <string name="filtros_em_breve">Filters: coming soon</string>
     <string name="barra_inicio">Home</string>
