@@ -72,6 +72,11 @@
     <string name="contador_amanha">AMANHÃ</string>
     <string name="contador_dias">%1$d DIAS</string>
     <string name="status_em_andamento">EM ANDAMENTO</string>
+    <string name="sessao_agora">AGORA</string>
+    <string name="sessao_proxima">PRÓXIMA SESSÃO</string>
+    <string name="sessao_n_de_total">%1$d DE %2$d</string>
+    <string name="sessao_em">Começa em %1$s</string>
+    <string name="sessao_comecou_ha">Começou há %1$s</string>
     <string name="status_finalizada">FINALIZADA</string>
     <string name="status_proxima">PRÓXIMA</string>
     <string name="status_agendada">AGENDADA</string>

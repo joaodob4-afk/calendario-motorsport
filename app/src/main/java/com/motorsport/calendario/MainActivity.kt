@@ -46,6 +46,9 @@ class MainActivity : AppCompatActivity() {
     /** Resumo do que o carrossel mostra hoje; evita refazê-lo (e voltar ao 1º card) a cada minuto. */
     private var assinaturaDestaques = ""
 
+    /** Sessões com horário confirmado, lidas fora da tela principal; alimentam o card de destaque. */
+    private var sessoesDoCarrossel: List<SessaoParaAviso> = emptyList()
+
     private val handlerPesquisa =
         Handler(Looper.getMainLooper())
 
@@ -187,9 +190,12 @@ class MainActivity : AppCompatActivity() {
                 FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
             }
             val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
+            val sessoes = lerSessoes(app)
 
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
+
+                sessoesDoCarrossel = sessoes
 
                 etapasF1Dinamicas = f1
                 etapasF2Dinamicas = f2
@@ -208,6 +214,14 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
     }
+
+    private fun lerSessoes(app: android.content.Context): List<SessaoParaAviso> =
+        try {
+            ColetorDeSessoes.coletar(app)
+        } catch (e: Exception) {
+            registrarFalha("MainActivity.lerSessoes", e)
+            emptyList()
+        }
 
     /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
     private fun baixarCalendariosNovos() {
@@ -247,11 +261,14 @@ class MainActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val etapas = lerEtapas("recarregar", carga)
+            val sessoes = lerSessoes(app)
             AgendadorDeAvisos.reagendarEmSegundoPlano(app)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
+                sessoesDoCarrossel = sessoes
                 aplicar(etapas)
                 redesenharListaDepois()
+                if (categoriaAtual.isEmpty()) atualizarProximaEtapa()
             }
         }.start()
     }
@@ -341,8 +358,11 @@ class MainActivity : AppCompatActivity() {
     private fun etapasDeDestaque(): List<Etapa> {
         val hoje = java.time.LocalDate.now()
 
+        val agora = java.time.Instant.now()
         val abertas = todasEtapas.filter {
-            !fimDaEtapa(it).isBefore(hoje) && parseDataSegura(it.dataInicio) != null
+            !fimDaEtapa(it).isBefore(hoje) &&
+                parseDataSegura(it.dataInicio) != null &&
+                !eventoJaEncerrado(it, agora)
         }
 
         val emAndamento = abertas.filter { parseDataSegura(it.dataInicio)?.isAfter(hoje) == false }
@@ -365,6 +385,91 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         )
+    }
+
+    /** Sessões com horário confirmado que pertencem a esta etapa (mesma categoria e mesmas datas). */
+    private fun sessoesDaEtapa(etapa: Etapa): List<SessaoParaAviso> {
+        val inicio = parseDataSegura(etapa.dataInicio) ?: return emptyList()
+        return SessaoDoCartao.sessoesDaEtapa(
+            sessoesDoCarrossel, etapa.categoria, inicio, fimDaEtapa(etapa), java.time.ZoneId.systemDefault()
+        )
+    }
+
+    /** Todas as sessões conhecidas já terminaram (e a última é do último dia): o evento sai do card. */
+    private fun eventoJaEncerrado(etapa: Etapa, agora: java.time.Instant): Boolean =
+        SessaoDoCartao.encerrado(
+            sessoesDaEtapa(etapa), fimDaEtapa(etapa), agora, java.time.ZoneId.systemDefault()
+        )
+
+    /** O que o bloco de sessão do card mostra. */
+    private data class DadosDaSessao(
+        val rotulo: String,
+        val nome: String,
+        val hora: String,
+        val dia: String,
+        val contagem: String
+    ) {
+        /** Só o que exige refazer o card; rótulo e contagem se renovam sozinhos a cada minuto. */
+        val assinatura: String get() = "$nome|$hora|$dia"
+    }
+
+    /**
+     * Sessão em andamento ou a próxima da etapa (nome, dia, hora e contagem regressiva).
+     * Nulo quando não há horários confirmados ou todas as sessões já terminaram.
+     */
+    private fun dadosDaSessao(etapa: Etapa): DadosDaSessao? {
+        val agora = java.time.Instant.now()
+        val sessoes = sessoesDaEtapa(etapa)
+        val sessao = SessaoDoCartao.atual(sessoes, agora) ?: return null
+
+        val locale = Idioma.locale(this)
+        val inicio = sessao.inicio.withZoneSameInstant(java.time.ZoneId.systemDefault())
+        val emAndamento = !sessao.inicio.toInstant().isAfter(agora)
+
+        val numero = getString(R.string.sessao_n_de_total, sessoes.indexOf(sessao) + 1, sessoes.size)
+        val rotulo = getString(if (emAndamento) R.string.sessao_agora else R.string.sessao_proxima) + " · " + numero
+        val contagem =
+            if (emAndamento) {
+                getString(
+                    R.string.sessao_comecou_ha,
+                    SessaoDoCartao.duracaoCurta(java.time.Duration.between(sessao.inicio.toInstant(), agora))
+                )
+            } else {
+                getString(
+                    R.string.sessao_em,
+                    SessaoDoCartao.duracaoCurta(java.time.Duration.between(agora, sessao.inicio.toInstant()))
+                )
+            }
+
+        return DadosDaSessao(
+            rotulo = rotulo,
+            nome = Idioma.sessao(this, sessao.nome),
+            hora = inicio.format(DateTimeFormatter.ofPattern("HH:mm")),
+            dia = inicio.format(DateTimeFormatter.ofPattern("EEE d MMM", locale)).replace(".", "").uppercase(locale),
+            contagem = contagem
+        )
+    }
+
+    /** Preenche (ou renova) o bloco de sessão do card, ajustando os textos ao espaço disponível. */
+    private fun aplicarSessaoNoCard(card: android.view.View, dados: DadosDaSessao?) {
+        val bloco = card.findViewById<android.view.View>(R.id.destaqueBlocoSessao) ?: return
+        if (dados == null) {
+            bloco.visibility = android.view.View.GONE
+            return
+        }
+        bloco.visibility = android.view.View.VISIBLE
+
+        fun texto(id: Int, valor: String, minSp: Float, maxSp: Float, linhas: Int) {
+            card.findViewById<TextView>(id).apply {
+                text = valor
+                AjusteDeTexto.aplicar(this, minSp, maxSp, linhas)
+            }
+        }
+        texto(R.id.destaqueSessaoRotulo, dados.rotulo, 9f, 11f, 1)
+        texto(R.id.destaqueSessao, dados.nome, 14f, 20f, 2)
+        texto(R.id.destaqueSessaoContagem, dados.contagem, 10f, 13f, 1)
+        texto(R.id.destaqueSessaoHora, dados.hora, 20f, 32f, 1)
+        texto(R.id.destaqueSessaoDia, dados.dia, 9f, 12f, 1)
     }
 
     /** Texto do botão do card: HOJE, AMANHÃ, "N DIAS" ou EM ANDAMENTO. */
@@ -397,12 +502,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         val textos = destaques.map { textoDoContador(it, hoje) }
+        val dadosSessao = destaques.map { dadosDaSessao(it) }
         val assinatura = destaques.indices.joinToString("#") { i ->
-            "${destaques[i].categoria}|${destaques[i].dataInicio}|${destaques[i].circuito}|${textos[i]}"
+            "${destaques[i].categoria}|${destaques[i].dataInicio}|${destaques[i].circuito}|${textos[i]}|" +
+                dadosSessao[i]?.assinatura.orEmpty()
         } + "|" + Idioma.ingles(this)
 
-        // Nada mudou desde a última vez: mantém os cards e a posição da rolagem.
-        if (assinatura == assinaturaDestaques && container.childCount == destaques.size) return
+        // Nada mudou desde a última vez: mantém os cards e a posição da rolagem, só renova a contagem.
+        if (assinatura == assinaturaDestaques && container.childCount == destaques.size) {
+            for (i in destaques.indices) {
+                container.getChildAt(i)?.let { aplicarSessaoNoCard(it, dadosSessao[i]) }
+            }
+            return
+        }
         assinaturaDestaques = assinatura
 
         val margem = emPx(10f)
@@ -420,7 +532,7 @@ class MainActivity : AppCompatActivity() {
 
         for ((i, etapa) in destaques.withIndex()) {
             val card = inflater.inflate(R.layout.item_destaque, container, false)
-            preencherCardDestaque(card, etapa, textos[i])
+            preencherCardDestaque(card, etapa, textos[i], dadosSessao[i])
 
             container.addView(
                 card,
@@ -468,7 +580,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun preencherCardDestaque(card: android.view.View, etapa: Etapa, textoContador: String) {
+    private fun preencherCardDestaque(
+        card: android.view.View,
+        etapa: Etapa,
+        textoContador: String,
+        dadosSessao: DadosDaSessao?
+    ) {
         val cor = corDaCategoria(etapa.categoria)
 
         // Fundo: tom escuro da cor da categoria, com bordas arredondadas.
@@ -522,8 +639,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         val nomeDaEtapa = nomeDoEvento(etapa)
-        card.findViewById<TextView>(R.id.destaqueNome).text =
-            nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }
+        card.findViewById<TextView>(R.id.destaqueNome).apply {
+            text = nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }
+            AjusteDeTexto.aplicar(this, 18f, 30f, 2)
+        }
 
         val bandeira = card.findViewById<ImageView>(R.id.destaqueBandeira)
         val idBandeira = recursoBandeira(etapa.pais)
@@ -535,8 +654,16 @@ class MainActivity : AppCompatActivity() {
             bandeira.visibility = android.view.View.GONE
         }
 
-        card.findViewById<TextView>(R.id.destaqueLocal).text = localDaEtapa(etapa, nomeDaEtapa)
-        card.findViewById<TextView>(R.id.destaqueData).text = periodoDoCartao(etapa)
+        card.findViewById<TextView>(R.id.destaqueLocal).apply {
+            text = localDaEtapa(etapa, nomeDaEtapa)
+            AjusteDeTexto.aplicar(this, 12f, 15f, 2)
+        }
+        card.findViewById<TextView>(R.id.destaqueData).apply {
+            text = periodoDoCartao(etapa)
+            AjusteDeTexto.aplicar(this, 14f, 20f, 1)
+        }
+
+        aplicarSessaoNoCard(card, dadosSessao)
 
         val botao = card.findViewById<TextView>(R.id.destaqueStatus)
         botao.text = textoContador
@@ -544,7 +671,8 @@ class MainActivity : AppCompatActivity() {
 
         card.contentDescription =
             "${etapa.categoria}, ${nomeDaEtapa.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeDaEtapa)}, ${periodoDoCartao(etapa)}, $textoContador"
+                "${localDaEtapa(etapa, nomeDaEtapa)}, ${periodoDoCartao(etapa)}, $textoContador" +
+                (dadosSessao?.let { ", ${it.nome}, ${it.dia} ${it.hora}, ${it.contagem}" } ?: "")
 
         card.setOnClickListener { abrirEtapa(etapa) }
     }
