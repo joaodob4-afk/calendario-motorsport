@@ -13,6 +13,7 @@ internal object TraducaoDeNomes {
         "GP da China" to "Chinese Grand Prix",
         "GP do Japão" to "Japanese Grand Prix",
         "GP do Bahrein" to "Bahrain Grand Prix",
+        "GP do Bahrein na Malásia" to "Bahrain Grand Prix in Malaysia",
         "GP da Arábia Saudita" to "Saudi Arabian Grand Prix",
         "GP de Miami" to "Miami Grand Prix",
         "GP do Canadá" to "Canadian Grand Prix",

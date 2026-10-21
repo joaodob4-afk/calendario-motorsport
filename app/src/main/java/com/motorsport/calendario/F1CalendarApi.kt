@@ -22,6 +22,13 @@ object F1CalendarApi {
     private const val URL_API =
         "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
 
+    // Cópia do calendário guardada no repositório (atualizada pelo workflow atualizar_f1).
+    // Serve de semente na primeira abertura e de reserva quando a Jolpica está fora do ar.
+    private const val ASSET_CALENDARIO = "f1_calendar.json"
+    private const val URL_COPIA =
+        "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/f1_calendar.json"
+    private const val SETE_DIAS_MS = 7L * 24 * 60 * 60 * 1000
+
     private const val ARQUIVO_CACHE = "f1_races_cache.json"
     private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
     private const val MINIMO_CORRIDAS_VALIDAS = 1
@@ -85,6 +92,7 @@ object F1CalendarApi {
         "Mexico" to "México",
         "Brazil" to "Brasil",
         "Qatar" to "Catar",
+        "Malaysia" to "Malásia",
         "UAE" to "Abu Dhabi",
         "United Arab Emirates" to "Abu Dhabi"
     )
@@ -94,7 +102,25 @@ object F1CalendarApi {
         "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
     )
 
+    /**
+     * Se ainda não existe cache e o app traz uma cópia embutida do calendário, usa a cópia como
+     * ponto de partida. Sem a cópia (ou com cache já criado), não faz nada.
+     */
+    fun semearDoAsset(context: Context) {
+        val app = context.applicationContext
+        try {
+            if (File(app.filesDir, ARQUIVO_CACHE).isFile) return
+            val texto = app.assets.open(ASSET_CALENDARIO).bufferedReader(Charsets.UTF_8).use { it.readText() }
+            gravarCacheSeguro(app.filesDir, texto)
+        } catch (e: java.io.FileNotFoundException) {
+            // Este build não traz a cópia embutida: nada a semear.
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.semearDoAsset", e)
+        }
+    }
+
     fun carregarCache(context: Context): List<MainActivity.Etapa>? {
+        semearDoAsset(context)
         return try {
             val arquivo = File(
                 context.applicationContext.filesDir,
@@ -125,6 +151,7 @@ object F1CalendarApi {
     fun corridaJsonDoCache(context: Context, circuitId: String): String? {
         if (circuitId.isBlank()) return null
 
+        semearDoAsset(context)
         return try {
             val arquivo = File(
                 context.applicationContext.filesDir,
@@ -160,6 +187,7 @@ object F1CalendarApi {
 
         Thread {
             var gravou = false
+            var apiRespondeu = false
 
             try {
                 // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
@@ -176,10 +204,12 @@ object F1CalendarApi {
                 if (normalizado != null &&
                     interpretar(normalizado).size >= MINIMO_CORRIDAS_VALIDAS
                 ) {
+                    apiRespondeu = true
                     gravou = gravarCacheSeguro(app.filesDir, normalizado)
                 } else {
                     // Compatibilidade: se o endpoint detalhado falhar, mantém o calendário básico.
                     val basico = baixarTexto(URL_API)
+                    apiRespondeu = true
                     if (
                         interpretar(basico).size >= MINIMO_CORRIDAS_VALIDAS &&
                         !cacheDaTemporadaTemSessoes(app, ano)
@@ -192,6 +222,11 @@ object F1CalendarApi {
             } catch (e: Exception) {
                 registrarFalha("F1CalendarApi.atualizar", e)
                 // Sem internet ou resposta inválida: preserva o cache anterior.
+            }
+
+            // Jolpica fora do ar e cache ausente ou parado há mais de 7 dias: tenta a cópia do repositório.
+            if (!apiRespondeu && !cacheRecente(app)) {
+                if (atualizarPelaCopiaDoRepositorio(app)) gravou = true
             }
 
             if (gravou && aoTerminar != null) {
@@ -232,6 +267,22 @@ object F1CalendarApi {
             false
         } catch (e: Exception) {
             registrarFalha("F1CalendarApi.cacheDaTemporadaTemSessoes", e)
+            false
+        }
+    }
+
+    private fun cacheRecente(context: Context): Boolean {
+        val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE)
+        return arquivo.isFile && System.currentTimeMillis() - arquivo.lastModified() < SETE_DIAS_MS
+    }
+
+    private fun atualizarPelaCopiaDoRepositorio(app: Context): Boolean {
+        return try {
+            val texto = baixarTexto(URL_COPIA)
+            interpretar(texto).size >= MINIMO_CORRIDAS_VALIDAS &&
+                gravarCacheSeguro(app.filesDir, texto)
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.atualizarPelaCopiaDoRepositorio", e)
             false
         }
     }

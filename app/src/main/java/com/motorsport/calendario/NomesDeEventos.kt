@@ -80,7 +80,10 @@ internal object NomesDeEventos {
         "miami gardens" to "GP de Miami",
         "lusail city" to "GP do Catar",
         "doha" to "GP do Catar",
-        "spa" to "GP da Bélgica"
+        "spa" to "GP da Bélgica",
+        // 2026: o GP do Bahrein foi transferido para Sepang (Malásia)
+        "kuala lumpur" to "GP do Bahrein na Malásia",
+        "sepang" to "GP do Bahrein na Malásia"
     )
 
     /**
@@ -108,6 +111,7 @@ internal object NomesDeEventos {
         "azerbaijao" to "GP do Azerbaijão", "azerbaijan" to "GP do Azerbaijão",
         "singapura" to "GP de Singapura", "singapore" to "GP de Singapura",
         "catar" to "GP do Catar", "qatar" to "GP do Catar",
+        "malasia" to "GP do Bahrein na Malásia", "malaysia" to "GP do Bahrein na Malásia",
         "abu dhabi" to "GP de Abu Dhabi", "uae" to "GP de Abu Dhabi",
         "emirados arabes unidos" to "GP de Abu Dhabi",
         "united arab emirates" to "GP de Abu Dhabi"
