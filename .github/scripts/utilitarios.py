@@ -4,6 +4,7 @@ Ficam aqui para não repetir o mesmo código em cada script. As regras de cada f
 (como ler a página, montar as etapas, validar) continuam em cada atualizador.
 """
 import json
+import math
 import time
 import urllib.request
 from datetime import datetime
@@ -64,6 +65,24 @@ def ler_existente(caminho):
 
 def serializar(dados):
     return json.dumps(dados, ensure_ascii=False, indent=2) + "\n"
+
+
+def validar_encolhimento(novo, antigo, nome, fracao=0.20):
+    """Recusa um calendário bem menor que o já gravado para a MESMA temporada.
+
+    Uma página que muda de layout costuma devolver só parte das etapas; gravar isso apagaria
+    o calendário de todos os usuários. Outra temporada pode ter outra quantidade de etapas.
+    Levanta ValueError (o script avisa e não altera nada).
+    """
+    if not antigo or novo.get("temporada") != antigo.get("temporada"):
+        return
+    havia = len(antigo.get("etapas", []))
+    minimo = max(1, math.ceil(havia * fracao))
+    if len(novo.get("etapas", [])) < minimo:
+        raise ValueError(
+            f"{nome}: {len(novo.get('etapas', []))} etapas (havia {havia}); "
+            "se for mesmo uma mudança real, edite o JSON à mão"
+        )
 
 
 def total_de_sessoes(dados):

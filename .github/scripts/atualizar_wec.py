@@ -61,7 +61,7 @@ MESES = {
 }
 
 # Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
-FRACAO_MINIMA = 0.5
+FRACAO_MINIMA = 0.20
 
 CABECALHOS = {
     "User-Agent": (
