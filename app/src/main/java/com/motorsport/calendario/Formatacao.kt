@@ -19,10 +19,13 @@ internal object Formatacao {
     private val diaUnico =
         Regex("^(\\d{1,2})\\s+(\\p{L}{3,4})$")
 
+    // Compilado uma vez só: normalizar() roda milhares de vezes ao montar a tela inicial.
+    private val marcasDeAcento = Regex("\\p{M}+")
+
     /** Minúsculas e sem acentos: "Fórmula E" e "formula e" são tratados como iguais. */
     fun normalizar(texto: String): String =
         Normalizer.normalize(texto.trim(), Normalizer.Form.NFD)
-            .replace(Regex("\\p{M}+"), "")
+            .replace(marcasDeAcento, "")
             .lowercase()
 
     /**

@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     private var assinaturaDestaques = ""
 
     /** Sessões com horário confirmado, lidas fora da tela principal; alimentam o card de destaque. */
-    private var sessoesDoCarrossel: List<SessaoParaAviso> = emptyList()
+    private var sessoesDoCarrossel: Map<String, List<SessaoParaAviso>> = emptyMap()
 
     private val handlerPesquisa =
         Handler(Looper.getMainLooper())
@@ -215,12 +215,13 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun lerSessoes(app: android.content.Context): List<SessaoParaAviso> =
+    /** Sessões agrupadas pela categoria normalizada; roda fora da thread principal. */
+    private fun lerSessoes(app: android.content.Context): Map<String, List<SessaoParaAviso>> =
         try {
-            ColetorDeSessoes.coletar(app)
+            ColetorDeSessoes.coletar(app).groupBy { Formatacao.normalizar(it.categoria) }
         } catch (e: Exception) {
             registrarFalha("MainActivity.lerSessoes", e)
-            emptyList()
+            emptyMap()
         }
 
     /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
@@ -360,9 +361,12 @@ class MainActivity : AppCompatActivity() {
 
         val agora = java.time.Instant.now()
         val abertas = todasEtapas.filter {
-            !fimDaEtapa(it).isBefore(hoje) &&
+            val fim = fimDaEtapa(it)
+            // Um evento só pode ter acabado no seu último dia (fim == hoje); nos demais não vale
+            // a pena nem olhar as sessões. Isso mantém a função leve: ela roda a cada minuto.
+            !fim.isBefore(hoje) &&
                 parseDataSegura(it.dataInicio) != null &&
-                !eventoJaEncerrado(it, agora)
+                !(fim == hoje && eventoJaEncerrado(it, agora))
         }
 
         val emAndamento = abertas.filter { parseDataSegura(it.dataInicio)?.isAfter(hoje) == false }
@@ -390,8 +394,9 @@ class MainActivity : AppCompatActivity() {
     /** Sessões com horário confirmado que pertencem a esta etapa (mesma categoria e mesmas datas). */
     private fun sessoesDaEtapa(etapa: Etapa): List<SessaoParaAviso> {
         val inicio = parseDataSegura(etapa.dataInicio) ?: return emptyList()
+        val daCategoria = sessoesDoCarrossel[Formatacao.normalizar(etapa.categoria)] ?: return emptyList()
         return SessaoDoCartao.sessoesDaEtapa(
-            sessoesDoCarrossel, etapa.categoria, inicio, fimDaEtapa(etapa), java.time.ZoneId.systemDefault()
+            daCategoria, etapa.categoria, inicio, fimDaEtapa(etapa), java.time.ZoneId.systemDefault()
         )
     }
 
