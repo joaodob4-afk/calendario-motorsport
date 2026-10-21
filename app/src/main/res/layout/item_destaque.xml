@@ -136,95 +136,102 @@
 
         <!-- Sessão em andamento ou a próxima. Some quando não há horário confirmado.
              Só a tela inicial preenche; nas telas de categoria fica escondido.
-             Larguras por peso (60/40) para o AjusteDeTexto saber quanto espaço cada texto tem. -->
+             Rótulo na largura toda; abaixo, texto (60%) e hora (40%) por peso, para o
+             AjusteDeTexto saber quanto espaço cada texto tem. -->
         <LinearLayout
             android:id="@+id/destaqueBlocoSessao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:background="@drawable/bg_destaque_sessao"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:padding="14dp"
-            android:visibility="gone"
-            android:weightSum="10">
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/destaqueSessaoRotulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/texto_suave"
+                android:textSize="11sp"
+                android:letterSpacing="0.08"
+                android:fontFamily="sans-serif-medium"
+                tools:text="PRÓXIMA SESSÃO · 1 DE 8" />
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="6"
-                android:orientation="vertical">
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:weightSum="10">
 
-                <TextView
-                    android:id="@+id/destaqueSessaoRotulo"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="@color/texto_suave"
-                    android:textSize="11sp"
-                    android:letterSpacing="0.1"
-                    android:fontFamily="sans-serif-medium"
-                    tools:text="PRÓXIMA SESSÃO · 1 DE 8" />
+                    android:layout_weight="6"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/destaqueSessao"
-                    android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/destaqueSessao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif"
+                        tools:text="Treino Livre 1" />
+
+                    <TextView
+                        android:id="@+id/destaqueSessaoContagem"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#D5D8DC"
+                        android:textSize="13sp"
+                        android:fontFamily="sans-serif"
+                        tools:text="Começa em 14h 29min" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif"
-                    tools:text="Treino Livre 1" />
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="4"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/destaqueSessaoContagem"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="#D5D8DC"
-                    android:textSize="13sp"
-                    android:fontFamily="sans-serif"
-                    tools:text="Começa em 14h 29min" />
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/destaqueSessaoHora"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="#FFFFFF"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
+                        tools:text="20:45" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="4"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/destaqueSessaoHora"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="#FFFFFF"
-                    android:textSize="32sp"
-                    android:textStyle="bold"
-                    android:fontFamily="sans-serif-medium"
-                    tools:text="20:45" />
-
-                <TextView
-                    android:id="@+id/destaqueSessaoDia"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:textColor="@color/texto_suave"
-                    android:textSize="12sp"
-                    android:letterSpacing="0.08"
-                    android:fontFamily="sans-serif-medium"
-                    tools:text="QUI 22 OUT" />
+                    <TextView
+                        android:id="@+id/destaqueSessaoDia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="@color/texto_suave"
+                        android:textSize="12sp"
+                        android:letterSpacing="0.08"
+                        android:fontFamily="sans-serif-medium"
+                        tools:text="QUI 22 OUT" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
