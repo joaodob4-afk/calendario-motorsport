@@ -33,6 +33,31 @@ class CalendarioJsonTemporadaTest {
         assertEquals(json("2026"), CalendarioJsonTemporada.selecionar(null, json("2026")))
     }
 
+    private fun jsonComEtapa(temporada: String) =
+        """{"temporada":"$temporada","etapas":[1]}"""
+
+    @Test
+    fun cacheDaMesmaTemporadaMasAnteriorAoApkPerdeParaOAsset() {
+        val asset = jsonComEtapa("2026")
+        assertEquals(asset, CalendarioJsonTemporada.selecionar(json("2026"), asset, cacheAnteriorAoApk = true))
+    }
+
+    @Test
+    fun cacheDeTemporadaMaisNovaVenceMesmoSendoAnteriorAoApk() {
+        assertEquals(
+            json("2027"),
+            CalendarioJsonTemporada.selecionar(json("2027"), jsonComEtapa("2026"), cacheAnteriorAoApk = true)
+        )
+    }
+
+    @Test
+    fun cacheDaMesmaTemporadaContinuaValendoQuandoNaoEAnteriorAoApk() {
+        assertEquals(
+            json("2026"),
+            CalendarioJsonTemporada.selecionar(json("2026"), jsonComEtapa("2026"), cacheAnteriorAoApk = false)
+        )
+    }
+
     @Test
     fun usaCacheQuandoAssetNaoExiste() {
         assertEquals(json("2026"), CalendarioJsonTemporada.selecionar(json("2026"), null))

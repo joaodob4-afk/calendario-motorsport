@@ -55,8 +55,11 @@ internal class FonteDeCalendario<T>(
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */
     fun carregar(context: Context): List<T> {
-        val json = CalendarioJsonTemporada.selecionar(lerCache(context), lerAsset(context))
-            ?: return emptyList()
+        val json = CalendarioJsonTemporada.selecionar(
+            lerCache(context),
+            lerAsset(context),
+            cacheAnteriorAoApk(context)
+        ) ?: return emptyList()
         return eventosValidos(json).orEmpty()
     }
 
@@ -162,6 +165,19 @@ internal class FonteDeCalendario<T>(
         }
     }
 
+    /**
+     * O cache foi gravado antes da última instalação/atualização do APK? Então os dados embutidos
+     * no APK novo são mais recentes e valem até o próximo download. Na dúvida, mantém o cache.
+     */
+    private fun cacheAnteriorAoApk(context: Context): Boolean =
+        try {
+            val arquivo = File(context.filesDir, arquivoCache)
+            arquivo.isFile && arquivo.lastModified() < InstalacaoDoApp.ultimaAtualizacao(context)
+        } catch (e: Exception) {
+            registrarDescarte("$nome.cacheAnteriorAoApk", e)
+            false
+        }
+
     private fun lerCache(context: Context): String? {
         val arquivo = File(context.filesDir, arquivoCache)
         if (!arquivo.exists()) return null
@@ -191,4 +207,16 @@ internal class FonteDeCalendario<T>(
             registrarFalha("$nome.lerAsset", e)
             null
         }
+}
+
+/** Momento da última instalação/atualização do APK (não muda enquanto o processo vive). */
+private object InstalacaoDoApp {
+    @Volatile
+    private var momento: Long? = null
+
+    fun ultimaAtualizacao(context: Context): Long =
+        momento ?: context.packageManager
+            .getPackageInfo(context.packageName, 0)
+            .lastUpdateTime
+            .also { momento = it }
 }
