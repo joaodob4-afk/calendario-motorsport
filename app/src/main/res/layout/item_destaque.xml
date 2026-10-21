@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Card do carrossel da tela inicial. Largura e fundo são definidos pelo Kotlin. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -134,6 +135,25 @@
                 tools:text="Austin, Estados Unidos" />
         </LinearLayout>
 
+        <!-- Sessão em andamento ou a próxima (dia, hora e nome); some se não houver horário confirmado -->
+        <TextView
+            android:id="@+id/destaqueSessao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="10sp"
+            app:autoSizeMaxTextSize="14sp"
+            app:autoSizeStepGranularity="1sp"
+            tools:text="SEX 13:30 · Treino Livre 1" />
+
         <!-- Empurra a linha de baixo para o pé do card, mesmo quando o título é curto -->
         <View
             android:id="@+id/destaqueEspaco"
@@ -160,10 +180,15 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:maxLines="1"
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
                 android:letterSpacing="0.05"
                 android:fontFamily="sans-serif-medium"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="13sp"
+                app:autoSizeMaxTextSize="20sp"
+                app:autoSizeStepGranularity="1sp"
                 tools:text="23–25 OUT" />
 
             <TextView
