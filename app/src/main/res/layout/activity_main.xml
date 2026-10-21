@@ -51,115 +51,61 @@
                     android:paddingStart="6dp"
                     android:paddingEnd="10dp" />
             </HorizontalScrollView>
+
+            <!-- Filtros: a cor muda para verde quando há algum filtro ligado (Kotlin) -->
+            <ImageView
+                android:id="@+id/btnFiltro"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginEnd="6dp"
+                android:padding="10dp"
+                android:src="@drawable/ic_filtro"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/cd_filtros" />
         </LinearLayout>
 
-        <ScrollView
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true">
+            android:layout_weight="1">
 
-            <LinearLayout
+            <ScrollView
+                android:id="@+id/scrollPrincipal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="16dp">
-
-                <!-- Próximas etapas: um card por etapa que acontece no mesmo dia, rolando para o lado -->
-                <LinearLayout
-                    android:id="@+id/painelProximaEtapa"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="vertical">
-
-                    <com.motorsport.calendario.CarrosselDestaque
-                        android:id="@+id/carrosselDestaque"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clipToPadding="false"
-                        android:overScrollMode="never"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:scrollbars="none">
-
-                        <LinearLayout
-                            android:id="@+id/containerDestaques"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:baselineAligned="false"
-                            android:orientation="horizontal" />
-                    </com.motorsport.calendario.CarrosselDestaque>
-
-                    <LinearLayout
-                        android:id="@+id/indicadoresDestaque"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center"
-                        android:orientation="horizontal"
-                        android:visibility="gone" />
-                </LinearLayout>
-
-                <!-- Busca -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginTop="14dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="6dp"
-                    android:background="@drawable/campo_busca">
-
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:src="@drawable/ic_search"
-                        android:tint="@color/texto_suave"
-                        android:importantForAccessibility="no" />
-
-                    <EditText
-                        android:id="@+id/searchEtapa"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:background="@android:color/transparent"
-                        android:hint="@string/busca_hint"
-                        android:textColor="#FFFFFF"
-                        android:textColorHint="@color/texto_suave"
-                        android:textSize="15sp"
-                        android:singleLine="true"
-                        android:inputType="text"
-                        android:fontFamily="sans-serif" />
-
-                    <ImageView
-                        android:id="@+id/btnFiltro"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:padding="8dp"
-                        android:src="@drawable/ic_filtro"
-                        android:tint="@color/texto_suave"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:contentDescription="@string/cd_filtros" />
-                </LinearLayout>
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
                 <!-- A lista controla as margens dos cards -->
                 <LinearLayout
                     android:id="@+id/listaEtapas"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="4dp"
                     android:layout_marginStart="10dp"
                     android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="16dp"
                     android:orientation="vertical" />
-            </LinearLayout>
-        </ScrollView>
+            </ScrollView>
+
+            <!-- Aparece depois de rolar a lista para baixo (Kotlin) -->
+            <ImageView
+                android:id="@+id/btnTopo"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:padding="12dp"
+                android:src="@drawable/ic_seta_topo"
+                android:background="@drawable/bg_botao_topo"
+                android:elevation="6dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_topo" />
+        </FrameLayout>
 
         <!-- Barra inferior: os itens vêm de BarraInferior.itens (Kotlin) -->
         <View
