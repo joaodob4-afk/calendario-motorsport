@@ -26,4 +26,10 @@
 
     </style>
 
+    <!-- Painel de filtros: sobe do pé da tela e desce ao fechar -->
+    <style name="AnimacaoPainelFiltros">
+        <item name="android:windowEnterAnimation">@anim/painel_sobe</item>
+        <item name="android:windowExitAnimation">@anim/painel_desce</item>
+    </style>
+
 </resources>
