@@ -88,6 +88,7 @@
     <string name="filtros_pais">País</string>
     <string name="filtros_mes">Mês</string>
     <string name="filtros_mostrar">Mostrar etapas (%1$d)</string>
+    <string name="filtros_finalizadas_dica">Aparecem apagadas na lista</string>
     <string name="lista_vazia">Nenhuma etapa encontrada.</string>
     <string name="filtros_em_breve">Filtros: em breve</string>
     <string name="barra_inicio">Início</string>

@@ -13,57 +13,83 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Cabeçalho: botão do menu lateral + categorias -->
+        <!-- Cabeçalho: menu, categorias (rolam para o lado) e filtros. Cada toque tem 48dp. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingTop="10dp"
-            android:paddingBottom="8dp">
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
 
             <ImageView
                 android:id="@+id/btnMenu"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginStart="6dp"
-                android:padding="10dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:padding="12dp"
                 android:src="@drawable/ic_menu"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:background="@drawable/bg_botao_icone"
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/cd_menu" />
 
             <HorizontalScrollView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
+                android:layout_marginStart="4dp"
                 android:scrollbars="none"
+                android:overScrollMode="never"
+                android:requiresFadingEdge="horizontal"
+                android:fadingEdgeLength="20dp"
                 android:fillViewport="false">
 
                 <!-- Os botões são criados pelo Kotlin a partir da lista de categorias -->
                 <LinearLayout
                     android:id="@+id/containerCategorias"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingStart="6dp"
-                    android:paddingEnd="10dp" />
+                    android:paddingStart="4dp"
+                    android:paddingEnd="12dp" />
             </HorizontalScrollView>
 
-            <!-- Filtros: a cor muda para verde quando há algum filtro ligado (Kotlin) -->
-            <ImageView
-                android:id="@+id/btnFiltro"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_marginEnd="6dp"
-                android:padding="10dp"
-                android:src="@drawable/ic_filtro"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/cd_filtros" />
+            <!-- Filtros, com um selo mostrando quantos estão ligados (Kotlin) -->
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="8dp">
+
+                <ImageView
+                    android:id="@+id/btnFiltro"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_filtro"
+                    android:background="@drawable/bg_botao_icone"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="@string/cd_filtros" />
+
+                <TextView
+                    android:id="@+id/badgeFiltro"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="1dp"
+                    android:layout_marginEnd="1dp"
+                    android:background="@drawable/bg_selo_filtro"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:textColor="#0B0D0F"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:importantForAccessibility="no"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
 
         <FrameLayout
@@ -92,15 +118,15 @@
             <!-- Aparece depois de rolar a lista para baixo (Kotlin) -->
             <ImageView
                 android:id="@+id/btnTopo"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
                 android:layout_gravity="bottom|end"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:padding="12dp"
+                android:layout_marginEnd="18dp"
+                android:layout_marginBottom="18dp"
+                android:padding="14dp"
                 android:src="@drawable/ic_seta_topo"
                 android:background="@drawable/bg_botao_topo"
-                android:elevation="6dp"
+                android:elevation="8dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:visibility="gone"

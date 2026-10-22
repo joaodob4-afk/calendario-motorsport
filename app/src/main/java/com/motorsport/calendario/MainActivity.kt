@@ -6,7 +6,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageView
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -209,7 +210,7 @@ class MainActivity : AppCompatActivity() {
                 if (categoriaAtual.isEmpty()) {
                     atualizarBotoesCategorias()
                     atualizarBotaoFiltro()
-                    mostrarEtapas()
+                    mostrarEtapas(animar = true)
                 }
 
                 if (baixar) baixarCalendariosNovos()
@@ -326,6 +327,8 @@ class MainActivity : AppCompatActivity() {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
         }
         findViewById<View>(R.id.btnFiltro).setOnClickListener { abrirPainelDeFiltros() }
+        findViewById<View>(R.id.btnMenu).comEfeitoDeToque(escala = 0.9f)
+        findViewById<View>(R.id.btnFiltro).comEfeitoDeToque(escala = 0.9f)
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
         configurarBotaoTopo()
@@ -334,12 +337,16 @@ class MainActivity : AppCompatActivity() {
         mostrarEtapas()
     }
 
-    /** O botão de filtros fica verde enquanto há algum filtro do painel ligado. */
+    /** Selo no botão de filtros com quantos filtros do painel estão ligados (some quando são 0). */
     private fun atualizarBotaoFiltro() {
-        val botao = findViewById<ImageView>(R.id.btnFiltro) ?: return
-        botao.setColorFilter(
-            if (filtros.quantosAtivos > 0) getColor(R.color.acento) else android.graphics.Color.WHITE
-        )
+        val selo = findViewById<TextView>(R.id.badgeFiltro) ?: return
+        val quantos = filtros.quantosAtivos
+        val estavaVisivel = selo.visibility == View.VISIBLE
+
+        selo.text = quantos.toString()
+        selo.visibility = if (quantos > 0) View.VISIBLE else View.GONE
+
+        if (quantos > 0 && !estavaVisivel) selo.animarPop()
     }
 
     private fun abrirPainelDeFiltros() {
@@ -353,7 +360,7 @@ class MainActivity : AppCompatActivity() {
             aoMudar = { novos ->
                 filtros = novos
                 atualizarBotaoFiltro()
-                mostrarEtapas()
+                mostrarEtapas(animar = true)
             }
         ).also { it.mostrar() }
     }
@@ -371,8 +378,12 @@ class MainActivity : AppCompatActivity() {
 
         atualizarBotoesCategorias()
         atualizarBotaoFiltro()
-        mostrarEtapas()
+        mostrarEtapas(animar = true)
         findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+
+        if (!jaSelecionada) {
+            botoesCategorias.firstOrNull { it.first == nome }?.second?.animarPop()
+        }
     }
 
     /** Botão do topo da categoria escolhida: preenchido na cor dela; os outros, só contorno. */
@@ -404,20 +415,35 @@ class MainActivity : AppCompatActivity() {
             mostrarBotaoTopo(botao, scrollY > limite)
         }
         botao.setOnClickListener { rolagem.smoothScrollTo(0, 0) }
+        botao.comEfeitoDeToque(escala = 0.88f)
     }
 
+    /** Sobe e aparece ao rolar; desce e some ao voltar para perto do topo. */
     private fun mostrarBotaoTopo(botao: View, mostrar: Boolean) {
         if (mostrar == botaoTopoVisivel) return
         botaoTopoVisivel = mostrar
 
         botao.animate().cancel()
+        val deslocamento = emPx(20f).toFloat()
 
         if (mostrar) {
             botao.alpha = 0f
+            botao.translationY = deslocamento
             botao.visibility = View.VISIBLE
-            botao.animate().alpha(1f).setDuration(180).start()
+            botao.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay(0)
+                .setDuration(220)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
         } else {
-            botao.animate().alpha(0f).setDuration(180)
+            botao.animate()
+                .alpha(0f)
+                .translationY(deslocamento)
+                .setStartDelay(0)
+                .setDuration(160)
+                .setInterpolator(AccelerateInterpolator())
                 .withEndAction { botao.visibility = View.GONE }
                 .start()
         }
@@ -473,41 +499,61 @@ class MainActivity : AppCompatActivity() {
         Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
             ?: getColor(R.color.acento)
 
+    /**
+     * Cada categoria é uma cápsula de 36dp dentro de uma área de toque de 48dp de altura, sem
+     * vãos entre uma e outra, para o toque nunca "cair no vazio".
+     */
     private fun criarBotoesCategorias() {
         val container = findViewById<LinearLayout>(R.id.containerCategorias)
         container.removeAllViews()
         botoesCategorias.clear()
 
         for (categoria in Categorias.todas) {
-            val botao = TextView(this).apply {
+            val capsula = TextView(this).apply {
                 text = categoria.nome.uppercase()
                 textSize = 13f
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-                letterSpacing = 0.04f
+                letterSpacing = 0.05f
                 gravity = android.view.Gravity.CENTER
                 maxLines = 1
+                includeFontPadding = false
                 minWidth = emPx(52f)
                 setPadding(emPx(16f), 0, emPx(16f), 0)
-                isClickable = true
-                isFocusable = true
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    emPx(38f)
-                ).apply { marginEnd = emPx(8f) }
             }
 
-            botao.setOnClickListener { selecionarCategoria(categoria.nome) }
-            container.addView(botao)
-            botoesCategorias.add(categoria.nome to botao)
+            val areaDeToque = android.widget.FrameLayout(this).apply {
+                isClickable = true
+                isFocusable = true
+                contentDescription = categoria.nome
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                addView(
+                    capsula,
+                    android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                        emPx(36f),
+                        android.view.Gravity.CENTER_VERTICAL
+                    ).apply {
+                        marginStart = emPx(3f)
+                        marginEnd = emPx(3f)
+                    }
+                )
+                setOnClickListener { selecionarCategoria(categoria.nome) }
+                comEfeitoDeToque(alvo = capsula, escala = 0.92f)
+            }
+
+            container.addView(areaDeToque)
+            botoesCategorias.add(categoria.nome to capsula)
         }
 
         atualizarBotoesCategorias()
     }
 
-
     /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
     private fun estilizarCard(item: android.view.View, cor: Int) {
-        val raio = emPx(12f).toFloat()
+        val raio = emPx(16f).toFloat()
 
         item.background = android.graphics.drawable.GradientDrawable(
             android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
@@ -598,7 +644,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /** Desenha a lista da tela inicial com a categoria e os filtros escolhidos. */
-    private fun mostrarEtapas() {
+    private fun mostrarEtapas(animar: Boolean = false) {
         val hoje = java.time.LocalDate.now()
         dataDaUltimaLista = hoje
 
@@ -613,15 +659,17 @@ class MainActivity : AppCompatActivity() {
 
             val vazio = TextView(this)
             vazio.text = getString(R.string.lista_vazia)
-            vazio.setTextColor(android.graphics.Color.WHITE)
+            vazio.setTextColor(getColor(R.color.texto_suave))
             vazio.textSize = 15f
             vazio.gravity = android.view.Gravity.CENTER
-            vazio.setPadding(0, 30, 0, 30)
+            vazio.setPadding(0, emPx(64f), 0, emPx(64f))
             listaEtapas.addView(vazio)
+            if (animar) animarEntradaDoItem(vazio, 0, 1f)
             return
         }
 
         var mesAnterior = -1
+        var indiceDoCard = 0
 
         for (etapa in etapasOrdenadas) {
             val inicioItem = parseDataSegura(etapa.dataInicio)
@@ -682,16 +730,36 @@ class MainActivity : AppCompatActivity() {
             }
 
             // Etapas finalizadas (só aparecem se o usuário pedir nos filtros) ficam apagadas.
-            item.alpha = if (status == "FINALIZADA") 0.45f else 1f
+            val alvoDeAlpha = if (status == "FINALIZADA") 0.45f else 1f
+            item.alpha = alvoDeAlpha
 
             item.contentDescription =
                 "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
                     "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
 
             item.setOnClickListener { abrirEtapa(etapa) }
+            item.comEfeitoDeToque(escala = 0.97f)
 
             listaEtapas.addView(item)
+
+            if (animar) animarEntradaDoItem(item, indiceDoCard, alvoDeAlpha)
+            indiceDoCard++
         }
+    }
+
+    /** Os primeiros cards entram um após o outro, subindo e aparecendo; os demais já nascem prontos. */
+    private fun animarEntradaDoItem(item: View, indice: Int, alvoDeAlpha: Float) {
+        if (indice >= 10) return
+
+        item.alpha = 0f
+        item.translationY = emPx(14f).toFloat()
+        item.animate()
+            .alpha(alvoDeAlpha)
+            .translationY(0f)
+            .setStartDelay(indice * 30L)
+            .setDuration(240)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
     }
 
 

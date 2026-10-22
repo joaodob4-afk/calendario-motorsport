@@ -89,6 +89,7 @@
     <string name="filtros_pais">Country</string>
     <string name="filtros_mes">Month</string>
     <string name="filtros_mostrar">Show rounds (%1$d)</string>
+    <string name="filtros_finalizadas_dica">They appear dimmed in the list</string>
     <string name="lista_vazia">No rounds found.</string>
     <string name="filtros_em_breve">Filters: coming soon</string>
     <string name="barra_inicio">Home</string>
