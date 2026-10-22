@@ -89,6 +89,12 @@
     <string name="filtros_mes">Mês</string>
     <string name="filtros_mostrar">Mostrar etapas (%1$d)</string>
     <string name="filtros_finalizadas_dica">Aparecem apagadas na lista</string>
+    <string name="contagem_dia">%1$d DIA</string>
+    <string name="contagem_dias">%1$d DIAS</string>
+    <string name="contagem_semana">%1$d SEMANA</string>
+    <string name="contagem_semanas">%1$d SEMANAS</string>
+    <string name="contagem_mes">%1$d MÊS</string>
+    <string name="contagem_meses">%1$d MESES</string>
     <string name="lista_vazia">Nenhuma etapa encontrada.</string>
     <string name="filtros_em_breve">Filtros: em breve</string>
     <string name="barra_inicio">Início</string>

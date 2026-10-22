@@ -90,6 +90,12 @@
     <string name="filtros_mes">Month</string>
     <string name="filtros_mostrar">Show rounds (%1$d)</string>
     <string name="filtros_finalizadas_dica">They appear dimmed in the list</string>
+    <string name="contagem_dia">%1$d DAY</string>
+    <string name="contagem_dias">%1$d DAYS</string>
+    <string name="contagem_semana">%1$d WEEK</string>
+    <string name="contagem_semanas">%1$d WEEKS</string>
+    <string name="contagem_mes">%1$d MONTH</string>
+    <string name="contagem_meses">%1$d MONTHS</string>
     <string name="lista_vazia">No rounds found.</string>
     <string name="filtros_em_breve">Filters: coming soon</string>
     <string name="barra_inicio">Home</string>

@@ -19,4 +19,5 @@
     <color name="azul_marinho_claro">#17325F</color>
     <color name="azul_marinho_borda">#264A82</color>
     <color name="azul_icone_inativo">#8FA3C4</color>
+    <color name="azul_destaque">#4C8DFF</color>
 </resources>

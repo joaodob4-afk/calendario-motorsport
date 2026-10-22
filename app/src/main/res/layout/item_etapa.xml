@@ -6,19 +6,19 @@
     android:orientation="horizontal"
     android:background="@drawable/card_destaque">
 
-    <!-- Faixa na cor da categoria, encostada na lateral esquerda (cor definida no Kotlin) -->
+    <!-- A faixa da categoria é desenhada no fundo do card (FundoDeCard); esta view não ocupa espaço -->
     <View
         android:id="@+id/itemAcento"
-        android:layout_width="4dp"
-        android:layout_height="match_parent"
-        android:background="@color/acento" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
+        android:paddingStart="18dp"
         android:paddingEnd="14dp"
         android:paddingTop="14dp"
         android:paddingBottom="14dp">

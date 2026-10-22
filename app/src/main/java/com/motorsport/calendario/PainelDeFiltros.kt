@@ -119,12 +119,12 @@ internal class PainelDeFiltros(
     /** Opção tocada por último: ao redesenhar, só ela "estoura" (animação de marcar). */
     private var ultimaChave: String? = null
 
-    private val corAtiva = activity.getColor(R.color.acento)
-    private val corDoFundo = activity.getColor(R.color.superficie)
-    private val corDaBorda = activity.getColor(R.color.borda_suave)
-    private val corSuave = activity.getColor(R.color.texto_suave)
-    private val corEscura = Color.parseColor("#0B0D0F")
-    private val corDoCartao = Color.parseColor("#262B30")
+    private val corAtiva = activity.getColor(R.color.azul_destaque)
+    private val corDoFundo = activity.getColor(R.color.azul_marinho)
+    private val corDaBorda = activity.getColor(R.color.azul_marinho_borda)
+    private val corSuave = activity.getColor(R.color.azul_icone_inativo)
+    private val corEscura = activity.getColor(R.color.azul_marinho)
+    private val corDoCartao = activity.getColor(R.color.azul_marinho_claro)
 
     private class Opcao(
         val chave: String,
@@ -179,7 +179,7 @@ internal class PainelDeFiltros(
         raiz.addView(
             View(activity).apply {
                 background = GradientDrawable().apply {
-                    setColor(Color.parseColor("#4A5158"))
+                    setColor(Color.parseColor("#3E5C93"))
                     cornerRadius = activity.emPx(2f).toFloat()
                 }
             },
@@ -400,7 +400,16 @@ internal class PainelDeFiltros(
         )
 
         cartao.addView(textos, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        cartao.addView(InterruptorModerno(activity, ligado, animarDe))
+        cartao.addView(
+            InterruptorModerno(
+                activity,
+                ligado,
+                animarDe,
+                corLigado = corAtiva,
+                corDaTrilha = corDoFundo,
+                corDoContorno = corDaBorda
+            )
+        )
 
         return cartao
     }
