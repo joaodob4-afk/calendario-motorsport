@@ -282,8 +282,9 @@ internal class PainelDeFiltros(
     private fun mudar(novos: FiltrosDeEtapas) {
         val antes = filtros.mostrarFinalizadas
         filtros = RegrasDeFiltro.podar(todasEtapas(), novos, hoje)
-        aoMudar(filtros)
+        // O painel responde primeiro (o interruptor anima na hora); a lista atrás vem em seguida.
         desenhar(animarDe = antes)
+        aoMudar(filtros)
     }
 
     /** Refaz as opções com o estado atual dos filtros. */

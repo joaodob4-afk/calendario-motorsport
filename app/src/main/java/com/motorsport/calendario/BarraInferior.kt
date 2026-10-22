@@ -3,8 +3,10 @@ package com.motorsport.calendario
 import android.app.Activity
 import androidx.annotation.StringRes
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -38,8 +40,9 @@ internal object BarraInferior {
     fun montar(activity: Activity, container: LinearLayout, selecionado: Int = 0) {
         container.removeAllViews()
 
-        val corAtiva = activity.getColor(R.color.acento)
-        val corInativa = activity.getColor(R.color.texto_suave)
+        // Fundo azul-marinho: o item aberto fica branco, com uma pílula azul atrás do ícone.
+        val corAtiva = android.graphics.Color.WHITE
+        val corInativa = activity.getColor(R.color.azul_icone_inativo)
 
         itens.forEachIndexed { indice, item ->
             val cor = if (indice == selecionado) corAtiva else corInativa
@@ -48,7 +51,22 @@ internal object BarraInferior {
                 setImageResource(item.icone)
                 setColorFilter(cor)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                layoutParams = LinearLayout.LayoutParams(activity.emPx(26f), activity.emPx(26f))
+                layoutParams = FrameLayout.LayoutParams(
+                    activity.emPx(24f),
+                    activity.emPx(24f),
+                    Gravity.CENTER
+                )
+            }
+
+            val pilula = FrameLayout(activity).apply {
+                layoutParams = LinearLayout.LayoutParams(activity.emPx(56f), activity.emPx(30f))
+                if (indice == selecionado) {
+                    background = GradientDrawable().apply {
+                        setColor(activity.getColor(R.color.azul_marinho_claro))
+                        cornerRadius = activity.emPx(15f).toFloat()
+                    }
+                }
+                addView(icone)
             }
 
             val rotulo = TextView(activity).apply {
@@ -58,7 +76,7 @@ internal object BarraInferior {
                 typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                 maxLines = 1
                 gravity = Gravity.CENTER
-                setPadding(0, activity.emPx(3f), 0, 0)
+                setPadding(0, activity.emPx(2f), 0, 0)
             }
 
             val celula = LinearLayout(activity).apply {
@@ -70,7 +88,7 @@ internal object BarraInferior {
                 background = fundoDeToque()
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
                 setOnClickListener { aoTocar(activity, item) }
-                addView(icone)
+                addView(pilula)
                 addView(rotulo)
             }
 
