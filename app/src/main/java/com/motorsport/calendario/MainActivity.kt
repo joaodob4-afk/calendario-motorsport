@@ -27,6 +27,9 @@ class MainActivity : AppCompatActivity() {
         const val CHAVE_FILTRO_FINALIZADAS = "filtro_finalizadas"
         const val CHAVE_FILTRO_PAISES = "filtro_paises"
         const val CHAVE_FILTRO_MESES = "filtro_meses"
+
+        /** Cards criados por vez ao desenhar a lista; o resto entra nos quadros seguintes. */
+        const val ETAPAS_POR_LOTE = 8
     }
 
     /** Diferente de vazio enquanto a tela de detalhe de uma categoria está aberta. */
@@ -57,6 +60,9 @@ class MainActivity : AppCompatActivity() {
     private val botoesCategorias = mutableListOf<Pair<String, TextView>>()
 
     private var botaoTopoVisivel = false
+
+    /** Muda a cada desenho da lista; lotes de um desenho antigo se cancelam ao ver que mudou. */
+    private var geracaoDaLista = 0
 
     /** Dia em que a lista foi desenhada pela última vez; se o dia mudar, ela é refeita. */
     private var dataDaUltimaLista: java.time.LocalDate? = null
@@ -286,7 +292,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         painelDeFiltros?.fechar()
-        handlerRedesenho.removeCallbacks(redesenhoDaLista)
+        handlerRedesenho.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
 
@@ -315,7 +321,7 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarMenu() {
         setContentView(R.layout.activity_main)
         aplicarInsetsDasBarras()
-        definirCorDaJanela(getColor(R.color.fundo_tela))
+        definirCorDaJanela(getColor(R.color.azul_marinho))
         animarEntrada()
 
         listaEtapas = findViewById(R.id.listaEtapas)
@@ -648,10 +654,13 @@ class MainActivity : AppCompatActivity() {
         val hoje = java.time.LocalDate.now()
         dataDaUltimaLista = hoje
 
+        // Um novo desenho cancela o anterior, caso ele ainda estivesse entrando aos poucos.
+        geracaoDaLista++
+        val geracao = geracaoDaLista
+
         val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje)
 
         listaEtapas.removeAllViews()
-        val inflater = LayoutInflater.from(this)
 
         if (etapasOrdenadas.isEmpty()) {
             // Ainda lendo os calendários: melhor mostrar nada do que "nenhuma etapa".
@@ -668,83 +677,116 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        val inflater = LayoutInflater.from(this)
+        val proximas = proximasPorCategoria(hoje)
         var mesAnterior = -1
-        var indiceDoCard = 0
+        var proxima = 0
 
-        for (etapa in etapasOrdenadas) {
-            val inicioItem = parseDataSegura(etapa.dataInicio)
-            if (inicioItem != null) {
-                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
-                if (chaveMes != mesAnterior) {
-                    listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
-                    mesAnterior = chaveMes
-                }
+        // Com as finalizadas a lista passa de uma centena de cards. Criar todos de uma vez
+        // trava o app por alguns segundos; em lotes pequenos ele continua respondendo.
+        fun desenharLote() {
+            if (geracao != geracaoDaLista || isFinishing || isDestroyed || categoriaAtual.isNotEmpty()) {
+                return
             }
 
-            val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
+            val ate = minOf(proxima + ETAPAS_POR_LOTE, etapasOrdenadas.size)
 
-            val status = statusEtapa(etapa, etapasOrdenadas)
+            while (proxima < ate) {
+                val etapa = etapasOrdenadas[proxima]
 
-            // Categoria: selo preenchido na cor dela, acima do nome
-            val corItem = corDaCategoria(etapa.categoria)
-            val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
-            chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
-            estilizarSeloPreenchido(chipCategoria, corItem, 7f)
-            estilizarCard(item, corItem)
+                val inicioItem = parseDataSegura(etapa.dataInicio)
+                if (inicioItem != null) {
+                    val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+                    if (chaveMes != mesAnterior) {
+                        listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
+                        mesAnterior = chaveMes
+                    }
+                }
 
-            val nomeEvento = nomeDoEvento(etapa)
-            item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
-            item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
+                adicionarCard(
+                    inflater,
+                    etapa,
+                    statusEtapa(etapa, hoje, proximas),
+                    if (animar) proxima else -1
+                )
+                proxima++
+            }
 
-            // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
-            val periodo = Formatacao.periodo(
+            if (proxima < etapasOrdenadas.size) {
+                handlerRedesenho.post { desenharLote() }
+            }
+        }
+
+        desenharLote()
+    }
+
+    /** Cria o card de uma etapa e o coloca no fim da lista. [indiceDeEntrada] < 0: sem animação. */
+    private fun adicionarCard(
+        inflater: LayoutInflater,
+        etapa: Etapa,
+        status: String,
+        indiceDeEntrada: Int
+    ) {
+        val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
+
+        // Categoria: selo preenchido na cor dela, acima do nome
+        val corItem = corDaCategoria(etapa.categoria)
+        val chipCategoria = item.findViewById<TextView>(R.id.itemCategoria)
+        chipCategoria.text = Categorias.rotuloDoSelo(etapa.categoria)
+        estilizarSeloPreenchido(chipCategoria, corItem, 7f)
+        estilizarCard(item, corItem)
+
+        val nomeEvento = nomeDoEvento(etapa)
+        item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
+        item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
+
+        // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
+        val periodo = Formatacao.periodo(
+            parseDataSegura(etapa.dataInicio),
+            parseDataSegura(etapa.dataFim)
+        ) ?: etapa.data
+        val periodoExibido = if (Idioma.ingles(this)) {
+            Formatacao.periodoEmIngles(
                 parseDataSegura(etapa.dataInicio),
                 parseDataSegura(etapa.dataFim)
-            ) ?: etapa.data
-            val periodoExibido = if (Idioma.ingles(this)) {
-                Formatacao.periodoEmIngles(
-                    parseDataSegura(etapa.dataInicio),
-                    parseDataSegura(etapa.dataFim)
-                ) ?: periodo
-            } else {
-                periodo
-            }
-            val itemData = item.findViewById<TextView>(R.id.itemData)
-            itemData.text = periodoExibido
-
-            val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
-            itemStatus.text = textoDoStatus(status)
-
-            // Próxima e em andamento: selo preenchido na cor da categoria
-            itemData.setTextColor(android.graphics.Color.WHITE)
-            when (status) {
-                "PRÓXIMA", "EM ANDAMENTO" -> {
-                    estilizarSeloPreenchido(itemStatus, corItem, 8f)
-                }
-                "FINALIZADA" -> {
-                    estilizarContorno(itemStatus, getColor(R.color.texto_suave))
-                }
-                else -> {
-                    estilizarContorno(itemStatus, getColor(R.color.status_azul))
-                }
-            }
-
-            // Etapas finalizadas (só aparecem se o usuário pedir nos filtros) ficam apagadas.
-            val alvoDeAlpha = if (status == "FINALIZADA") 0.45f else 1f
-            item.alpha = alvoDeAlpha
-
-            item.contentDescription =
-                "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
-                    "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
-
-            item.setOnClickListener { abrirEtapa(etapa) }
-            item.comEfeitoDeToque(escala = 0.97f)
-
-            listaEtapas.addView(item)
-
-            if (animar) animarEntradaDoItem(item, indiceDoCard, alvoDeAlpha)
-            indiceDoCard++
+            ) ?: periodo
+        } else {
+            periodo
         }
+        val itemData = item.findViewById<TextView>(R.id.itemData)
+        itemData.text = periodoExibido
+
+        val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
+        itemStatus.text = textoDoStatus(status)
+
+        // Próxima e em andamento: selo preenchido na cor da categoria
+        itemData.setTextColor(android.graphics.Color.WHITE)
+        when (status) {
+            "PRÓXIMA", "EM ANDAMENTO" -> {
+                estilizarSeloPreenchido(itemStatus, corItem, 8f)
+            }
+            "FINALIZADA" -> {
+                estilizarContorno(itemStatus, getColor(R.color.texto_suave))
+            }
+            else -> {
+                estilizarContorno(itemStatus, getColor(R.color.status_azul))
+            }
+        }
+
+        // Etapas finalizadas (só aparecem se o usuário pedir nos filtros) ficam apagadas.
+        val alvoDeAlpha = if (status == "FINALIZADA") 0.45f else 1f
+        item.alpha = alvoDeAlpha
+
+        item.contentDescription =
+            "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
+                "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
+
+        item.setOnClickListener { abrirEtapa(etapa) }
+        item.comEfeitoDeToque(escala = 0.97f)
+
+        listaEtapas.addView(item)
+
+        if (indiceDeEntrada >= 0) animarEntradaDoItem(item, indiceDeEntrada, alvoDeAlpha)
     }
 
     /** Os primeiros cards entram um após o outro, subindo e aparecendo; os demais já nascem prontos. */
@@ -765,12 +807,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun statusEtapa(
         etapa: Etapa,
-        etapasOrdenadas: List<Etapa>
+        hoje: java.time.LocalDate,
+        proximas: Map<String, Etapa>
     ): String {
-        val hoje = java.time.LocalDate.now()
         val inicioEtapa = parseDataSegura(etapa.dataInicio) ?: return "AGENDADA"
 
-        if (fimDaEtapa(etapa).isBefore(hoje)) {
+        if (RegrasDeFiltro.finalizada(etapa, hoje)) {
             return "FINALIZADA"
         }
 
@@ -778,10 +820,20 @@ class MainActivity : AppCompatActivity() {
             return "EM ANDAMENTO"
         }
 
-        val proximasDaCategoria = todasEtapas.filter { it.categoria == etapa.categoria }
-        val proxima = proximasDaCategoria.firstOrNull { !fimDaEtapa(it).isBefore(hoje) }
+        return if (proximas[etapa.categoria] == etapa) "PRÓXIMA" else "AGENDADA"
+    }
 
-        return if (proxima == etapa) "PRÓXIMA" else "AGENDADA"
+    /** A primeira etapa ainda não finalizada de cada categoria, calculada uma vez por desenho. */
+    private fun proximasPorCategoria(hoje: java.time.LocalDate): Map<String, Etapa> {
+        val proximas = HashMap<String, Etapa>()
+
+        for (etapa in todasEtapas) {
+            if (etapa.categoria !in proximas && !RegrasDeFiltro.finalizada(etapa, hoje)) {
+                proximas[etapa.categoria] = etapa
+            }
+        }
+
+        return proximas
     }
 
     private fun abrirCategoria(categoria: String) {

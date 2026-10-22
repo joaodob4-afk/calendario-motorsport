@@ -19,6 +19,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:background="@color/azul_marinho"
             android:paddingTop="6dp"
             android:paddingBottom="6dp">
 
@@ -137,14 +138,14 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/borda_suave" />
+            android:background="@color/azul_marinho_borda" />
 
         <LinearLayout
             android:id="@+id/barraInferior"
             android:layout_width="match_parent"
             android:layout_height="64dp"
             android:orientation="horizontal"
-            android:background="@color/fundo_tela" />
+            android:background="@color/azul_marinho" />
     </LinearLayout>
 
     <!-- Painel lateral: o conteúdo vem de MenuPrincipal (Kotlin) -->
