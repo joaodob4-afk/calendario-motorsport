@@ -193,6 +193,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
                 }
             }
             bandeira.clipToOutline = true
+            bandeira.foreground = tela.getDrawable(R.drawable.borda_bandeira)
         }
 
         card.findViewById<TextView>(R.id.destaqueLocal).text = local

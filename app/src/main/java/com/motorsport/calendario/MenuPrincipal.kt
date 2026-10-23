@@ -324,7 +324,7 @@ internal object MenuPrincipal {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = activity.emPx(56f)
-            setPadding(activity.emPx(12f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
+            setPadding(activity.emPx(12f), activity.emPx(8f), activity.emPx(6f), activity.emPx(8f))
             addView(ponto)
             addView(nome)
             addView(
@@ -393,7 +393,7 @@ internal object MenuPrincipal {
                         isClickable = true
                         isFocusable = true
                         contentDescription = rotuloDoModo(activity, modo)
-                        setPadding(activity.emPx(6f), 0, activity.emPx(6f), 0)
+                        setPadding(activity.emPx(4f), 0, activity.emPx(4f), 0)
                         background = if (marcado) {
                             comToque(activity, corMarcada, null, 9f)
                         } else {

@@ -40,6 +40,11 @@ internal fun Activity.pintarBarrasDoSistema(cor: Int) {
     window.statusBarColor = cor
     window.navigationBarColor = cor
 
+    // A linha fina que o Android desenha entre o app e a barra de navegação (aparece preta no claro).
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT
+    }
+
     val controle = WindowCompat.getInsetsController(window, window.decorView)
     val fundoClaro = ColorUtils.calculateLuminance(cor) > 0.5
     controle.isAppearanceLightStatusBars = fundoClaro
