@@ -44,6 +44,17 @@ class IndyCarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // O botão físico (ou o gesto) de voltar usa o mesmo slide do botão da tela.
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    finish()
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+                }
+            }
+        )
+
         montarTela()
 
         // Baixa o calendário e atualiza a tela quando salvar com sucesso.

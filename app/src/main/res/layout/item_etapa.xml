@@ -23,7 +23,7 @@
         android:paddingTop="14dp"
         android:paddingBottom="14dp">
 
-        <!-- Esquerda: categoria, nome e local. Os textos quebram de linha, nunca encolhem nem cortam. -->
+        <!-- Esquerda: categoria, nome da etapa, cidade e país, e data com dia da semana e horário -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -35,13 +35,13 @@
                 android:id="@+id/itemCategoria"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingStart="9dp"
-                android:paddingEnd="9dp"
-                android:paddingTop="3dp"
-                android:paddingBottom="3dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
                 android:text="F1"
                 android:textColor="#0B0D0F"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08"
                 android:fontFamily="sans-serif" />
@@ -50,23 +50,23 @@
                 android:id="@+id/itemPais"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
                 android:text="Brasil"
                 android:textColor="@color/texto_principal"
-                android:textSize="18sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:layout_width="15dp"
-                    android:layout_height="15dp"
-                    android:layout_marginTop="2dp"
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:layout_marginTop="1dp"
                     android:layout_marginEnd="4dp"
                     android:src="@drawable/ic_pin"
                     android:tint="@color/texto_suave"
@@ -79,43 +79,42 @@
                     android:layout_weight="1"
                     android:text="Interlagos"
                     android:textColor="@color/texto_suave"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:fontFamily="sans-serif" />
             </LinearLayout>
-        </LinearLayout>
-
-        <!-- Direita: período e status -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:gravity="end"
-            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/itemData"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="end"
-                android:text="30/10 – 01/11"
-                android:textColor="@color/texto_principal"
-                android:textSize="15sp"
+                android:layout_marginTop="3dp"
+                android:text="Sex, 30/10 · 15:30 – Dom, 01/11"
+                android:textColor="@color/texto_medio"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:fontFamily="sans-serif" />
+        </LinearLayout>
+
+        <!-- Direita: quanto falta, ou a situação da etapa -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:gravity="end"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/itemStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
                 android:gravity="center"
-                android:text="AGENDADA"
+                android:text="1 DIA"
                 android:textColor="@color/status_azul"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.04"
                 android:fontFamily="sans-serif" />

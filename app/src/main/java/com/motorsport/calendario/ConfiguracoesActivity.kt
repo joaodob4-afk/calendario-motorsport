@@ -75,6 +75,9 @@ class ConfiguracoesActivity : AppCompatActivity() {
         corpo.addView(tituloDeSecao(R.string.config_aparencia))
         corpo.addView(cartaoDeTemas())
 
+        corpo.addView(tituloDeSecao(R.string.config_data))
+        corpo.addView(cartaoDeData())
+
         corpo.addView(tituloDeSecao(R.string.config_hora))
         corpo.addView(cartaoDeHora())
 
@@ -140,19 +143,63 @@ class ConfiguracoesActivity : AppCompatActivity() {
 
             val linha = linhaBase(opcao.icone, getString(opcao.titulo), getString(opcao.descricao))
             linha.addView(indicadorDeEscolha(opcao.modo == atual))
-            linha.isClickable = true
-            linha.isFocusable = true
-            linha.contentDescription = getString(opcao.titulo)
-            linha.background = RippleDrawable(
-                ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
-                null,
-                ColorDrawable(Color.WHITE)
-            )
-            linha.setOnClickListener { escolher(opcao.modo) }
+            tornarEscolhivel(linha, getString(opcao.titulo)) { escolher(opcao.modo) }
             cartao.addView(linha)
         }
 
         return cartao
+    }
+
+    /** Cada formato mostra a data de hoje escrita nele; "Padrão do aparelho" mostra o que o celular usaria. */
+    private fun cartaoDeData(): View {
+        val atual = PreferenciasDeData.atual(this)
+        val cartao = cartao()
+        val hoje = java.time.LocalDate.now()
+
+        FormatoDeData.values().forEachIndexed { indice, formato ->
+            if (indice > 0) cartao.addView(divisor())
+
+            val amostra = FormatadorDeData.curta(
+                hoje,
+                PreferenciasDeData.resolver(this, formato),
+                Idioma.locale(this)
+            )
+            val titulo = getString(rotuloDoFormato(formato))
+            val descricao = if (formato == FormatoDeData.SISTEMA) {
+                getString(R.string.data_sistema_desc, amostra)
+            } else {
+                amostra
+            }
+
+            val linha = linhaBase(R.drawable.ic_calendario, titulo, descricao)
+            linha.addView(indicadorDeEscolha(formato == atual))
+            tornarEscolhivel(linha, titulo) { escolherData(formato) }
+            cartao.addView(linha)
+        }
+
+        return cartao
+    }
+
+    private fun rotuloDoFormato(formato: FormatoDeData): Int =
+        when (formato) {
+            FormatoDeData.SISTEMA -> R.string.data_sistema
+            FormatoDeData.DIA_MES -> R.string.data_dia_mes
+            FormatoDeData.MES_DIA -> R.string.data_mes_dia
+            FormatoDeData.DIA_MES_TEXTO -> R.string.data_dia_mes_texto
+            FormatoDeData.MES_TEXTO_DIA -> R.string.data_mes_texto_dia
+        }
+
+    /** Deixa a linha tocável, com ondulação azul. */
+    private fun tornarEscolhivel(linha: LinearLayout, descricao: String, aoTocar: () -> Unit) {
+        linha.isClickable = true
+        linha.isFocusable = true
+        linha.contentDescription = descricao
+        linha.background = RippleDrawable(
+            ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
+            null,
+            ColorDrawable(Color.WHITE)
+        )
+        linha.setOnClickListener { aoTocar() }
     }
 
     private fun cartaoDeHora(): View {
@@ -170,6 +217,13 @@ class ConfiguracoesActivity : AppCompatActivity() {
 
         // Se o tema efetivo mudar, o Android refaz esta tela sozinho; senão, só atualizamos a marcação.
         PreferenciasDeTema.definir(this, modo)
+        montar()
+    }
+
+    private fun escolherData(formato: FormatoDeData) {
+        if (PreferenciasDeData.atual(this) == formato) return
+
+        PreferenciasDeData.definir(this, formato)
         montar()
     }
 

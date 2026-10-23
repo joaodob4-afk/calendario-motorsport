@@ -16,9 +16,12 @@ internal object Idioma {
     fun locale(context: Context): Locale =
         if (ingles(context)) Locale.ENGLISH else Locale("pt", "BR")
 
-    /** Nome de evento ("GP da Itália") no idioma do app. */
-    fun evento(context: Context, nome: String): String =
-        if (ingles(context)) TraducaoDeNomes.evento(nome) else nome
+    /**
+     * Nome de evento no original ("Italian Grand Prix", "6 Hours of Monza"), igual em qualquer
+     * idioma do app. Os nomes guardados em português só servem de chave para achar o original.
+     */
+    fun evento(@Suppress("UNUSED_PARAMETER") context: Context, nome: String): String =
+        TraducaoDeNomes.evento(nome)
 
     /** Nome de sessão ("Treino Livre 1") no idioma do app. */
     fun sessao(context: Context, nome: String): String =
@@ -28,7 +31,12 @@ internal object Idioma {
     fun lugar(context: Context, nome: String): String =
         if (ingles(context)) TraducaoDeNomes.lugar(nome) else nome
 
-    /** Data dos calendários (dd/MM/yyyy ou yyyy-MM-dd) no formato do idioma do app. */
-    fun data(context: Context, texto: String): String =
-        if (ingles(context)) Formatacao.dataEmIngles(texto) else texto
+    /**
+     * Data dos calendários (dd/MM/yyyy ou yyyy-MM-dd) no formato escolhido nas configurações
+     * (por padrão, o do aparelho). Texto que não é data volta como estava.
+     */
+    fun data(context: Context, texto: String): String {
+        val data = Formatacao.lerDataDoCalendario(texto) ?: return texto
+        return PreferenciasDeData.completa(context, data)
+    }
 }
