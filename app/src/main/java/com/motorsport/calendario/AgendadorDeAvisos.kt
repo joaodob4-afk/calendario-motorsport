@@ -62,13 +62,16 @@ internal object AgendadorDeAvisos {
             val app = context.applicationContext
             val alarmes = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            cancelarAnteriores(app, alarmes)
+            // Não apague a fila atual antes de conseguir montar a nova. Se a leitura dos
+            // calendários ou o cálculo falhar, os alarmes já registrados continuam válidos.
+            val codigosAnteriores = lerCodigos(app)
 
             val minutos = PreferenciasDeAviso.minutosSelecionados(app)
             val naHora = PreferenciasDeAviso.avisarNaHora(app)
 
             // Sem nenhuma antecedência e sem o aviso da hora de começar, não há o que agendar.
             if ((minutos.isEmpty() && !naHora) || !Notificacoes.permitidas(app)) {
+                cancelarCodigos(app, alarmes, codigosAnteriores)
                 guardarCodigos(app, emptySet())
                 return
             }
@@ -87,7 +90,10 @@ internal object AgendadorDeAvisos {
             )
 
             val agendados = mutableSetOf<String>()
+            var houveFalha = false
 
+            // Primeiro registre a nova fila. Só depois remova os alarmes antigos; assim uma
+            // falha pontual do AlarmManager não deixa o app sem nenhum aviso futuro.
             for (aviso in avisos) {
                 val sessao = aviso.sessao
                 val intent = intentBase(app)
@@ -112,10 +118,18 @@ internal object AgendadorDeAvisos {
                     agendarAlarme(alarmes, PlanoDeAvisos.momentoDoAlarme(aviso).toEpochMilli(), pendente)
                     agendados.add(aviso.codigoDoAlarme.toString())
                 } catch (e: Exception) {
+                    houveFalha = true
                     registrarFalha("AgendadorDeAvisos.agendar", e)
                 }
             }
 
+            if (houveFalha) {
+                // Mantém a fila anterior e também registra os novos alarmes que deram certo.
+                guardarCodigos(app, codigosAnteriores + agendados)
+                return
+            }
+
+            cancelarCodigos(app, alarmes, codigosAnteriores - agendados)
             guardarCodigos(app, agendados)
         }
     }
@@ -143,8 +157,8 @@ internal object AgendadorDeAvisos {
     private fun intentBase(context: Context): Intent =
         Intent(context, AvisoReceiver::class.java).setAction(ACAO_AVISO)
 
-    private fun cancelarAnteriores(context: Context, alarmes: AlarmManager) {
-        for (codigo in lerCodigos(context)) {
+    private fun cancelarCodigos(context: Context, alarmes: AlarmManager, codigos: Set<String>) {
+        for (codigo in codigos) {
             val numero = codigo.toIntOrNull() ?: continue
 
             val pendente = PendingIntent.getBroadcast(
