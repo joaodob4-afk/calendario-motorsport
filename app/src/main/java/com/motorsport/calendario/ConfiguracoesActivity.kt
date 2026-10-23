@@ -41,6 +41,12 @@ class ConfiguracoesActivity : AppCompatActivity() {
         montar()
     }
 
+    /** A troca de tema é tratada aqui (uiMode no manifesto): refaz as views no lugar, sem piscar. */
+    override fun onConfigurationChanged(novaConfiguracao: android.content.res.Configuration) {
+        super.onConfigurationChanged(novaConfiguracao)
+        montar()
+    }
+
     override fun finish() {
         super.finish()
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)

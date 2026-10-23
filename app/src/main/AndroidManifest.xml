@@ -21,10 +21,12 @@
 
         <activity
             android:name=".ConfiguracoesActivity"
+            android:configChanges="uiMode"
             android:exported="false" />
 
         <activity
             android:name=".MainActivity"
+            android:configChanges="uiMode"
             android:exported="true">
 
             <intent-filter>
