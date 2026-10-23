@@ -50,6 +50,8 @@ class F1Activity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
+        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         montarTela()
@@ -758,9 +760,9 @@ class F1Activity : AppCompatActivity() {
             )
         )
 
-        val horarioTexto = sessao.horario?.format(
-            DateTimeFormatter.ofPattern("HH:mm")
-        ) ?: "--:--"
+        val horarioTexto = sessao.horario
+            ?.let { Hora.deZonedDateTime(this, it) }
+            ?: "--:--"
 
         val horario = TextView(this).apply {
             text = horarioTexto

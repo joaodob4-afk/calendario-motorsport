@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tema ESCURO: só o que muda em relação a values/colors.xml -->
+    <color name="fundo_tela">#0E1012</color>
+    <color name="superficie">#15181B</color>
+    <color name="borda_suave">#2A2D31</color>
+    <color name="texto_suave">#9AA0A6</color>
+    <color name="texto_principal">#FFFFFF</color>
+    <color name="acento">#4CAF50</color>
+    <color name="acento_escuro">#0B1A0C</color>
+    <color name="status_azul">#5B9BEA</color>
+</resources>

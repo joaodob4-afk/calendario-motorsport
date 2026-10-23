@@ -19,6 +19,8 @@ class MotoCalendarActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
+        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
+        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         classe = ClasseMoto.doIntent(intent)

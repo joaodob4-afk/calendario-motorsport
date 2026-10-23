@@ -45,6 +45,8 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
     private var etapaEhProxima = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
+        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         // Atualiza os detalhes assim que o calendário novo for salvo.
@@ -416,7 +418,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
                 if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
                     getString(R.string.a_confirmar)
                 } else {
-                    it
+                    Hora.deTexto(this, it)
                 }
             }
 

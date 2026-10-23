@@ -61,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
     private var botaoTopoVisivel = false
 
+    /** Sessões com horário confirmado de todas as categorias; definem quem começa mais cedo. */
+    private var sessoes: List<SessaoParaAviso> = emptyList()
+
     /** Muda a cada desenho da lista; lotes de um desenho antigo se cancelam ao ver que mudou. */
     private var geracaoDaLista = 0
 
@@ -180,6 +183,15 @@ class MainActivity : AppCompatActivity() {
     /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
     private var carregandoCalendarios = true
 
+    /** Lê as sessões (cache ou JSON do APK); um problema aqui só desfaz a ordem por horário. */
+    private fun coletarSessoes(app: android.content.Context): List<SessaoParaAviso> =
+        try {
+            ColetorDeSessoes.coletar(app)
+        } catch (e: Exception) {
+            registrarFalha("MainActivity.coletarSessoes", e)
+            emptyList()
+        }
+
     private fun lerEtapas(origem: String, bloco: () -> List<Etapa>?): List<Etapa>? =
         try {
             bloco()
@@ -207,6 +219,7 @@ class MainActivity : AppCompatActivity() {
                 FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
             }
             val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
+            val coletadas = coletarSessoes(app)
 
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
@@ -217,6 +230,7 @@ class MainActivity : AppCompatActivity() {
                 etapasIndyCarDinamicas = indy
                 etapasFormulaEDinamicas = fe
                 etapasMotoDinamicas = moto
+                sessoes = coletadas
                 carregandoCalendarios = false
 
                 // Filtros restaurados de uma rotação podem apontar para algo que não existe mais.
@@ -272,10 +286,12 @@ class MainActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val etapas = lerEtapas("recarregar", carga)
+            val coletadas = coletarSessoes(app)
             AgendadorDeAvisos.reagendarEmSegundoPlano(app)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 aplicar(etapas)
+                sessoes = coletadas
                 redesenharListaDepois()
             }
         }.start()
@@ -681,7 +697,7 @@ class MainActivity : AppCompatActivity() {
         val geracao = geracaoDaLista
         ancoraDoTopo = null
 
-        val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje)
+        val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje, sessoes)
 
         listaEtapas.removeAllViews()
 
@@ -894,7 +910,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Próxima e em andamento: selo preenchido na cor da categoria
-        itemData.setTextColor(android.graphics.Color.WHITE)
+        itemData.setTextColor(getColor(R.color.texto_principal))
         when (status) {
             "PRÓXIMA", "EM ANDAMENTO" -> {
                 estilizarSeloPreenchido(itemStatus, corItem, 8f)

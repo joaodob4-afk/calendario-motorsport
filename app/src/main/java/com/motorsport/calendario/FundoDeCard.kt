@@ -13,8 +13,8 @@ import android.graphics.drawable.Drawable
 
 /**
  * Fundo do card da etapa: cantos arredondados, borda fina, degradê da esquerda para a direita
- * e a faixa da categoria. A faixa é desenhada recortada pelo próprio contorno do card, então
- * acompanha as curvas dos cantos e fica colada na borda, sem emenda.
+ * e a faixa lateral. A faixa é recortada pelo próprio contorno do card, então acompanha as
+ * curvas dos cantos e fica colada na borda, sem emenda.
  */
 internal class FundoDeCard(
     private val corDaFaixa: Int,
@@ -30,10 +30,11 @@ internal class FundoDeCard(
     private val interno = Path()
     private val areaExterna = RectF()
     private val areaInterna = RectF()
+    private var alfa = 255
 
     private val pincelDaBorda = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = corDaBorda }
     private val pincelDoFundo = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val pincelDaFaixa = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = corDaFaixa }
+    private val pincelDaFaixa = Paint(Paint.ANTI_ALIAS_FLAG)
 
     override fun onBoundsChange(limites: Rect) {
         super.onBoundsChange(limites)
@@ -60,11 +61,17 @@ internal class FundoDeCard(
     }
 
     override fun draw(canvas: Canvas) {
+        pincelDaBorda.alpha = alfa
+        pincelDoFundo.alpha = alfa
+
         canvas.drawPath(externo, pincelDaBorda)
         canvas.drawPath(interno, pincelDoFundo)
 
         val salvo = canvas.save()
         canvas.clipPath(externo)
+
+        pincelDaFaixa.color = corDaFaixa
+        pincelDaFaixa.alpha = alfa
         canvas.drawRect(
             areaExterna.left,
             areaExterna.top,
@@ -72,13 +79,12 @@ internal class FundoDeCard(
             areaExterna.bottom,
             pincelDaFaixa
         )
+
         canvas.restoreToCount(salvo)
     }
 
     override fun setAlpha(alpha: Int) {
-        pincelDaBorda.alpha = alpha
-        pincelDoFundo.alpha = alpha
-        pincelDaFaixa.alpha = alpha
+        alfa = alpha
         invalidateSelf()
     }
 

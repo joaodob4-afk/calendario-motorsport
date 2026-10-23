@@ -43,8 +43,11 @@ class MenuPrincipalTest {
     private fun textos(): List<String> =
         todas(container).filterIsInstance<TextView>().map { it.text.toString() }
 
-    private fun linhaDa(categoria: String): View =
-        todas(container).first { it.contentDescription?.startsWith("$categoria,") == true }
+    /** A linha de uma categoria: o nome à esquerda e, ao lado, as três opções. */
+    private fun linhaDa(categoria: String): ViewGroup = textView(categoria).parent as ViewGroup
+
+    private fun opcaoDa(categoria: String, rotulo: String): TextView =
+        todas(linhaDa(categoria)).filterIsInstance<TextView>().first { it.text.toString() == rotulo }
 
     private fun textosIguais(texto: String) = textos().count { it == texto }
 
@@ -54,7 +57,8 @@ class MenuPrincipalTest {
     private fun comDescricao(descricao: String): View =
         todas(container).first { it.contentDescription == descricao }
 
-    private fun cartaoDaCategoria(categoria: String) = (linhaDa(categoria).parent as View).parent as View
+    /** O cartão que reúne todas as categorias (é nele que o esmaecimento é aplicado). */
+    private fun cartaoDaCategoria(categoria: String) = linhaDa(categoria).parent as View
 
     @Test
     fun asSecoesAparecemNaOrdemPedida() {
@@ -134,33 +138,34 @@ class MenuPrincipalTest {
     }
 
     @Test
-    fun tocarNaLinhaAbreAsOpcoesESoUmaCategoriaFicaAbertaPorVez() {
-        val corridas = activity.getString(R.string.modo_corridas)
-        assertEquals(0, textosIguais(corridas))
+    fun asTresOpcoesFicamSempreAoLadoDoNomeDeCadaCategoria() {
+        val rotulos = listOf(R.string.modo_todas, R.string.modo_corridas, R.string.modo_nenhuma)
+            .map { activity.getString(it) }
 
-        linhaDa("F1").performClick()
-        assertEquals(1, textosIguais(corridas))
+        Categorias.todas.forEach { categoria ->
+            val textosDaLinha = todas(linhaDa(categoria.nome))
+                .filterIsInstance<TextView>()
+                .map { it.text.toString() }
 
-        linhaDa("F2").performClick()
-        assertEquals(1, textosIguais(corridas))
-
-        linhaDa("F2").performClick()
-        assertEquals(0, textosIguais(corridas))
+            rotulos.forEach { rotulo ->
+                assertTrue("${categoria.nome} sem a opção $rotulo", rotulo in textosDaLinha)
+            }
+        }
     }
 
     @Test
-    fun escolherUmModoGravaEFechaALinha() {
+    fun escolherUmModoGravaSemAbrirNemFecharNada() {
         val corridas = activity.getString(R.string.modo_corridas)
+        val quantasAntes = textosIguais(corridas)
 
-        linhaDa("F2").performClick()
-        todas(container)
-            .filterIsInstance<TextView>()
-            .first { it.text.toString() == corridas }
-            .performClick()
+        opcaoDa("F2", corridas).performClick()
 
         assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
-        assertEquals(0, textosIguais(corridas))
-        assertTrue(activity.getString(R.string.modo_so_corridas) in textos())
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(activity, "F1"))
+        assertEquals(quantasAntes, textosIguais(corridas))
+
+        opcaoDa("F2", activity.getString(R.string.modo_nenhuma)).performClick()
+        assertEquals(ModoDeAviso.NENHUMA, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
     }
 
     @Test
