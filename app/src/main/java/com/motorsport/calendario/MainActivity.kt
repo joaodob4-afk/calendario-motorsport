@@ -64,6 +64,28 @@ class MainActivity : AppCompatActivity() {
     /** Tema (claro/escuro) com que a tela foi montada; se mudar enquanto ela está parada, ela se refaz. */
     private var modoNoturnoDaTela = false
 
+    /**
+     * A tela trata a troca de tema sozinha (uiMode no manifesto), em vez de ser recriada: o
+     * Android mostraria um fundo branco no meio da recriação. Aqui as views são refeitas no
+     * lugar, com as cores novas, sem fechar a janela. Filtros e categoria escolhidos continuam.
+     */
+    override fun onConfigurationChanged(novaConfiguracao: android.content.res.Configuration) {
+        super.onConfigurationChanged(novaConfiguracao)
+        atualizarParaOTema()
+    }
+
+    private fun atualizarParaOTema() {
+        val atual = modoNoturnoAtual()
+        if (atual == modoNoturnoDaTela) return
+        modoNoturnoDaTela = atual
+
+        // Na tela de detalhe da categoria (sempre escura) não há nada a refazer; a tela inicial
+        // é montada de novo, já no tema certo, quando o usuário voltar a ela.
+        if (categoriaAtual.isEmpty()) {
+            mostrarMenu(animar = false)
+        }
+    }
+
     private fun modoNoturnoAtual(): Boolean =
         (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
             android.content.res.Configuration.UI_MODE_NIGHT_YES
@@ -309,13 +331,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        // O tema foi trocado nas configurações enquanto esta tela estava parada: as views já
-        // criadas ficariam com as cores antigas e as novas com as cores novas (tela mesclada).
-        // Recriar monta tudo de uma vez no tema certo; os filtros são restaurados.
-        if (modoNoturnoAtual() != modoNoturnoDaTela) {
-            recreate()
-            return
-        }
+        // O tema pode ter sido trocado nas configurações enquanto esta tela estava parada.
+        atualizarParaOTema()
 
         // Refaz os avisos ao abrir o app e depois do pedido de permissão de notificações.
         AgendadorDeAvisos.reagendarEmSegundoPlano(this)
@@ -360,11 +377,11 @@ class MainActivity : AppCompatActivity() {
             .start()
     }
 
-    private fun mostrarMenu() {
+    private fun mostrarMenu(animar: Boolean = true) {
         setContentView(R.layout.activity_main)
         aplicarInsetsDasBarras()
         definirCorDaJanela(getColor(R.color.azul_marinho))
-        animarEntrada()
+        if (animar) animarEntrada()
 
         listaEtapas = findViewById(R.id.listaEtapas)
 
