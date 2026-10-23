@@ -63,9 +63,7 @@ class ConfiguracoesActivity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // O azul-marinho aparece atrás das barras do sistema, junto do cabeçalho.
-        window.setBackgroundDrawable(ColorDrawable(marinho))
-        window.statusBarColor = marinho
-        window.navigationBarColor = marinho
+        pintarBarrasDoSistema(marinho)
 
         raiz.addView(cabecalho())
 
@@ -76,7 +74,6 @@ class ConfiguracoesActivity : AppCompatActivity() {
 
         corpo.addView(tituloDeSecao(R.string.config_aparencia))
         corpo.addView(cartaoDeTemas())
-        corpo.addView(dica(R.string.config_nota_telas))
 
         corpo.addView(tituloDeSecao(R.string.config_hora))
         corpo.addView(cartaoDeHora())
@@ -132,15 +129,6 @@ class ConfiguracoesActivity : AppCompatActivity() {
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             letterSpacing = 0.12f
             setPadding(emPx(4f), emPx(20f), 0, emPx(10f))
-        }
-
-    private fun dica(textoRes: Int): View =
-        TextView(this).apply {
-            text = getString(textoRes)
-            setTextColor(getColor(R.color.texto_suave))
-            textSize = 12f
-            setLineSpacing(0f, 1.15f)
-            setPadding(emPx(4f), emPx(10f), emPx(4f), 0)
         }
 
     private fun cartaoDeTemas(): View {

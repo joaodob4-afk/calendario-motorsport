@@ -19,8 +19,6 @@ class MotoCalendarActivity : AppCompatActivity() {
     override fun onCreate(
         savedInstanceState: Bundle?
     ) {
-        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
-        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         classe = ClasseMoto.doIntent(intent)
@@ -85,7 +83,7 @@ class MotoCalendarActivity : AppCompatActivity() {
                 textSize = 27f
 
                 setTextColor(
-                    Color.WHITE
+                    getColor(R.color.texto_principal)
                 )
 
                 setTypeface(
@@ -147,6 +145,7 @@ class MotoCalendarActivity : AppCompatActivity() {
             scroll
         )
         aplicarInsetsDasBarras()
+        pintarBarrasDoSistema(getColor(R.color.fundo_tela))
     }
 
     private fun criarBotaoVoltar(): TextView {
@@ -159,11 +158,7 @@ class MotoCalendarActivity : AppCompatActivity() {
             textSize = 15f
 
             setTextColor(
-                Color.rgb(
-                    143,
-                    166,
-                    186
-                )
+                getColor(R.color.texto_suave)
             )
 
             setTypeface(
@@ -217,7 +212,7 @@ class MotoCalendarActivity : AppCompatActivity() {
                 textSize = 17f
 
                 setTextColor(
-                    Color.WHITE
+                    getColor(R.color.texto_principal)
                 )
 
                 setTypeface(
@@ -232,7 +227,7 @@ class MotoCalendarActivity : AppCompatActivity() {
 
                 background =
                     getDrawable(
-                        R.drawable.rounded_card
+                        R.drawable.card_arredondado
                     )
 
                 isClickable = true

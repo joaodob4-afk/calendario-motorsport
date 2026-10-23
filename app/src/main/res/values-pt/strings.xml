@@ -104,7 +104,6 @@
     <string name="tema_claro_desc">Fundo claro</string>
     <string name="tema_escuro">Escuro</string>
     <string name="tema_escuro_desc">Fundo escuro, mais confortável à noite</string>
-    <string name="config_nota_telas">O modo claro vale para o início, as configurações e os alertas. As telas de cada etapa continuam escuras por enquanto.</string>
     <string name="config_hora">Horário</string>
     <string name="hora_titulo">Formato de hora</string>
     <string name="hora_segue_24">Segue o aparelho: 24 horas (14:30)</string>

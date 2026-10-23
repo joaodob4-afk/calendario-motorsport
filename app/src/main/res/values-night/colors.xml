@@ -9,4 +9,7 @@
     <color name="acento">#4CAF50</color>
     <color name="acento_escuro">#0B1A0C</color>
     <color name="status_azul">#5B9BEA</color>
+    <color name="texto_medio">#D5D8DC</color>
+    <color name="destaque_painel">#1FFFFFFF</color>
+    <color name="destaque_linha">#26FFFFFF</color>
 </resources>

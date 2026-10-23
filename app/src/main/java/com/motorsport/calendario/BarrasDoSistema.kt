@@ -1,7 +1,9 @@
 package com.motorsport.calendario
 
 import android.app.Activity
+import android.graphics.drawable.ColorDrawable
 import android.view.View
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -27,4 +29,19 @@ fun Activity.aplicarInsetsDasBarras() {
         WindowInsetsCompat.CONSUMED
     }
     ViewCompat.requestApplyInsets(raiz)
+}
+
+/**
+ * Pinta a janela e as barras de status e de navegação com [cor]. Os ícones das barras ficam
+ * escuros sobre uma cor clara e claros sobre uma cor escura, para sempre aparecerem.
+ */
+internal fun Activity.pintarBarrasDoSistema(cor: Int) {
+    window.setBackgroundDrawable(ColorDrawable(cor))
+    window.statusBarColor = cor
+    window.navigationBarColor = cor
+
+    val controle = WindowCompat.getInsetsController(window, window.decorView)
+    val fundoClaro = ColorUtils.calculateLuminance(cor) > 0.5
+    controle.isAppearanceLightStatusBars = fundoClaro
+    controle.isAppearanceLightNavigationBars = fundoClaro
 }
