@@ -76,11 +76,22 @@ internal object AgendadorDeAvisos {
                 return
             }
 
+            val coleta = ColetorDeSessoes.coletarComResultado(app)
+            if (coleta.houveFalha) {
+                // Uma categoria com erro não pode transformar a agenda inteira em vazia e
+                // cancelar alarmes que já estavam funcionando. A próxima tentativa refaz a leitura.
+                registrarFalha(
+                    "AgendadorDeAvisos.coletaIncompleta",
+                    IllegalStateException("Falha ao ler um ou mais calendários; fila anterior preservada")
+                )
+                return
+            }
+
             val agora = Instant.now()
 
             val avisos = PlanoDeAvisos.comAlarmeNoFuturo(
                 PlanoDeAvisos.calcularTodos(
-                    ColetorDeSessoes.coletar(app),
+                    coleta.sessoes,
                     agora,
                     minutos,
                     avisarNaHora = naHora,
