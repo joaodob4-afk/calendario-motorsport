@@ -94,16 +94,21 @@ internal object Formatacao {
      * ("Oct 23, 2026"). Se o texto não for uma data conhecida, devolve o original.
      */
     fun dataEmIngles(texto: String): String {
+        val data = lerDataDoCalendario(texto) ?: return texto
+
+        return data.format(formatoDataCompletaIngles)
+    }
+
+    /** Lê uma data dos calendários (dd/MM/yyyy ou yyyy-MM-dd); null se o texto não for uma data. */
+    fun lerDataDoCalendario(texto: String): LocalDate? {
         val limpo = texto.trim()
 
-        val data = runCatching {
+        return runCatching {
             if (limpo.contains('/')) {
                 LocalDate.parse(limpo, formatoDataBrasileiraEstrito)
             } else {
                 LocalDate.parse(limpo.take(10))
             }
-        }.getOrNull() ?: return texto
-
-        return data.format(formatoDataCompletaIngles)
+        }.getOrNull()
     }
 }

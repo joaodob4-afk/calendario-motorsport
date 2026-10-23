@@ -109,6 +109,13 @@
     <string name="hora_titulo">Time format</string>
     <string name="hora_segue_24">Follows your device: 24-hour (14:30)</string>
     <string name="hora_segue_12">Follows your device: 12-hour (2:30 PM)</string>
+    <string name="config_data">Date</string>
+    <string name="data_sistema">Device default</string>
+    <string name="data_sistema_desc">Follows your phone: %1$s</string>
+    <string name="data_dia_mes">Day/month</string>
+    <string name="data_mes_dia">Month/day</string>
+    <string name="data_dia_mes_texto">Day and short month</string>
+    <string name="data_mes_texto_dia">Short month and day</string>
     <string name="lista_vazia">No rounds found.</string>
     <string name="filtros_em_breve">Filters: coming soon</string>
     <string name="barra_inicio">Home</string>

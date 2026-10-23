@@ -61,6 +61,9 @@ class MainActivity : AppCompatActivity() {
 
     private var botaoTopoVisivel = false
 
+    /** Primeira sessão (instante exato) de cada etapa da lista atual; dá o horário e o dia do card. */
+    private var primeirasSessoesDaLista: Map<Etapa, java.time.Instant> = emptyMap()
+
     /** Tema (claro/escuro) com que a tela foi montada; se mudar enquanto ela está parada, ela se refaz. */
     private var modoNoturnoDaTela = false
 
@@ -730,6 +733,7 @@ class MainActivity : AppCompatActivity() {
         ancoraDoTopo = null
 
         val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje, sessoes)
+        primeirasSessoesDaLista = RegrasDeFiltro.primeirasSessoes(etapasOrdenadas, sessoes)
 
         listaEtapas.removeAllViews()
 
@@ -877,6 +881,25 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    /** "Sex, 23/10 · 15:30 – Dom, 25/10": dia da semana, data, horário e último dia da etapa. */
+    private fun linhaDeData(
+        inicio: java.time.LocalDate?,
+        fim: java.time.LocalDate?,
+        horario: String?,
+        textoOriginal: String
+    ): String {
+        if (inicio == null) return textoOriginal
+
+        fun dia(data: java.time.LocalDate): String =
+            "${FormatadorDeData.diaDaSemana(data, Idioma.locale(this))}, ${PreferenciasDeData.curta(this, data)}"
+
+        val linha = StringBuilder(dia(inicio))
+        if (horario != null) linha.append(" · ").append(horario)
+        if (fim != null && fim.isAfter(inicio)) linha.append(" – ").append(dia(fim))
+
+        return linha.toString()
+    }
+
     /** "3 DIAS", "1 SEMANA", "2 MESES": quanto falta para a etapa começar. */
     private fun textoDaContagem(inicio: java.time.LocalDate, hoje: java.time.LocalDate): String {
         val contagem = ContagemParaEtapa.entre(hoje, inicio)
@@ -911,27 +934,20 @@ class MainActivity : AppCompatActivity() {
         item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
         item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
 
-        // DD/MM, sem nome de mês nem ano (já aparecem no cabeçalho da lista)
-        val periodo = Formatacao.periodo(
-            parseDataSegura(etapa.dataInicio),
-            parseDataSegura(etapa.dataFim)
-        ) ?: etapa.data
-        val periodoExibido = if (Idioma.ingles(this)) {
-            Formatacao.periodoEmIngles(
-                parseDataSegura(etapa.dataInicio),
-                parseDataSegura(etapa.dataFim)
-            ) ?: periodo
-        } else {
-            periodo
-        }
-        val itemData = item.findViewById<TextView>(R.id.itemData)
-        itemData.text = periodoExibido
+        // Data com dia da semana e horário da primeira sessão (no fuso do aparelho)
+        val primeira = primeirasSessoesDaLista[etapa]?.atZone(java.time.ZoneId.systemDefault())
+        val inicioDaEtapa = primeira?.toLocalDate() ?: parseDataSegura(etapa.dataInicio)
+        val horario = primeira?.let { Hora.formatar(it.hour, it.minute, Hora.usa24Horas(this)) }
+        val textoDaData = linhaDeData(inicioDaEtapa, parseDataSegura(etapa.dataFim), horario, etapa.data)
 
-        // Etapas ainda por vir mostram quanto falta (em vez de "agendada"); sem data, sem selo.
-        val textoStatus = if (status == "AGENDADA") {
-            parseDataSegura(etapa.dataInicio)?.let { textoDaContagem(it, hoje) }.orEmpty()
-        } else {
-            textoDoStatus(status)
+        val itemData = item.findViewById<TextView>(R.id.itemData)
+        itemData.text = textoDaData
+
+        // Quanto falta para começar (a próxima etapa vem preenchida); ao vivo e finalizada têm texto próprio.
+        val textoStatus = when (status) {
+            "PRÓXIMA", "AGENDADA" ->
+                parseDataSegura(etapa.dataInicio)?.let { textoDaContagem(it, hoje) }.orEmpty()
+            else -> textoDoStatus(status)
         }
 
         val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
@@ -942,7 +958,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Próxima e em andamento: selo preenchido na cor da categoria
-        itemData.setTextColor(getColor(R.color.texto_principal))
         when (status) {
             "PRÓXIMA", "EM ANDAMENTO" -> {
                 estilizarSeloPreenchido(itemStatus, corItem, 8f)
@@ -960,7 +975,7 @@ class MainActivity : AppCompatActivity() {
 
         item.contentDescription =
             "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, $textoStatus"
+                "${localDaEtapa(etapa, nomeEvento)}, $textoDaData, $textoStatus"
 
         item.setOnClickListener { abrirEtapa(etapa) }
         item.comEfeitoDeToque(escala = 0.97f)
