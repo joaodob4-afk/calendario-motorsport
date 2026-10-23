@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:maxLines="3"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/texto_principal"
             android:textSize="30sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif"
@@ -128,7 +128,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textColor="#D5D8DC"
+                android:textColor="@color/texto_medio"
                 android:textSize="15sp"
                 android:fontFamily="sans-serif"
                 tools:text="Austin, Estados Unidos" />
@@ -180,7 +180,7 @@
                         android:layout_height="wrap_content"
                         android:maxLines="2"
                         android:ellipsize="end"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/texto_principal"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif"
@@ -193,7 +193,7 @@
                         android:layout_marginTop="4dp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="#D5D8DC"
+                        android:textColor="@color/texto_medio"
                         android:textSize="13sp"
                         android:fontFamily="sans-serif"
                         tools:text="Começa em 14h 29min" />
@@ -213,7 +213,7 @@
                         android:gravity="end"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/texto_principal"
                         android:textSize="32sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
@@ -246,7 +246,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#26FFFFFF" />
+            android:background="@color/destaque_linha" />
 
         <!-- Data à esquerda, contagem regressiva à direita -->
         <LinearLayout
@@ -262,7 +262,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:maxLines="1"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/texto_principal"
                 android:textSize="20sp"
                 android:letterSpacing="0.05"
                 android:fontFamily="sans-serif-medium"

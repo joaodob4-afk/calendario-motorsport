@@ -27,8 +27,8 @@ class F1Activity : AppCompatActivity() {
     // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
     private val estilo by lazy { DetalheEstilo(this, "F1") }
     private val preto: Int get() = estilo.fundo
-    private val verde: Int get() = estilo.cor
-    private val branco = Color.WHITE
+    private val verde: Int get() = estilo.corDeDestaque
+    private val branco: Int get() = estilo.textoPrincipal
     private val cinza: Int get() = estilo.textoSuave
     private val linhaCinza: Int get() = estilo.borda
     private val fundoCard: Int get() = estilo.superficie
@@ -50,8 +50,6 @@ class F1Activity : AppCompatActivity() {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
-        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         montarTela()
@@ -149,9 +147,7 @@ class F1Activity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(preto))
-        window.statusBarColor = preto
-        window.navigationBarColor = preto
+        pintarBarrasDoSistema(preto)
     }
 
     // false quando o usuário abriu uma corrida específica (não a próxima).

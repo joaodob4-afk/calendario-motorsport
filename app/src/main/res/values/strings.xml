@@ -105,7 +105,6 @@
     <string name="tema_claro_desc">Light background</string>
     <string name="tema_escuro">Dark</string>
     <string name="tema_escuro_desc">Dark background, easier on the eyes at night</string>
-    <string name="config_nota_telas">Light mode applies to the home screen, settings, and alerts. The screens of each round stay dark for now.</string>
     <string name="config_hora">Time</string>
     <string name="hora_titulo">Time format</string>
     <string name="hora_segue_24">Follows your device: 24-hour (14:30)</string>

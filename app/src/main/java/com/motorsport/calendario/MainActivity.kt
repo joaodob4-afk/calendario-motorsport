@@ -361,9 +361,7 @@ class MainActivity : AppCompatActivity() {
      * seguem a mesma cor, para não aparecer uma faixa mais escura no topo e no pé.
      */
     private fun definirCorDaJanela(cor: Int) {
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(cor))
-        window.statusBarColor = cor
-        window.navigationBarColor = cor
+        pintarBarrasDoSistema(cor)
     }
 
     private fun animarEntrada() {

@@ -32,10 +32,30 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
     val superficie: Int = tela.getColor(R.color.superficie)
     val borda: Int = tela.getColor(R.color.borda_suave)
     val textoSuave: Int = tela.getColor(R.color.texto_suave)
+    val textoPrincipal: Int = tela.getColor(R.color.texto_principal)
 
     /** Cor da categoria; categorias fora da lista usam o verde padrão. */
     val cor: Int = Categorias.info(categoria)?.let { Color.parseColor(it.cor) }
         ?: tela.getColor(R.color.acento)
+
+    /**
+     * Cor da categoria para texto, linhas e detalhes sobre o fundo da tela. No tema claro as cores
+     * vivas (amarelo, verde-água, cinza-claro) sumiriam sobre o fundo claro, então escurecem; no
+     * escuro continuam como são. Fundos preenchidos com texto escuro por cima usam [cor].
+     */
+    val corDeDestaque: Int = run {
+        val noturno = (tela.resources.configuration.uiMode and
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        if (noturno) {
+            cor
+        } else {
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(cor, hsl)
+            hsl[2] = minOf(hsl[2], 0.38f)
+            ColorUtils.HSLToColor(hsl)
+        }
+    }
 
     /** Fundo do cartão da corrida principal: a superfície com um tom da cor da categoria. */
     val fundoCorrida: Int = ColorUtils.blendARGB(superficie, cor, 0.20f)
@@ -51,6 +71,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
 
         val voltar = ImageView(tela).apply {
             setImageResource(R.drawable.back_button)
+            setColorFilter(textoPrincipal)
             contentDescription = descricaoVoltar
             scaleType = ImageView.ScaleType.FIT_CENTER
             setPadding(dp(4f), dp(4f), dp(12f), dp(4f))
@@ -61,7 +82,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         val texto = TextView(tela).apply {
             text = titulo
             textSize = 20f
-            setTextColor(Color.WHITE)
+            setTextColor(textoPrincipal)
             typeface = Typeface.create("sans-serif-black", Typeface.NORMAL)
             letterSpacing = 0.06f
         }

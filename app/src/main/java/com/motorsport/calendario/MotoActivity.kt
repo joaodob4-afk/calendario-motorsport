@@ -21,8 +21,8 @@ class MotoActivity : AppCompatActivity() {
     // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
     private val estilo by lazy { DetalheEstilo(this, classe.rotulo) }
     private val preto: Int get() = estilo.fundo
-    private val verde: Int get() = estilo.cor
-    private val branco = Color.WHITE
+    private val verde: Int get() = estilo.corDeDestaque
+    private val branco: Int get() = estilo.textoPrincipal
     private val cinza: Int get() = estilo.textoSuave
     private val linhaCinza: Int get() = estilo.borda
     private val fundoCard: Int get() = estilo.superficie
@@ -39,8 +39,6 @@ class MotoActivity : AppCompatActivity() {
     private var classe = ClasseMoto.MOTOGP
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
-        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         classe = ClasseMoto.doIntent(intent)
@@ -173,9 +171,7 @@ class MotoActivity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(preto))
-        window.statusBarColor = preto
-        window.navigationBarColor = preto
+        pintarBarrasDoSistema(preto)
     }
 
     private fun voltar() {

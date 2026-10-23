@@ -14,6 +14,9 @@
     <color name="acento">#2E9E4F</color>
     <color name="acento_escuro">#E3F3E7</color>
     <color name="status_azul">#2A6FDB</color>
+    <color name="texto_medio">#334155</color>
+    <color name="destaque_painel">#0F0F172A</color>
+    <color name="destaque_linha">#1A0F172A</color>
 
     <!-- Azul-marinho: cabeçalho, barra inferior e botões de ícone (iguais nos dois temas) -->
     <color name="azul_marinho">#0A1F44</color>
