@@ -311,11 +311,12 @@ internal object MenuPrincipal {
                 setColor(Color.parseColor(categoria.cor))
             }
             layoutParams = LinearLayout.LayoutParams(activity.emPx(10f), activity.emPx(10f))
-                .apply { marginEnd = activity.emPx(10f) }
+                .apply { marginEnd = activity.emPx(8f) }
         }
 
-        val nome = texto(activity, categoria.nome, 15f, principal(activity), Typeface.BOLD).apply {
+        val nome = texto(activity, categoria.nome, 14f, principal(activity), Typeface.BOLD).apply {
             isSingleLine = true
+            ellipsize = android.text.TextUtils.TruncateAt.END
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
@@ -323,7 +324,7 @@ internal object MenuPrincipal {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             minimumHeight = activity.emPx(56f)
-            setPadding(activity.emPx(14f), activity.emPx(8f), activity.emPx(10f), activity.emPx(8f))
+            setPadding(activity.emPx(12f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
             addView(ponto)
             addView(nome)
             addView(
@@ -360,7 +361,7 @@ internal object MenuPrincipal {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             background = forma(activity, activity.getColor(R.color.fundo_tela), activity.getColor(R.color.borda_suave), 12f)
-            setPadding(activity.emPx(3f), activity.emPx(3f), activity.emPx(3f), activity.emPx(3f))
+            setPadding(activity.emPx(2f), activity.emPx(3f), activity.emPx(2f), activity.emPx(3f))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 activity.emPx(38f)
@@ -383,7 +384,7 @@ internal object MenuPrincipal {
                     texto(
                         activity,
                         rotuloDoModo(activity, modo),
-                        12f,
+                        11f,
                         corDoTexto,
                         if (marcado) Typeface.BOLD else Typeface.NORMAL
                     ).apply {
@@ -392,7 +393,7 @@ internal object MenuPrincipal {
                         isClickable = true
                         isFocusable = true
                         contentDescription = rotuloDoModo(activity, modo)
-                        setPadding(activity.emPx(9f), 0, activity.emPx(9f), 0)
+                        setPadding(activity.emPx(6f), 0, activity.emPx(6f), 0)
                         background = if (marcado) {
                             comToque(activity, corMarcada, null, 9f)
                         } else {
