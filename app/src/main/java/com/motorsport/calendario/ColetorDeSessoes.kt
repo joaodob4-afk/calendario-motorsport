@@ -24,37 +24,54 @@ internal object ColetorDeSessoes {
         "Qualifying" to "Classificação"
     )
 
+    internal data class ResultadoColeta(
+        val sessoes: List<SessaoParaAviso>,
+        val houveFalha: Boolean
+    )
+
     fun coletar(context: Context): List<SessaoParaAviso> =
-        protegido("F1") { sessoesDaF1(context) } +
-            protegido("F2") {
+        coletarComResultado(context).sessoes
+
+    /**
+     * Informa falhas de leitura além das sessões coletadas. O agendador usa esse estado para
+     * não apagar uma fila válida quando um calendário temporariamente não puder ser lido.
+     */
+    fun coletarComResultado(context: Context): ResultadoColeta {
+        var houveFalha = false
+        fun seguro(origem: String, bloco: () -> List<SessaoParaAviso>) =
+            protegido(origem, bloco) { houveFalha = true }
+
+        val sessoes =
+            seguro("F1") { sessoesDaF1(context) } +
+            seguro("F2") {
                 F2CalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
                         sessao("F2", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("F2", evento.circuito))
                     }
                 }
             } +
-            protegido("F3") {
+            seguro("F3") {
                 F3CalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
                         sessao("F3", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("F3", evento.circuito))
                     }
                 }
             } +
-            protegido("IndyCar") {
+            seguro("IndyCar") {
                 IndyCarCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
                         sessao("IndyCar", evento.circuito, it.nome, it.data, it.horario, evento.nome)
                     }
                 }
             } +
-            protegido("FormulaE") {
+            seguro("FormulaE") {
                 FormulaECalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
                         sessao("Formula E", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("Formula E", evento.circuito))
                     }
                 }
             } +
-            protegido("Moto") {
+            seguro("Moto") {
                 ClasseMoto.values().flatMap { classe ->
                     MotoCalendarJson.carregar(context, classe).flatMap { evento ->
                         evento.sessoes.mapNotNull {
@@ -63,6 +80,9 @@ internal object ColetorDeSessoes {
                     }
                 }
             }
+
+        return ResultadoColeta(sessoes, houveFalha)
+    }
 
     private fun sessao(
         categoria: String,
@@ -77,11 +97,16 @@ internal object ColetorDeSessoes {
     }
 
     /** Um problema em uma categoria não pode impedir os avisos das outras. */
-    private fun protegido(origem: String, bloco: () -> List<SessaoParaAviso>): List<SessaoParaAviso> =
+    private fun protegido(
+        origem: String,
+        bloco: () -> List<SessaoParaAviso>,
+        aoFalhar: () -> Unit
+    ): List<SessaoParaAviso> =
         try {
             bloco()
         } catch (e: Exception) {
             registrarFalha("ColetorDeSessoes.$origem", e)
+            aoFalhar()
             emptyList()
         }
 
