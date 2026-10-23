@@ -61,6 +61,13 @@ class MainActivity : AppCompatActivity() {
 
     private var botaoTopoVisivel = false
 
+    /** Tema (claro/escuro) com que a tela foi montada; se mudar enquanto ela está parada, ela se refaz. */
+    private var modoNoturnoDaTela = false
+
+    private fun modoNoturnoAtual(): Boolean =
+        (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+
     /** Sessões com horário confirmado de todas as categorias; definem quem começa mais cedo. */
     private var sessoes: List<SessaoParaAviso> = emptyList()
 
@@ -125,6 +132,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        modoNoturnoDaTela = modoNoturnoAtual()
 
         savedInstanceState?.let {
             filtros = FiltrosDeEtapas(
@@ -299,6 +308,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // O tema foi trocado nas configurações enquanto esta tela estava parada: as views já
+        // criadas ficariam com as cores antigas e as novas com as cores novas (tela mesclada).
+        // Recriar monta tudo de uma vez no tema certo; os filtros são restaurados.
+        if (modoNoturnoAtual() != modoNoturnoDaTela) {
+            recreate()
+            return
+        }
 
         // Refaz os avisos ao abrir o app e depois do pedido de permissão de notificações.
         AgendadorDeAvisos.reagendarEmSegundoPlano(this)
