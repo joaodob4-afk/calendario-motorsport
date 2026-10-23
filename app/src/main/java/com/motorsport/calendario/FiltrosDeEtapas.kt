@@ -1,7 +1,9 @@
 package com.motorsport.calendario
 
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 
 /**
  * O que está filtrando a lista da tela inicial.
@@ -70,18 +72,65 @@ internal object RegrasDeFiltro {
         }
     }
 
-    /** A lista da tela inicial: todos os filtros aplicados, em ordem de data. */
+    /**
+     * Quando começa a primeira sessão de cada etapa, no instante exato. A sessão é da etapa se
+     * for da mesma categoria e cair entre dois dias antes do início e dois depois do fim (as
+     * etapas de uma mesma categoria nunca ficam tão perto uma da outra). Etapa sem nenhuma
+     * sessão com horário confirmado não aparece no resultado.
+     */
+    fun primeirasSessoes(
+        etapas: List<MainActivity.Etapa>,
+        sessoes: List<SessaoParaAviso>
+    ): Map<MainActivity.Etapa, Instant> {
+        if (sessoes.isEmpty()) return emptyMap()
+
+        val porCategoria = sessoes.groupBy { Formatacao.normalizar(it.categoria) }
+        val resultado = HashMap<MainActivity.Etapa, Instant>()
+
+        for (etapa in etapas) {
+            val inicio = inicio(etapa) ?: continue
+            val fim = lerData(etapa.dataFim)?.takeIf { !it.isBefore(inicio) } ?: inicio
+            val daCategoria = porCategoria[Formatacao.normalizar(etapa.categoria)] ?: continue
+
+            val primeira = daCategoria
+                .filter {
+                    val dia = it.inicio.toLocalDate()
+                    !dia.isBefore(inicio.minusDays(2)) && !dia.isAfter(fim.plusDays(2))
+                }
+                .minOfOrNull { it.inicio.toInstant() }
+
+            if (primeira != null) resultado[etapa] = primeira
+        }
+
+        return resultado
+    }
+
+    /**
+     * A lista da tela inicial: todos os filtros aplicados. A ordem é a de quem começa mais cedo:
+     * pela primeira sessão de cada etapa, quando os horários são conhecidos ([sessoes]); sem
+     * eles, pelo primeiro dia. Etapas sem data vão para o fim.
+     */
     fun aplicar(
         etapas: List<MainActivity.Etapa>,
         filtros: FiltrosDeEtapas,
-        hoje: LocalDate
-    ): List<MainActivity.Etapa> =
-        base(etapas, filtros, hoje)
+        hoje: LocalDate,
+        sessoes: List<SessaoParaAviso> = emptyList()
+    ): List<MainActivity.Etapa> {
+        val filtradas = base(etapas, filtros, hoje)
             .filter { etapa ->
                 (filtros.paises.isEmpty() || etapa.pais in filtros.paises) &&
                     (filtros.meses.isEmpty() || mesesDaEtapa(etapa).any { it in filtros.meses })
             }
-            .sortedBy { inicio(it) ?: LocalDate.MAX }
+
+        val primeiras = primeirasSessoes(filtradas, sessoes)
+        val fuso = ZoneId.systemDefault()
+
+        return filtradas.sortedBy { etapa ->
+            primeiras[etapa]
+                ?: inicio(etapa)?.atStartOfDay(fuso)?.toInstant()
+                ?: Instant.MAX
+        }
+    }
 
     /** Países que aparecem nas etapas de [base] (nomes como estão nos dados). */
     fun paisesDisponiveis(base: List<MainActivity.Etapa>): List<String> =

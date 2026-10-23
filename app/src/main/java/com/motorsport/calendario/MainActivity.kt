@@ -61,8 +61,20 @@ class MainActivity : AppCompatActivity() {
 
     private var botaoTopoVisivel = false
 
+    /** Sessões com horário confirmado de todas as categorias; definem quem começa mais cedo. */
+    private var sessoes: List<SessaoParaAviso> = emptyList()
+
     /** Muda a cada desenho da lista; lotes de um desenho antigo se cancelam ao ver que mudou. */
     private var geracaoDaLista = 0
+
+    /**
+     * Primeira linha da lista que não é de etapa finalizada: o "topo de verdade". Com as
+     * finalizadas ligadas elas ficam acima dele, e é daqui que a lista começa e para onde o
+     * botão de subir leva.
+     */
+    private var ancoraDoTopo: View? = null
+
+    private class LinhaDaLista(val etapa: Etapa?, val mes: java.time.LocalDate?)
 
     /** Dia em que a lista foi desenhada pela última vez; se o dia mudar, ela é refeita. */
     private var dataDaUltimaLista: java.time.LocalDate? = null
@@ -171,6 +183,15 @@ class MainActivity : AppCompatActivity() {
     /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
     private var carregandoCalendarios = true
 
+    /** Lê as sessões (cache ou JSON do APK); um problema aqui só desfaz a ordem por horário. */
+    private fun coletarSessoes(app: android.content.Context): List<SessaoParaAviso> =
+        try {
+            ColetorDeSessoes.coletar(app)
+        } catch (e: Exception) {
+            registrarFalha("MainActivity.coletarSessoes", e)
+            emptyList()
+        }
+
     private fun lerEtapas(origem: String, bloco: () -> List<Etapa>?): List<Etapa>? =
         try {
             bloco()
@@ -198,6 +219,7 @@ class MainActivity : AppCompatActivity() {
                 FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
             }
             val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
+            val coletadas = coletarSessoes(app)
 
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
@@ -208,6 +230,7 @@ class MainActivity : AppCompatActivity() {
                 etapasIndyCarDinamicas = indy
                 etapasFormulaEDinamicas = fe
                 etapasMotoDinamicas = moto
+                sessoes = coletadas
                 carregandoCalendarios = false
 
                 // Filtros restaurados de uma rotação podem apontar para algo que não existe mais.
@@ -263,10 +286,12 @@ class MainActivity : AppCompatActivity() {
         val app = applicationContext
         Thread {
             val etapas = lerEtapas("recarregar", carga)
+            val coletadas = coletarSessoes(app)
             AgendadorDeAvisos.reagendarEmSegundoPlano(app)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 aplicar(etapas)
+                sessoes = coletadas
                 redesenharListaDepois()
             }
         }.start()
@@ -403,7 +428,7 @@ class MainActivity : AppCompatActivity() {
             if (selecionado) {
                 estilizarSeloPreenchido(botao, cor, 12f)
             } else {
-                estilizarCapsula(botao, cor, 12f)
+                estilizarCapsulaDeCategoria(botao, cor)
             }
             botao.isSelected = selecionado
         }
@@ -418,10 +443,18 @@ class MainActivity : AppCompatActivity() {
         val limite = emPx(240f)
 
         rolagem.setOnScrollChangeListener { _, _, scrollY, _, _ ->
-            mostrarBotaoTopo(botao, scrollY > limite)
+            mostrarBotaoTopo(botao, scrollY > topoDaLista() + limite)
         }
-        botao.setOnClickListener { rolagem.smoothScrollTo(0, 0) }
+        botao.setOnClickListener { rolagem.smoothScrollTo(0, topoDaLista()) }
         botao.comEfeitoDeToque(escala = 0.88f)
+    }
+
+    /** Posição de rolagem do "topo de verdade" (0 quando não há finalizadas acima dele). */
+    private fun topoDaLista(): Int {
+        val ancora = ancoraDoTopo ?: return 0
+        if (ancora.parent !== listaEtapas) return 0
+
+        return maxOf(0, listaEtapas.top + ancora.top - emPx(4f))
     }
 
     /** Sobe e aparece ao rolar; desce e some ao voltar para perto do topo. */
@@ -478,6 +511,21 @@ class MainActivity : AppCompatActivity() {
             setColor(getColor(R.color.superficie))
             cornerRadius = emPx(raioDp).toFloat()
             setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
+        }
+    }
+
+    /**
+     * Cápsula de categoria no cabeçalho azul-marinho: fundo e borda são um toque da cor da
+     * categoria sobre o azul, e o texto é a cor dela um pouco mais clara.
+     */
+    private fun estilizarCapsulaDeCategoria(view: TextView, cor: Int) {
+        val fundo = getColor(R.color.azul_marinho)
+
+        view.setTextColor(ColorUtils.blendARGB(cor, android.graphics.Color.WHITE, 0.15f))
+        view.background = android.graphics.drawable.GradientDrawable().apply {
+            setColor(ColorUtils.blendARGB(fundo, cor, 0.18f))
+            cornerRadius = emPx(12f).toFloat()
+            setStroke(emPx(1f).coerceAtLeast(1), ColorUtils.blendARGB(fundo, cor, 0.5f))
         }
     }
 
@@ -557,27 +605,17 @@ class MainActivity : AppCompatActivity() {
         atualizarBotoesCategorias()
     }
 
-    /** Fundo do card e faixa lateral na cor da categoria, encostada na borda esquerda. */
+    /** Fundo do card com a faixa lateral na cor da categoria, colada na borda (ver [FundoDeCard]). */
     private fun estilizarCard(item: android.view.View, cor: Int) {
-        val raio = emPx(16f).toFloat()
-
-        item.background = android.graphics.drawable.GradientDrawable(
-            android.graphics.drawable.GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(
-                ColorUtils.blendARGB(getColor(R.color.superficie), cor, 0.14f),
-                getColor(R.color.superficie)
-            )
-        ).apply {
-            cornerRadius = raio
-            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
-        }
-
-        item.findViewById<android.view.View>(R.id.itemAcento).background =
-            android.graphics.drawable.GradientDrawable().apply {
-                setColor(cor)
-                val r = raio - emPx(1f)
-                cornerRadii = floatArrayOf(r, r, 0f, 0f, 0f, 0f, r, r)
-            }
+        item.background = FundoDeCard(
+            corDaFaixa = cor,
+            corInicial = ColorUtils.blendARGB(getColor(R.color.superficie), cor, 0.14f),
+            corFinal = getColor(R.color.superficie),
+            corDaBorda = getColor(R.color.borda_suave),
+            raio = emPx(16f).toFloat(),
+            larguraDaFaixa = emPx(4f).toFloat(),
+            larguraDaBorda = emPx(1f).coerceAtLeast(1).toFloat()
+        )
     }
 
     /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
@@ -657,8 +695,9 @@ class MainActivity : AppCompatActivity() {
         // Um novo desenho cancela o anterior, caso ele ainda estivesse entrando aos poucos.
         geracaoDaLista++
         val geracao = geracaoDaLista
+        ancoraDoTopo = null
 
-        val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje)
+        val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje, sessoes)
 
         listaEtapas.removeAllViews()
 
@@ -677,10 +716,50 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // As linhas da lista: um cabeçalho a cada mês novo e um card por etapa.
+        val linhas = ArrayList<LinhaDaLista>()
+        var mesAnterior = -1
+        var primeiraAtiva = -1
+
+        for (etapa in etapasOrdenadas) {
+            val inicioItem = parseDataSegura(etapa.dataInicio)
+            if (inicioItem != null) {
+                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+                if (chaveMes != mesAnterior) {
+                    linhas.add(LinhaDaLista(null, inicioItem))
+                    mesAnterior = chaveMes
+                }
+            }
+
+            if (primeiraAtiva < 0 && !RegrasDeFiltro.finalizada(etapa, hoje)) {
+                primeiraAtiva = linhas.size
+            }
+            linhas.add(LinhaDaLista(etapa, null))
+        }
+
+        // A lista começa no cabeçalho do mês da primeira etapa não finalizada. As finalizadas
+        // (quando ligadas) entram por cima, sem mexer no que o usuário está vendo.
+        var ancora = if (primeiraAtiva > 0) primeiraAtiva else 0
+        while (ancora > 0 && linhas[ancora].etapa != null) ancora--
+        if (linhas[ancora].etapa != null) ancora = maxOf(primeiraAtiva, 0)
+
         val inflater = LayoutInflater.from(this)
         val proximas = proximasPorCategoria(hoje)
-        var mesAnterior = -1
-        var proxima = 0
+        var proxima = ancora
+        var anterior = ancora - 1
+        var cardsCriados = 0
+        val acima = ArrayList<View>()
+
+        fun criarLinha(indice: Int): View {
+            val etapa = linhas[indice].etapa
+            val mes = linhas[indice].mes
+
+            return if (etapa == null && mes != null) {
+                cabecalhoMes(mes, indice == 0)
+            } else {
+                criarCard(inflater, etapa!!, statusEtapa(etapa, hoje, proximas), hoje)
+            }
+        }
 
         // Com as finalizadas a lista passa de uma centena de cards. Criar todos de uma vez
         // trava o app por alguns segundos; em lotes pequenos ele continua respondendo.
@@ -689,44 +768,104 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            val ate = minOf(proxima + ETAPAS_POR_LOTE, etapasOrdenadas.size)
+            var criadas = 0
 
-            while (proxima < ate) {
-                val etapa = etapasOrdenadas[proxima]
+            // 1) De cima para baixo, a partir do topo de verdade.
+            while (proxima < linhas.size && criadas < ETAPAS_POR_LOTE) {
+                val view = criarLinha(proxima)
+                listaEtapas.addView(view)
 
-                val inicioItem = parseDataSegura(etapa.dataInicio)
-                if (inicioItem != null) {
-                    val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
-                    if (chaveMes != mesAnterior) {
-                        listaEtapas.addView(cabecalhoMes(inicioItem, mesAnterior == -1))
-                        mesAnterior = chaveMes
-                    }
+                if (proxima == ancora) ancoraDoTopo = view
+
+                if (linhas[proxima].etapa != null) {
+                    if (animar) animarEntradaDoItem(view, cardsCriados, view.alpha)
+                    cardsCriados++
                 }
 
-                adicionarCard(
-                    inflater,
-                    etapa,
-                    statusEtapa(etapa, hoje, proximas),
-                    if (animar) proxima else -1
-                )
                 proxima++
+                criadas++
             }
 
-            if (proxima < etapasOrdenadas.size) {
+            // 2) Depois, as anteriores (finalizadas): entram escondidas, no começo da lista.
+            while (proxima >= linhas.size && anterior >= 0 && criadas < ETAPAS_POR_LOTE) {
+                val view = criarLinha(anterior)
+                view.visibility = View.GONE
+                listaEtapas.addView(view, 0)
+                acima.add(view)
+
+                anterior--
+                criadas++
+            }
+
+            if (proxima < linhas.size || anterior >= 0) {
                 handlerRedesenho.post { desenharLote() }
+            } else if (acima.isNotEmpty()) {
+                revelarEtapasDeCima(acima)
             }
         }
 
         desenharLote()
     }
 
-    /** Cria o card de uma etapa e o coloca no fim da lista. [indiceDeEntrada] < 0: sem animação. */
-    private fun adicionarCard(
+    /**
+     * Mostra de uma vez as etapas criadas acima do topo de verdade e empurra a rolagem pelo
+     * tamanho que elas ocupam, para o que o usuário está vendo não sair do lugar. Ele rola
+     * para cima para encontrá-las.
+     */
+    private fun revelarEtapasDeCima(views: List<View>) {
+        val ancora = ancoraDoTopo ?: return
+        val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
+
+        listaEtapas.viewTreeObserver.addOnPreDrawListener(
+            object : android.view.ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    listaEtapas.viewTreeObserver.removeOnPreDrawListener(this)
+                    if (ancora.parent !== listaEtapas) return true
+
+                    val topoAntes = ancora.top
+                    for (view in views) view.visibility = View.VISIBLE
+
+                    // Quando o novo layout estiver pronto, compensa antes de desenhar.
+                    listaEtapas.viewTreeObserver.addOnPreDrawListener(
+                        object : android.view.ViewTreeObserver.OnPreDrawListener {
+                            override fun onPreDraw(): Boolean {
+                                listaEtapas.viewTreeObserver.removeOnPreDrawListener(this)
+                                if (ancora.parent === listaEtapas) {
+                                    rolagem.scrollBy(0, ancora.top - topoAntes)
+                                }
+                                return true
+                            }
+                        }
+                    )
+
+                    // Cancela este desenho: o próximo já sai com tudo no lugar.
+                    return false
+                }
+            }
+        )
+    }
+
+    /** "3 DIAS", "1 SEMANA", "2 MESES": quanto falta para a etapa começar. */
+    private fun textoDaContagem(inicio: java.time.LocalDate, hoje: java.time.LocalDate): String {
+        val contagem = ContagemParaEtapa.entre(hoje, inicio)
+        val n = contagem.quantidade
+
+        val recurso = when (contagem.unidade) {
+            UnidadeDeContagem.DIAS -> if (n == 1) R.string.contagem_dia else R.string.contagem_dias
+            UnidadeDeContagem.SEMANAS -> if (n == 1) R.string.contagem_semana else R.string.contagem_semanas
+            UnidadeDeContagem.MESES -> if (n == 1) R.string.contagem_mes else R.string.contagem_meses
+        }
+
+        return getString(recurso, n)
+    }
+
+    /** Cria o card de uma etapa (sem colocá-lo na lista). */
+    private fun criarCard(
         inflater: LayoutInflater,
         etapa: Etapa,
         status: String,
-        indiceDeEntrada: Int
-    ) {
+        hoje: java.time.LocalDate
+    ): View {
         val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
         // Categoria: selo preenchido na cor dela, acima do nome
@@ -756,11 +895,22 @@ class MainActivity : AppCompatActivity() {
         val itemData = item.findViewById<TextView>(R.id.itemData)
         itemData.text = periodoExibido
 
+        // Etapas ainda por vir mostram quanto falta (em vez de "agendada"); sem data, sem selo.
+        val textoStatus = if (status == "AGENDADA") {
+            parseDataSegura(etapa.dataInicio)?.let { textoDaContagem(it, hoje) }.orEmpty()
+        } else {
+            textoDoStatus(status)
+        }
+
         val itemStatus = item.findViewById<TextView>(R.id.itemStatus)
-        itemStatus.text = textoDoStatus(status)
+        if (textoStatus.isEmpty()) {
+            itemStatus.visibility = View.GONE
+        } else {
+            itemStatus.text = textoStatus
+        }
 
         // Próxima e em andamento: selo preenchido na cor da categoria
-        itemData.setTextColor(android.graphics.Color.WHITE)
+        itemData.setTextColor(getColor(R.color.texto_principal))
         when (status) {
             "PRÓXIMA", "EM ANDAMENTO" -> {
                 estilizarSeloPreenchido(itemStatus, corItem, 8f)
@@ -774,19 +924,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Etapas finalizadas (só aparecem se o usuário pedir nos filtros) ficam apagadas.
-        val alvoDeAlpha = if (status == "FINALIZADA") 0.45f else 1f
-        item.alpha = alvoDeAlpha
+        item.alpha = if (status == "FINALIZADA") 0.45f else 1f
 
         item.contentDescription =
             "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, ${textoDoStatus(status)}"
+                "${localDaEtapa(etapa, nomeEvento)}, $periodoExibido, $textoStatus"
 
         item.setOnClickListener { abrirEtapa(etapa) }
         item.comEfeitoDeToque(escala = 0.97f)
 
-        listaEtapas.addView(item)
-
-        if (indiceDeEntrada >= 0) animarEntradaDoItem(item, indiceDeEntrada, alvoDeAlpha)
+        return item
     }
 
     /** Os primeiros cards entram um após o outro, subindo e aparecendo; os demais já nascem prontos. */

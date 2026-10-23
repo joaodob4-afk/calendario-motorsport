@@ -39,6 +39,8 @@ class MotoActivity : AppCompatActivity() {
     private var classe = ClasseMoto.MOTOGP
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // As telas de cada etapa ainda só têm o visual escuro: ficam escuras mesmo com o tema claro.
+        delegate.localNightMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
         super.onCreate(savedInstanceState)
 
         classe = ClasseMoto.doIntent(intent)
@@ -393,7 +395,7 @@ class MotoActivity : AppCompatActivity() {
                 if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
                     getString(R.string.a_confirmar)
                 } else {
-                    it
+                    Hora.deTexto(this, it)
                 }
             }
 

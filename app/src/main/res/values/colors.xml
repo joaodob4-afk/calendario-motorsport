@@ -5,18 +5,20 @@
     <color name="verde_borda">#1C5413</color>
     <color name="ic_launcher_background">#050A06</color>
 
-    <!-- Visual neutro da tela inicial -->
-    <color name="fundo_tela">#0E1012</color>
-    <color name="superficie">#15181B</color>
-    <color name="borda_suave">#2A2D31</color>
-    <color name="texto_suave">#9AA0A6</color>
-    <color name="acento">#4CAF50</color>
-    <color name="acento_escuro">#0B1A0C</color>
-    <color name="status_azul">#5B9BEA</color>
+    <!-- Visual neutro: este arquivo é o tema CLARO; o tema escuro está em values-night/colors.xml -->
+    <color name="fundo_tela">#F2F5FA</color>
+    <color name="superficie">#FFFFFF</color>
+    <color name="borda_suave">#D9DFE8</color>
+    <color name="texto_suave">#5A6678</color>
+    <color name="texto_principal">#0F1722</color>
+    <color name="acento">#2E9E4F</color>
+    <color name="acento_escuro">#E3F3E7</color>
+    <color name="status_azul">#2A6FDB</color>
 
-    <!-- Azul-marinho: cabeçalho, barra inferior e botões de ícone -->
+    <!-- Azul-marinho: cabeçalho, barra inferior e botões de ícone (iguais nos dois temas) -->
     <color name="azul_marinho">#0A1F44</color>
     <color name="azul_marinho_claro">#17325F</color>
     <color name="azul_marinho_borda">#264A82</color>
     <color name="azul_icone_inativo">#8FA3C4</color>
+    <color name="azul_destaque">#4C8DFF</color>
 </resources>

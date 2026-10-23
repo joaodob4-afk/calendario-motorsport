@@ -20,13 +20,13 @@ import android.view.animation.DecelerateInterpolator
 internal class InterruptorModerno(
     context: Context,
     val ligado: Boolean,
-    private val animarDe: Boolean? = null
+    private val animarDe: Boolean? = null,
+    private val corLigado: Int = Color.parseColor("#1ED760"),
+    private val corDaTrilha: Int = Color.parseColor("#2B3035"),
+    private val corDoContorno: Int = Color.parseColor("#3A3F45")
 ) : View(context) {
 
     private val densidade = resources.displayMetrics.density
-    private val corLigado = Color.parseColor("#1ED760")
-    private val corDaTrilha = Color.parseColor("#2B3035")
-    private val corDoContorno = Color.parseColor("#3A3F45")
     private val corDaBolinhaApagada = Color.parseColor("#9AA0A6")
 
     private val trilha = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = corDaTrilha }

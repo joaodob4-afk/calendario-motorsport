@@ -1,6 +1,7 @@
 package com.motorsport.calendario
 
 import android.app.Activity
+import android.content.Intent
 import androidx.annotation.StringRes
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -18,7 +19,9 @@ internal data class ItemDaBarra(
     @StringRes val rotuloRes: Int,
     val icone: Int,
     /** false: o item ainda é só uma ideia e mostra "em breve" ao tocar. */
-    val pronto: Boolean = false
+    val pronto: Boolean = false,
+    /** Tela que o item abre ao ser tocado (só vale com `pronto = true`). */
+    val destino: Class<*>? = null
 )
 
 /**
@@ -34,7 +37,13 @@ internal object BarraInferior {
         ItemDaBarra("Início", R.string.barra_inicio, R.drawable.ic_nav_inicio, pronto = true),
         ItemDaBarra("Calendário", R.string.barra_calendario, R.drawable.ic_nav_agenda),
         ItemDaBarra("Classificação", R.string.barra_classificacao, R.drawable.ic_nav_resultados),
-        ItemDaBarra("Mais", R.string.barra_mais, R.drawable.ic_nav_mais)
+        ItemDaBarra(
+            "Configurações",
+            R.string.barra_configuracoes,
+            R.drawable.ic_nav_config,
+            pronto = true,
+            destino = ConfiguracoesActivity::class.java
+        )
     )
 
     fun montar(activity: Activity, container: LinearLayout, selecionado: Int = 0) {
@@ -72,7 +81,7 @@ internal object BarraInferior {
             val rotulo = TextView(activity).apply {
                 text = activity.getString(item.rotuloRes)
                 setTextColor(cor)
-                textSize = 12f
+                textSize = 11f
                 typeface = Typeface.create("sans-serif", Typeface.NORMAL)
                 maxLines = 1
                 gravity = Gravity.CENTER
@@ -97,6 +106,13 @@ internal object BarraInferior {
     }
 
     private fun aoTocar(activity: Activity, item: ItemDaBarra) {
+        val destino = item.destino
+        if (item.pronto && destino != null) {
+            activity.startActivity(Intent(activity, destino))
+            activity.overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            return
+        }
+
         if (!item.pronto) {
             Toast.makeText(
                 activity,
