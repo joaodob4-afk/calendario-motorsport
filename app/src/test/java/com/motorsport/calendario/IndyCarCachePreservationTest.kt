@@ -19,7 +19,7 @@ class IndyCarCachePreservationTest {
 
 private fun jsonComEtapas(
     quantidade: Int,
-    temporada: Int = 2026,
+    temporada: Int = 2027,
     horario: String = "12:30",
     incluirTreino: Boolean = false
 ): String {
@@ -82,8 +82,8 @@ private fun jsonComDuasCorridasMilwaukee(
           "inicio": "28/08/2026",
           "fim": "30/08/2026",
           "sessoes": [
-            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
-            {"nome": "Corrida 1", "data": "30/08/2026", "horario": "$horarioCorrida1"}
+            {"nome": "Classificação", "data": "29/08/2027", "horario": "12:00"},
+            {"nome": "Corrida 1", "data": "28/08/2027", "horario": "$horarioCorrida1"}
           ]
         },
         {
@@ -96,7 +96,7 @@ private fun jsonComDuasCorridasMilwaukee(
           "fim": "30/08/2026",
           "sessoes": [
             {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
-            {"nome": "Corrida 2", "data": "30/08/2026", "horario": "$horarioCorrida2"}
+            {"nome": "Corrida 2", "data": "29/08/2027", "horario": "$horarioCorrida2"}
           ]
         }
       ]
