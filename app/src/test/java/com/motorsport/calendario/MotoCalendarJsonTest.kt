@@ -64,22 +64,6 @@ class MotoCalendarJsonTest {
     }
 
     @Test
-    fun cidadeIgualAoCircuitoEhTratadaComoAusente() {
-        val texto = """{"temporada": 2026, "categoria": "MotoGP", "etapas": [{
-            "etapa": 1, "nomeEvento": "GP", "circuito": "Circuit de Barcelona-Catalunya",
-            "cidade": "Circuit de Barcelona-Catalunya", "pais": "Espanha",
-            "inicio": "15/05/2026", "fim": "17/05/2026", "sessoes": []
-        }]}"""
-
-        val eventos = MotoCalendarJson.interpretar(texto, ClasseMoto.MOTOGP)
-        assertEquals(1, eventos.size)
-        assertEquals("Montmeló", eventos[0].cidade)
-
-        val etapa = MotoCalendarJson.comoEtapas(eventos, ClasseMoto.MOTOGP).single()
-        assertEquals("Montmeló", etapa.local)
-    }
-
-    @Test
     fun rejeitaJsonDeOutraCategoria() {
         assertTrue(
             MotoCalendarJson.interpretar(json(categoria = "Moto2"), ClasseMoto.MOTOGP).isEmpty()
@@ -122,8 +106,7 @@ class MotoCalendarJsonTest {
         val context = RuntimeEnvironment.getApplication()
 
         val corrida = ColetorDeSessoes.coletar(context).firstOrNull {
-            it.categoria == "MotoGP" && it.nome == "Corrida" &&
-                it.inicio.toLocalDate().toString() == "2026-03-01"
+            it.categoria == "MotoGP" && it.nome == "Corrida" && it.local == "Buriram"
         }
 
         assertNotNull("Corrida da MotoGP na Tailândia não encontrada", corrida)
@@ -164,29 +147,5 @@ class MotoCalendarJsonTest {
         listOf("Treino Livre 1", "Practice", "Classificação 1", "Warm-up").forEach {
             assertTrue(it, !PlanoDeAvisos.ehCorrida(it))
         }
-    }
-
-    @Test
-    fun telaInicialRecebeNomeOficialCircuitoECidadeDaMoto() {
-        val etapas = MotoCalendarJson.comoEtapas(
-            listOf(
-                MotoEvent(
-                    etapa = 1,
-                    nomeEvento = "GRAND PRIX OF SPAIN",
-                    circuito = "Circuito de Jerez - Ángel Nieto",
-                    cidade = "Jerez de la Frontera",
-                    pais = "Espanha",
-                    inicio = "24/04/2026",
-                    fim = "26/04/2026",
-                    sessoes = emptyList()
-                )
-            ),
-            ClasseMoto.MOTOGP
-        )
-
-        assertEquals(1, etapas.size)
-        assertEquals("GRAND PRIX OF SPAIN", etapas[0].nomeEvento)
-        assertEquals("Circuito de Jerez - Ángel Nieto", etapas[0].circuito)
-        assertEquals("Jerez de la Frontera", etapas[0].local)
     }
 }

@@ -46,30 +46,30 @@ NOMES_SESSAO = {
 }
 TIPOS_DE_SESSAO = {"PRACTICE", "QUALIFYING", "RACE", "WARM_UP"}
 
-# Países traduzidos para português quando a API usa siglas conhecidas.
-# O nome do evento, ao contrário, vem sempre da fonte oficial.
-PAISES = {
-    "THA": "Tailândia", "BRA": "Brasil", "USA": "Estados Unidos",
-    "SPA": "Espanha", "FRA": "França", "CAT": "Espanha", "ITA": "Itália",
-    "HUN": "Hungria", "CZE": "República Tcheca", "NED": "Holanda",
-    "GER": "Alemanha", "GBR": "Reino Unido", "ARA": "Espanha",
-    "RSM": "San Marino", "AUT": "Áustria", "JPN": "Japão",
-    "INA": "Indonésia", "AUS": "Austrália", "MAL": "Malásia",
-    "QAT": "Catar", "POR": "Portugal", "VAL": "Espanha",
-}
-
-# A API oficial não fornece cidade válida para estes circuitos; valores conferidos
-# com as localizações oficiais dos eventos. Usados apenas quando cidade vier vazia/repetida.
-CIDADES_POR_ETAPA = {
-    "BRA": "Goiânia",
-    "USA": "Austin",
-    "FRA": "Le Mans",
-    "CAT": "Montmeló",
-    "CZE": "Brno",
-    "GBR": "Silverstone",
-    "ARA": "Alcañiz",
-    "INA": "Kuta, Lombok",
-    "AUS": "Ventnor",
+# Sigla do Grande Prêmio na API -> (nome do circuito no app, país)
+ETAPAS = {
+    "THA": ("Buriram", "Tailândia"),
+    "BRA": ("Goiânia", "Brasil"),
+    "USA": ("Austin", "Estados Unidos"),
+    "SPA": ("Jerez", "Espanha"),
+    "FRA": ("Le Mans", "França"),
+    "CAT": ("Barcelona", "Espanha"),
+    "ITA": ("Mugello", "Itália"),
+    "HUN": ("Balaton Park", "Hungria"),
+    "CZE": ("Brno", "República Tcheca"),
+    "NED": ("Assen", "Holanda"),
+    "GER": ("Sachsenring", "Alemanha"),
+    "GBR": ("Silverstone", "Reino Unido"),
+    "ARA": ("Aragón", "Espanha"),
+    "RSM": ("Misano", "San Marino"),
+    "AUT": ("Spielberg", "Áustria"),
+    "JPN": ("Motegi", "Japão"),
+    "INA": ("Mandalika", "Indonésia"),
+    "AUS": ("Phillip Island", "Austrália"),
+    "MAL": ("Sepang", "Malásia"),
+    "QAT": ("Lusail", "Catar"),
+    "POR": ("Portimão", "Portugal"),
+    "VAL": ("Valencia", "Espanha"),
 }
 
 # Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
@@ -166,29 +166,14 @@ def periodo_do_evento(evento):
 
 
 def local_da_etapa(evento):
-    """Mantém separados nome oficial do evento, circuito, cidade e país."""
     sigla = evento.get("shortname")
-    circuito_api = evento.get("circuit") or {}
+    if sigla in ETAPAS:
+        return ETAPAS[sigla]
 
-    nome_evento = " ".join(str(evento.get("name") or "").split())
-    circuito = " ".join(str(circuito_api.get("name") or "").split())
-    cidade = " ".join(str(circuito_api.get("city") or "").split())
-
-    if not nome_evento:
-        nome_evento = circuito or cidade or sigla or ""
-    if not circuito:
-        circuito = cidade or nome_evento
-    # A API às vezes preenche "city" com o próprio nome do circuito.
-    # Não mostre esse valor duplicado como se fosse uma cidade.
-    if not cidade or cidade.casefold() == circuito.casefold():
-        cidade = CIDADES_POR_ETAPA.get(str(sigla or "").upper(), "")
-        if cidade.casefold() == circuito.casefold():
-            cidade = ""
-
-    pais = PAISES.get(sigla) or circuito_api.get("country") or evento.get("country") or ""
-    if isinstance(pais, dict):
-        pais = pais.get("name") or pais.get("label") or ""
-    return nome_evento, circuito, cidade, str(pais).strip()
+    circuito = evento.get("circuit") or {}
+    nome = circuito.get("city") or circuito.get("name") or str(evento.get("name") or "").strip()
+    pais = circuito.get("country") or evento.get("country") or ""
+    return nome, pais
 
 
 def montar(eventos, sigla, rotulo, ano):
@@ -198,7 +183,7 @@ def montar(eventos, sigla, rotulo, ano):
     etapas = []
     for numero, evento in enumerate(gps, start=1):
         inicio, fim = periodo_do_evento(evento)
-        nome_evento, circuito, cidade, pais = local_da_etapa(evento)
+        circuito, pais = local_da_etapa(evento)
 
         sessoes = []
         vistos = set()
@@ -213,9 +198,7 @@ def montar(eventos, sigla, rotulo, ano):
         etapas.append(
             {
                 "etapa": numero,
-                "nomeEvento": nome_evento,
                 "circuito": circuito,
-                "cidade": cidade,
                 "pais": pais,
                 "inicio": formatar_data(inicio),
                 "fim": formatar_data(fim),

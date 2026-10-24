@@ -34,12 +34,6 @@ def gp(sequencia, sigla, inicio, fim, status="FINISHED", broadcasts=None):
         "date_start": inicio + "T00:00:00+00:00",
         "date_end": fim + "T00:00:00+00:00",
         "status": status,
-        "name": f"Nome oficial do GP {sigla}",
-        "circuit": {
-            "name": f"Circuito {sigla}",
-            "city": f"Cidade {sigla}",
-            "country": "País da API",
-        },
         "broadcasts": broadcasts or [],
     }
 
@@ -98,10 +92,7 @@ class AtualizadorMotoTest(unittest.TestCase):
         etapa = dados["etapas"][0]
 
         self.assertEqual((etapa["inicio"], etapa["fim"]), ("27/02/2026", "01/03/2026"))
-        self.assertEqual(etapa["nomeEvento"], "Nome oficial do GP THA")
-        self.assertEqual(etapa["circuito"], "Circuito THA")
-        self.assertEqual(etapa["cidade"], "Cidade THA")
-        self.assertEqual(etapa["pais"], "Tailândia")
+        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Buriram", "Tailândia"))
 
     def test_etapa_sem_sessoes_usa_datas_do_evento(self):
         eventos = [gp(1, "VAL", "2026-11-27", "2026-11-29", status="NOT-STARTED")]
@@ -118,43 +109,15 @@ class AtualizadorMotoTest(unittest.TestCase):
         etapas = moto.montar(eventos, "MGP", "MotoGP", 2026)["etapas"]
 
         self.assertEqual([e["etapa"] for e in etapas], [1, 2])
-        self.assertEqual([e["nomeEvento"] for e in etapas], ["Nome oficial do GP THA", "Nome oficial do GP BRA"])
-        self.assertEqual([e["circuito"] for e in etapas], ["Circuito THA", "Circuito BRA"])
-
-    def test_cidades_faltantes_da_api_sao_preenchidas(self):
-        casos = {
-            "BRA": "Goiânia", "USA": "Austin", "FRA": "Le Mans",
-            "CAT": "Montmeló", "CZE": "Brno", "GBR": "Silverstone",
-            "ARA": "Alcañiz", "INA": "Kuta, Lombok", "AUS": "Ventnor",
-        }
-        for sigla, cidade in casos.items():
-            with self.subTest(sigla=sigla):
-                evento = gp(1, sigla, "2027-03-05", "2027-03-07")
-                evento["circuit"]["city"] = evento["circuit"]["name"]
-                etapa = moto.montar([evento], "MGP", "MotoGP", 2027)["etapas"][0]
-                self.assertEqual(etapa["cidade"], cidade)
-
-    def test_cidade_igual_ao_circuito_nao_e_repetida_como_localidade(self):
-        evento = gp(1, "XYZ", "2027-03-05", "2027-03-07")
-        evento["circuit"]["name"] = "Circuito XYZ"
-        evento["circuit"]["city"] = "Circuito XYZ"
-
-        etapa = moto.montar([evento], "MGP", "MotoGP", 2027)["etapas"][0]
-
-        self.assertEqual(etapa["circuito"], "Circuito XYZ")
-        self.assertEqual(etapa["cidade"], "")
+        self.assertEqual([e["circuito"] for e in etapas], ["Buriram", "Goiânia"])
 
     def test_etapa_desconhecida_usa_dados_da_api(self):
         evento = gp(1, "XYZ", "2027-03-05", "2027-03-07")
-        evento["name"] = ""
         evento["circuit"] = {"city": "Cidade Nova", "country": "Novolândia"}
 
         etapa = moto.montar([evento], "MGP", "MotoGP", 2027)["etapas"][0]
 
-        self.assertEqual(etapa["nomeEvento"], "Cidade Nova")
-        self.assertEqual(etapa["circuito"], "Cidade Nova")
-        self.assertEqual(etapa["cidade"], "")
-        self.assertEqual(etapa["pais"], "Novolândia")
+        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Cidade Nova", "Novolândia"))
 
     def test_recusa_calendario_vazio(self):
         vazio = {"temporada": 2026, "categoria": "MotoGP", "etapas": []}
