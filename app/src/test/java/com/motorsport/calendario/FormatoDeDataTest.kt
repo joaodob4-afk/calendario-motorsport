@@ -27,19 +27,28 @@ class FormatoDeDataTest {
 
     @Test
     fun dataCurta_emCadaFormato() {
-        assertEquals("05/10", FormatadorDeData.curta(data, FormatoDeData.DIA_MES, ingles))
-        assertEquals("10/05", FormatadorDeData.curta(data, FormatoDeData.MES_DIA, ingles))
-        assertEquals("05 OCT", FormatadorDeData.curta(data, FormatoDeData.DIA_MES_TEXTO, ingles))
-        assertEquals("OCT 05", FormatadorDeData.curta(data, FormatoDeData.MES_TEXTO_DIA, ingles))
-        assertEquals("05 OUT", FormatadorDeData.curta(data, FormatoDeData.DIA_MES_TEXTO, portugues))
+        assertEquals("05/10", FormatadorDeData.curta(data, FormatoDeData.DIA_MES))
+        assertEquals("10/05", FormatadorDeData.curta(data, FormatoDeData.MES_DIA))
     }
 
     @Test
     fun dataCompleta_emCadaFormato() {
-        assertEquals("05/10/2026", FormatadorDeData.completa(data, FormatoDeData.DIA_MES, ingles))
-        assertEquals("10/05/2026", FormatadorDeData.completa(data, FormatoDeData.MES_DIA, ingles))
-        assertEquals("05 OCT 2026", FormatadorDeData.completa(data, FormatoDeData.DIA_MES_TEXTO, ingles))
-        assertEquals("OCT 05, 2026", FormatadorDeData.completa(data, FormatoDeData.MES_TEXTO_DIA, ingles))
+        assertEquals("05/10/2026", FormatadorDeData.completa(data, FormatoDeData.DIA_MES))
+        assertEquals("10/05/2026", FormatadorDeData.completa(data, FormatoDeData.MES_DIA))
+    }
+
+    @Test
+    fun soHaTresOpcoes_padraoDoAparelhoDiaMesEMesDia() {
+        assertEquals(
+            listOf(FormatoDeData.SISTEMA, FormatoDeData.DIA_MES, FormatoDeData.MES_DIA),
+            FormatoDeData.values().toList()
+        )
+    }
+
+    @Test
+    fun escolhaAntigaComMesAbreviadoVoltaAoPadraoDoAparelho() {
+        assertEquals(FormatoDeData.SISTEMA, FormatoDeData.deChave("dia_mes_texto"))
+        assertEquals(FormatoDeData.SISTEMA, FormatoDeData.deChave("mes_texto_dia"))
     }
 
     @Test

@@ -582,6 +582,10 @@ object F1CalendarApi {
                 val corrida = corridas.getJSONObject(i)
                 val circuito = corrida.getJSONObject("Circuit")
                 val circuitId = circuito.getString("circuitId")
+                // Nome que a própria fonte dá à corrida ("Australian Grand Prix"). O texto
+                // "Grande Prêmio" é o que o app grava quando a fonte não traz nome.
+                val nomeDaFonte = corrida.optString("raceName", "").trim()
+                    .takeIf { it.isNotBlank() && it != "Grande Prêmio" }.orEmpty()
                 val local = circuito.optJSONObject("Location")
                 val localidade = local?.optString("locality", "") ?: ""
                 val paisIngles = local?.optString("country", "") ?: ""
@@ -640,7 +644,8 @@ object F1CalendarApi {
                         data = formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
                         circuitId = circuitId,
-                        dataFim = fim.toString()
+                        dataFim = fim.toString(),
+                        nomeEvento = nomeDaFonte
                     )
                 )
             }

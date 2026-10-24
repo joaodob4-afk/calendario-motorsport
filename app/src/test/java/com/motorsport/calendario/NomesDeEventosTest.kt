@@ -43,15 +43,15 @@ class NomesDeEventosTest {
 
     @Test
     fun motosUsamNomesProprios() {
-        assertEquals("GP da Catalunha", NomesDeEventos.nome("MotoGP", "Barcelona"))
-        assertEquals("GP do Brasil", NomesDeEventos.nome("Moto2", "Goiânia"))
-        assertEquals("GP de Aragão", NomesDeEventos.nome("Moto3", "Aragón"))
+        assertEquals("Grand Prix of Catalonia", NomesDeEventos.nome("MotoGP", "Barcelona"))
+        assertEquals("Grand Prix of Brazil", NomesDeEventos.nome("Moto2", "Goiânia"))
+        assertEquals("Grand Prix of Aragón", NomesDeEventos.nome("Moto3", "Aragón"))
     }
 
     @Test
     fun mesmaCidadeTemNomeDiferenteEmCadaCategoria() {
         assertEquals("GP de Barcelona-Catalunha", NomesDeEventos.nome("F1", "Barcelona"))
-        assertEquals("GP da Catalunha", NomesDeEventos.nome("MotoGP", "Barcelona"))
+        assertEquals("Grand Prix of Catalonia", NomesDeEventos.nome("MotoGP", "Barcelona"))
         assertEquals("6 Horas de Barcelona", NomesDeEventos.nome("WEC", "Barcelona"))
     }
 
@@ -64,7 +64,7 @@ class NomesDeEventosTest {
     @Test
     fun ignoraMaiusculasEAcentosNoCircuito() {
         assertEquals("GP da Hungria", NomesDeEventos.nome("F2", "BUDAPESTE"))
-        assertEquals("GP de Portugal", NomesDeEventos.nome("MotoGP", "Portimão"))
+        assertEquals("Grand Prix of Portugal", NomesDeEventos.nome("MotoGP", "Portimão"))
     }
 
     @Test

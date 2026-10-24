@@ -114,8 +114,6 @@
     <string name="data_sistema_desc">Follows your phone: %1$s</string>
     <string name="data_dia_mes">Day/month</string>
     <string name="data_mes_dia">Month/day</string>
-    <string name="data_dia_mes_texto">Day and short month</string>
-    <string name="data_mes_texto_dia">Short month and day</string>
     <string name="lista_vazia">No rounds found.</string>
     <string name="filtros_em_breve">Filters: coming soon</string>
     <string name="barra_inicio">Home</string>

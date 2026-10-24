@@ -73,37 +73,51 @@ internal object RegrasDeFiltro {
     }
 
     /**
-     * Quando começa a primeira sessão de cada etapa, no instante exato. A sessão é da etapa se
-     * for da mesma categoria e cair entre dois dias antes do início e dois depois do fim (as
-     * etapas de uma mesma categoria nunca ficam tão perto uma da outra). Etapa sem nenhuma
-     * sessão com horário confirmado não aparece no resultado.
+     * Os horários (instantes exatos) das sessões de cada etapa. A sessão é da etapa se for da
+     * mesma categoria e cair entre dois dias antes do início e dois depois do fim (as etapas de
+     * uma mesma categoria nunca ficam tão perto uma da outra). Etapa sem nenhuma sessão com
+     * horário confirmado não aparece no resultado.
      */
-    fun primeirasSessoes(
+    private fun sessoesPorEtapa(
         etapas: List<MainActivity.Etapa>,
         sessoes: List<SessaoParaAviso>
-    ): Map<MainActivity.Etapa, Instant> {
+    ): Map<MainActivity.Etapa, List<Instant>> {
         if (sessoes.isEmpty()) return emptyMap()
 
         val porCategoria = sessoes.groupBy { Formatacao.normalizar(it.categoria) }
-        val resultado = HashMap<MainActivity.Etapa, Instant>()
+        val resultado = HashMap<MainActivity.Etapa, List<Instant>>()
 
         for (etapa in etapas) {
             val inicio = inicio(etapa) ?: continue
             val fim = lerData(etapa.dataFim)?.takeIf { !it.isBefore(inicio) } ?: inicio
             val daCategoria = porCategoria[Formatacao.normalizar(etapa.categoria)] ?: continue
 
-            val primeira = daCategoria
+            val instantes = daCategoria
                 .filter {
                     val dia = it.inicio.toLocalDate()
                     !dia.isBefore(inicio.minusDays(2)) && !dia.isAfter(fim.plusDays(2))
                 }
-                .minOfOrNull { it.inicio.toInstant() }
+                .map { it.inicio.toInstant() }
 
-            if (primeira != null) resultado[etapa] = primeira
+            if (instantes.isNotEmpty()) resultado[etapa] = instantes
         }
 
         return resultado
     }
+
+    /** Quando começa a primeira sessão de cada etapa. */
+    fun primeirasSessoes(
+        etapas: List<MainActivity.Etapa>,
+        sessoes: List<SessaoParaAviso>
+    ): Map<MainActivity.Etapa, Instant> =
+        sessoesPorEtapa(etapas, sessoes).mapValues { (_, instantes) -> instantes.minOf { it } }
+
+    /** Quando começa a última sessão de cada etapa (em geral, a corrida). */
+    fun ultimasSessoes(
+        etapas: List<MainActivity.Etapa>,
+        sessoes: List<SessaoParaAviso>
+    ): Map<MainActivity.Etapa, Instant> =
+        sessoesPorEtapa(etapas, sessoes).mapValues { (_, instantes) -> instantes.maxOf { it } }
 
     /**
      * A lista da tela inicial: todos os filtros aplicados. A ordem é a de quem começa mais cedo:

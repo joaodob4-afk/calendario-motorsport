@@ -32,12 +32,23 @@ fun Activity.aplicarInsetsDasBarras() {
 }
 
 /**
- * Pinta a janela e as barras de status e de navegação com [cor]. Os ícones das barras ficam
- * escuros sobre uma cor clara e claros sobre uma cor escura, para sempre aparecerem.
+ * Pinta a janela e as barras de status e de navegação com [cor]. Se [corDoTopo] for outra, só a
+ * faixa de cima (atrás da barra de status) usa essa cor, como nas telas com cabeçalho azul-marinho.
+ * Os ícones das barras ficam escuros sobre cor clara e claros sobre cor escura, para sempre aparecerem.
  */
-internal fun Activity.pintarBarrasDoSistema(cor: Int) {
-    window.setBackgroundDrawable(ColorDrawable(cor))
-    window.statusBarColor = cor
+internal fun Activity.pintarBarrasDoSistema(cor: Int, corDoTopo: Int = cor) {
+    val fundoDaJanela: android.graphics.drawable.Drawable =
+        if (corDoTopo == cor) {
+            ColorDrawable(cor)
+        } else {
+            android.graphics.drawable.LayerDrawable(arrayOf(ColorDrawable(cor), ColorDrawable(corDoTopo))).apply {
+                setLayerHeight(1, (resources.displayMetrics.density * 160f).toInt())
+                setLayerGravity(1, android.view.Gravity.TOP)
+            }
+        }
+
+    window.setBackgroundDrawable(fundoDaJanela)
+    window.statusBarColor = corDoTopo
     window.navigationBarColor = cor
 
     // A linha fina que o Android desenha entre o app e a barra de navegação (aparece preta no claro).
@@ -46,7 +57,6 @@ internal fun Activity.pintarBarrasDoSistema(cor: Int) {
     }
 
     val controle = WindowCompat.getInsetsController(window, window.decorView)
-    val fundoClaro = ColorUtils.calculateLuminance(cor) > 0.5
-    controle.isAppearanceLightStatusBars = fundoClaro
-    controle.isAppearanceLightNavigationBars = fundoClaro
+    controle.isAppearanceLightStatusBars = ColorUtils.calculateLuminance(corDoTopo) > 0.5
+    controle.isAppearanceLightNavigationBars = ColorUtils.calculateLuminance(cor) > 0.5
 }

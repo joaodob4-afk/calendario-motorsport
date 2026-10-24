@@ -10,9 +10,7 @@ import java.util.Locale
 internal enum class FormatoDeData(val chave: String) {
     SISTEMA("sistema"),
     DIA_MES("dia_mes"),
-    MES_DIA("mes_dia"),
-    DIA_MES_TEXTO("dia_mes_texto"),
-    MES_TEXTO_DIA("mes_texto_dia");
+    MES_DIA("mes_dia");
 
     companion object {
         /** Valor desconhecido ou ausente volta ao padrão do aparelho. */
@@ -32,30 +30,20 @@ internal object FormatadorDeData {
             else -> FormatoDeData.DIA_MES
         }
 
-    /** Sem o ano: "23/10", "10/23", "23 OUT" ou "OUT 23". */
-    fun curta(data: LocalDate, formato: FormatoDeData, locale: Locale): String {
+    /** Sem o ano: "23/10" ou "10/23". */
+    fun curta(data: LocalDate, formato: FormatoDeData): String {
         val dia = dois(data.dayOfMonth)
         val mes = dois(data.monthValue)
 
-        return when (formato) {
-            FormatoDeData.MES_DIA -> "$mes/$dia"
-            FormatoDeData.DIA_MES_TEXTO -> "$dia ${mesAbreviado(data, locale)}"
-            FormatoDeData.MES_TEXTO_DIA -> "${mesAbreviado(data, locale)} $dia"
-            else -> "$dia/$mes"
-        }
+        return if (formato == FormatoDeData.MES_DIA) "$mes/$dia" else "$dia/$mes"
     }
 
-    /** Com o ano: "23/10/2026", "10/23/2026", "23 OUT 2026" ou "OUT 23, 2026". */
-    fun completa(data: LocalDate, formato: FormatoDeData, locale: Locale): String {
+    /** Com o ano: "23/10/2026" ou "10/23/2026". */
+    fun completa(data: LocalDate, formato: FormatoDeData): String {
         val dia = dois(data.dayOfMonth)
         val mes = dois(data.monthValue)
 
-        return when (formato) {
-            FormatoDeData.MES_DIA -> "$mes/$dia/${data.year}"
-            FormatoDeData.DIA_MES_TEXTO -> "$dia ${mesAbreviado(data, locale)} ${data.year}"
-            FormatoDeData.MES_TEXTO_DIA -> "${mesAbreviado(data, locale)} $dia, ${data.year}"
-            else -> "$dia/$mes/${data.year}"
-        }
+        return if (formato == FormatoDeData.MES_DIA) "$mes/$dia/${data.year}" else "$dia/$mes/${data.year}"
     }
 
     /** "Sex", "Sáb", "Fri": dia da semana abreviado, com a inicial maiúscula. */
@@ -64,9 +52,6 @@ internal object FormatadorDeData {
             .getDisplayName(TextStyle.SHORT, locale)
             .trimEnd('.')
             .replaceFirstChar { it.titlecase(locale) }
-
-    private fun mesAbreviado(data: LocalDate, locale: Locale): String =
-        data.month.getDisplayName(TextStyle.SHORT, locale).trimEnd('.').uppercase(locale)
 
     private fun dois(numero: Int): String = numero.toString().padStart(2, '0')
 }
@@ -106,8 +91,8 @@ internal object PreferenciasDeData {
         FormatadorDeData.resolver(formato, mesAntesDoDia(context))
 
     fun curta(context: Context, data: LocalDate): String =
-        FormatadorDeData.curta(data, resolver(context), Idioma.locale(context))
+        FormatadorDeData.curta(data, resolver(context))
 
     fun completa(context: Context, data: LocalDate): String =
-        FormatadorDeData.completa(data, resolver(context), Idioma.locale(context))
+        FormatadorDeData.completa(data, resolver(context))
 }

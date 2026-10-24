@@ -88,7 +88,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="3dp"
-                android:text="Sex, 30/10 · 15:30 – Dom, 01/11"
+                android:text="Sex, 30/10 · 15:30"
+                android:textColor="@color/texto_medio"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif" />
+
+            <TextView
+                android:id="@+id/itemDataFim"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="Dom, 01/11 · 14:00"
                 android:textColor="@color/texto_medio"
                 android:textSize="12sp"
                 android:textStyle="bold"

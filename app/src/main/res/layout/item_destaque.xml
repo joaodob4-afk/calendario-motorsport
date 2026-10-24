@@ -62,7 +62,7 @@
                 android:paddingBottom="5dp"
                 android:maxLines="1"
                 android:textColor="#0B0D0F"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.06"
                 android:fontFamily="sans-serif"
@@ -78,7 +78,7 @@
                 android:ellipsize="end"
                 android:text="@string/etapa_proxima"
                 android:textColor="@color/texto_suave"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.12" />
         </LinearLayout>
@@ -90,7 +90,7 @@
             android:layout_marginTop="14dp"
             android:maxLines="3"
             android:textColor="@color/texto_principal"
-            android:textSize="30sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif"
             tools:text="GP dos Estados Unidos" />
@@ -102,7 +102,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:textColor="@color/texto_suave"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:fontFamily="sans-serif"
             android:visibility="gone"
             tools:text="Circuit of the Americas" />
@@ -129,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textColor="@color/texto_medio"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:fontFamily="sans-serif"
                 tools:text="Austin, Estados Unidos" />
         </LinearLayout>
@@ -155,7 +155,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="@color/texto_suave"
-                android:textSize="11sp"
+                android:textSize="10sp"
                 android:letterSpacing="0.08"
                 android:fontFamily="sans-serif-medium"
                 tools:text="PRÓXIMA SESSÃO · 1 DE 8" />
@@ -181,7 +181,7 @@
                         android:maxLines="2"
                         android:ellipsize="end"
                         android:textColor="@color/texto_principal"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif"
                         tools:text="Treino Livre 1" />
@@ -194,7 +194,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/texto_medio"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:fontFamily="sans-serif"
                         tools:text="Começa em 14h 29min" />
                 </LinearLayout>
@@ -214,7 +214,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/texto_principal"
-                        android:textSize="32sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:fontFamily="sans-serif-medium"
                         tools:text="20:45" />
@@ -227,7 +227,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/texto_suave"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:letterSpacing="0.08"
                         android:fontFamily="sans-serif-medium"
                         tools:text="QUI 22 OUT" />
@@ -261,9 +261,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:textColor="@color/texto_principal"
-                android:textSize="20sp"
+                android:textSize="14sp"
                 android:letterSpacing="0.05"
                 android:fontFamily="sans-serif-medium"
                 tools:text="23–25 OUT" />
@@ -272,15 +272,15 @@
                 android:id="@+id/destaqueStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
+                android:layout_marginStart="10dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:textColor="#0B0D0F"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.04"
                 android:fontFamily="sans-serif"

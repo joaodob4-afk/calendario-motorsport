@@ -116,7 +116,7 @@ class FormulaEActivity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(preto)
+        pintarBarrasDoSistema(preto, getColor(R.color.azul_marinho))
     }
 
     private fun lerData(texto: String): LocalDate? {
@@ -376,7 +376,7 @@ class FormulaEActivity : AppCompatActivity() {
 
         val nome = TextView(this).apply {
             text = sessao.nome
-            textSize = 13f
+            textSize = 12f
             setTextColor(if (sessao.corrida) verde else branco)
             typeface = Typeface.create(
                 "sans-serif",

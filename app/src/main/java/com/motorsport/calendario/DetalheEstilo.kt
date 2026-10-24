@@ -67,28 +67,50 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         val linha = LinearLayout(tela).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
+            setBackgroundColor(tela.getColor(R.color.azul_marinho))
+            setPadding(dp(14f), dp(8f), dp(14f), dp(8f))
         }
 
+        // Botão redondo (40dp visíveis numa área de toque de 48dp), igual ao da tela inicial.
         val voltar = ImageView(tela).apply {
-            setImageResource(R.drawable.back_button)
-            setColorFilter(textoPrincipal)
+            setImageResource(R.drawable.ic_seta_voltar)
+            background = tela.getDrawable(R.drawable.bg_botao_icone)
             contentDescription = descricaoVoltar
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding(dp(4f), dp(4f), dp(12f), dp(4f))
+            setPadding(dp(12f), dp(12f), dp(12f), dp(12f))
+            isClickable = true
+            isFocusable = true
             setOnClickListener { aoVoltar() }
+            comEfeitoDeToque(escala = 0.9f)
         }
-        linha.addView(voltar, LinearLayout.LayoutParams(dp(42f), dp(42f)))
+        linha.addView(voltar, LinearLayout.LayoutParams(dp(48f), dp(48f)))
 
         val texto = TextView(tela).apply {
             text = titulo
-            textSize = 20f
-            setTextColor(textoPrincipal)
+            textSize = 18f
+            setTextColor(Color.WHITE)
             typeface = Typeface.create("sans-serif-black", Typeface.NORMAL)
             letterSpacing = 0.06f
         }
         linha.addView(
             texto,
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { marginStart = dp(8f) }
+        )
+
+        // A barra ocupa a largura toda e encosta no topo: anula o recuo da tela que a contém.
+        linha.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    val pai = v.parent as? View ?: return
+                    val parametros = v.layoutParams as? android.view.ViewGroup.MarginLayoutParams ?: return
+                    parametros.leftMargin = -pai.paddingLeft
+                    parametros.rightMargin = -pai.paddingRight
+                    parametros.topMargin = -pai.paddingTop
+                    v.layoutParams = parametros
+                }
+
+                override fun onViewDetachedFromWindow(v: View) = Unit
+            }
         )
 
         return linha
@@ -171,7 +193,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.findViewById<TextView>(R.id.destaqueNome).apply {
             text = nome
             // Nomes longos (ex.: IndyCar) usam letra menor e podem ocupar mais linhas.
-            textSize = if (nome.length > 26) 24f else 30f
+            textSize = if (nome.length > 26) 20f else 24f
             maxLines = 5
         }
 
@@ -199,8 +221,8 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.findViewById<TextView>(R.id.destaqueLocal).text = local
         card.findViewById<TextView>(R.id.destaqueData).apply {
             text = periodo
-            // Meses por extenso ("18 – 19 DEZEMBRO") cabem em uma linha com letra um pouco menor.
-            textSize = 17f
+            // Letra menor e até duas linhas: a data nunca fica escondida pelo selo da contagem.
+            textSize = 14f
             letterSpacing = 0.02f
         }
 
@@ -225,12 +247,10 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         val hoje = LocalDate.now()
         if ((fim ?: inicio).isBefore(hoje)) return tela.getString(R.string.status_finalizada)
 
-        val dias = ChronoUnit.DAYS.between(hoje, inicio)
-        return when {
-            dias == 0L -> tela.getString(R.string.contador_hoje)
-            dias == 1L -> tela.getString(R.string.contador_amanha)
-            dias > 1L -> tela.getString(R.string.contador_dias, dias.toInt())
-            else -> tela.getString(R.string.status_em_andamento)
+        return if (inicio.isBefore(hoje)) {
+            tela.getString(R.string.status_em_andamento)
+        } else {
+            TextoDeContagem.de(tela, inicio, hoje)
         }
     }
 
