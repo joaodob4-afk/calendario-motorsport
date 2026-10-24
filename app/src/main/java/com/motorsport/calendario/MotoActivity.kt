@@ -171,7 +171,7 @@ class MotoActivity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(preto)
+        pintarBarrasDoSistema(preto, getColor(R.color.azul_marinho))
     }
 
     private fun voltar() {
@@ -249,7 +249,7 @@ class MotoActivity : AppCompatActivity() {
         var dataAtual: String? = null
 
         for (sessao in sessoesOrdenadas) {
-            val dataSessao = formatarData(sessao.data)
+            val dataSessao = formatarDiaPorExtenso(sessao.data)
                 .ifBlank { sessao.data }
 
             if (dataSessao != dataAtual) {
@@ -365,7 +365,7 @@ class MotoActivity : AppCompatActivity() {
 
         val nome = TextView(this).apply {
             text = nomeExibido
-            textSize = 13f
+            textSize = 12f
             setTextColor(
                 if (corridaPrincipal) verde else branco
             )
@@ -461,6 +461,15 @@ class MotoActivity : AppCompatActivity() {
 
     private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
 
+
+    /** "QUINTA-FEIRA, 19 DE OUTUBRO": o dia da semana e a data por extenso (maiúsculas ao exibir). */
+    private fun formatarDiaPorExtenso(data: String): String {
+        if (data.isBlank()) return ""
+
+        val convertida = converterData(data) ?: return data
+
+        return SimpleDateFormat(getString(R.string.formato_dia_semana), idioma).format(convertida)
+    }
 
     private fun formatarData(data: String): String {
         if (data.isBlank()) return ""

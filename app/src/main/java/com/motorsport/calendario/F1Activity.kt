@@ -158,7 +158,7 @@ class F1Activity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(preto)
+        pintarBarrasDoSistema(preto, getColor(R.color.azul_marinho))
     }
 
     // false quando o usuário abriu uma corrida específica (não a próxima).
@@ -378,8 +378,12 @@ class F1Activity : AppCompatActivity() {
     private fun mostrarEvento(race: JSONObject) {
         conteudo.removeAllViews()
 
-        // Mesmo nome da tela inicial; se o circuito for novo, usa o nome que vem da API.
-        val nomeGP = Idioma.evento(
+        // O nome que a própria fonte dá à corrida, igual ao da tela inicial; só se ela não trouxer
+        // nome é que vale a tabela do app.
+        val nomeDaFonte = race.optString("raceName", "").trim()
+            .takeIf { it.isNotBlank() && it != "Grande Prêmio" }
+
+        val nomeGP = nomeDaFonte ?: Idioma.evento(
             this,
             NomesDeEventos.nome(
                 "F1",
@@ -749,7 +753,7 @@ class F1Activity : AppCompatActivity() {
 
         val nome = TextView(this).apply {
             text = sessao.nome
-            textSize = 13f
+            textSize = 12f
             setTextColor(if (sessao.corrida) verde else branco)
             typeface = Typeface.create(
                 "sans-serif",
@@ -773,7 +777,7 @@ class F1Activity : AppCompatActivity() {
 
         val horario = TextView(this).apply {
             text = horarioTexto
-            textSize = 16f
+            textSize = 14f
             setTextColor(if (sessao.corrida) verde else branco)
             typeface = Typeface.create(
                 "sans-serif",

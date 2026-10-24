@@ -159,11 +159,7 @@ class ConfiguracoesActivity : AppCompatActivity() {
         FormatoDeData.values().forEachIndexed { indice, formato ->
             if (indice > 0) cartao.addView(divisor())
 
-            val amostra = FormatadorDeData.curta(
-                hoje,
-                PreferenciasDeData.resolver(this, formato),
-                Idioma.locale(this)
-            )
+            val amostra = FormatadorDeData.curta(hoje, PreferenciasDeData.resolver(this, formato))
             val titulo = getString(rotuloDoFormato(formato))
             val descricao = if (formato == FormatoDeData.SISTEMA) {
                 getString(R.string.data_sistema_desc, amostra)
@@ -185,8 +181,6 @@ class ConfiguracoesActivity : AppCompatActivity() {
             FormatoDeData.SISTEMA -> R.string.data_sistema
             FormatoDeData.DIA_MES -> R.string.data_dia_mes
             FormatoDeData.MES_DIA -> R.string.data_mes_dia
-            FormatoDeData.DIA_MES_TEXTO -> R.string.data_dia_mes_texto
-            FormatoDeData.MES_TEXTO_DIA -> R.string.data_mes_texto_dia
         }
 
     /** Deixa a linha tocável, com ondulação azul. */

@@ -117,30 +117,33 @@ internal object NomesDeEventos {
         "united arab emirates" to "GP de Abu Dhabi"
     )
 
-    /** MotoGP, Moto2 e Moto3 correm juntas, então usam os mesmos nomes. */
+    /**
+     * MotoGP, Moto2 e Moto3 correm juntas, então usam os mesmos nomes, no padrão das fontes
+     * oficiais da modalidade: "Grand Prix of <país>". Já vêm no original, em qualquer idioma.
+     */
     private val motos = mapOf(
-        "buriram" to "GP da Tailândia",
-        "goiania" to "GP do Brasil",
-        "austin" to "GP dos Estados Unidos",
-        "jerez" to "GP da Espanha",
-        "le mans" to "GP da França",
-        "barcelona" to "GP da Catalunha",
-        "mugello" to "GP da Itália",
-        "balaton park" to "GP da Hungria",
-        "brno" to "GP da Tchéquia",
-        "assen" to "GP da Holanda",
-        "sachsenring" to "GP da Alemanha",
-        "silverstone" to "GP da Grã-Bretanha",
-        "aragon" to "GP de Aragão",
-        "misano" to "GP de San Marino",
-        "spielberg" to "GP da Áustria",
-        "motegi" to "GP do Japão",
-        "mandalika" to "GP da Indonésia",
-        "phillip island" to "GP da Austrália",
-        "sepang" to "GP da Malásia",
-        "lusail" to "GP do Catar",
-        "portimao" to "GP de Portugal",
-        "valencia" to "GP de Valência"
+        "buriram" to "Grand Prix of Thailand",
+        "goiania" to "Grand Prix of Brazil",
+        "austin" to "Grand Prix of the Americas",
+        "jerez" to "Grand Prix of Spain",
+        "le mans" to "Grand Prix of France",
+        "barcelona" to "Grand Prix of Catalonia",
+        "mugello" to "Grand Prix of Italy",
+        "balaton park" to "Grand Prix of Hungary",
+        "brno" to "Grand Prix of the Czech Republic",
+        "assen" to "Grand Prix of the Netherlands",
+        "sachsenring" to "Grand Prix of Germany",
+        "silverstone" to "Grand Prix of Great Britain",
+        "aragon" to "Grand Prix of Aragón",
+        "misano" to "Grand Prix of San Marino",
+        "spielberg" to "Grand Prix of Austria",
+        "motegi" to "Grand Prix of Japan",
+        "mandalika" to "Grand Prix of Indonesia",
+        "phillip island" to "Grand Prix of Australia",
+        "sepang" to "Grand Prix of Malaysia",
+        "lusail" to "Grand Prix of Qatar",
+        "portimao" to "Grand Prix of Portugal",
+        "valencia" to "Grand Prix of the Valencian Community"
     )
 
     private val wec = mapOf(

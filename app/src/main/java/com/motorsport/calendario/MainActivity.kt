@@ -64,6 +64,9 @@ class MainActivity : AppCompatActivity() {
     /** Primeira sessão (instante exato) de cada etapa da lista atual; dá o horário e o dia do card. */
     private var primeirasSessoesDaLista: Map<Etapa, java.time.Instant> = emptyMap()
 
+    /** Última sessão (instante exato) de cada etapa da lista atual; dá a linha de baixo da data. */
+    private var ultimasSessoesDaLista: Map<Etapa, java.time.Instant> = emptyMap()
+
     /** Tema (claro/escuro) com que a tela foi montada; se mudar enquanto ela está parada, ela se refaz. */
     private var modoNoturnoDaTela = false
 
@@ -734,6 +737,7 @@ class MainActivity : AppCompatActivity() {
 
         val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje, sessoes)
         primeirasSessoesDaLista = RegrasDeFiltro.primeirasSessoes(etapasOrdenadas, sessoes)
+        ultimasSessoesDaLista = RegrasDeFiltro.ultimasSessoes(etapasOrdenadas, sessoes)
 
         listaEtapas.removeAllViews()
 
@@ -881,38 +885,23 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** "Sex, 23/10 · 15:30 – Dom, 25/10": dia da semana, data, horário e último dia da etapa. */
+    /** "Sex, 23/10 · 15:30": dia da semana, data e, se houver, o horário da sessão. */
     private fun linhaDeData(
-        inicio: java.time.LocalDate?,
-        fim: java.time.LocalDate?,
+        data: java.time.LocalDate?,
         horario: String?,
         textoOriginal: String
     ): String {
-        if (inicio == null) return textoOriginal
+        if (data == null) return textoOriginal
 
-        fun dia(data: java.time.LocalDate): String =
-            "${FormatadorDeData.diaDaSemana(data, Idioma.locale(this))}, ${PreferenciasDeData.curta(this, data)}"
+        val linha = "${FormatadorDeData.diaDaSemana(data, Idioma.locale(this))}, " +
+            PreferenciasDeData.curta(this, data)
 
-        val linha = StringBuilder(dia(inicio))
-        if (horario != null) linha.append(" · ").append(horario)
-        if (fim != null && fim.isAfter(inicio)) linha.append(" – ").append(dia(fim))
-
-        return linha.toString()
+        return if (horario != null) "$linha · $horario" else linha
     }
 
-    /** "3 DIAS", "1 SEMANA", "2 MESES": quanto falta para a etapa começar. */
-    private fun textoDaContagem(inicio: java.time.LocalDate, hoje: java.time.LocalDate): String {
-        val contagem = ContagemParaEtapa.entre(hoje, inicio)
-        val n = contagem.quantidade
-
-        val recurso = when (contagem.unidade) {
-            UnidadeDeContagem.DIAS -> if (n == 1) R.string.contagem_dia else R.string.contagem_dias
-            UnidadeDeContagem.SEMANAS -> if (n == 1) R.string.contagem_semana else R.string.contagem_semanas
-            UnidadeDeContagem.MESES -> if (n == 1) R.string.contagem_mes else R.string.contagem_meses
-        }
-
-        return getString(recurso, n)
-    }
+    /** "HOJE", "3 DIAS", "1 SEMANA", "2 MESES": quanto falta para a etapa começar. */
+    private fun textoDaContagem(inicio: java.time.LocalDate, hoje: java.time.LocalDate): String =
+        TextoDeContagem.de(this, inicio, hoje)
 
     /** Cria o card de uma etapa (sem colocá-lo na lista). */
     private fun criarCard(
@@ -934,19 +923,48 @@ class MainActivity : AppCompatActivity() {
         item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
         item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
 
-        // Data com dia da semana e horário da primeira sessão (no fuso do aparelho)
-        val primeira = primeirasSessoesDaLista[etapa]?.atZone(java.time.ZoneId.systemDefault())
-        val inicioDaEtapa = primeira?.toLocalDate() ?: parseDataSegura(etapa.dataInicio)
-        val horario = primeira?.let { Hora.formatar(it.hour, it.minute, Hora.usa24Horas(this)) }
-        val textoDaData = linhaDeData(inicioDaEtapa, parseDataSegura(etapa.dataFim), horario, etapa.data)
+        // Duas linhas: o começo (primeira sessão) em cima e o fim (última sessão) embaixo, com dia
+        // da semana, data e horário no fuso do aparelho. Sem horários, valem as datas da etapa.
+        val zona = java.time.ZoneId.systemDefault()
+        val usa24 = Hora.usa24Horas(this)
+        val primeira = primeirasSessoesDaLista[etapa]?.atZone(zona)
+        val ultima = ultimasSessoesDaLista[etapa]?.atZone(zona)
 
-        val itemData = item.findViewById<TextView>(R.id.itemData)
-        itemData.text = textoDaData
+        val inicioDaEtapa = primeira?.toLocalDate() ?: parseDataSegura(etapa.dataInicio)
+        val textoDaData = linhaDeData(
+            inicioDaEtapa,
+            primeira?.let { Hora.formatar(it.hour, it.minute, usa24) },
+            etapa.data
+        )
+
+        val textoDoFim: String? = if (primeira != null && ultima != null) {
+            if (ultima.toInstant() != primeira.toInstant()) {
+                linhaDeData(ultima.toLocalDate(), Hora.formatar(ultima.hour, ultima.minute, usa24), "")
+            } else {
+                null
+            }
+        } else {
+            val fim = parseDataSegura(etapa.dataFim)
+            if (fim != null && inicioDaEtapa != null && fim.isAfter(inicioDaEtapa)) {
+                linhaDeData(fim, null, "")
+            } else {
+                null
+            }
+        }
+
+        item.findViewById<TextView>(R.id.itemData).text = textoDaData
+
+        val itemDataFim = item.findViewById<TextView>(R.id.itemDataFim)
+        if (textoDoFim != null) {
+            itemDataFim.text = textoDoFim
+        } else {
+            itemDataFim.visibility = View.GONE
+        }
 
         // Quanto falta para começar (a próxima etapa vem preenchida); ao vivo e finalizada têm texto próprio.
         val textoStatus = when (status) {
             "PRÓXIMA", "AGENDADA" ->
-                parseDataSegura(etapa.dataInicio)?.let { textoDaContagem(it, hoje) }.orEmpty()
+                inicioDaEtapa?.let { textoDaContagem(it, hoje) }.orEmpty()
             else -> textoDoStatus(status)
         }
 
@@ -975,7 +993,7 @@ class MainActivity : AppCompatActivity() {
 
         item.contentDescription =
             "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeEvento)}, $textoDaData, $textoStatus"
+                "${localDaEtapa(etapa, nomeEvento)}, $textoDaData, ${textoDoFim.orEmpty()}, $textoStatus"
 
         item.setOnClickListener { abrirEtapa(etapa) }
         item.comEfeitoDeToque(escala = 0.97f)
@@ -1010,7 +1028,16 @@ class MainActivity : AppCompatActivity() {
             return "FINALIZADA"
         }
 
-        if (!inicioEtapa.isAfter(hoje)) {
+        // Em andamento só quando a primeira sessão começa; no primeiro dia, antes disso, ainda
+        // é "por vir". Sem horários conhecidos, vale o primeiro dia da etapa.
+        val primeira = primeirasSessoesDaLista[etapa]
+        val comecou = if (primeira != null) {
+            !java.time.Instant.now().isBefore(primeira)
+        } else {
+            !inicioEtapa.isAfter(hoje)
+        }
+
+        if (comecou) {
             return "EM ANDAMENTO"
         }
 

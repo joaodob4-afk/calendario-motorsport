@@ -113,8 +113,6 @@
     <string name="data_sistema_desc">Segue o celular: %1$s</string>
     <string name="data_dia_mes">Dia/mês</string>
     <string name="data_mes_dia">Mês/dia</string>
-    <string name="data_dia_mes_texto">Dia e mês abreviado</string>
-    <string name="data_mes_texto_dia">Mês abreviado e dia</string>
     <string name="lista_vazia">Nenhuma etapa encontrada.</string>
     <string name="filtros_em_breve">Filtros: em breve</string>
     <string name="barra_inicio">Início</string>
