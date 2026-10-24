@@ -106,7 +106,8 @@ class MotoCalendarJsonTest {
         val context = RuntimeEnvironment.getApplication()
 
         val corrida = ColetorDeSessoes.coletar(context).firstOrNull {
-            it.categoria == "MotoGP" && it.nome == "Corrida" && it.local == "Buriram"
+            it.categoria == "MotoGP" && it.nome == "Corrida" &&
+                it.inicio.toLocalDate().toString() == "2026-03-01"
         }
 
         assertNotNull("Corrida da MotoGP na Tailândia não encontrada", corrida)

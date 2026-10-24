@@ -152,20 +152,25 @@ def periodo_do_evento(evento):
 
 
 def local_da_etapa(evento):
-    """Usa o nome oficial do evento da API; não substitui por nomes fixos."""
+    """Mantém separados nome oficial do evento, circuito, cidade e país."""
     sigla = evento.get("shortname")
-    circuito = evento.get("circuit") or {}
+    circuito_api = evento.get("circuit") or {}
 
-    nome = " ".join(str(evento.get("name") or "").split())
-    if not nome:
-        nome = " ".join(str(circuito.get("name") or circuito.get("city") or "").split())
-    if not nome:
-        nome = sigla or ""
+    nome_evento = " ".join(str(evento.get("name") or "").split())
+    circuito = " ".join(str(circuito_api.get("name") or "").split())
+    cidade = " ".join(str(circuito_api.get("city") or "").split())
 
-    pais = PAISES.get(sigla) or circuito.get("country") or evento.get("country") or ""
+    if not nome_evento:
+        nome_evento = circuito or cidade or sigla or ""
+    if not circuito:
+        circuito = cidade or nome_evento
+    if not cidade:
+        cidade = circuito
+
+    pais = PAISES.get(sigla) or circuito_api.get("country") or evento.get("country") or ""
     if isinstance(pais, dict):
         pais = pais.get("name") or pais.get("label") or ""
-    return nome, str(pais).strip()
+    return nome_evento, circuito, cidade, str(pais).strip()
 
 
 def montar(eventos, sigla, rotulo, ano):
@@ -175,7 +180,7 @@ def montar(eventos, sigla, rotulo, ano):
     etapas = []
     for numero, evento in enumerate(gps, start=1):
         inicio, fim = periodo_do_evento(evento)
-        circuito, pais = local_da_etapa(evento)
+        nome_evento, circuito, cidade, pais = local_da_etapa(evento)
 
         sessoes = []
         vistos = set()
@@ -190,7 +195,9 @@ def montar(eventos, sigla, rotulo, ano):
         etapas.append(
             {
                 "etapa": numero,
+                "nomeEvento": nome_evento,
                 "circuito": circuito,
+                "cidade": cidade,
                 "pais": pais,
                 "inicio": formatar_data(inicio),
                 "fim": formatar_data(fim),

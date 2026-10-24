@@ -97,6 +97,8 @@ internal object MotoCalendarJson {
 
                 val numero = etapa.getInt("etapa")
                 val circuito = etapa.getString("circuito").trim()
+                val nomeEvento = etapa.optString("nomeEvento", circuito).trim().ifBlank { circuito }
+                val cidade = etapa.optString("cidade", circuito).trim().ifBlank { circuito }
                 val pais = etapa.getString("pais").trim()
                 val inicioTexto = etapa.getString("inicio")
                 val fimTexto = etapa.getString("fim")
@@ -133,7 +135,9 @@ internal object MotoCalendarJson {
                 eventos.add(
                     MotoEvent(
                         etapa = numero,
+                        nomeEvento = nomeEvento,
                         circuito = circuito,
+                        cidade = cidade,
                         pais = pais,
                         inicio = inicioTexto,
                         fim = fimTexto,
