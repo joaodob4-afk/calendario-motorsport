@@ -176,11 +176,7 @@ IndyCarCalendarJson.atualizar(this) {
                 nome = evento.nome,
                 circuito = Idioma.lugar(this, evento.circuito),
                 bandeiraRes = obterRecursoBandeira(evento.pais),
-                local = if (evento.local.isNotBlank()) {
-                    "${Idioma.lugar(this, evento.local)}, ${Idioma.lugar(this, evento.pais)}"
-                } else {
-                    Idioma.lugar(this, evento.pais)
-                },
+                local = localDoEvento(evento),
                 periodo = textoDoIntervalo(evento),
                 contador = estilo.contador(lerData(evento.inicio), lerData(evento.fim))
             ),
@@ -224,6 +220,15 @@ IndyCarCalendarJson.atualizar(this) {
             }
         }
 
+    }
+
+    private fun localDoEvento(evento: IndyCarEvent): String {
+        val local = Idioma.lugar(this, evento.local).trim()
+        val pais = Idioma.lugar(this, evento.pais).trim()
+
+        if (local.isBlank()) return pais
+        if (pais.isBlank() || local.endsWith(pais, ignoreCase = true)) return local
+        return "$local, $pais"
     }
 
     private fun textoDoIntervalo(evento: IndyCarEvent): String {
