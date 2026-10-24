@@ -97,22 +97,6 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
                 .apply { marginStart = dp(8f) }
         )
 
-        // A barra ocupa a largura toda e encosta no topo: anula o recuo da tela que a contém.
-        linha.addOnAttachStateChangeListener(
-            object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) {
-                    val pai = v.parent as? View ?: return
-                    val parametros = v.layoutParams as? android.view.ViewGroup.MarginLayoutParams ?: return
-                    parametros.leftMargin = -pai.paddingLeft
-                    parametros.rightMargin = -pai.paddingRight
-                    parametros.topMargin = -pai.paddingTop
-                    v.layoutParams = parametros
-                }
-
-                override fun onViewDetachedFromWindow(v: View) = Unit
-            }
-        )
-
         return linha
     }
 
@@ -221,9 +205,17 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.findViewById<TextView>(R.id.destaqueLocal).text = local
         card.findViewById<TextView>(R.id.destaqueData).apply {
             text = periodo
-            // Letra menor e até duas linhas: a data nunca fica escondida pelo selo da contagem.
+            // Uma linha só: se a data não couber ao lado do selo, a letra diminui até 10sp.
             textSize = 14f
+            maxLines = 1
             letterSpacing = 0.02f
+            androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                this,
+                10,
+                14,
+                1,
+                android.util.TypedValue.COMPLEX_UNIT_SP
+            )
         }
 
         card.findViewById<TextView>(R.id.destaqueStatus).apply {

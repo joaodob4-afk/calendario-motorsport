@@ -56,7 +56,7 @@
     <string name="sessao_corrida_sprint">SPRINT RACE</string>
     <string name="sessao_classificacao">QUALIFYING</string>
     <string name="sessao_corrida">RACE</string>
-    <string name="formato_dia_semana">EEEE, MMMM dd</string>
+    <string name="formato_dia_semana">EEEE, MMMM d</string>
     <string name="formato_data">MMM dd, yyyy</string>
     <string name="formato_data_hora">MMM dd, yyyy - HH:mm</string>
     <string name="f1_calendario_titulo">FORMULA 1\n\n%1$d CALENDAR</string>
