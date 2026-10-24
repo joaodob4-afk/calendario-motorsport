@@ -55,7 +55,7 @@
     <string name="sessao_corrida_sprint">CORRIDA SPRINT</string>
     <string name="sessao_classificacao">CLASSIFICAÇÃO</string>
     <string name="sessao_corrida">CORRIDA</string>
-    <string name="formato_dia_semana">EEEE, dd \'DE\' MMMM</string>
+    <string name="formato_dia_semana">EEEE, d \'DE\' MMMM</string>
     <string name="formato_data">dd/MM/yyyy</string>
     <string name="formato_data_hora">dd/MM/yyyy - HH:mm</string>
     <string name="f1_calendario_titulo">FÓRMULA 1\n\nCALENDÁRIO %1$d</string>

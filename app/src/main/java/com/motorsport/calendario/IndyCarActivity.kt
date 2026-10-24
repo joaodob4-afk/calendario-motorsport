@@ -87,6 +87,10 @@ IndyCarCalendarJson.atualizar(this) {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
+                // A barra azul vai de ponta a ponta: anula o recuo da tela (18dp nas laterais, 12dp em cima).
+                leftMargin = -dp(18)
+                rightMargin = -dp(18)
+                topMargin = -dp(12)
                 bottomMargin = dp(14)
             }
         )
