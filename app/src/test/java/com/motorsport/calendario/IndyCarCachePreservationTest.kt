@@ -19,7 +19,7 @@ class IndyCarCachePreservationTest {
 
 private fun jsonComEtapas(
     quantidade: Int,
-    temporada: Int = 2026,
+    temporada: Int = 2027,
     horario: String = "12:30",
     incluirTreino: Boolean = false
 ): String {
@@ -70,7 +70,7 @@ private fun jsonComDuasCorridasMilwaukee(
     horarioCorrida2: String
 ): String = """
     {
-      "temporada": 2026,
+      "temporada": 2027,
       "categoria": "IndyCar",
       "etapas": [
         {
@@ -79,11 +79,11 @@ private fun jsonComDuasCorridasMilwaukee(
           "circuito": "Milwaukee Mile",
           "local": "West Allis, Wisconsin",
           "pais": "Estados Unidos",
-          "inicio": "28/08/2026",
-          "fim": "30/08/2026",
+          "inicio": "28/08/2027",
+          "fim": "30/08/2027",
           "sessoes": [
-            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
-            {"nome": "Corrida 1", "data": "30/08/2026", "horario": "$horarioCorrida1"}
+            {"nome": "Classificação", "data": "29/08/2027", "horario": "12:00"},
+            {"nome": "Corrida 1", "data": "28/08/2027", "horario": "$horarioCorrida1"}
           ]
         },
         {
@@ -92,11 +92,11 @@ private fun jsonComDuasCorridasMilwaukee(
           "circuito": "Milwaukee Mile",
           "local": "West Allis, Wisconsin",
           "pais": "Estados Unidos",
-          "inicio": "29/08/2026",
-          "fim": "30/08/2026",
+          "inicio": "29/08/2027",
+          "fim": "30/08/2027",
           "sessoes": [
-            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
-            {"nome": "Corrida 2", "data": "30/08/2026", "horario": "$horarioCorrida2"}
+            {"nome": "Classificação", "data": "29/08/2027", "horario": "12:00"},
+            {"nome": "Corrida 2", "data": "29/08/2027", "horario": "$horarioCorrida2"}
           ]
         }
       ]
@@ -121,6 +121,21 @@ private fun prepararArquivos(
     arquivoBackup.delete()
 
     return Pair(arquivoCache, arquivoBackup)
+}
+
+private fun gravarCacheAtualizado(context: Context, texto: String) {
+    IndyCarCalendarJson.gravarCacheSeValido(context, texto)
+
+    // Simula um download feito depois da instalação do APK. O carregador ignora
+    // cache da mesma temporada que pareça mais antigo que o APK.
+    val arquivoCache = File(context.filesDir, "indycar_calendar_cache.json")
+    val ultimaAtualizacaoApk = context.packageManager
+        .getPackageInfo(context.packageName, 0)
+        .lastUpdateTime
+    assertTrue(
+        "Não foi possível ajustar a data do cache de teste",
+        arquivoCache.setLastModified(maxOf(System.currentTimeMillis(), ultimaAtualizacaoApk + 1_000L))
+    )
 }
 
 @Test
@@ -271,12 +286,12 @@ fun sessaoRemovidaNaMesmaTemporadaPermiteAtualizacaoOficial() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18, incluirTreino = true)
         )
 
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18)
         )
@@ -336,13 +351,13 @@ fun calendarioMenorNaMesmaTemporadaPermiteRemocaoOficialDeEtapas() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18)
         )
 
         // Não exige uma quantidade fixa de etapas: a redução pode ser oficial.
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(9)
         )
@@ -360,12 +375,12 @@ fun refleteHorariosPublicadosNasDuasCorridasDeMilwaukee() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComDuasCorridasMilwaukee("19:00", "14:00")
         )
 
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComDuasCorridasMilwaukee("A confirmar", "A confirmar")
         )
