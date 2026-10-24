@@ -33,6 +33,18 @@ MESES = {
 }
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
+ESTADOS_EUA = {
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+    "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia",
+    "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+    "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+    "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+    "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota",
+    "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
+    "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
+    "Washington", "West Virginia", "Wisconsin", "Wyoming",
+}
+PAISES_INTERNACIONAIS = {"Spain": "Espanha"}
 PREFIXO = "NTT INDYCAR SERIES - "
 
 
@@ -238,6 +250,25 @@ def filtrar_pre_race_indianapolis(cartao, sessoes):
     return [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
 
 
+
+def separar_local_e_pais(local):
+    """Separa cidade/região de país usando o formato publicado no calendário oficial."""
+    partes = [parte.strip() for parte in str(local).split(",") if parte.strip()]
+    if len(partes) < 2:
+        return str(local).strip(), "Estados Unidos"
+
+    regiao = partes[-1]
+    local_sem_pais = ", ".join(partes[:-1])
+    if regiao in PROVINCIAS_CANADA:
+        return ", ".join(partes), "Canadá"
+    if regiao in ESTADOS_EUA:
+        return ", ".join(partes), "Estados Unidos"
+
+    # Fora dos estados dos EUA e províncias canadenses, o último componente
+    # é o país (ex.: "Barcelona, Spain"), não parte do local a exibir.
+    return local_sem_pais, PAISES_INTERNACIONAIS.get(regiao, regiao)
+
+
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
     sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
@@ -267,9 +298,7 @@ def montar_etapa(cartao, html_evento):
         else:
             lista = [{"nome": "Corrida", "data": fmt(inicio), "horario": "A confirmar"}]
 
-    local = cartao["local"]
-    regiao = local.split(",")[-1].strip() if "," in local else ""
-    pais = "Canadá" if regiao in PROVINCIAS_CANADA else "Estados Unidos"
+    local, pais = separar_local_e_pais(cartao["local"])
 
     if not cartao["titulo"]:
         raise ValueError(f"{cartao['slug']}: título ausente")
