@@ -70,7 +70,7 @@ private fun jsonComDuasCorridasMilwaukee(
     horarioCorrida2: String
 ): String = """
     {
-      "temporada": 2026,
+      "temporada": 2027,
       "categoria": "IndyCar",
       "etapas": [
         {
@@ -79,8 +79,8 @@ private fun jsonComDuasCorridasMilwaukee(
           "circuito": "Milwaukee Mile",
           "local": "West Allis, Wisconsin",
           "pais": "Estados Unidos",
-          "inicio": "28/08/2026",
-          "fim": "30/08/2026",
+          "inicio": "28/08/2027",
+          "fim": "30/08/2027",
           "sessoes": [
             {"nome": "Classificação", "data": "29/08/2027", "horario": "12:00"},
             {"nome": "Corrida 1", "data": "28/08/2027", "horario": "$horarioCorrida1"}
@@ -92,10 +92,10 @@ private fun jsonComDuasCorridasMilwaukee(
           "circuito": "Milwaukee Mile",
           "local": "West Allis, Wisconsin",
           "pais": "Estados Unidos",
-          "inicio": "29/08/2026",
-          "fim": "30/08/2026",
+          "inicio": "29/08/2027",
+          "fim": "30/08/2027",
           "sessoes": [
-            {"nome": "Classificação", "data": "29/08/2026", "horario": "12:00"},
+            {"nome": "Classificação", "data": "29/08/2027", "horario": "12:00"},
             {"nome": "Corrida 2", "data": "29/08/2027", "horario": "$horarioCorrida2"}
           ]
         }
