@@ -1,647 +1,276 @@
 {
-  "temporada": 2026,
+  "temporada": 2027,
   "categoria": "IndyCar",
   "etapas": [
     {
       "etapa": 1,
-      "nome": "Firestone Grand Prix of St. Petersburg",
+      "nome": "Streets of St. Petersburg",
       "circuito": "Streets of St. Petersburg",
       "local": "St. Petersburg, Florida",
       "pais": "Estados Unidos",
-      "inicio": "27/02/2026",
-      "fim": "01/03/2026",
+      "inicio": "07/03/2027",
+      "fim": "07/03/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "27/02/2026",
-          "horario": "15:30"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "28/02/2026",
-          "horario": "11:30"
-        },
-        {
-          "nome": "Classificação",
-          "data": "28/02/2026",
-          "horario": "18:30"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "01/03/2026",
-          "horario": "11:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "01/03/2026",
-          "horario": "14:00"
+          "data": "07/03/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 2,
-      "nome": "Good Ranchers 250",
+      "nome": "Phoenix Raceway",
       "circuito": "Phoenix Raceway",
       "local": "Avondale, Arizona",
       "pais": "Estados Unidos",
-      "inicio": "06/03/2026",
-      "fim": "07/03/2026",
+      "inicio": "13/03/2027",
+      "fim": "13/03/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "06/03/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "06/03/2026",
-          "horario": "16:00"
-        },
-        {
-          "nome": "Treino Final (High Line)",
-          "data": "06/03/2026",
-          "horario": "18:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "07/03/2026",
-          "horario": "17:00"
+          "data": "13/03/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 3,
-      "nome": "Java House Grand Prix of Arlington",
+      "nome": "Streets of Arlington",
       "circuito": "Streets of Arlington",
       "local": "Arlington, Texas",
       "pais": "Estados Unidos",
-      "inicio": "13/03/2026",
-      "fim": "15/03/2026",
+      "inicio": "21/03/2027",
+      "fim": "21/03/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "13/03/2026",
-          "horario": "17:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "14/03/2026",
-          "horario": "10:30"
-        },
-        {
-          "nome": "Classificação",
-          "data": "14/03/2026",
-          "horario": "15:30"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "15/03/2026",
-          "horario": "10:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "15/03/2026",
-          "horario": "12:30"
+          "data": "21/03/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 4,
-      "nome": "Children's of Alabama Indy Grand Prix",
+      "nome": "Barber Motorsports Park",
       "circuito": "Barber Motorsports Park",
       "local": "Birmingham, Alabama",
       "pais": "Estados Unidos",
-      "inicio": "27/03/2026",
-      "fim": "29/03/2026",
+      "inicio": "04/04/2027",
+      "fim": "04/04/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "27/03/2026",
-          "horario": "16:30"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "28/03/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "28/03/2026",
-          "horario": "15:30"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "29/03/2026",
-          "horario": "11:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "29/03/2026",
-          "horario": "14:00"
+          "data": "04/04/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 5,
-      "nome": "Acura Grand Prix of Long Beach",
+      "nome": "Streets of Long Beach",
       "circuito": "Streets of Long Beach",
       "local": "Long Beach, California",
       "pais": "Estados Unidos",
-      "inicio": "17/04/2026",
-      "fim": "19/04/2026",
+      "inicio": "18/04/2027",
+      "fim": "18/04/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "17/04/2026",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "18/04/2026",
-          "horario": "14:30"
-        },
-        {
-          "nome": "Classificação",
-          "data": "18/04/2026",
-          "horario": "19:30"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "19/04/2026",
-          "horario": "14:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "19/04/2026",
-          "horario": "18:30"
+          "data": "18/04/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 6,
-      "nome": "Sonsio Grand Prix",
+      "nome": "Indianapolis Motor Speedway Road Course",
       "circuito": "IMS Road Course",
       "local": "Indianapolis, Indiana",
       "pais": "Estados Unidos",
-      "inicio": "08/05/2026",
-      "fim": "09/05/2026",
+      "inicio": "15/05/2027",
+      "fim": "15/05/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "08/05/2026",
-          "horario": "10:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "08/05/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "09/05/2026",
-          "horario": "11:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "09/05/2026",
-          "horario": "17:30"
+          "data": "15/05/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 7,
-      "nome": "110th Running of the Indianapolis 500",
+      "nome": "111th Running of the Indianapolis 500",
       "circuito": "Indianapolis Motor Speedway",
       "local": "Indianapolis, Indiana",
       "pais": "Estados Unidos",
-      "inicio": "12/05/2026",
-      "fim": "24/05/2026",
+      "inicio": "30/05/2027",
+      "fim": "30/05/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "12/05/2026",
-          "horario": "13:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "13/05/2026",
-          "horario": "13:00"
-        },
-        {
-          "nome": "Treino Livre 3",
-          "data": "14/05/2026",
-          "horario": "13:00"
-        },
-        {
-          "nome": "Fast Friday",
-          "data": "15/05/2026",
-          "horario": "15:30"
-        },
-        {
-          "nome": "Treino Livre 6",
-          "data": "17/05/2026",
-          "horario": "10:30"
-        },
-        {
-          "nome": "Classificação (All Cars)",
-          "data": "17/05/2026",
-          "horario": "13:00"
-        },
-        {
-          "nome": "Classificação (Top-12)",
-          "data": "17/05/2026",
-          "horario": "17:00"
-        },
-        {
-          "nome": "Classificação (Firestone Fast 6)",
-          "data": "17/05/2026",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 7",
-          "data": "18/05/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Treino Final (Carb Day)",
-          "data": "22/05/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Competição de Pit Stop",
-          "data": "22/05/2026",
-          "horario": "15:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "24/05/2026",
-          "horario": "13:30"
+          "data": "30/05/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 8,
-      "nome": "Chevrolet Detroit Grand Prix",
+      "nome": "Streets of Detroit",
       "circuito": "Streets of Detroit",
       "local": "Detroit, Michigan",
       "pais": "Estados Unidos",
-      "inicio": "29/05/2026",
-      "fim": "31/05/2026",
+      "inicio": "06/06/2027",
+      "fim": "06/06/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "29/05/2026",
-          "horario": "16:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "30/05/2026",
-          "horario": "10:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "30/05/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "31/05/2026",
-          "horario": "10:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "31/05/2026",
-          "horario": "13:30"
+          "data": "06/06/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 9,
-      "nome": "Bommarito Automotive Group 500",
+      "nome": "World Wide Technology Raceway",
       "circuito": "World Wide Technology Raceway",
       "local": "Madison, Illinois",
       "pais": "Estados Unidos",
-      "inicio": "06/06/2026",
-      "fim": "07/06/2026",
+      "inicio": "13/06/2027",
+      "fim": "13/06/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "06/06/2026",
-          "horario": "13:30"
-        },
-        {
-          "nome": "Classificação",
-          "data": "06/06/2026",
-          "horario": "17:30"
-        },
-        {
-          "nome": "Treino Final",
-          "data": "06/06/2026",
-          "horario": "22:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "07/06/2026",
-          "horario": "22:00"
+          "data": "13/06/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 10,
-      "nome": "XPEL Grand Prix at Road America",
+      "nome": "Road America",
       "circuito": "Road America",
       "local": "Elkhart Lake, Wisconsin",
       "pais": "Estados Unidos",
-      "inicio": "19/06/2026",
-      "fim": "21/06/2026",
+      "inicio": "27/06/2027",
+      "fim": "27/06/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "19/06/2026",
-          "horario": "17:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "20/06/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "20/06/2026",
-          "horario": "15:00"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "21/06/2026",
-          "horario": "12:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "21/06/2026",
-          "horario": "15:00"
+          "data": "27/06/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 11,
-      "nome": "Honda Indy 200 at Mid-Ohio",
+      "nome": "Mid-Ohio Sports Car Course",
       "circuito": "Mid-Ohio Sports Car Course",
       "local": "Lexington, Ohio",
       "pais": "Estados Unidos",
-      "inicio": "03/07/2026",
-      "fim": "05/07/2026",
+      "inicio": "04/07/2027",
+      "fim": "04/07/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "03/07/2026",
-          "horario": "16:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "04/07/2026",
-          "horario": "11:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "04/07/2026",
-          "horario": "18:15"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "05/07/2026",
-          "horario": "10:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "05/07/2026",
-          "horario": "13:30"
+          "data": "04/07/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 12,
-      "nome": "Borchetta Bourbon Music City Grand Prix",
-      "circuito": "Nashville Superspeedway",
-      "local": "Lebanon, Tennessee",
+      "nome": "Circuit de Barcelona-Catalunya",
+      "circuito": "Circuit de Barcelona-Catalunya",
+      "local": "Barcelona, Spain",
       "pais": "Estados Unidos",
-      "inicio": "18/07/2026",
-      "fim": "20/07/2026",
+      "inicio": "18/07/2027",
+      "fim": "18/07/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "18/07/2026",
-          "horario": "11:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "18/07/2026",
-          "horario": "16:00"
-        },
-        {
-          "nome": "Treino Final",
-          "data": "18/07/2026",
-          "horario": "19:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "20/07/2026",
-          "horario": "16:00"
+          "data": "18/07/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 13,
-      "nome": "OnlyBulls Grand Prix of Portland",
+      "nome": "Portland International Raceway",
       "circuito": "Portland International Raceway",
       "local": "Portland, Oregon",
       "pais": "Estados Unidos",
-      "inicio": "07/08/2026",
-      "fim": "09/08/2026",
+      "inicio": "01/08/2027",
+      "fim": "01/08/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "07/08/2026",
-          "horario": "18:30"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "08/08/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "08/08/2026",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "09/08/2026",
-          "horario": "14:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "09/08/2026",
-          "horario": "17:00"
+          "data": "01/08/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 14,
-      "nome": "Ontario Honda Dealers Indy at Markham",
+      "nome": "Streets of Markham",
       "circuito": "Streets of Markham",
       "local": "Markham, Ontario",
       "pais": "Canadá",
-      "inicio": "15/08/2026",
-      "fim": "16/08/2026",
+      "inicio": "15/08/2027",
+      "fim": "15/08/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "15/08/2026",
-          "horario": "11:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "15/08/2026",
-          "horario": "15:30"
-        },
-        {
-          "nome": "Classificação",
-          "data": "15/08/2026",
-          "horario": "19:30"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "16/08/2026",
-          "horario": "09:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "16/08/2026",
-          "horario": "13:00"
+          "data": "15/08/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 15,
-      "nome": "Freedom 250 Grand Prix of Washington DC",
-      "circuito": "Streets of Washington",
-      "local": "Washington, D.C.",
+      "nome": "Milwaukee Mile - Race 1",
+      "circuito": "Milwaukee Mile",
+      "local": "West Allis, Wisconsin",
       "pais": "Estados Unidos",
-      "inicio": "22/08/2026",
-      "fim": "23/08/2026",
+      "inicio": "28/08/2027",
+      "fim": "28/08/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "22/08/2026",
-          "horario": "10:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "22/08/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "22/08/2026",
-          "horario": "18:00"
-        },
-        {
-          "nome": "Warm-up",
-          "data": "23/08/2026",
-          "horario": "10:00"
-        },
-        {
-          "nome": "Pre-Race Show",
-          "data": "23/08/2026",
-          "horario": "12:30"
-        },
-        {
           "nome": "Corrida",
-          "data": "23/08/2026",
-          "horario": "14:00"
+          "data": "28/08/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 16,
-      "nome": "Snap-on Makers and Fixers 250",
+      "nome": "Milwaukee Mile - Race 2",
       "circuito": "Milwaukee Mile",
       "local": "West Allis, Wisconsin",
       "pais": "Estados Unidos",
-      "inicio": "28/08/2026",
-      "fim": "30/08/2026",
+      "inicio": "29/08/2027",
+      "fim": "29/08/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre",
-          "data": "28/08/2026",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "29/08/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Corrida 1",
-          "data": "30/08/2026",
-          "horario": "19:00"
+          "nome": "Corrida",
+          "data": "29/08/2027",
+          "horario": "A confirmar"
         }
       ]
     },
     {
       "etapa": 17,
-      "nome": "Snap-on Milwaukee Mile 250",
-      "circuito": "Milwaukee Mile",
-      "local": "West Allis, Wisconsin",
-      "pais": "Estados Unidos",
-      "inicio": "29/08/2026",
-      "fim": "30/08/2026",
-      "sessoes": [
-        {
-          "nome": "Classificação",
-          "data": "29/08/2026",
-          "horario": "12:00"
-        },
-        {
-          "nome": "Corrida 2",
-          "data": "30/08/2026",
-          "horario": "14:00"
-        }
-      ]
-    },
-    {
-      "etapa": 18,
-      "nome": "Mission Foods Grand Prix of Monterey",
+      "nome": "WeatherTech Raceway Laguna Seca",
       "circuito": "WeatherTech Raceway Laguna Seca",
       "local": "Monterey, California",
       "pais": "Estados Unidos",
-      "inicio": "04/09/2026",
-      "fim": "06/09/2026",
+      "inicio": "05/09/2027",
+      "fim": "05/09/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "04/09/2026",
-          "horario": "18:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "05/09/2026",
-          "horario": "14:00"
-        },
-        {
-          "nome": "Classificação",
-          "data": "05/09/2026",
-          "horario": "17:30"
-        },
-        {
-          "nome": "Treino Final",
-          "data": "05/09/2026",
-          "horario": "21:00"
-        },
-        {
           "nome": "Corrida",
-          "data": "06/09/2026",
-          "horario": "15:30"
+          "data": "05/09/2027",
+          "horario": "A confirmar"
         }
       ]
     }
