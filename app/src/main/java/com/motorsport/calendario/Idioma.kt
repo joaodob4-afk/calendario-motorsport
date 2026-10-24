@@ -27,13 +27,9 @@ internal object Idioma {
     fun sessao(context: Context, nome: String): String =
         if (ingles(context)) TraducaoDeSessoes.paraIngles(nome) else nome
 
-    /** País ou cidade no idioma do app, inclusive locais compostos como "Barcelona, Spain". */
+    /** País ou cidade no idioma do app. */
     fun lugar(context: Context, nome: String): String =
-        if (ingles(context)) {
-            TraducaoDeNomes.lugar(nome)
-        } else {
-            TraducaoDeNomes.lugarParaPortugues(nome)
-        }
+        if (ingles(context)) TraducaoDeNomes.lugar(nome) else nome
 
     /**
      * Data dos calendários (dd/MM/yyyy ou yyyy-MM-dd) no formato escolhido nas configurações
