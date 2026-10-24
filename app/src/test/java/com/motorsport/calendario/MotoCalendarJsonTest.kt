@@ -73,10 +73,10 @@ class MotoCalendarJsonTest {
 
         val eventos = MotoCalendarJson.interpretar(texto, ClasseMoto.MOTOGP)
         assertEquals(1, eventos.size)
-        assertEquals("", eventos[0].cidade)
+        assertEquals("Montmeló", eventos[0].cidade)
 
         val etapa = MotoCalendarJson.comoEtapas(eventos, ClasseMoto.MOTOGP).single()
-        assertEquals("", etapa.local)
+        assertEquals("Montmeló", etapa.local)
     }
 
     @Test
