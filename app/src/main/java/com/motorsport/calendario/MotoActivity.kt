@@ -138,10 +138,6 @@ class MotoActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                // A barra azul vai de ponta a ponta: anula o recuo da tela (18dp nas laterais, 12dp em cima).
-                leftMargin = -dp(18)
-                rightMargin = -dp(18)
-                topMargin = -dp(12)
                 bottomMargin = dp(14)
             }
         )
@@ -206,11 +202,10 @@ class MotoActivity : AppCompatActivity() {
         conteudo.addView(
             estilo.heroi(
                 eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-                nome = NomesDeEventos.nome(classe.rotulo, evento.circuito)?.let { Idioma.evento(this, it) }
-                    ?: classe.tituloGrande,
-                circuito = nomeAutodromo.ifBlank { evento.circuito },
+                nome = Idioma.evento(this, evento.nomeEvento),
+                circuito = nomeAutodromo.ifBlank { Idioma.lugar(this, evento.circuito) },
                 bandeiraRes = obterRecursoBandeira(evento.pais),
-                local = "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}",
+                local = "${Idioma.lugar(this, evento.cidade)}, ${Idioma.lugar(this, evento.pais)}",
                 periodo = intervalo.uppercase(idioma),
                 contador = estilo.contador(converterData(evento.inicio), converterData(evento.fim))
             ),
