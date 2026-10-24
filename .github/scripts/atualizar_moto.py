@@ -46,30 +46,16 @@ NOMES_SESSAO = {
 }
 TIPOS_DE_SESSAO = {"PRACTICE", "QUALIFYING", "RACE", "WARM_UP"}
 
-# Sigla do Grande Prêmio na API -> (nome do circuito no app, país)
-ETAPAS = {
-    "THA": ("Buriram", "Tailândia"),
-    "BRA": ("Goiânia", "Brasil"),
-    "USA": ("Austin", "Estados Unidos"),
-    "SPA": ("Jerez", "Espanha"),
-    "FRA": ("Le Mans", "França"),
-    "CAT": ("Barcelona", "Espanha"),
-    "ITA": ("Mugello", "Itália"),
-    "HUN": ("Balaton Park", "Hungria"),
-    "CZE": ("Brno", "República Tcheca"),
-    "NED": ("Assen", "Holanda"),
-    "GER": ("Sachsenring", "Alemanha"),
-    "GBR": ("Silverstone", "Reino Unido"),
-    "ARA": ("Aragón", "Espanha"),
-    "RSM": ("Misano", "San Marino"),
-    "AUT": ("Spielberg", "Áustria"),
-    "JPN": ("Motegi", "Japão"),
-    "INA": ("Mandalika", "Indonésia"),
-    "AUS": ("Phillip Island", "Austrália"),
-    "MAL": ("Sepang", "Malásia"),
-    "QAT": ("Lusail", "Catar"),
-    "POR": ("Portimão", "Portugal"),
-    "VAL": ("Valencia", "Espanha"),
+# Países traduzidos para português quando a API usa siglas conhecidas.
+# O nome do evento, ao contrário, vem sempre da fonte oficial.
+PAISES = {
+    "THA": "Tailândia", "BRA": "Brasil", "USA": "Estados Unidos",
+    "SPA": "Espanha", "FRA": "França", "CAT": "Espanha", "ITA": "Itália",
+    "HUN": "Hungria", "CZE": "República Tcheca", "NED": "Holanda",
+    "GER": "Alemanha", "GBR": "Reino Unido", "ARA": "Espanha",
+    "RSM": "San Marino", "AUT": "Áustria", "JPN": "Japão",
+    "INA": "Indonésia", "AUS": "Austrália", "MAL": "Malásia",
+    "QAT": "Catar", "POR": "Portugal", "VAL": "Espanha",
 }
 
 # Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
@@ -166,14 +152,20 @@ def periodo_do_evento(evento):
 
 
 def local_da_etapa(evento):
+    """Usa o nome oficial do evento da API; não substitui por nomes fixos."""
     sigla = evento.get("shortname")
-    if sigla in ETAPAS:
-        return ETAPAS[sigla]
-
     circuito = evento.get("circuit") or {}
-    nome = circuito.get("city") or circuito.get("name") or str(evento.get("name") or "").strip()
-    pais = circuito.get("country") or evento.get("country") or ""
-    return nome, pais
+
+    nome = " ".join(str(evento.get("name") or "").split())
+    if not nome:
+        nome = " ".join(str(circuito.get("name") or circuito.get("city") or "").split())
+    if not nome:
+        nome = sigla or ""
+
+    pais = PAISES.get(sigla) or circuito.get("country") or evento.get("country") or ""
+    if isinstance(pais, dict):
+        pais = pais.get("name") or pais.get("label") or ""
+    return nome, str(pais).strip()
 
 
 def montar(eventos, sigla, rotulo, ano):
