@@ -121,6 +121,16 @@ class AtualizadorMotoTest(unittest.TestCase):
         self.assertEqual([e["nomeEvento"] for e in etapas], ["Nome oficial do GP THA", "Nome oficial do GP BRA"])
         self.assertEqual([e["circuito"] for e in etapas], ["Circuito THA", "Circuito BRA"])
 
+    def test_cidade_igual_ao_circuito_nao_e_repetida_como_localidade(self):
+        evento = gp(1, "XYZ", "2027-03-05", "2027-03-07")
+        evento["circuit"]["name"] = "Circuito XYZ"
+        evento["circuit"]["city"] = "Circuito XYZ"
+
+        etapa = moto.montar([evento], "MGP", "MotoGP", 2027)["etapas"][0]
+
+        self.assertEqual(etapa["circuito"], "Circuito XYZ")
+        self.assertEqual(etapa["cidade"], "")
+
     def test_etapa_desconhecida_usa_dados_da_api(self):
         evento = gp(1, "XYZ", "2027-03-05", "2027-03-07")
         evento["name"] = ""
@@ -130,7 +140,7 @@ class AtualizadorMotoTest(unittest.TestCase):
 
         self.assertEqual(etapa["nomeEvento"], "Cidade Nova")
         self.assertEqual(etapa["circuito"], "Cidade Nova")
-        self.assertEqual(etapa["cidade"], "Cidade Nova")
+        self.assertEqual(etapa["cidade"], "")
         self.assertEqual(etapa["pais"], "Novolândia")
 
     def test_recusa_calendario_vazio(self):

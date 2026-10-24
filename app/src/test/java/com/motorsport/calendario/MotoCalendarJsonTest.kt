@@ -64,6 +64,22 @@ class MotoCalendarJsonTest {
     }
 
     @Test
+    fun cidadeIgualAoCircuitoEhTratadaComoAusente() {
+        val texto = """{"temporada": 2026, "categoria": "MotoGP", "etapas": [{
+            "etapa": 1, "nomeEvento": "GP", "circuito": "Circuit de Barcelona-Catalunya",
+            "cidade": "Circuit de Barcelona-Catalunya", "pais": "Espanha",
+            "inicio": "15/05/2026", "fim": "17/05/2026", "sessoes": []
+        }]}"""
+
+        val eventos = MotoCalendarJson.interpretar(texto, ClasseMoto.MOTOGP)
+        assertEquals(1, eventos.size)
+        assertEquals("", eventos[0].cidade)
+
+        val etapa = MotoCalendarJson.comoEtapas(eventos, ClasseMoto.MOTOGP).single()
+        assertEquals("", etapa.local)
+    }
+
+    @Test
     fun rejeitaJsonDeOutraCategoria() {
         assertTrue(
             MotoCalendarJson.interpretar(json(categoria = "Moto2"), ClasseMoto.MOTOGP).isEmpty()
