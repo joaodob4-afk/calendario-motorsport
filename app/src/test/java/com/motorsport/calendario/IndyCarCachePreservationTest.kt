@@ -123,6 +123,21 @@ private fun prepararArquivos(
     return Pair(arquivoCache, arquivoBackup)
 }
 
+private fun gravarCacheAtualizado(context: Context, texto: String) {
+    IndyCarCalendarJson.gravarCacheSeValido(context, texto)
+
+    // Simula um download feito depois da instalação do APK. O carregador ignora
+    // cache da mesma temporada que pareça mais antigo que o APK.
+    val arquivoCache = File(context.filesDir, "indycar_calendar_cache.json")
+    val ultimaAtualizacaoApk = context.packageManager
+        .getPackageInfo(context.packageName, 0)
+        .lastUpdateTime
+    assertTrue(
+        "Não foi possível ajustar a data do cache de teste",
+        arquivoCache.setLastModified(maxOf(System.currentTimeMillis(), ultimaAtualizacaoApk + 1_000L))
+    )
+}
+
 @Test
 fun jsonInvalidoNaoSubstituiCacheValido() {
     val context = RuntimeEnvironment.getApplication()
@@ -271,12 +286,12 @@ fun sessaoRemovidaNaMesmaTemporadaPermiteAtualizacaoOficial() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18, incluirTreino = true)
         )
 
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18)
         )
@@ -336,13 +351,13 @@ fun calendarioMenorNaMesmaTemporadaPermiteRemocaoOficialDeEtapas() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(18)
         )
 
         // Não exige uma quantidade fixa de etapas: a redução pode ser oficial.
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComEtapas(9)
         )
@@ -360,12 +375,12 @@ fun refleteHorariosPublicadosNasDuasCorridasDeMilwaukee() {
     val (arquivoCache, arquivoBackup) = prepararArquivos(context)
 
     try {
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComDuasCorridasMilwaukee("19:00", "14:00")
         )
 
-        IndyCarCalendarJson.gravarCacheSeValido(
+        gravarCacheAtualizado(
             context,
             jsonComDuasCorridasMilwaukee("A confirmar", "A confirmar")
         )
