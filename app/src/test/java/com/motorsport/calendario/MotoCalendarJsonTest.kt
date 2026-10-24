@@ -149,4 +149,28 @@ class MotoCalendarJsonTest {
             assertTrue(it, !PlanoDeAvisos.ehCorrida(it))
         }
     }
+
+    @Test
+    fun telaInicialRecebeNomeOficialCircuitoECidadeDaMoto() {
+        val etapas = MotoCalendarJson.comoEtapas(
+            listOf(
+                MotoEvent(
+                    etapa = 1,
+                    nomeEvento = "GRAND PRIX OF SPAIN",
+                    circuito = "Circuito de Jerez - Ángel Nieto",
+                    cidade = "Jerez de la Frontera",
+                    pais = "Espanha",
+                    inicio = "24/04/2026",
+                    fim = "26/04/2026",
+                    sessoes = emptyList()
+                )
+            ),
+            ClasseMoto.MOTOGP
+        )
+
+        assertEquals(1, etapas.size)
+        assertEquals("GRAND PRIX OF SPAIN", etapas[0].nomeEvento)
+        assertEquals("Circuito de Jerez - Ángel Nieto", etapas[0].circuito)
+        assertEquals("Jerez de la Frontera", etapas[0].local)
+    }
 }
