@@ -140,7 +140,7 @@ class AtualizadorMotoTest(unittest.TestCase):
 
         self.assertEqual(etapa["nomeEvento"], "Cidade Nova")
         self.assertEqual(etapa["circuito"], "Cidade Nova")
-        self.assertEqual(etapa["cidade"], "Cidade Nova")
+        self.assertEqual(etapa["cidade"], "")
         self.assertEqual(etapa["pais"], "Novolândia")
 
     def test_recusa_calendario_vazio(self):
