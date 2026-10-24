@@ -164,8 +164,10 @@ def local_da_etapa(evento):
         nome_evento = circuito or cidade or sigla or ""
     if not circuito:
         circuito = cidade or nome_evento
-    if not cidade:
-        cidade = circuito
+    # A API às vezes preenche "city" com o próprio nome do circuito.
+    # Não mostre esse valor duplicado como se fosse uma cidade.
+    if not cidade or cidade.casefold() == circuito.casefold():
+        cidade = ""
 
     pais = PAISES.get(sigla) or circuito_api.get("country") or evento.get("country") or ""
     if isinstance(pais, dict):
