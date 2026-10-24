@@ -4,7 +4,7 @@
   "etapas": [
     {
       "etapa": 1,
-      "circuito": "Buriram",
+      "circuito": "PT GRAND PRIX OF THAILAND",
       "pais": "Tailândia",
       "inicio": "27/02/2026",
       "fim": "01/03/2026",
@@ -53,7 +53,7 @@
     },
     {
       "etapa": 2,
-      "circuito": "Goiânia",
+      "circuito": "ESTRELLA GALICIA 0,0 GRAND PRIX OF BRAZIL",
       "pais": "Brasil",
       "inicio": "20/03/2026",
       "fim": "22/03/2026",
@@ -102,7 +102,7 @@
     },
     {
       "etapa": 3,
-      "circuito": "Austin",
+      "circuito": "RED BULL GRAND PRIX OF THE UNITED STATES",
       "pais": "Estados Unidos",
       "inicio": "27/03/2026",
       "fim": "29/03/2026",
@@ -151,7 +151,7 @@
     },
     {
       "etapa": 4,
-      "circuito": "Jerez",
+      "circuito": "ESTRELLA GALICIA 0,0 GRAND PRIX OF SPAIN",
       "pais": "Espanha",
       "inicio": "24/04/2026",
       "fim": "26/04/2026",
@@ -200,7 +200,7 @@
     },
     {
       "etapa": 5,
-      "circuito": "Le Mans",
+      "circuito": "MICHELIN® GRAND PRIX OF FRANCE",
       "pais": "França",
       "inicio": "08/05/2026",
       "fim": "10/05/2026",
@@ -249,7 +249,7 @@
     },
     {
       "etapa": 6,
-      "circuito": "Barcelona",
+      "circuito": "MONSTER ENERGY GRAND PRIX OF CATALUNYA",
       "pais": "Espanha",
       "inicio": "15/05/2026",
       "fim": "17/05/2026",
@@ -298,7 +298,7 @@
     },
     {
       "etapa": 7,
-      "circuito": "Mugello",
+      "circuito": "BREMBO GRAND PRIX OF ITALY",
       "pais": "Itália",
       "inicio": "29/05/2026",
       "fim": "31/05/2026",
@@ -347,7 +347,7 @@
     },
     {
       "etapa": 8,
-      "circuito": "Balaton Park",
+      "circuito": "GRAND PRIX OF HUNGARY",
       "pais": "Hungria",
       "inicio": "05/06/2026",
       "fim": "07/06/2026",
@@ -396,7 +396,7 @@
     },
     {
       "etapa": 9,
-      "circuito": "Brno",
+      "circuito": "MONSTER ENERGY GRAND PRIX OF CZECHIA",
       "pais": "República Tcheca",
       "inicio": "19/06/2026",
       "fim": "21/06/2026",
@@ -445,7 +445,7 @@
     },
     {
       "etapa": 10,
-      "circuito": "Assen",
+      "circuito": "TISSOT GRAND PRIX OF THE NETHERLANDS",
       "pais": "Holanda",
       "inicio": "26/06/2026",
       "fim": "28/06/2026",
@@ -494,7 +494,7 @@
     },
     {
       "etapa": 11,
-      "circuito": "Sachsenring",
+      "circuito": "LIQUI MOLY GRAND PRIX OF GERMANY",
       "pais": "Alemanha",
       "inicio": "10/07/2026",
       "fim": "12/07/2026",
@@ -543,7 +543,7 @@
     },
     {
       "etapa": 12,
-      "circuito": "Silverstone",
+      "circuito": "QATAR AIRWAYS GRAND PRIX OF GREAT BRITAIN",
       "pais": "Reino Unido",
       "inicio": "07/08/2026",
       "fim": "09/08/2026",
@@ -592,7 +592,7 @@
     },
     {
       "etapa": 13,
-      "circuito": "Aragón",
+      "circuito": "MICHELIN® GRAND PRIX OF ARAGON",
       "pais": "Espanha",
       "inicio": "28/08/2026",
       "fim": "30/08/2026",
@@ -641,7 +641,7 @@
     },
     {
       "etapa": 14,
-      "circuito": "Misano",
+      "circuito": "RED BULL GRAND PRIX OF SAN MARINO AND THE RIMINI RIVIERA",
       "pais": "San Marino",
       "inicio": "11/09/2026",
       "fim": "13/09/2026",
@@ -690,7 +690,7 @@
     },
     {
       "etapa": 15,
-      "circuito": "Spielberg",
+      "circuito": "QATAR AIRWAYS GRAND PRIX OF AUSTRIA",
       "pais": "Áustria",
       "inicio": "18/09/2026",
       "fim": "20/09/2026",
@@ -739,7 +739,7 @@
     },
     {
       "etapa": 16,
-      "circuito": "Motegi",
+      "circuito": "MOTUL GRAND PRIX OF JAPAN",
       "pais": "Japão",
       "inicio": "02/10/2026",
       "fim": "04/10/2026",
@@ -788,7 +788,7 @@
     },
     {
       "etapa": 17,
-      "circuito": "Mandalika",
+      "circuito": "PERTAMINA GRAND PRIX OF INDONESIA",
       "pais": "Indonésia",
       "inicio": "09/10/2026",
       "fim": "11/10/2026",
@@ -837,7 +837,7 @@
     },
     {
       "etapa": 18,
-      "circuito": "Phillip Island",
+      "circuito": "RED BULL GRAND PRIX OF AUSTRALIA",
       "pais": "Austrália",
       "inicio": "23/10/2026",
       "fim": "25/10/2026",
@@ -886,7 +886,7 @@
     },
     {
       "etapa": 19,
-      "circuito": "Sepang",
+      "circuito": "PETRONAS GRAND PRIX OF MALAYSIA",
       "pais": "Malásia",
       "inicio": "30/10/2026",
       "fim": "01/11/2026",
@@ -935,7 +935,7 @@
     },
     {
       "etapa": 20,
-      "circuito": "Lusail",
+      "circuito": "QATAR AIRWAYS GRAND PRIX OF QATAR",
       "pais": "Catar",
       "inicio": "06/11/2026",
       "fim": "08/11/2026",
@@ -984,7 +984,7 @@
     },
     {
       "etapa": 21,
-      "circuito": "Portimão",
+      "circuito": "REPSOL GRAND PRIX OF PORTUGAL",
       "pais": "Portugal",
       "inicio": "20/11/2026",
       "fim": "22/11/2026",
@@ -1033,7 +1033,7 @@
     },
     {
       "etapa": 22,
-      "circuito": "Valencia",
+      "circuito": "MOTUL GRAND PRIX OF VALENCIA",
       "pais": "Espanha",
       "inicio": "27/11/2026",
       "fim": "29/11/2026",
