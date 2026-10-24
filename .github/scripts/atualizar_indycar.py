@@ -33,6 +33,7 @@ MESES = {
 }
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
+PAISES_INTERNACIONAIS = {"Spain": "Espanha"}
 PREFIXO = "NTT INDYCAR SERIES - "
 
 
@@ -238,6 +239,23 @@ def filtrar_pre_race_indianapolis(cartao, sessoes):
     return [sessao for sessao in sessoes if sessao[0].casefold() != "pre-race"]
 
 
+
+def separar_local_e_pais(local):
+    """Separa os países internacionais conhecidos sem alterar locais domésticos."""
+    partes = [parte.strip() for parte in str(local).split(",") if parte.strip()]
+    if len(partes) < 2:
+        return str(local).strip(), "Estados Unidos"
+
+    regiao = partes[-1]
+    if regiao in PROVINCIAS_CANADA:
+        return ", ".join(partes), "Canadá"
+    if regiao in PAISES_INTERNACIONAIS:
+        return ", ".join(partes[:-1]), PAISES_INTERNACIONAIS[regiao]
+
+    # Os demais locais publicados no calendário são tratados como locais dos EUA.
+    return ", ".join(partes), "Estados Unidos"
+
+
 def montar_etapa(cartao, html_evento):
     ano = cartao["ano"]
     sessoes = filtrar_corrida_da_etapa(cartao, extrair_sessoes(html_evento, ano))
@@ -267,9 +285,7 @@ def montar_etapa(cartao, html_evento):
         else:
             lista = [{"nome": "Corrida", "data": fmt(inicio), "horario": "A confirmar"}]
 
-    local = cartao["local"]
-    regiao = local.split(",")[-1].strip() if "," in local else ""
-    pais = "Canadá" if regiao in PROVINCIAS_CANADA else "Estados Unidos"
+    local, pais = separar_local_e_pais(cartao["local"])
 
     if not cartao["titulo"]:
         raise ValueError(f"{cartao['slug']}: título ausente")

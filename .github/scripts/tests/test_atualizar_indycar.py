@@ -26,6 +26,24 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Nenhuma etapa encontrada"):
             indycar.validar_cartoes_fonte({})
 
+    def test_separa_local_e_pais_sem_repetir_pais_internacional(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Barcelona, Spain"),
+            ("Barcelona", "Espanha"),
+        )
+
+    def test_preserva_cidade_e_estado_dos_eua(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Long Beach, California"),
+            ("Long Beach, California", "Estados Unidos"),
+        )
+
+    def test_preserva_cidade_e_provincia_do_canada(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Markham, Ontario"),
+            ("Markham, Ontario", "Canadá"),
+        )
+
     def test_converte_horario_et_para_brasilia_no_horario_de_verao(self):
         instante = indycar.converter_hora(2026, 5, 1, 10, 0, "AM")
         brasilia = instante.astimezone(indycar.BRASILIA)
