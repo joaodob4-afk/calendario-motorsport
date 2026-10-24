@@ -112,6 +112,23 @@ internal object TraducaoDeNomes {
         return nome
     }
 
+    private val lugaresParaPortugues = lugares.entries.associate { (portugues, ingles) ->
+        ingles to portugues
+    }
+
+    /** Traduz cada parte de um local composto, como "Barcelona, Espanha". */
+    private fun traduzirPartes(nome: String, mapa: Map<String, String>): String {
+        val partes = nome.split(",")
+        if (partes.size == 1) return mapa[nome.trim()] ?: nome
+        return partes.joinToString(", ") { parte ->
+            val texto = parte.trim()
+            mapa[texto] ?: texto
+        }
+    }
+
     /** País ou cidade em inglês; nomes que já são iguais ou desconhecidos ficam como estão. */
-    fun lugar(nome: String): String = lugares[nome.trim()] ?: nome
+    fun lugar(nome: String): String = traduzirPartes(nome, lugares)
+
+    /** País ou cidade em português, incluindo locais compostos originalmente em inglês. */
+    fun lugarParaPortugues(nome: String): String = traduzirPartes(nome, lugaresParaPortugues)
 }
