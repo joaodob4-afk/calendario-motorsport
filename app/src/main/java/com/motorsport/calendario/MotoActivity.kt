@@ -202,12 +202,11 @@ class MotoActivity : AppCompatActivity() {
         conteudo.addView(
             estilo.heroi(
                 eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-                nome = Idioma.evento(this, evento.nomeEvento),
-                circuito = nomeAutodromo.ifBlank { Idioma.lugar(this, evento.circuito) },
+                nome = NomesDeEventos.nome(classe.rotulo, evento.circuito)?.let { Idioma.evento(this, it) }
+                    ?: classe.tituloGrande,
+                circuito = nomeAutodromo.ifBlank { evento.circuito },
                 bandeiraRes = obterRecursoBandeira(evento.pais),
-                local = evento.cidade.takeIf { it.isNotBlank() }?.let {
-                    "${Idioma.lugar(this, it)}, ${Idioma.lugar(this, evento.pais)}"
-                } ?: Idioma.lugar(this, evento.pais),
+                local = "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}",
                 periodo = intervalo.uppercase(idioma),
                 contador = estilo.contador(converterData(evento.inicio), converterData(evento.fim))
             ),

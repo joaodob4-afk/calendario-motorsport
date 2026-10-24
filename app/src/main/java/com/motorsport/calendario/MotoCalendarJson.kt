@@ -12,22 +12,6 @@ import java.time.format.ResolverStyle
  */
 internal object MotoCalendarJson {
 
-    // Cidades usadas somente quando a API não fornece uma cidade distinta do circuito.
-    private val cidadesPorCircuito = mapOf(
-        "autódromo internacional de goiânia – ayrton senna" to "Goiânia",
-        "circuit of the americas" to "Austin",
-        "le mans" to "Le Mans",
-        "circuit de barcelona-catalunya" to "Montmeló",
-        "creditas autodrom brno" to "Brno",
-        "silverstone circuit" to "Silverstone",
-        "motorland aragón" to "Alcañiz",
-        "pertamina mandalika international circuit" to "Kuta, Lombok",
-        "phillip island" to "Ventnor"
-    )
-
-    private fun cidadeConhecida(circuito: String): String =
-        cidadesPorCircuito[circuito.trim().lowercase()].orEmpty()
-
     private const val URL_BASE =
         "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/"
 
@@ -78,11 +62,7 @@ internal object MotoCalendarJson {
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
-                        dataFim = fim.toString(),
-                        nomeEvento = evento.nomeEvento
-                            .takeUnless { it.isBlank() || it == evento.circuito }
-                            ?: NomesDeEventos.nome(classe.rotulo, evento.circuito, pais = evento.pais).orEmpty(),
-                        local = evento.cidade
+                        dataFim = fim.toString()
                     )
                 )
             } catch (e: Exception) {
@@ -117,10 +97,6 @@ internal object MotoCalendarJson {
 
                 val numero = etapa.getInt("etapa")
                 val circuito = etapa.getString("circuito").trim()
-                val nomeEvento = etapa.optString("nomeEvento", circuito).trim().ifBlank { circuito }
-                val cidadeApi = etapa.optString("cidade", "").trim()
-                    .takeUnless { it.equals(circuito, ignoreCase = true) }.orEmpty()
-                val cidade = cidadeApi.ifBlank { cidadeConhecida(circuito) }
                 val pais = etapa.getString("pais").trim()
                 val inicioTexto = etapa.getString("inicio")
                 val fimTexto = etapa.getString("fim")
@@ -157,9 +133,7 @@ internal object MotoCalendarJson {
                 eventos.add(
                     MotoEvent(
                         etapa = numero,
-                        nomeEvento = nomeEvento,
                         circuito = circuito,
-                        cidade = cidade,
                         pais = pais,
                         inicio = inicioTexto,
                         fim = fimTexto,

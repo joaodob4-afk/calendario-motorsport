@@ -10,9 +10,7 @@ internal data class MotoSession(
 
 internal data class MotoEvent(
     val etapa: Int,
-    val nomeEvento: String,
     val circuito: String,
-    val cidade: String,
     val pais: String,
     val inicio: String,
     val fim: String,
