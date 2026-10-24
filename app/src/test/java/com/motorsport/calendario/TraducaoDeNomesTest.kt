@@ -50,4 +50,11 @@ class TraducaoDeNomesTest {
         assertEquals("Austin", TraducaoDeNomes.lugar("Austin"))
         assertEquals("Portugal", TraducaoDeNomes.lugar("Portugal"))
     }
+
+    @Test
+    fun traduzPaisEmLocaisCompostosNosDoisIdiomas() {
+        assertEquals("Barcelona, Spain", TraducaoDeNomes.lugar("Barcelona, Espanha"))
+        assertEquals("Barcelona, Espanha", TraducaoDeNomes.lugarParaPortugues("Barcelona, Spain"))
+        assertEquals("Long Beach, California", TraducaoDeNomes.lugarParaPortugues("Long Beach, California"))
+    }
 }
