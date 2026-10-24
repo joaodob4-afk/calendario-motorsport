@@ -58,6 +58,20 @@ PAISES = {
     "QAT": "Catar", "POR": "Portugal", "VAL": "Espanha",
 }
 
+# A API oficial não fornece cidade válida para estes circuitos; valores conferidos
+# com as localizações oficiais dos eventos. Usados apenas quando cidade vier vazia/repetida.
+CIDADES_POR_ETAPA = {
+    "BRA": "Goiânia",
+    "USA": "Austin",
+    "FRA": "Le Mans",
+    "CAT": "Montmeló",
+    "CZE": "Brno",
+    "GBR": "Silverstone",
+    "ARA": "Alcañiz",
+    "INA": "Kuta, Lombok",
+    "AUS": "Ventnor",
+}
+
 # Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
 FRACAO_MINIMA = 0.20
 
@@ -167,7 +181,9 @@ def local_da_etapa(evento):
     # A API às vezes preenche "city" com o próprio nome do circuito.
     # Não mostre esse valor duplicado como se fosse uma cidade.
     if not cidade or cidade.casefold() == circuito.casefold():
-        cidade = ""
+        cidade = CIDADES_POR_ETAPA.get(str(sigla or "").upper(), "")
+        if cidade.casefold() == circuito.casefold():
+            cidade = ""
 
     pais = PAISES.get(sigla) or circuito_api.get("country") or evento.get("country") or ""
     if isinstance(pais, dict):
