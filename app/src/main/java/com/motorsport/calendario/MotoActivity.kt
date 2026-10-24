@@ -205,7 +205,9 @@ class MotoActivity : AppCompatActivity() {
                 nome = Idioma.evento(this, evento.nomeEvento),
                 circuito = nomeAutodromo.ifBlank { Idioma.lugar(this, evento.circuito) },
                 bandeiraRes = obterRecursoBandeira(evento.pais),
-                local = "${Idioma.lugar(this, evento.cidade)}, ${Idioma.lugar(this, evento.pais)}",
+                local = evento.cidade.takeIf { it.isNotBlank() }?.let {
+                    "${Idioma.lugar(this, it)}, ${Idioma.lugar(this, evento.pais)}"
+                } ?: Idioma.lugar(this, evento.pais),
                 periodo = intervalo.uppercase(idioma),
                 contador = estilo.contador(converterData(evento.inicio), converterData(evento.fim))
             ),
