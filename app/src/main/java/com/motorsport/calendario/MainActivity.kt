@@ -703,7 +703,7 @@ class MainActivity : AppCompatActivity() {
 
     /** País ou cidade no idioma do app (em inglês, traduz os nomes em português). */
     private fun lugarExibido(nome: String): String =
-        if (Idioma.ingles(this)) TraducaoDeNomes.lugar(nome) else nome
+        Idioma.lugar(this, nome)
 
     /** Texto do status; os códigos em português continuam sendo usados só na lógica. */
     private fun textoDoStatus(codigo: String): String =
@@ -722,7 +722,19 @@ class MainActivity : AppCompatActivity() {
         if (nomeEvento.isBlank()) return lugarExibido(etapa.circuito)
 
         val cidade = etapa.local.ifBlank { etapa.circuito }
-        return "${lugarExibido(cidade)}, ${lugarExibido(etapa.pais)}"
+        val local = lugarExibido(cidade).trim()
+        val pais = lugarExibido(etapa.pais).trim()
+
+        if (local.isBlank()) return pais
+        if (pais.isBlank()) return local
+
+        // Algumas fontes já incluem o país no local (ex.: "Barcelona, Spain").
+        // Traduz o local composto e só acrescenta o país se ele ainda não estiver no final.
+        if (local.substringAfterLast(",").trim().equals(pais, ignoreCase = true)) {
+            return local
+        }
+
+        return "$local, $pais"
     }
 
     /** Desenha a lista da tela inicial com a categoria e os filtros escolhidos. */
