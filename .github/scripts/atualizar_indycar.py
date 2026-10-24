@@ -33,7 +33,6 @@ MESES = {
 }
 
 PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
-PAISES_INTERNACIONAIS = {"Spain": "Espanha"}
 PREFIXO = "NTT INDYCAR SERIES - "
 
 
@@ -270,7 +269,7 @@ def montar_etapa(cartao, html_evento):
 
     local = cartao["local"]
     regiao = local.split(",")[-1].strip() if "," in local else ""
-    pais = PAISES_INTERNACIONAIS.get(regiao, "Canadá" if regiao in PROVINCIAS_CANADA else "Estados Unidos")
+    pais = "Canadá" if regiao in PROVINCIAS_CANADA else "Estados Unidos"
 
     if not cartao["titulo"]:
         raise ValueError(f"{cartao['slug']}: título ausente")
