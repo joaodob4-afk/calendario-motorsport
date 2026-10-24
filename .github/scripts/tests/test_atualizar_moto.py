@@ -34,6 +34,8 @@ def gp(sequencia, sigla, inicio, fim, status="FINISHED", broadcasts=None):
         "date_start": inicio + "T00:00:00+00:00",
         "date_end": fim + "T00:00:00+00:00",
         "status": status,
+        "name": f"Nome oficial do GP {sigla}",
+        "circuit": {"city": f"Cidade {sigla}", "country": "País da API"},
         "broadcasts": broadcasts or [],
     }
 
@@ -92,7 +94,7 @@ class AtualizadorMotoTest(unittest.TestCase):
         etapa = dados["etapas"][0]
 
         self.assertEqual((etapa["inicio"], etapa["fim"]), ("27/02/2026", "01/03/2026"))
-        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Buriram", "Tailândia"))
+        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Nome oficial do GP THA", "Tailândia"))
 
     def test_etapa_sem_sessoes_usa_datas_do_evento(self):
         eventos = [gp(1, "VAL", "2026-11-27", "2026-11-29", status="NOT-STARTED")]
@@ -109,10 +111,11 @@ class AtualizadorMotoTest(unittest.TestCase):
         etapas = moto.montar(eventos, "MGP", "MotoGP", 2026)["etapas"]
 
         self.assertEqual([e["etapa"] for e in etapas], [1, 2])
-        self.assertEqual([e["circuito"] for e in etapas], ["Buriram", "Goiânia"])
+        self.assertEqual([e["circuito"] for e in etapas], ["Nome oficial do GP THA", "Nome oficial do GP BRA"])
 
     def test_etapa_desconhecida_usa_dados_da_api(self):
         evento = gp(1, "XYZ", "2027-03-05", "2027-03-07")
+        evento["name"] = ""
         evento["circuit"] = {"city": "Cidade Nova", "country": "Novolândia"}
 
         etapa = moto.montar([evento], "MGP", "MotoGP", 2027)["etapas"][0]
