@@ -721,8 +721,9 @@ class MainActivity : AppCompatActivity() {
     private fun localDaEtapa(etapa: Etapa, nomeEvento: String): String {
         if (nomeEvento.isBlank()) return lugarExibido(etapa.circuito)
 
-        val cidade = etapa.local.ifBlank { etapa.circuito }
-        return "${lugarExibido(cidade)}, ${lugarExibido(etapa.pais)}"
+        val cidade = etapa.local.trim()
+        val pais = lugarExibido(etapa.pais)
+        return if (cidade.isBlank()) pais else "${lugarExibido(cidade)}, $pais"
     }
 
     /** Desenha a lista da tela inicial com a categoria e os filtros escolhidos. */
