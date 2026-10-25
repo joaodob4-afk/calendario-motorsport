@@ -33,7 +33,6 @@ internal object MenuPrincipal {
 
     private val corDoTextoSobreCor = Color.parseColor("#0E1012")
     private val corDoAviso = Color.parseColor("#FFB74D")
-    private val corFinalDoDegrade = Color.parseColor("#2DD4BF")
     private val corDoContorno = Color.parseColor("#3A3F45")
 
     /**
@@ -516,16 +515,6 @@ internal object MenuPrincipal {
             activity.getString(R.string.antecedencia_minutos, minutos)
         }
 
-    /** Texto curto da linha da categoria: "Todas", "Só corridas" ou "Nenhuma". */
-    private fun resumoDoModo(activity: Activity, modo: ModoDeAviso): String =
-        activity.getString(
-            when (modo) {
-                ModoDeAviso.TODAS -> R.string.modo_todas
-                ModoDeAviso.CORRIDAS -> R.string.modo_so_corridas
-                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
-            }
-        )
-
     private fun rotuloDoModo(activity: Activity, modo: ModoDeAviso): String =
         activity.getString(
             when (modo) {
@@ -551,17 +540,6 @@ internal object MenuPrincipal {
         RippleDrawable(
             ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
             forma(activity, preenchimento, borda, raioDp),
-            forma(activity, Color.WHITE, null, raioDp)
-        )
-
-    /** Botão arredondado com degradê verde e ondulação ao toque. */
-    private fun comDegrade(activity: Activity, raioDp: Float) =
-        RippleDrawable(
-            ColorStateList.valueOf(Color.parseColor("#33FFFFFF")),
-            GradientDrawable(
-                GradientDrawable.Orientation.LEFT_RIGHT,
-                intArrayOf(activity.getColor(R.color.acento), corFinalDoDegrade)
-            ).apply { cornerRadius = activity.emPx(raioDp).toFloat() },
             forma(activity, Color.WHITE, null, raioDp)
         )
 

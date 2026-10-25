@@ -327,7 +327,7 @@ class MainActivity : AppCompatActivity() {
             AgendadorDeAvisos.reagendarEmSegundoPlano(app)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
-                aplicar(etapas)
+                if (etapas != null) aplicar(etapas)
                 sessoes = coletadas
                 redesenharListaDepois()
             }
@@ -539,16 +539,6 @@ class MainActivity : AppCompatActivity() {
             "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
             "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
             "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
-        }
-    }
-
-    /** Cápsula escura com borda cinza e texto na cor informada (categorias). */
-    private fun estilizarCapsula(view: TextView, cor: Int, raioDp: Float) {
-        view.setTextColor(cor)
-        view.background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(getColor(R.color.superficie))
-            cornerRadius = emPx(raioDp).toFloat()
-            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
         }
     }
 
@@ -1313,6 +1303,12 @@ class MainActivity : AppCompatActivity() {
                 registrarDescarte("MainActivity.abrirEventoIndyCarPelaEtapa", e)
                 // Ignora etapa com data inválida.
             }
+        }
+
+        if (encontrado == null) {
+            // Mesmo critério das outras categorias: sem data igual, usa o circuito.
+            encontrado = IndyCarCalendarJson.carregar(this)
+                .firstOrNull { it.circuito.equals(etapa.circuito, ignoreCase = true) }
         }
 
         if (encontrado != null) {

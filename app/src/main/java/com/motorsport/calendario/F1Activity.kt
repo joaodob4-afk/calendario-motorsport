@@ -906,52 +906,7 @@ class F1Activity : AppCompatActivity() {
         conteudo.addView(tentarNovamente)
     }
 
-    private fun obterRecursoBandeira(pais: String): Int {
-        val nome = obterBandeira(pais)
-
-        if (nome.isBlank()) return 0
-
-        return resources.getIdentifier(
-            nome,
-            "drawable",
-            packageName
-        )
-    }
-
-    private fun obterBandeira(pais: String): String {
-        return when (pais.trim().lowercase(idioma)) {
-            "bahrain" -> "flag_bh"
-            "saudi arabia" -> "flag_sa"
-            "australia" -> "flag_au"
-            "japan" -> "flag_jp"
-            "china" -> "flag_cn"
-            "united states", "usa", "miami" -> "flag_us"
-            "canada" -> "flag_ca"
-            "monaco" -> "flag_mc"
-            "spain", "catalunya" -> "flag_es"
-            "austria" -> "flag_at"
-            "united kingdom", "great britain" -> "flag_gb"
-            "belgium" -> "flag_be"
-            "hungary" -> "flag_hu"
-            "netherlands" -> "flag_nl"
-            "italy" -> "flag_it"
-            "azerbaijan" -> "flag_az"
-            "singapore" -> "flag_sg"
-            "mexico" -> "flag_mx"
-            "brazil", "são paulo" -> "flag_br"
-            "united arab emirates" -> "flag_ae"
-            "qatar" -> "flag_qa"
-            "portugal" -> "flag_pt"
-            "france" -> "flag_fr"
-            "germany" -> "flag_de"
-            "switzerland" -> "flag_ch"
-            "south korea" -> "flag_kr"
-            "south africa" -> "flag_za"
-            "turkey" -> "flag_tr"
-            "russia" -> "flag_ru"
-            else -> ""
-        }
-    }
+    private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
 
     private fun dp(valor: Int): Int {
         return (
