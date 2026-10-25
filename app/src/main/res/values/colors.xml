@@ -2,7 +2,6 @@
 <resources>
     <!-- Cores principais do app: altere aqui e todas as telas acompanham -->
     <color name="verde_neon">#39FF14</color>
-    <color name="verde_borda">#1C5413</color>
     <color name="ic_launcher_background">#050A06</color>
 
     <!-- Visual neutro: este arquivo é o tema CLARO; o tema escuro está em values-night/colors.xml -->
@@ -12,7 +11,6 @@
     <color name="texto_suave">#5A6678</color>
     <color name="texto_principal">#0F1722</color>
     <color name="acento">#2E9E4F</color>
-    <color name="acento_escuro">#E3F3E7</color>
     <color name="status_azul">#2A6FDB</color>
     <color name="texto_medio">#334155</color>
     <color name="destaque_painel">#0F0F172A</color>
