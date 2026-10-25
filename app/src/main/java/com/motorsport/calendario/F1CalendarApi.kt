@@ -68,6 +68,41 @@ object F1CalendarApi {
         "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
     )
 
+    // O endpoint "alpha" (fonte principal) usa IDs opacos como "circuit_5jHWvmoM", que nunca
+    // batem com CONHECIDOS. Nesse caso usamos a cidade que a própria API informa.
+    private val CONHECIDOS_POR_CIDADE = mapOf(
+        "melbourne" to Pair("Austrália", "Melbourne"),
+        "shanghai" to Pair("China", "Xangai"),
+        "suzuka" to Pair("Japão", "Suzuka"),
+        "sakhir" to Pair("Bahrein", "Sakhir"),
+        "jeddah" to Pair("Arábia Saudita", "Jeddah"),
+        "miami" to Pair("Estados Unidos", "Miami"),
+        "montreal" to Pair("Canadá", "Montreal"),
+        "monte carlo" to Pair("Mônaco", "Monte Carlo"),
+        "monaco" to Pair("Mônaco", "Monte Carlo"),
+        "barcelona" to Pair("Espanha", "Barcelona"),
+        "spielberg" to Pair("Áustria", "Spielberg"),
+        "silverstone" to Pair("Reino Unido", "Silverstone"),
+        "spa" to Pair("Bélgica", "Spa-Francorchamps"),
+        "spa-francorchamps" to Pair("Bélgica", "Spa-Francorchamps"),
+        "budapest" to Pair("Hungria", "Budapeste"),
+        "zandvoort" to Pair("Holanda", "Zandvoort"),
+        "monza" to Pair("Itália", "Monza"),
+        "madrid" to Pair("Espanha", "Madrid"),
+        "baku" to Pair("Azerbaijão", "Baku"),
+        "marina bay" to Pair("Singapura", "Marina Bay"),
+        "singapore" to Pair("Singapura", "Marina Bay"),
+        "austin" to Pair("Estados Unidos", "Austin"),
+        "mexico city" to Pair("México", "Cidade do México"),
+        "sao paulo" to Pair("Brasil", "Interlagos"),
+        "interlagos" to Pair("Brasil", "Interlagos"),
+        "las vegas" to Pair("Estados Unidos", "Las Vegas"),
+        "lusail" to Pair("Catar", "Lusail"),
+        "yas marina" to Pair("Abu Dhabi", "Yas Marina"),
+        "abu dhabi" to Pair("Abu Dhabi", "Yas Marina"),
+        "kuala lumpur" to Pair("Malásia", "Kuala Lumpur")
+    )
+
     private val PAISES = mapOf(
         "Australia" to "Austrália",
         "China" to "China",
@@ -109,15 +144,35 @@ object F1CalendarApi {
     fun semearDoAsset(context: Context) {
         val app = context.applicationContext
         try {
-            if (File(app.filesDir, ARQUIVO_CACHE).isFile) return
-            val texto = app.assets.open(ASSET_CALENDARIO).bufferedReader(Charsets.UTF_8).use { it.readText() }
-            gravarCacheSeguro(app.filesDir, texto)
+            val cache = File(app.filesDir, ARQUIVO_CACHE)
+            val texto = {
+                app.assets.open(ASSET_CALENDARIO).bufferedReader(Charsets.UTF_8).use { it.readText() }
+            }
+            if (cache.isFile) {
+                // Cache baixado antes da última instalação do APK: o asset novo pode ser mais
+                // recente. Só substitui se a temporada do asset não for mais antiga.
+                val instalacao = app.packageManager.getPackageInfo(app.packageName, 0).lastUpdateTime
+                if (cache.lastModified() >= instalacao) return
+                val doAsset = temporadaDe(texto()) ?: return
+                val doCache = temporadaDe(cache.readText(Charsets.UTF_8))
+                if (doCache != null && doAsset < doCache) return
+            }
+            gravarCacheSeguro(app.filesDir, texto())
         } catch (e: java.io.FileNotFoundException) {
             // Este build não traz a cópia embutida: nada a semear.
         } catch (e: Exception) {
             registrarFalha("F1CalendarApi.semearDoAsset", e)
         }
     }
+
+    private fun temporadaDe(json: String): Int? =
+        try {
+            JSONObject(json).getJSONObject("MRData").getJSONObject("RaceTable")
+                .optString("season", "").toIntOrNull()
+        } catch (e: Exception) {
+            registrarDescarte("F1CalendarApi.temporadaDe", e)
+            null
+        }
 
     fun carregarCache(context: Context): List<MainActivity.Etapa>? {
         semearDoAsset(context)
@@ -631,6 +686,7 @@ object F1CalendarApi {
                 }
 
                 val conhecido = CONHECIDOS[circuitId]
+                    ?: CONHECIDOS_POR_CIDADE[Formatacao.normalizar(localidade)]
                 val pais = conhecido?.first
                     ?: PAISES[paisIngles]
                     ?: paisIngles

@@ -111,6 +111,7 @@ internal object ColetorDeSessoes {
         }
 
     private fun sessoesDaF1(context: Context): List<SessaoParaAviso> {
+        F1CalendarApi.semearDoAsset(context)
         val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE_F1)
         if (!arquivo.isFile) return emptyList()
         return sessoesDaF1(arquivo.readText(Charsets.UTF_8))
