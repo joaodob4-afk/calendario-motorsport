@@ -491,10 +491,6 @@ object F1CalendarApi {
      * Só substitui o cache quando a gravação temporária está completa.
      * Se a substituição falhar, preserva o cache anterior.
      */
-    /**
-     * Grava o cache com proteção contra respostas parciais da mesma temporada.
-     * Também evita que o calendário básico apague sessões detalhadas já salvas.
-     */
     internal fun gravarCacheSeguro(
         diretorio: File,
         conteudo: String
@@ -550,10 +546,6 @@ object F1CalendarApi {
         }
     }
 
-    /**
-     * Não reduz o calendário nem remove sessões já presentes quando a temporada
-     * é a mesma. Temporadas diferentes podem ter legitimamente outra quantidade.
-     */
     /**
      * A fonte oficial controla a lista de corridas e sessões. Mesclamos somente
      * campos vazios de uma corrida/sessão que continua existindo, para não perder

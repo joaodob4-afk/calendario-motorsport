@@ -132,6 +132,9 @@ class MainActivity : AppCompatActivity() {
         handlerRedesenho.postDelayed(redesenhoDaLista, 400)
     }
 
+    /** Verdadeiro enquanto uma recarga única da Moto está esperando para rodar. */
+    private var recargaMotoAgendada = false
+
     private var etapasF1Dinamicas: List<Etapa>? = null
     private var etapasF2Dinamicas: List<Etapa>? = null
     private var etapasF3Dinamicas: List<Etapa>? = null
@@ -304,9 +307,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         // MotoGP, Moto2, Moto3 e WEC usam as mesmas telas; cada classe tem o seu calendário.
+        // As 4 classes costumam terminar quase juntas: agrupa tudo em uma única recarga.
         for (classe in ClasseMoto.values()) {
             MotoCalendarJson.atualizar(this, classe) {
-                recarregar({ MotoCalendarJson.etapasDeTodas(applicationContext) }) { etapasMotoDinamicas = it }
+                if (recargaMotoAgendada) return@atualizar
+                recargaMotoAgendada = true
+                handlerRedesenho.postDelayed({
+                    recargaMotoAgendada = false
+                    recarregar({ MotoCalendarJson.etapasDeTodas(applicationContext) }) { etapasMotoDinamicas = it }
+                }, 800)
             }
         }
 
