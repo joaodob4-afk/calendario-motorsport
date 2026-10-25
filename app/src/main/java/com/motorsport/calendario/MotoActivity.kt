@@ -202,7 +202,9 @@ class MotoActivity : AppCompatActivity() {
         conteudo.addView(
             estilo.heroi(
                 eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-                nome = NomesDeEventos.nome(classe.rotulo, evento.circuito)?.let { Idioma.evento(this, it) }
+                nome = evento.nome.ifBlank { NomesDeEventos.nome(classe.rotulo, evento.circuito).orEmpty() }
+                    .takeIf { it.isNotBlank() }
+                    ?.let { Idioma.evento(this, it) }
                     ?: classe.tituloGrande,
                 circuito = nomeAutodromo.ifBlank { evento.circuito },
                 bandeiraRes = obterRecursoBandeira(evento.pais),

@@ -62,7 +62,8 @@ internal object MotoCalendarJson {
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
-                        dataFim = fim.toString()
+                        dataFim = fim.toString(),
+                        nomeEvento = evento.nome
                     )
                 )
             } catch (e: Exception) {
@@ -137,7 +138,8 @@ internal object MotoCalendarJson {
                         pais = pais,
                         inicio = inicioTexto,
                         fim = fimTexto,
-                        sessoes = sessoes
+                        sessoes = sessoes,
+                        nome = etapa.optString("nome", "").trim()
                     )
                 )
             }
