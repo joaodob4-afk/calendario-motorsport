@@ -57,6 +57,13 @@ internal object ColetorDeSessoes {
                     }
                 }
             } +
+            seguro("F1 Academy") {
+                F1AcademyCalendarJson.carregar(context).flatMap { evento ->
+                    evento.sessoes.mapNotNull {
+                        sessao("F1 Academy", evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome("F1 Academy", evento.circuito))
+                    }
+                }
+            } +
             seguro("IndyCar") {
                 IndyCarCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {

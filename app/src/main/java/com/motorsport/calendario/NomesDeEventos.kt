@@ -176,7 +176,7 @@ internal object NomesDeEventos {
             "f1" -> formula1PorCircuito[circuitId.trim().lowercase()]
                 ?: formulaPorCidade[cidade]
                 ?: formula1PorPais[Formatacao.normalizar(pais)]
-            "f2", "f3" -> formulaPorCidade[cidade]
+            "f2", "f3", "f1 academy" -> formulaPorCidade[cidade]
             "formula e" -> eprix(circuito)
             "motogp", "moto2", "moto3" -> motos[cidade]
             "wec" -> wec[cidade]

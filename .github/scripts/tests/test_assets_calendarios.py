@@ -11,7 +11,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[3]
 ASSETS = RAIZ / "app" / "src" / "main" / "assets"
-ARQUIVOS = ["f2_calendar.json", "f3_calendar.json", "fe_calendar.json", "indycar_calendar.json"]
+ARQUIVOS = ["f2_calendar.json", "f3_calendar.json", "f1academy_calendar.json", "fe_calendar.json", "indycar_calendar.json"]
 CAMPOS_ETAPA = {"etapa", "circuito", "pais", "inicio", "fim", "sessoes"}
 HORARIO = re.compile(r"^\d{2}:\d{2}$")
 
