@@ -138,6 +138,7 @@ class MainActivity : AppCompatActivity() {
     private var etapasF1Dinamicas: List<Etapa>? = null
     private var etapasF2Dinamicas: List<Etapa>? = null
     private var etapasF3Dinamicas: List<Etapa>? = null
+    private var etapasF1AcademyDinamicas: List<Etapa>? = null
     private var etapasFormulaEDinamicas: List<Etapa>? = null
     private var etapasIndyCarDinamicas: List<Etapa>? = null
     private var etapasMotoDinamicas: List<Etapa>? = null
@@ -147,6 +148,7 @@ class MainActivity : AppCompatActivity() {
             (etapasF1Dinamicas ?: emptyList()) +
                 (etapasF2Dinamicas ?: emptyList()) +
                 (etapasF3Dinamicas ?: emptyList()) +
+                (etapasF1AcademyDinamicas ?: emptyList()) +
                 (etapasFormulaEDinamicas ?: emptyList()) +
                 (etapasIndyCarDinamicas ?: emptyList()) +
                 (etapasMotoDinamicas ?: emptyList())
@@ -252,6 +254,9 @@ class MainActivity : AppCompatActivity() {
             val f1 = lerEtapas("F1") { F1CalendarApi.carregarCache(app) }
             val f2 = lerEtapas("F2") { F2CalendarJson.comoEtapas(F2CalendarJson.carregar(app)) }
             val f3 = lerEtapas("F3") { F3CalendarJson.comoEtapas(F3CalendarJson.carregar(app)) }
+            val f1a = lerEtapas("F1Academy") {
+                F1AcademyCalendarJson.comoEtapas(F1AcademyCalendarJson.carregar(app))
+            }
             val indy = lerEtapas("IndyCar") {
                 IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(app))
             }
@@ -267,6 +272,7 @@ class MainActivity : AppCompatActivity() {
                 etapasF1Dinamicas = f1
                 etapasF2Dinamicas = f2
                 etapasF3Dinamicas = f3
+                etapasF1AcademyDinamicas = f1a
                 etapasIndyCarDinamicas = indy
                 etapasFormulaEDinamicas = fe
                 etapasMotoDinamicas = moto
@@ -296,6 +302,10 @@ class MainActivity : AppCompatActivity() {
 
         F3CalendarJson.atualizar(this) {
             recarregar({ F3CalendarJson.comoEtapas(F3CalendarJson.carregar(applicationContext)) }) { etapasF3Dinamicas = it }
+        }
+
+        F1AcademyCalendarJson.atualizar(this) {
+            recarregar({ F1AcademyCalendarJson.comoEtapas(F1AcademyCalendarJson.carregar(applicationContext)) }) { etapasF1AcademyDinamicas = it }
         }
 
         IndyCarCalendarJson.atualizar(this) {
@@ -545,6 +555,7 @@ class MainActivity : AppCompatActivity() {
             "F1" -> abrirEventoF1PelaEtapa(etapa)
             "F2" -> abrirEventoF2PelaEtapa(etapa)
             "F3" -> abrirEventoF3PelaEtapa(etapa)
+            "F1 Academy" -> abrirEventoF1AcademyPelaEtapa(etapa)
             "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
             "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
             "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
@@ -1075,6 +1086,7 @@ class MainActivity : AppCompatActivity() {
             "F1" -> getString(R.string.formula_1)
             "F2" -> getString(R.string.formula_2)
             "F3" -> getString(R.string.formula_3)
+            "F1 Academy" -> getString(R.string.f1_academy)
             "IndyCar" -> "INDYCAR"
             "MotoGP" -> "MOTOGP"
             "Moto2" -> "MOTO2"
@@ -1154,6 +1166,11 @@ class MainActivity : AppCompatActivity() {
 
                 "F3" -> {
                     startActivity(Intent(this, F3CalendarActivity::class.java))
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                }
+
+                "F1 Academy" -> {
+                    startActivity(Intent(this, F1AcademyCalendarActivity::class.java))
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
 
@@ -1263,6 +1280,21 @@ class MainActivity : AppCompatActivity() {
             abrirEventoF3Item(encontrado)
         } else {
             abrirCategoria("F3")
+        }
+    }
+
+    private fun abrirEventoF1AcademyPelaEtapa(etapa: Etapa) {
+        val doCircuito = F1AcademyCalendarJson.carregar(this)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        val encontrado = doCircuito.firstOrNull { mesmaData(it.inicio, etapa) } ?: doCircuito.firstOrNull()
+
+        if (encontrado != null) {
+            val intent = Intent(this, F1AcademyActivity::class.java)
+            intent.putExtra("ETAPA", encontrado.etapa)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+        } else {
+            abrirCategoria("F1 Academy")
         }
     }
 

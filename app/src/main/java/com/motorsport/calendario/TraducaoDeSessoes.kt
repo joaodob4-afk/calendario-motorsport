@@ -10,6 +10,7 @@ internal object TraducaoDeSessoes {
     // Ordem importa: expressões mais longas vêm antes das palavras soltas.
     private val trocas = listOf(
         "Classificação Sprint" to "Sprint Qualifying",
+        "Corrida Grid Invertido" to "Reverse Grid Race",
         "Corrida Sprint" to "Sprint Race",
         "Corrida Feature" to "Feature Race",
         "Competição de Pit Stop" to "Pit Stop Competition",

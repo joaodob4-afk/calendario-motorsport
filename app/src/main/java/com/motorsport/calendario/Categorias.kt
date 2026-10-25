@@ -21,6 +21,7 @@ internal object Categorias {
         CategoriaInfo("F1", "#FF3B30"),
         CategoriaInfo("F2", "#3D9BFF"),
         CategoriaInfo("F3", "#FF8A2B"),
+        CategoriaInfo("F1 Academy", "#E879F9"),
         CategoriaInfo("IndyCar", "#A58BFF"),
         CategoriaInfo("Formula E", "#22D3EE"),
         CategoriaInfo("MotoGP", "#FFD60A"),

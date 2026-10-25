@@ -61,6 +61,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".F1AcademyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".F1AcademyCalendarActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".FormulaEActivity"
             android:exported="false" />
 
