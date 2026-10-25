@@ -176,6 +176,11 @@ def local_da_etapa(evento):
     return nome, pais
 
 
+def nome_do_evento(evento):
+    """Nome do evento como a API informa (espaços sobrando removidos); vazio se não houver."""
+    return " ".join(str(evento.get("name") or "").split())
+
+
 def montar(eventos, sigla, rotulo, ano):
     gps = grandes_premios(eventos)
     gps.sort(key=lambda e: (periodo_do_evento(e)[0], e.get("sequence") or 0))
@@ -195,9 +200,12 @@ def montar(eventos, sigla, rotulo, ano):
             vistos.add(item)
             sessoes.append({"nome": item[0], "data": item[1], "horario": item[2]})
 
-        etapas.append(
+        etapa = {"etapa": numero}
+        nome = nome_do_evento(evento)
+        if nome:  # sem nome na API, o app usa a tabela NomesDeEventos
+            etapa["nome"] = nome
+        etapa.update(
             {
-                "etapa": numero,
                 "circuito": circuito,
                 "pais": pais,
                 "inicio": formatar_data(inicio),
@@ -205,6 +213,7 @@ def montar(eventos, sigla, rotulo, ano):
                 "sessoes": sessoes,
             }
         )
+        etapas.append(etapa)
 
     return {"temporada": ano, "categoria": rotulo, "etapas": etapas}
 

@@ -75,7 +75,7 @@ internal object ColetorDeSessoes {
                 ClasseMoto.values().flatMap { classe ->
                     MotoCalendarJson.carregar(context, classe).flatMap { evento ->
                         evento.sessoes.mapNotNull {
-                            sessao(classe.rotulo, evento.circuito, it.nome, it.data, it.horario, NomesDeEventos.nome(classe.rotulo, evento.circuito))
+                            sessao(classe.rotulo, evento.circuito, it.nome, it.data, it.horario, evento.nome.ifBlank { NomesDeEventos.nome(classe.rotulo, evento.circuito).orEmpty() })
                         }
                     }
                 }

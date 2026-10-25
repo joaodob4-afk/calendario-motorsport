@@ -71,6 +71,16 @@ class AtualizadorMotoTest(unittest.TestCase):
         self.assertEqual(sessoes[0]["horario"], "00:45")
         self.assertEqual(sessoes[2]["horario"], "05:00")
 
+    def test_grava_nome_do_evento_da_api(self):
+        eventos = self.eventos_tailandia()
+        eventos[0]["name"] = "  Grand Prix  of Thailand "
+        dados = moto.montar(eventos, "MGP", "MotoGP", 2026)
+        self.assertEqual(dados["etapas"][0]["nome"], "Grand Prix of Thailand")
+
+    def test_sem_nome_na_api_nao_grava_campo(self):
+        dados = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
+        self.assertNotIn("nome", dados["etapas"][0])
+
     def test_ignora_midia_testes_e_outras_classes(self):
         dados = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
 

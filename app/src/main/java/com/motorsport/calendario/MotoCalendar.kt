@@ -14,7 +14,9 @@ internal data class MotoEvent(
     val pais: String,
     val inicio: String,
     val fim: String,
-    val sessoes: List<MotoSession>
+    val sessoes: List<MotoSession>,
+    /** Nome oficial do evento vindo do JSON; vazio usa a tabela [NomesDeEventos]. */
+    val nome: String = ""
 )
 
 /**
