@@ -66,6 +66,36 @@ def mostrar_next_data(html):
         print("  ", palavra, "->", texto.count(palavra), "ocorrências")
 
 
+ISO = re.compile(r"20\d\d-\d\d-\d\dT\d\d:\d\d")
+
+
+def objetos_com_data(no, caminho, saida):
+    """Coleta (caminho, objeto) de todo dict que tenha um valor com data ISO."""
+    if isinstance(no, dict):
+        if any(isinstance(v, str) and ISO.match(v) for v in no.values()):
+            saida.append((caminho, no))
+        for k, v in no.items():
+            objetos_com_data(v, f"{caminho}.{k}", saida)
+    elif isinstance(no, list):
+        for i, v in enumerate(no):
+            objetos_com_data(v, f"{caminho}[{i}]", saida)
+
+
+def mostrar_objetos_com_data(html):
+    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, flags=re.S)
+    if not m:
+        return
+    dados = json.loads(m.group(1))
+    page = dados.get("props", {}).get("pageProps", {}).get("pageData", {})
+    print("pageData tipo:", type(page).__name__, "| chaves:", list(page.keys())[:20] if isinstance(page, dict) else "-")
+    achados = []
+    objetos_com_data(page, "pageData", achados)
+    print("Objetos com data ISO:", len(achados))
+    for caminho, obj in achados[:24]:
+        print("  ", caminho)
+        print("     ", json.dumps(obj, ensure_ascii=False)[:420])
+
+
 def analisar(raceid):
     url = f"{BASE}/Racing-Series/Results?raceid={raceid}"
     print("=" * 60)
@@ -81,6 +111,7 @@ def analisar(raceid):
     print("Título:", titulo.group(1).strip() if titulo else "?", "| tamanho:", len(html))
     mostrar_json_ld(html)
     mostrar_next_data(html)
+    mostrar_objetos_com_data(html)
     print("Datetimes ISO:", re.findall(r"20\d\d-\d\d-\d\dT\d\d:\d\d[^\"'<\s]*", html)[:12])
 
 
@@ -97,7 +128,7 @@ def main():
         print("raceids encontrados:", ids)
     except Exception as e:  # noqa: BLE001
         print("ERRO ao baixar o calendário:", e)
-    amostra = (ids[:1] + ids[len(ids) // 2 : len(ids) // 2 + 1] + ids[-1:]) if ids else IDS_RESERVA
+    amostra = [i for i in (22, 28) if not ids or i in ids] or IDS_RESERVA
     for raceid in dict.fromkeys(amostra):
         analisar(raceid)
 
