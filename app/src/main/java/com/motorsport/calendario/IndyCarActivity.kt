@@ -72,7 +72,7 @@ IndyCarCalendarJson.atualizar(this) {
         val raiz = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(preto)
-            setPadding(dp(18), dp(12), dp(18), dp(20))
+            setPadding(0, 0, 0, dp(20))
         }
 
         raiz.addView(
@@ -93,6 +93,7 @@ IndyCarCalendarJson.atualizar(this) {
 
         scrollView = ScrollView(this).apply {
             isFillViewport = true
+            setPadding(dp(18), 0, dp(18), 0)
             clipToPadding = false
 
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -121,7 +122,11 @@ IndyCarCalendarJson.atualizar(this) {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(preto, getColor(R.color.azul_marinho))
+        pintarBarrasDoSistema(
+            preto,
+            getColor(R.color.azul_marinho),
+            getColor(R.color.azul_marinho)
+        )
     }
 
     private fun lerData(texto: String): LocalDate? {

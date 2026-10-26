@@ -109,7 +109,7 @@ class F1Activity : AppCompatActivity() {
         val raiz = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(preto)
-            setPadding(dp(18), dp(12), dp(18), dp(20))
+            setPadding(0, 0, 0, dp(20))
         }
 
         raiz.addView(
@@ -130,6 +130,7 @@ class F1Activity : AppCompatActivity() {
 
         scrollView = ScrollView(this).apply {
             isFillViewport = true
+            setPadding(dp(18), 0, dp(18), 0)
             clipToPadding = false
 
             overScrollMode = View.OVER_SCROLL_NEVER
@@ -158,7 +159,11 @@ class F1Activity : AppCompatActivity() {
         aplicarInsetsDasBarras()
 
         // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(preto, getColor(R.color.azul_marinho))
+        pintarBarrasDoSistema(
+            preto,
+            getColor(R.color.azul_marinho),
+            getColor(R.color.azul_marinho)
+        )
     }
 
     // false quando o usuário abriu uma corrida específica (não a próxima).

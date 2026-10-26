@@ -62,7 +62,10 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
 
     private fun dp(valor: Float): Int = (valor * tela.resources.displayMetrics.density).toInt()
 
-    /** Barra do topo: seta de voltar e o nome da categoria. */
+    /**
+     * Barra do topo: seta de voltar e o nome da categoria. Ela só ocupa a largura toda e encosta
+     * no topo se a tela que a contém não tiver recuo (ver o padding da raiz nas telas de detalhe).
+     */
     fun cabecalho(titulo: String, descricaoVoltar: String, aoVoltar: () -> Unit): View {
         val linha = LinearLayout(tela).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -95,22 +98,6 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
             texto,
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 .apply { marginStart = dp(8f) }
-        )
-
-        // A barra ocupa a largura toda e encosta no topo: anula o recuo da tela que a contém.
-        linha.addOnAttachStateChangeListener(
-            object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) {
-                    val pai = v.parent as? View ?: return
-                    val parametros = v.layoutParams as? android.view.ViewGroup.MarginLayoutParams ?: return
-                    parametros.leftMargin = -pai.paddingLeft
-                    parametros.rightMargin = -pai.paddingRight
-                    parametros.topMargin = -pai.paddingTop
-                    v.layoutParams = parametros
-                }
-
-                override fun onViewDetachedFromWindow(v: View) = Unit
-            }
         )
 
         return linha
