@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Cabeçalho: menu, categorias (rolam para o lado) e filtros. Cada toque tem 48dp. -->
+        <!-- Cabeçalho: menu, título e filtros. Cada toque tem 48dp. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -35,27 +35,19 @@
                 android:focusable="true"
                 android:contentDescription="@string/cd_menu" />
 
-            <HorizontalScrollView
+            <!-- Título do app; as categorias agora ficam no painel de filtros (à direita) -->
+            <TextView
+                android:id="@+id/tituloApp"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
-                android:scrollbars="none"
-                android:overScrollMode="never"
-                android:requiresFadingEdge="horizontal"
-                android:fadingEdgeLength="20dp"
-                android:fillViewport="false">
-
-                <!-- Os botões são criados pelo Kotlin a partir da lista de categorias -->
-                <LinearLayout
-                    android:id="@+id/containerCategorias"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingStart="4dp"
-                    android:paddingEnd="12dp" />
-            </HorizontalScrollView>
+                android:layout_marginStart="12dp"
+                android:gravity="center_vertical"
+                android:singleLine="true"
+                android:text="@string/app_name"
+                android:textColor="#FFFFFF"
+                android:textSize="19sp"
+                android:textStyle="bold" />
 
             <!-- Filtros, com um selo mostrando quantos estão ligados (Kotlin) -->
             <FrameLayout
@@ -93,6 +85,33 @@
             </FrameLayout>
         </LinearLayout>
 
+        <!-- "Finalizadas" + interruptor, acima das etapas (o interruptor é criado pelo Kotlin) -->
+        <LinearLayout
+            android:id="@+id/barraFinalizadas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="12dp">
+
+            <TextView
+                android:id="@+id/rotuloFinalizadas"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/finalizadas_rotulo"
+                android:textColor="@color/texto_principal"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <FrameLayout
+                android:id="@+id/trocoFinalizadas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -115,6 +134,23 @@
                     android:layout_marginBottom="16dp"
                     android:orientation="vertical" />
             </ScrollView>
+
+            <!-- Mês que acompanha a rolagem; o texto e a posição vêm do Kotlin -->
+            <TextView
+                android:id="@+id/mesFlutuante"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@color/fundo_tela"
+                android:paddingStart="4dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:letterSpacing="0.16"
+                android:textColor="@color/texto_suave"
+                android:textSize="13sp"
+                android:visibility="invisible"
+                android:importantForAccessibility="no" />
 
             <!-- Aparece depois de rolar a lista para baixo (Kotlin) -->
             <ImageView
@@ -160,6 +196,28 @@
 
         <LinearLayout
             android:id="@+id/containerMenuLateral"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="22dp"
+            android:paddingEnd="22dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="24dp" />
+    </ScrollView>
+
+    <!-- Painel de filtros e favoritas (pela direita): o conteúdo vem de MenuDeFiltros (Kotlin) -->
+    <ScrollView
+        android:id="@+id/scrollFiltros"
+        android:layout_width="340dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/painel_lateral_direito"
+        android:clickable="true"
+        android:focusable="true"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/containerFiltros"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"

@@ -23,8 +23,17 @@ internal object PreferenciasDeAviso {
     /** Antecedência usada ao religar os avisos quando nunca houve uma escolha. */
     const val PADRAO_MINUTOS = 30
 
-    /** Opções oferecidas ao usuário, da maior para a menor antecedência. */
+    /** Botões rápidos do painel de alertas, da maior para a menor antecedência. */
     val opcoes: List<Int> = listOf(60, 45, 30, 15)
+
+    /**
+     * Antecedências a mais, escolhidas na página "Personalizar alertas". Para oferecer outro
+     * tempo basta incluí-lo aqui: o agendamento aceita qualquer valor em minutos.
+     */
+    val opcoesExtras: List<Int> = listOf(1440, 720, 360, 180, 120, 90, 10, 5)
+
+    /** Todas as antecedências válidas (botões rápidos + extras), da maior para a menor. */
+    val todasAsOpcoes: List<Int> = (opcoes + opcoesExtras).distinct().sortedDescending()
 
     private fun arquivo(context: Context) =
         context.applicationContext.getSharedPreferences(ARQUIVO, Context.MODE_PRIVATE)
@@ -39,7 +48,7 @@ internal object PreferenciasDeAviso {
         // Versões anteriores guardavam uma antecedência só.
         val antigo = salvos.getInt(CHAVE_MINUTOS, DESATIVADO)
 
-        return if (antigo in opcoes) listOf(antigo) else emptyList()
+        return if (antigo in todasAsOpcoes) listOf(antigo) else emptyList()
     }
 
     /** Última escolha feita, mesmo que os avisos tenham sido desligados depois. */
@@ -51,12 +60,12 @@ internal object PreferenciasDeAviso {
 
         val antigo = salvos.getInt(CHAVE_ULTIMOS_MINUTOS, PADRAO_MINUTOS)
 
-        return listOf(if (antigo in opcoes) antigo else PADRAO_MINUTOS)
+        return listOf(if (antigo in todasAsOpcoes) antigo else PADRAO_MINUTOS)
     }
 
     /** Salva as antecedências. Valores fora das opções são ignorados; lista vazia desliga. */
     fun definirSelecionados(context: Context, minutos: Collection<Int>) {
-        val validos = minutos.filter { it in opcoes }.distinct().sorted()
+        val validos = minutos.filter { it in todasAsOpcoes }.distinct().sorted()
         val texto = validos.joinToString(",")
         val salvos = arquivo(context)
 
@@ -74,7 +83,7 @@ internal object PreferenciasDeAviso {
     private fun converter(texto: String): List<Int> =
         texto.split(",")
             .mapNotNull { it.trim().toIntOrNull() }
-            .filter { it in opcoes }
+            .filter { it in todasAsOpcoes }
             .distinct()
             .sorted()
 
@@ -88,7 +97,7 @@ internal object PreferenciasDeAviso {
 
     /** Escolhe uma antecedência só (ou desliga, com zero ou valor inválido). */
     fun definir(context: Context, minutos: Int) {
-        definirSelecionados(context, if (minutos in opcoes) listOf(minutos) else emptyList())
+        definirSelecionados(context, if (minutos in todasAsOpcoes) listOf(minutos) else emptyList())
     }
 
     /**
@@ -104,7 +113,7 @@ internal object PreferenciasDeAviso {
         if (salvos.contains(CHAVE_NA_HORA)) return salvos.getBoolean(CHAVE_NA_HORA, true)
 
         if (!salvos.contains(CHAVE_LISTA) && salvos.contains(CHAVE_MINUTOS)) {
-            return salvos.getInt(CHAVE_MINUTOS, DESATIVADO) in opcoes
+            return salvos.getInt(CHAVE_MINUTOS, DESATIVADO) in todasAsOpcoes
         }
 
         return Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2
@@ -131,7 +140,9 @@ internal object PreferenciasDeAviso {
     fun descricao(minutos: Int): String =
         when {
             minutos == 60 -> "1 hora antes"
-            minutos in opcoes -> "$minutos minutos antes"
+            minutos == 1440 -> "1 dia antes"
+            minutos in todasAsOpcoes && minutos > 60 && minutos % 60 == 0 -> "${minutos / 60} horas antes"
+            minutos in todasAsOpcoes -> "$minutos minutos antes"
             else -> "Desativado"
         }
 }

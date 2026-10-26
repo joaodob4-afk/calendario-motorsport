@@ -56,13 +56,14 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var listaEtapas: LinearLayout
 
-    /** Categoria escolhida nos botões do topo e opções do painel de filtros. */
+    /** Categoria, favoritas e finalizadas escolhidas (painel de filtros e interruptor da tela inicial). */
     private var filtros = FiltrosDeEtapas()
 
-    private var painelDeFiltros: PainelDeFiltros? = null
+    /** Painel que abre pela direita (categorias e etapas favoritas); criado em [mostrarMenu]. */
+    private var menuDeFiltros: MenuDeFiltros? = null
 
-    /** Botões do topo, na ordem de [Categorias.todas]; guardados para destacar o escolhido. */
-    private val botoesCategorias = mutableListOf<Pair<String, TextView>>()
+    /** Cabeçalhos de mês da lista atual; o primeiro que já passou do topo vira o mês flutuante. */
+    private val cabecalhosDeMes = mutableListOf<View>()
 
     private var botaoTopoVisivel = false
 
@@ -187,6 +188,12 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        // As favoritas e o "só favoritas" ficam gravados no aparelho.
+        filtros = filtros.copy(
+            favoritas = PreferenciasDeFavoritas.favoritas(this),
+            somenteFavoritas = PreferenciasDeFavoritas.somenteFavoritas(this)
+        )
+
         // Em rotação/recriação, não baixa tudo de novo (o cache já está atualizado).
         carregarCalendarios(baixar = savedInstanceState == null)
 
@@ -195,11 +202,15 @@ class MainActivity : AppCompatActivity() {
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
-                    if (categoriaAtual.isEmpty() && gaveta != null &&
-                        gaveta.isDrawerOpen(GravityCompat.START)
-                    ) {
-                        gaveta.closeDrawer(GravityCompat.START)
-                        return
+                    if (categoriaAtual.isEmpty() && gaveta != null) {
+                        if (gaveta.isDrawerOpen(GravityCompat.START)) {
+                            gaveta.closeDrawer(GravityCompat.START)
+                            return
+                        }
+                        if (gaveta.isDrawerOpen(GravityCompat.END)) {
+                            gaveta.closeDrawer(GravityCompat.END)
+                            return
+                        }
                     }
 
                     if (categoriaAtual.isNotEmpty()) {
@@ -293,8 +304,9 @@ class MainActivity : AppCompatActivity() {
                 filtros = RegrasDeFiltro.podar(todasEtapas, filtros, java.time.LocalDate.now())
 
                 if (categoriaAtual.isEmpty()) {
-                    atualizarBotoesCategorias()
                     atualizarBotaoFiltro()
+                    atualizarBarraDeFinalizadas()
+                    menuDeFiltros?.atualizar()
                     mostrarEtapas(animar = true)
                 }
 
@@ -389,7 +401,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        painelDeFiltros?.fechar()
         handlerRedesenho.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
@@ -422,27 +433,42 @@ class MainActivity : AppCompatActivity() {
 
         listaEtapas = findViewById(R.id.listaEtapas)
 
-        criarBotoesCategorias()
-
         MenuPrincipal.montar(this, findViewById(R.id.containerMenuLateral))
         findViewById<View>(R.id.btnMenu).setOnClickListener {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
         }
-        findViewById<View>(R.id.btnFiltro).setOnClickListener { abrirPainelDeFiltros() }
+
+        menuDeFiltros = MenuDeFiltros(
+            activity = this,
+            container = findViewById(R.id.containerFiltros),
+            todasEtapas = { todasEtapas },
+            sessoes = { sessoes },
+            filtros = { filtros },
+            nomeDaEtapa = { etapa ->
+                nomeDoEvento(etapa).ifBlank { lugarExibido(etapa.pais) }
+            },
+            aoMudar = { novos -> aplicarFiltros(novos) }
+        ).also { it.montar() }
+
+        findViewById<View>(R.id.btnFiltro).setOnClickListener {
+            findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.END)
+        }
         findViewById<View>(R.id.btnMenu).comEfeitoDeToque(escala = 0.9f)
         findViewById<View>(R.id.btnFiltro).comEfeitoDeToque(escala = 0.9f)
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
         configurarBotaoTopo()
         atualizarBotaoFiltro()
+        atualizarBarraDeFinalizadas()
 
         mostrarEtapas()
     }
 
-    /** Selo no botão de filtros com quantos filtros do painel estão ligados (some quando são 0). */
+    /** Selo no botão de filtros: categoria escolhida e "só favoritas" ligados (some quando são 0). */
     private fun atualizarBotaoFiltro() {
         val selo = findViewById<TextView>(R.id.badgeFiltro) ?: return
-        val quantos = filtros.quantosAtivos
+        val quantos = (if (filtros.categoria.isNotBlank()) 1 else 0) +
+            (if (filtros.somenteFavoritas) 1 else 0)
         val estavaVisivel = selo.visibility == View.VISIBLE
 
         selo.text = quantos.toString()
@@ -451,57 +477,77 @@ class MainActivity : AppCompatActivity() {
         if (quantos > 0 && !estavaVisivel) selo.animarPop()
     }
 
-    private fun abrirPainelDeFiltros() {
-        painelDeFiltros?.fechar()
+    /**
+     * Aplica uma mudança vinda do painel de filtros ou do interruptor "Finalizadas": guarda o
+     * que é gravado no aparelho (favoritas) e redesenha a lista.
+     */
+    private fun aplicarFiltros(novos: FiltrosDeEtapas) {
+        val anteriores = filtros
+        val hoje = java.time.LocalDate.now()
 
-        painelDeFiltros = PainelDeFiltros(
-            activity = this,
-            todasEtapas = { todasEtapas },
-            filtros = filtros,
-            rotuloDoPais = { lugarExibido(it) },
-            aoMudar = { novos ->
-                filtros = novos
-                atualizarBotaoFiltro()
-                mostrarEtapas(animar = true)
-            }
-        ).also { it.mostrar() }
-    }
+        filtros = RegrasDeFiltro.podar(todasEtapas, novos, hoje)
 
-    /** Toque num botão do topo: mostra só aquela categoria; tocar de novo volta a mostrar todas. */
-    private fun selecionarCategoria(nome: String) {
-        val jaSelecionada =
-            Formatacao.normalizar(filtros.categoria) == Formatacao.normalizar(nome)
+        if (filtros.favoritas != anteriores.favoritas) {
+            PreferenciasDeFavoritas.definirFavoritas(this, filtros.favoritas)
+        }
+        if (filtros.somenteFavoritas != anteriores.somenteFavoritas) {
+            PreferenciasDeFavoritas.definirSomenteFavoritas(this, filtros.somenteFavoritas)
+        }
 
-        filtros = RegrasDeFiltro.podar(
-            todasEtapas,
-            filtros.copy(categoria = if (jaSelecionada) "" else nome),
-            java.time.LocalDate.now()
-        )
+        val categoriaMudou = Formatacao.normalizar(filtros.categoria) !=
+            Formatacao.normalizar(anteriores.categoria)
 
-        atualizarBotoesCategorias()
+        // Só a estrela de uma etapa mudou e a lista não depende disso: nada a redesenhar.
+        val listaMudou = categoriaMudou ||
+            filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas ||
+            filtros.somenteFavoritas != anteriores.somenteFavoritas ||
+            (filtros.somenteFavoritas && filtros.favoritas != anteriores.favoritas)
+
         atualizarBotaoFiltro()
-        mostrarEtapas(animar = true)
-        findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+        atualizarBarraDeFinalizadas()
 
-        if (!jaSelecionada) {
-            botoesCategorias.firstOrNull { it.first == nome }?.second?.animarPop()
+        // A lista de etapas do painel da direita também esconde ou mostra as finalizadas.
+        if (filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas) {
+            menuDeFiltros?.atualizar()
+        }
+
+        if (listaMudou) {
+            mostrarEtapas(animar = true)
+            if (categoriaMudou) findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
         }
     }
 
-    /** Botão do topo da categoria escolhida: preenchido na cor dela; os outros, só contorno. */
-    private fun atualizarBotoesCategorias() {
-        val alvo = Formatacao.normalizar(filtros.categoria)
+    /** "Finalizadas" e o interruptor, acima das etapas: ligado, as etapas que já acabaram aparecem. */
+    private fun atualizarBarraDeFinalizadas() {
+        val barra = findViewById<View>(R.id.barraFinalizadas) ?: return
+        val espaco = findViewById<android.widget.FrameLayout>(R.id.trocoFinalizadas) ?: return
+        val ligado = filtros.mostrarFinalizadas
+        val anterior = (espaco.getChildAt(0) as? InterruptorModerno)?.ligado
 
-        for ((nome, botao) in botoesCategorias) {
-            val cor = corDaCategoria(nome)
-            val selecionado = alvo.isNotEmpty() && Formatacao.normalizar(nome) == alvo
-
-            if (selecionado) {
-                estilizarSeloPreenchido(botao, cor, 12f)
-            } else {
-                estilizarCapsulaDeCategoria(botao, cor)
+        espaco.removeAllViews()
+        espaco.addView(
+            InterruptorModerno(
+                this,
+                ligado,
+                anterior,
+                corLigado = getColor(R.color.azul_destaque),
+                corDaTrilha = getColor(R.color.fundo_tela),
+                corDoContorno = getColor(R.color.borda_suave)
+            ).apply {
+                isClickable = true
+                isFocusable = true
+                contentDescription = getString(R.string.cd_finalizadas)
+                setOnClickListener {
+                    aplicarFiltros(filtros.copy(mostrarFinalizadas = !ligado))
+                }
             }
-            botao.isSelected = selecionado
+        )
+
+        // Tocar em qualquer ponto da linha também liga e desliga.
+        barra.isClickable = true
+        barra.isFocusable = true
+        barra.setOnClickListener {
+            aplicarFiltros(filtros.copy(mostrarFinalizadas = !filtros.mostrarFinalizadas))
         }
     }
 
@@ -515,7 +561,13 @@ class MainActivity : AppCompatActivity() {
 
         rolagem.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             mostrarBotaoTopo(botao, scrollY > topoDaLista() + limite)
+            atualizarMesFlutuante()
         }
+
+        // Cards entram aos poucos e as finalizadas aparecem por cima: o mês é refeito a cada layout.
+        listaEtapas.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> atualizarMesFlutuante() }
+        findViewById<TextView>(R.id.mesFlutuante)?.typeface =
+            android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
         botao.setOnClickListener { rolagem.smoothScrollTo(0, topoDaLista()) }
         botao.comEfeitoDeToque(escala = 0.88f)
     }
@@ -576,21 +628,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Cápsula de categoria no cabeçalho azul-marinho: fundo e borda são um toque da cor da
-     * categoria sobre o azul, e o texto é a cor dela um pouco mais clara.
-     */
-    private fun estilizarCapsulaDeCategoria(view: TextView, cor: Int) {
-        val fundo = getColor(R.color.azul_marinho)
-
-        view.setTextColor(ColorUtils.blendARGB(cor, android.graphics.Color.WHITE, 0.15f))
-        view.background = android.graphics.drawable.GradientDrawable().apply {
-            setColor(ColorUtils.blendARGB(fundo, cor, 0.18f))
-            cornerRadius = emPx(12f).toFloat()
-            setStroke(emPx(1f).coerceAtLeast(1), ColorUtils.blendARGB(fundo, cor, 0.5f))
-        }
-    }
-
     /** Selo só com contorno e texto na cor informada (status das etapas). */
     private fun estilizarContorno(view: TextView, cor: Int) {
         view.setTextColor(cor)
@@ -615,58 +652,6 @@ class MainActivity : AppCompatActivity() {
         Categorias.info(categoria)?.let { android.graphics.Color.parseColor(it.cor) }
             ?: getColor(R.color.acento)
 
-    /**
-     * Cada categoria é uma cápsula de 36dp dentro de uma área de toque de 48dp de altura, sem
-     * vãos entre uma e outra, para o toque nunca "cair no vazio".
-     */
-    private fun criarBotoesCategorias() {
-        val container = findViewById<LinearLayout>(R.id.containerCategorias)
-        container.removeAllViews()
-        botoesCategorias.clear()
-
-        for (categoria in Categorias.todas) {
-            val capsula = TextView(this).apply {
-                text = categoria.nome.uppercase()
-                textSize = 13f
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-                letterSpacing = 0.05f
-                gravity = android.view.Gravity.CENTER
-                maxLines = 1
-                includeFontPadding = false
-                minWidth = emPx(52f)
-                setPadding(emPx(16f), 0, emPx(16f), 0)
-            }
-
-            val areaDeToque = android.widget.FrameLayout(this).apply {
-                isClickable = true
-                isFocusable = true
-                contentDescription = categoria.nome
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT
-                )
-                addView(
-                    capsula,
-                    android.widget.FrameLayout.LayoutParams(
-                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
-                        emPx(36f),
-                        android.view.Gravity.CENTER_VERTICAL
-                    ).apply {
-                        marginStart = emPx(3f)
-                        marginEnd = emPx(3f)
-                    }
-                )
-                setOnClickListener { selecionarCategoria(categoria.nome) }
-                comEfeitoDeToque(alvo = capsula, escala = 0.92f)
-            }
-
-            container.addView(areaDeToque)
-            botoesCategorias.add(categoria.nome to capsula)
-        }
-
-        atualizarBotoesCategorias()
-    }
-
     /** Fundo do card com a faixa lateral na cor da categoria, colada na borda (ver [FundoDeCard]). */
     private fun estilizarCard(item: android.view.View, cor: Int) {
         item.background = FundoDeCard(
@@ -680,11 +665,60 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
-    private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
+    /** "NOVEMBRO" ou, fora do ano atual, "JANEIRO 2027". */
+    private fun textoDoMes(data: java.time.LocalDate): String {
         val idiomaApp = Idioma.locale(this)
         val anoAtual = java.time.LocalDate.now().year
 
+        return data.month.getDisplayName(java.time.format.TextStyle.FULL, idiomaApp)
+            .uppercase(idiomaApp) + if (data.year != anoAtual) " ${data.year}" else ""
+    }
+
+    /**
+     * Mês fixo no topo da lista. Mostra o mês da etapa que está passando e troca quando a
+     * rolagem chega às etapas de outro mês; o próximo mês empurra o atual para cima ao chegar.
+     */
+    private fun atualizarMesFlutuante() {
+        val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
+        val flutuante = findViewById<TextView>(R.id.mesFlutuante) ?: return
+
+        val altura = flutuante.height.takeIf { it > 0 } ?: emPx(36f)
+        val topoDaTela = rolagem.scrollY
+        val deslocamento = listaEtapas.top
+
+        var atual: View? = null
+        var proximo: View? = null
+
+        // O mês só passa a ser fixo quando o cabeçalho dele já saiu por baixo do mês fixo.
+        for (cabecalho in cabecalhosDeMes
+            .filter { it.parent === listaEtapas && it.visibility == View.VISIBLE }
+            .sortedBy { it.top }
+        ) {
+            if (deslocamento + cabecalho.top + cabecalho.height <= topoDaTela + altura) {
+                atual = cabecalho
+            } else {
+                proximo = cabecalho
+                break
+            }
+        }
+
+        val mes = atual?.tag as? java.time.LocalDate
+
+        if (mes == null) {
+            flutuante.visibility = View.INVISIBLE
+            return
+        }
+
+        val texto = textoDoMes(mes)
+        if (flutuante.text.toString() != texto) flutuante.text = texto
+        flutuante.visibility = View.VISIBLE
+
+        val distancia = if (proximo != null) deslocamento + proximo.top - topoDaTela else Int.MAX_VALUE
+        flutuante.translationY = if (distancia < altura) (distancia - altura).toFloat() else 0f
+    }
+
+    /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
+    private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
         val coluna = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         if (!primeiro) {
@@ -701,8 +735,7 @@ class MainActivity : AppCompatActivity() {
 
         coluna.addView(
             TextView(this).apply {
-                text = data.month.getDisplayName(java.time.format.TextStyle.FULL, idiomaApp)
-                    .uppercase(idiomaApp) + if (data.year != anoAtual) " ${data.year}" else ""
+                text = textoDoMes(data)
                 setTextColor(getColor(R.color.texto_suave))
                 textSize = 13f
                 typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
@@ -759,6 +792,7 @@ class MainActivity : AppCompatActivity() {
         geracaoDaLista++
         val geracao = geracaoDaLista
         ancoraDoTopo = null
+        cabecalhosDeMes.clear()
 
         val etapasOrdenadas = RegrasDeFiltro.aplicar(todasEtapas, filtros, hoje, sessoes)
         primeirasSessoesDaLista = RegrasDeFiltro.primeirasSessoes(etapasOrdenadas, sessoes)
@@ -820,7 +854,10 @@ class MainActivity : AppCompatActivity() {
             val mes = linhas[indice].mes
 
             return if (etapa == null && mes != null) {
-                cabecalhoMes(mes, indice == 0)
+                cabecalhoMes(mes, indice == 0).also {
+                    it.tag = mes
+                    cabecalhosDeMes.add(it)
+                }
             } else {
                 criarCard(inflater, etapa!!, statusEtapa(etapa, hoje, proximas), hoje)
             }

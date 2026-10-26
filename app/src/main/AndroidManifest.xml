@@ -25,6 +25,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".PersonalizarAlertasActivity"
+            android:configChanges="uiMode"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"
             android:exported="true">

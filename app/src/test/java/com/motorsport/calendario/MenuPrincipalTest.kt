@@ -57,6 +57,11 @@ class MenuPrincipalTest {
     private fun comDescricao(descricao: String): View =
         todas(container).first { it.contentDescription == descricao }
 
+    /** As categorias começam recolhidas; este toque abre a lista. */
+    private fun abrirCategorias() {
+        comDescricao(activity.getString(R.string.filtros_categorias)).performClick()
+    }
+
     /** O cartão que reúne todas as categorias (é nele que o esmaecimento é aplicado). */
     private fun cartaoDaCategoria(categoria: String) = linhaDa(categoria).parent as View
 
@@ -67,8 +72,8 @@ class MenuPrincipalTest {
             R.string.menu_titulo,
             R.string.na_hora_curto,
             R.string.antecedencia_titulo,
-            R.string.antecedencia_dica,
-            R.string.por_categoria_titulo,
+            R.string.personalizar_alertas,
+            R.string.filtros_categorias,
             R.string.botao_teste,
             R.string.alertas_nao_chegam,
             R.string.botao_bateria
@@ -82,6 +87,7 @@ class MenuPrincipalTest {
 
     @Test
     fun mostraOsQuatroBotoesDeAntecedenciaEUmaLinhaPorCategoria() {
+        abrirCategorias()
         val textos = textos()
 
         listOf("15 min", "30 min", "45 min", activity.getString(R.string.antecedencia_chip_hora))
@@ -93,7 +99,28 @@ class MenuPrincipalTest {
     }
 
     @Test
+    fun asCategoriasComecamRecolhidasComAQuantidadeAoLado() {
+        Categorias.todas.forEach {
+            assertFalse("Não devia mostrar ${it.nome}", it.nome in textos())
+        }
+        assertTrue(Categorias.todas.size.toString() in textos())
+
+        abrirCategorias()
+        Categorias.todas.forEach { assertTrue(it.nome in textos()) }
+
+        abrirCategorias()
+        assertFalse(Categorias.todas.first().nome in textos())
+    }
+
+    @Test
+    fun temOBotaoPersonalizarAlertasESemALegendaDeMaisDeUm() {
+        assertTrue(activity.getString(R.string.personalizar_alertas) in textos())
+        assertFalse(textos().any { it.contains("mais de um", ignoreCase = true) || it.contains("more than one", ignoreCase = true) })
+    }
+
+    @Test
     fun cadaCategoriaAparecePelaCorEPeloNomeUmaVezSo() {
+        abrirCategorias()
         Categorias.todas.forEach {
             assertEquals("Nome repetido: ${it.nome}", 1, textosIguais(it.nome))
         }
@@ -101,6 +128,7 @@ class MenuPrincipalTest {
 
     @Test
     fun oAvisoDaHoraDeComecarVemLigadoNoAndroid12EAnteriores() {
+        abrirCategorias()
         assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
         assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
         assertEquals(1f, cartaoDaCategoria("F1").alpha, 0.001f)
@@ -108,6 +136,7 @@ class MenuPrincipalTest {
 
     @Test
     fun ligarEDesligarOAvisoDaHoraDeComecarFuncionaSemNenhumaAntecedencia() {
+        abrirCategorias()
         comDescricao(activity.getString(R.string.cd_desligar_na_hora)).performClick()
         assertFalse(PreferenciasDeAviso.avisarNaHora(activity))
         // Sem antecedência e sem aviso na hora, nada é avisado: as categorias ficam esmaecidas.
@@ -139,6 +168,7 @@ class MenuPrincipalTest {
 
     @Test
     fun asTresOpcoesFicamSempreAoLadoDoNomeDeCadaCategoria() {
+        abrirCategorias()
         val rotulos = listOf(R.string.modo_todas, R.string.modo_corridas, R.string.modo_nenhuma)
             .map { activity.getString(it) }
 
@@ -155,6 +185,7 @@ class MenuPrincipalTest {
 
     @Test
     fun escolherUmModoGravaSemAbrirNemFecharNada() {
+        abrirCategorias()
         val corridas = activity.getString(R.string.modo_corridas)
         val quantasAntes = textosIguais(corridas)
 
@@ -170,6 +201,7 @@ class MenuPrincipalTest {
 
     @Test
     fun soOsBotoesERespondemAoToque() {
+        abrirCategorias()
         val selo = textView("MotoGP")
         val linha = selo.parent as View
         val cartao = linha.parent as View
