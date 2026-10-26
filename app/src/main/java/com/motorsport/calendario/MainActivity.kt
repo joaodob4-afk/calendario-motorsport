@@ -46,7 +46,12 @@ class MainActivity : AppCompatActivity() {
         /** Nome do evento quando a própria fonte já traz um (IndyCar). Vazio: ver [NomesDeEventos]. */
         val nomeEvento: String = "",
         /** Cidade ou local legível, quando a fonte traz um. Vazio: usa [circuito]. */
-        val local: String = ""
+        val local: String = "",
+        /**
+         * Instante (ms) a partir do qual a etapa já terminou, calculado pelo horário da última
+         * sessão (ver [RegrasDeFiltro.comFimPorHorario]). 0 = desconhecido: vale só o último dia.
+         */
+        val terminaEmMs: Long = 0L
     )
 
     private lateinit var listaEtapas: LinearLayout
@@ -114,6 +119,9 @@ class MainActivity : AppCompatActivity() {
     /** Dia em que a lista foi desenhada pela última vez; se o dia mudar, ela é refeita. */
     private var dataDaUltimaLista: java.time.LocalDate? = null
 
+    /** Quando a lista foi desenhada pela última vez; etapas também terminam no meio do dia. */
+    private var instanteDaUltimaLista = 0L
+
     private val handlerRedesenho = Handler(Looper.getMainLooper())
 
     private val redesenhoDaLista = Runnable {
@@ -144,14 +152,16 @@ class MainActivity : AppCompatActivity() {
     private var etapasMotoDinamicas: List<Etapa>? = null
 
     private val todasEtapas: List<Etapa>
-        get() =
+        get() = RegrasDeFiltro.comFimPorHorario(
             (etapasF1Dinamicas ?: emptyList()) +
                 (etapasF2Dinamicas ?: emptyList()) +
                 (etapasF3Dinamicas ?: emptyList()) +
                 (etapasF1AcademyDinamicas ?: emptyList()) +
                 (etapasFormulaEDinamicas ?: emptyList()) +
                 (etapasIndyCarDinamicas ?: emptyList()) +
-                (etapasMotoDinamicas ?: emptyList())
+                (etapasMotoDinamicas ?: emptyList()),
+            sessoes
+        )
 
     private fun parseDataSegura(data: String?): java.time.LocalDate? {
         if (data.isNullOrBlank()) return null
@@ -367,9 +377,13 @@ class MainActivity : AppCompatActivity() {
             MenuPrincipal.montar(this, it)
         }
 
-        // Etapas passam a "finalizadas" na virada do dia: se o app ficou aberto, refaz a lista.
+        // Etapas passam a "finalizadas" na virada do dia e algumas horas depois da última sessão:
+        // se o app ficou aberto ou em segundo plano, refaz a lista.
         val ultima = dataDaUltimaLista
-        if (categoriaAtual.isEmpty() && ultima != null && ultima != java.time.LocalDate.now()) {
+        val passouUmTempo = System.currentTimeMillis() - instanteDaUltimaLista > 10 * 60 * 1000L
+        if (categoriaAtual.isEmpty() && ultima != null &&
+            (ultima != java.time.LocalDate.now() || passouUmTempo)
+        ) {
             mostrarEtapas()
         }
     }
@@ -739,6 +753,7 @@ class MainActivity : AppCompatActivity() {
     private fun mostrarEtapas(animar: Boolean = false) {
         val hoje = java.time.LocalDate.now()
         dataDaUltimaLista = hoje
+        instanteDaUltimaLista = System.currentTimeMillis()
 
         // Um novo desenho cancela o anterior, caso ele ainda estivesse entrando aos poucos.
         geracaoDaLista++

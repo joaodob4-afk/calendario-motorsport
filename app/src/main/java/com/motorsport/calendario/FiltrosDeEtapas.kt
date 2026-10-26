@@ -1,5 +1,6 @@
 package com.motorsport.calendario
 
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -45,8 +46,53 @@ internal object RegrasDeFiltro {
         return if (fim.isBefore(inicio)) inicio.plusDays(2) else fim
     }
 
-    fun finalizada(etapa: MainActivity.Etapa, hoje: LocalDate): Boolean =
-        fim(etapa, hoje).isBefore(hoje)
+    /** Horas que a etapa ainda conta como em andamento depois de começar a última sessão. */
+    internal const val HORAS_APOS_ULTIMA_SESSAO = 4L
+
+    /**
+     * Terminou quando o último dia já passou ou, se o horário da última sessão é conhecido
+     * ([MainActivity.Etapa.terminaEmMs]), quando esse horário já passou. Assim a etapa não fica
+     * "em andamento" o dia inteiro depois de a corrida acabar.
+     */
+    fun finalizada(
+        etapa: MainActivity.Etapa,
+        hoje: LocalDate,
+        agora: Instant = Instant.now()
+    ): Boolean =
+        fim(etapa, hoje).isBefore(hoje) ||
+            (etapa.terminaEmMs > 0L && agora.toEpochMilli() >= etapa.terminaEmMs)
+
+    /**
+     * Preenche [MainActivity.Etapa.terminaEmMs] com o fim da última sessão + uma margem. Só vale
+     * quando a última sessão conhecida cai no último dia da etapa (se alguma sessão final ainda está
+     * "A confirmar", a última conhecida é mais cedo e não diz nada sobre o fim). Resistência (WEC)
+     * fica de fora: a corrida de 24 horas começa um dia antes do fim.
+     */
+    fun comFimPorHorario(
+        etapas: List<MainActivity.Etapa>,
+        sessoes: List<SessaoParaAviso>
+    ): List<MainActivity.Etapa> {
+        if (sessoes.isEmpty()) return etapas
+
+        val ultimas = ultimasSessoes(etapas, sessoes)
+        val fuso = ZoneId.systemDefault()
+
+        return etapas.map { etapa ->
+            val ultima = ultimas[etapa]
+            if (ultima == null || Formatacao.normalizar(etapa.categoria) == "wec") {
+                etapa
+            } else {
+                val diaDaUltima = ultima.atZone(fuso).toLocalDate()
+                if (diaDaUltima.isBefore(fim(etapa, diaDaUltima))) {
+                    etapa
+                } else {
+                    etapa.copy(
+                        terminaEmMs = ultima.plus(Duration.ofHours(HORAS_APOS_ULTIMA_SESSAO)).toEpochMilli()
+                    )
+                }
+            }
+        }
+    }
 
     /** Meses ("2026-11") em que a etapa acontece: o do início e o do fim (podem ser diferentes). */
     fun mesesDaEtapa(etapa: MainActivity.Etapa): Set<String> {
