@@ -141,7 +141,23 @@
     <string name="na_hora_curto">Alert at start time</string>
     <string name="por_categoria_titulo">By category</string>
     <string name="modo_so_corridas">Races only</string>
-    <string name="antecedencia_dica">You can choose more than one</string>
     <string name="menu_titulo_curto">Manage Alerts</string>
     <string name="alertas_nao_chegam">Alerts not arriving?</string>
+
+    <string name="personalizar_alertas">Customize alerts</string>
+    <string name="personalizar_minutos">Minutes</string>
+    <string name="personalizar_horas">Hours and days</string>
+    <string name="antecedencia_chip_horas">%d h</string>
+    <string name="antecedencia_chip_dia">1 day</string>
+    <string name="antecedencia_horas">%d hours before the session</string>
+    <string name="antecedencia_dia">1 day before the session</string>
+    <string name="filtros_categorias">Categories</string>
+    <string name="filtros_etapas">Rounds</string>
+    <string name="filtros_favoritas_titulo">Favorite rounds</string>
+    <string name="filtros_so_favoritas">Show only favorites</string>
+    <string name="filtros_so_favoritas_dica">The home screen lists only starred rounds</string>
+    <string name="cd_favoritar">Add %s to favorites</string>
+    <string name="cd_desfavoritar">Remove %s from favorites</string>
+    <string name="finalizadas_rotulo">Finished</string>
+    <string name="cd_finalizadas">Show finished rounds</string>
 </resources>

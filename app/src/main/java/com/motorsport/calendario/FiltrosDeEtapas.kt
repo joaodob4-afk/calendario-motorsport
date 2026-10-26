@@ -13,12 +13,15 @@ import java.time.ZoneId
  * - [mostrarFinalizadas]: desligado, as etapas que já terminaram ficam escondidas.
  * - [paises]: vazio = todos; senão, só etapas desses países (o texto é o campo "pais" dos dados).
  * - [meses]: vazio = todos; senão, só etapas que acontecem nesses meses (formato "2026-11").
+ * - [somenteFavoritas]: ligado, só as etapas de [favoritas] (ver [RegrasDeFiltro.chaveDaEtapa]) aparecem.
  */
 internal data class FiltrosDeEtapas(
     val categoria: String = "",
     val mostrarFinalizadas: Boolean = false,
     val paises: Set<String> = emptySet(),
-    val meses: Set<String> = emptySet()
+    val meses: Set<String> = emptySet(),
+    val somenteFavoritas: Boolean = false,
+    val favoritas: Set<String> = emptySet()
 ) {
     /** Quantos filtros do painel (sem contar a categoria) estão ligados. */
     val quantosAtivos: Int
@@ -35,6 +38,17 @@ internal object RegrasDeFiltro {
         if (texto.isBlank()) null else runCatching { LocalDate.parse(texto) }.getOrNull()
 
     fun inicio(etapa: MainActivity.Etapa): LocalDate? = lerData(etapa.dataInicio)
+
+    /**
+     * Identifica a etapa para o favorito: categoria, circuito e ano. Sem a data completa, a
+     * favorita continua sendo a mesma se o calendário mudar o dia da etapa.
+     */
+    fun chaveDaEtapa(etapa: MainActivity.Etapa): String {
+        val onde = etapa.circuitId.ifBlank { etapa.circuito }
+        val ano = etapa.dataInicio.take(4)
+
+        return "${Formatacao.normalizar(etapa.categoria)}|${Formatacao.normalizar(onde)}|$ano"
+    }
 
     /**
      * Último dia da etapa. Sem data de fim (ou com fim antes do início), considera 3 dias de
@@ -179,7 +193,8 @@ internal object RegrasDeFiltro {
         val filtradas = base(etapas, filtros, hoje)
             .filter { etapa ->
                 (filtros.paises.isEmpty() || etapa.pais in filtros.paises) &&
-                    (filtros.meses.isEmpty() || mesesDaEtapa(etapa).any { it in filtros.meses })
+                    (filtros.meses.isEmpty() || mesesDaEtapa(etapa).any { it in filtros.meses }) &&
+                    (!filtros.somenteFavoritas || chaveDaEtapa(etapa) in filtros.favoritas)
             }
 
         val primeiras = primeirasSessoes(filtradas, sessoes)

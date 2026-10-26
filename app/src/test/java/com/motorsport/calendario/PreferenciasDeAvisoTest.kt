@@ -27,6 +27,31 @@ class PreferenciasDeAvisoTest {
     }
 
     @Test
+    fun antecedenciasExtrasDaPaginaPersonalizarSaoValidas() {
+        PreferenciasDeAviso.opcoesExtras.forEach { minutos ->
+            PreferenciasDeAviso.definir(context, minutos)
+            assertEquals(minutos, PreferenciasDeAviso.minutosAntes(context))
+        }
+
+        PreferenciasDeAviso.definirSelecionados(context, listOf(1440, 5, 90, 15))
+        assertEquals(listOf(5, 15, 90, 1440), PreferenciasDeAviso.minutosSelecionados(context))
+    }
+
+    @Test
+    fun osBotoesRapidosContinuamSendoOsQuatroDeSempre() {
+        assertTrue(PreferenciasDeAviso.opcoes.all { it in PreferenciasDeAviso.todasAsOpcoes })
+        assertTrue(PreferenciasDeAviso.opcoesExtras.none { it in PreferenciasDeAviso.opcoes })
+    }
+
+    @Test
+    fun descricoesDasAntecedenciasExtras() {
+        assertEquals("90 minutos antes", PreferenciasDeAviso.descricao(90))
+        assertEquals("2 horas antes", PreferenciasDeAviso.descricao(120))
+        assertEquals("1 dia antes", PreferenciasDeAviso.descricao(1440))
+        assertEquals("5 minutos antes", PreferenciasDeAviso.descricao(5))
+    }
+
+    @Test
     fun semEscolhaOAvisoFicaDesativado() {
         assertEquals(PreferenciasDeAviso.DESATIVADO, PreferenciasDeAviso.minutosAntes(context))
     }

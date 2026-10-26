@@ -52,7 +52,11 @@ class ConfiguracoesActivity : AppCompatActivity() {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
+    /** Rolagem atual; guardada para a tela refeita voltar exatamente ao mesmo ponto. */
+    private var rolagem: ScrollView? = null
+
     private fun montar() {
+        val posicaoDaRolagem = rolagem?.scrollY ?: 0
         val marinho = getColor(R.color.azul_marinho)
 
         val raiz = LinearLayout(this).apply {
@@ -81,13 +85,30 @@ class ConfiguracoesActivity : AppCompatActivity() {
         corpo.addView(tituloDeSecao(R.string.config_hora))
         corpo.addView(cartaoDeHora())
 
+        val novaRolagem = ScrollView(this).apply {
+            isVerticalScrollBarEnabled = false
+            addView(corpo)
+        }
+        rolagem = novaRolagem
+
         raiz.addView(
-            ScrollView(this).apply {
-                isVerticalScrollBarEnabled = false
-                addView(corpo)
-            },
+            novaRolagem,
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
         )
+
+        // Tocar numa opção refaz a tela; sem isto a lista voltava ao topo a cada toque.
+        // O ponto é restaurado antes do primeiro desenho, então nada pisca nem "sobe".
+        if (posicaoDaRolagem > 0) {
+            novaRolagem.viewTreeObserver.addOnPreDrawListener(
+                object : android.view.ViewTreeObserver.OnPreDrawListener {
+                    override fun onPreDraw(): Boolean {
+                        novaRolagem.viewTreeObserver.removeOnPreDrawListener(this)
+                        novaRolagem.scrollTo(0, posicaoDaRolagem)
+                        return true
+                    }
+                }
+            )
+        }
     }
 
     // ---------------------------------------------------------------- blocos

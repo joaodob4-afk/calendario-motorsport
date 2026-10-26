@@ -140,7 +140,23 @@
     <string name="na_hora_curto">Alertar na hora de começar</string>
     <string name="por_categoria_titulo">Por categoria</string>
     <string name="modo_so_corridas">Só corridas</string>
-    <string name="antecedencia_dica">Você pode escolher mais de um</string>
     <string name="menu_titulo_curto">Gerenciar Alertas</string>
     <string name="alertas_nao_chegam">Os alertas não chegam?</string>
+
+    <string name="personalizar_alertas">Personalizar alertas</string>
+    <string name="personalizar_minutos">Minutos</string>
+    <string name="personalizar_horas">Horas e dia</string>
+    <string name="antecedencia_chip_horas">%d h</string>
+    <string name="antecedencia_chip_dia">1 dia</string>
+    <string name="antecedencia_horas">%d horas antes da sessão</string>
+    <string name="antecedencia_dia">1 dia antes da sessão</string>
+    <string name="filtros_categorias">Categorias</string>
+    <string name="filtros_etapas">Etapas</string>
+    <string name="filtros_favoritas_titulo">Etapas favoritas</string>
+    <string name="filtros_so_favoritas">Mostrar só favoritas</string>
+    <string name="filtros_so_favoritas_dica">A tela inicial mostra só as etapas com estrela</string>
+    <string name="cd_favoritar">Favoritar %s</string>
+    <string name="cd_desfavoritar">Remover %s dos favoritos</string>
+    <string name="finalizadas_rotulo">Finalizadas</string>
+    <string name="cd_finalizadas">Mostrar etapas finalizadas</string>
 </resources>

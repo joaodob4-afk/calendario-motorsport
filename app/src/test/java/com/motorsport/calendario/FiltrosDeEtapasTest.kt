@@ -182,4 +182,34 @@ class FiltrosDeEtapasTest {
             ).quantosAtivos
         )
     }
+
+    @Test
+    fun somenteFavoritas_mostraSoAsMarcadas() {
+        val favoritas = setOf(RegrasDeFiltro.chaveDaEtapa(novembro), RegrasDeFiltro.chaveDaEtapa(dezembro))
+
+        val lista = RegrasDeFiltro.aplicar(
+            todas,
+            FiltrosDeEtapas(somenteFavoritas = true, favoritas = favoritas),
+            hoje
+        )
+
+        assertEquals(listOf("novembro", "dezembro"), circuitos(lista))
+    }
+
+    @Test
+    fun favoritasMarcadasSemOInterruptorNaoMudamALista() {
+        val favoritas = setOf(RegrasDeFiltro.chaveDaEtapa(novembro))
+
+        val lista = RegrasDeFiltro.aplicar(todas, FiltrosDeEtapas(favoritas = favoritas), hoje)
+
+        assertEquals(listOf("andando", "novembro", "dezembro", "semdata"), circuitos(lista))
+    }
+
+    @Test
+    fun chaveDaFavoritaNaoDependeDoDiaDaEtapa() {
+        val remarcada = novembro.copy(dataInicio = "2026-11-06", dataFim = "2026-11-08")
+
+        assertEquals(RegrasDeFiltro.chaveDaEtapa(novembro), RegrasDeFiltro.chaveDaEtapa(remarcada))
+        assertFalse(RegrasDeFiltro.chaveDaEtapa(novembro) == RegrasDeFiltro.chaveDaEtapa(monaco))
+    }
 }
