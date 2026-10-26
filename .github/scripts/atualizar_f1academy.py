@@ -88,6 +88,8 @@ def nome_da_sessao(sessao):
         return "Treino Livre"
     if baixo.startswith("qualifying"):
         return "Classificação"
+    if "opening" in baixo:
+        return "Corrida de Abertura"  # a corrida extra das etapas com três corridas
     if "reverse" in baixo:
         return "Corrida Grid Invertido"
     if "feature" in baixo:
@@ -127,7 +129,10 @@ def montar_etapa(html):
         else:
             em_brasilia = inicio.astimezone(BRASILIA)
             data, horario = em_brasilia.strftime(FORMATO), em_brasilia.strftime("%H:%M")
-        sessoes.append({"nome": nome, "data": data, "horario": horario})
+        sessao = {"nome": nome, "data": data, "horario": horario}
+        # "Qualifying 1" e "Qualifying 2" (grupos) vêm no mesmo horário: mostra uma só vez.
+        if sessao not in sessoes:
+            sessoes.append(sessao)
 
     return {
         "_inicio": itens[0][0],
