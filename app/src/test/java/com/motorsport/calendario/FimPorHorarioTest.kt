@@ -40,12 +40,12 @@ class FimPorHorarioTest {
         )
         val etapa = lista.single()
 
-        val fimEsperado = corrida.toInstant()
+        val fimEsperado = corrida.inicio.toInstant()
             .plusSeconds(RegrasDeFiltro.HORAS_APOS_ULTIMA_SESSAO * 3600)
         assertEquals(fimEsperado.toEpochMilli(), etapa.terminaEmMs)
 
         // Logo depois da corrida ainda conta como em andamento; passada a margem, finalizou.
-        assertFalse(RegrasDeFiltro.finalizada(etapa, hoje, corrida.toInstant().plusSeconds(3600)))
+        assertFalse(RegrasDeFiltro.finalizada(etapa, hoje, corrida.inicio.toInstant().plusSeconds(3600)))
         assertTrue(RegrasDeFiltro.finalizada(etapa, hoje, fimEsperado.plusSeconds(60)))
     }
 
