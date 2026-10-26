@@ -1,0 +1,25 @@
+name: Diagnostico FE sessoes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Rodar diagnóstico
+        run: python .github/scripts/diagnostico_fe_sessoes.py
+      - name: Guardar HTML baixado
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paginas-fe
+          path: fe_pagina_*.html
+          if-no-files-found: ignore
