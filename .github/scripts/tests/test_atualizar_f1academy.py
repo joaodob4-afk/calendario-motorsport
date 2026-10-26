@@ -100,6 +100,23 @@ class AtualizadorF1AcademyTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             f1a.montar_calendario([f1a.montar_etapa(antiga), f1a.montar_etapa(XANGAI)])
 
+    def test_etapa_de_tres_corridas_com_classificacao_em_dois_grupos(self):
+        html = pagina("Round 5: Austin 22-25 October 2026", [
+            sessao("Free Practice", "2026-10-22T12:25:00-05:00"),
+            sessao("Qualifying 1", "2026-10-22T16:30:00-05:00"),
+            sessao("Qualifying 2", "2026-10-22T16:30:00-05:00"),
+            sessao("Opening Race", "2026-10-23T17:50:00-05:00"),
+            sessao("Reverse Grid Race", "2026-10-24T18:00:00-05:00"),
+            sessao("Feature Race", "2026-10-25T12:00:00-05:00"),
+        ])
+        etapa = f1a.montar_etapa(html)
+        self.assertEqual(
+            [s["nome"] for s in etapa["sessoes"]],
+            ["Treino Livre", "Classificação", "Corrida de Abertura",
+             "Corrida Grid Invertido", "Corrida Feature"],
+        )
+        self.assertEqual((etapa["inicio"], etapa["fim"]), ("22/10/2026", "25/10/2026"))
+
     def test_nomes_de_2025(self):
         self.assertEqual(f1a.nome_da_sessao({"SessionName": "Race 1"}), "Corrida Grid Invertido")
         self.assertEqual(f1a.nome_da_sessao({"SessionName": "Race 2"}), "Corrida Feature")
