@@ -167,4 +167,6 @@
     <string name="favoritas_dica">The home screen lists only your favorites. With none, it lists all.</string>
     <string name="cd_favoritar_categoria">Add %s to favorites</string>
     <string name="cd_desfavoritar_categoria">Remove %s from favorites</string>
+    <string name="personalizar_marcadas">%d selected</string>
+    <string name="favoritas_limpar">Clear favorites</string>
 </resources>
