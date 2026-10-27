@@ -152,224 +152,41 @@ class MainActivity : AppCompatActivity() {
     private var etapasIndyCarDinamicas: List<Etapa>? = null
     private var etapasMotoDinamicas: List<Etapa>? = null
 
+    /** Resultado de [todasEtapas] e as listas de onde ele saiu: só é refeito quando alguma muda. */
+    private var cacheDeTodasEtapas: List<Etapa>? = null
+    private var origemDoCache: List<Any?> = emptyList()
+
+    /**
+     * Todas as etapas, com o fim de cada uma ajustado pelas sessões. É consultada várias vezes a
+     * cada mudança de filtro; calcular de novo toda vez causava travadas, então fica em cache.
+     */
     private val todasEtapas: List<Etapa>
-        get() = RegrasDeFiltro.comFimPorHorario(
-            (etapasF1Dinamicas ?: emptyList()) +
-                (etapasF2Dinamicas ?: emptyList()) +
-                (etapasF3Dinamicas ?: emptyList()) +
-                (etapasF1AcademyDinamicas ?: emptyList()) +
-                (etapasFormulaEDinamicas ?: emptyList()) +
-                (etapasIndyCarDinamicas ?: emptyList()) +
-                (etapasMotoDinamicas ?: emptyList()),
-            sessoes
-        )
-
-    private fun parseDataSegura(data: String?): java.time.LocalDate? {
-        if (data.isNullOrBlank()) return null
-        return try {
-            java.time.LocalDate.parse(data)
-        } catch (e: Exception) {
-            registrarDescarte("MainActivity.parseDataSegura", e)
-            null
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        modoNoturnoDaTela = modoNoturnoAtual()
-
-        savedInstanceState?.let {
-            filtros = FiltrosDeEtapas(
-                categoria = it.getString(CHAVE_FILTRO_CATEGORIA).orEmpty(),
-                mostrarFinalizadas = it.getBoolean(CHAVE_FILTRO_FINALIZADAS),
-                paises = it.getStringArrayList(CHAVE_FILTRO_PAISES)?.toSet().orEmpty(),
-                meses = it.getStringArrayList(CHAVE_FILTRO_MESES)?.toSet().orEmpty()
+        get() {
+            val origem = listOf(
+                etapasF1Dinamicas, etapasF2Dinamicas, etapasF3Dinamicas, etapasF1AcademyDinamicas,
+                etapasFormulaEDinamicas, etapasIndyCarDinamicas, etapasMotoDinamicas, sessoes
             )
-        }
+            val guardado = cacheDeTodasEtapas
 
-        // As categorias favoritas ficam gravadas no aparelho.
-        filtros = filtros.copy(categoriasFavoritas = PreferenciasDeFavoritas.categorias(this))
-
-        // Em rotação/recriação, não baixa tudo de novo (o cache já está atualizado).
-        carregarCalendarios(baixar = savedInstanceState == null)
-
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
-                    if (categoriaAtual.isEmpty() && gaveta != null) {
-                        if (gaveta.isDrawerOpen(GravityCompat.START)) {
-                            gaveta.closeDrawer(GravityCompat.START)
-                            return
-                        }
-                        if (gaveta.isDrawerOpen(GravityCompat.END)) {
-                            gaveta.closeDrawer(GravityCompat.END)
-                            return
-                        }
-                    }
-
-                    if (categoriaAtual.isNotEmpty()) {
-                        categoriaAtual = ""
-                        mostrarMenu()
-                        overridePendingTransition(
-                            R.anim.slide_in_left,
-                            R.anim.slide_out_right
-                        )
-                    } else {
-                        finish()
-                    }
-                }
+            if (guardado != null && origem.indices.all { origem[it] === origemDoCache[it] }) {
+                return guardado
             }
-        )
 
-        mostrarMenu()
+            val novas = RegrasDeFiltro.comFimPorHorario(
+                (etapasF1Dinamicas ?: emptyList()) +
+                    (etapasF2Dinamicas ?: emptyList()) +
+                    (etapasF3Dinamicas ?: emptyList()) +
+                    (etapasF1AcademyDinamicas ?: emptyList()) +
+                    (etapasFormulaEDinamicas ?: emptyList()) +
+                    (etapasIndyCarDinamicas ?: emptyList()) +
+                    (etapasMotoDinamicas ?: emptyList()),
+                sessoes
+            )
 
-        savedInstanceState?.getString(CHAVE_CATEGORIA)
-            ?.takeIf { it.isNotEmpty() }
-            ?.let { abrirCategoria(it) }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putString(CHAVE_CATEGORIA, categoriaAtual)
-        outState.putString(CHAVE_FILTRO_CATEGORIA, filtros.categoria)
-        outState.putBoolean(CHAVE_FILTRO_FINALIZADAS, filtros.mostrarFinalizadas)
-        outState.putStringArrayList(CHAVE_FILTRO_PAISES, ArrayList(filtros.paises))
-        outState.putStringArrayList(CHAVE_FILTRO_MESES, ArrayList(filtros.meses))
-    }
-
-    /** true até a primeira leitura dos calendários terminar (evita o aviso "nenhuma etapa"). */
-    private var carregandoCalendarios = true
-
-    /** Lê as sessões (cache ou JSON do APK); um problema aqui só desfaz a ordem por horário. */
-    private fun coletarSessoes(app: android.content.Context): List<SessaoParaAviso> =
-        try {
-            ColetorDeSessoes.coletar(app)
-        } catch (e: Exception) {
-            registrarFalha("MainActivity.coletarSessoes", e)
-            emptyList()
+            cacheDeTodasEtapas = novas
+            origemDoCache = origem
+            return novas
         }
-
-    private fun lerEtapas(origem: String, bloco: () -> List<Etapa>?): List<Etapa>? =
-        try {
-            bloco()
-        } catch (e: Exception) {
-            registrarFalha("MainActivity.carregarCalendarios.$origem", e)
-            null
-        }
-
-    /**
-     * Lê os calendários (cache ou JSON do APK) fora da thread principal, para a primeira tela
-     * aparecer logo. O download das versões novas só começa depois, para uma leitura antiga
-     * nunca sobrescrever uma atualização.
-     */
-    private fun carregarCalendarios(baixar: Boolean = true) {
-        val app = applicationContext
-
-        Thread {
-            val f1 = lerEtapas("F1") { F1CalendarApi.carregarCache(app) }
-            val f2 = lerEtapas("F2") { F2CalendarJson.comoEtapas(F2CalendarJson.carregar(app)) }
-            val f3 = lerEtapas("F3") { F3CalendarJson.comoEtapas(F3CalendarJson.carregar(app)) }
-            val f1a = lerEtapas("F1Academy") {
-                F1AcademyCalendarJson.comoEtapas(F1AcademyCalendarJson.carregar(app))
-            }
-            val indy = lerEtapas("IndyCar") {
-                IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(app))
-            }
-            val fe = lerEtapas("FormulaE") {
-                FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
-            }
-            val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
-            val coletadas = coletarSessoes(app)
-
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
-
-                etapasF1Dinamicas = f1
-                etapasF2Dinamicas = f2
-                etapasF3Dinamicas = f3
-                etapasF1AcademyDinamicas = f1a
-                etapasIndyCarDinamicas = indy
-                etapasFormulaEDinamicas = fe
-                etapasMotoDinamicas = moto
-                sessoes = coletadas
-                carregandoCalendarios = false
-
-                // Filtros restaurados de uma rotação podem apontar para algo que não existe mais.
-                filtros = RegrasDeFiltro.podar(todasEtapas, filtros, java.time.LocalDate.now())
-
-                if (categoriaAtual.isEmpty()) {
-                    atualizarBotaoFiltro()
-                    atualizarBarraDeFinalizadas()
-                    mostrarEtapas(animar = true)
-                }
-
-                if (baixar) baixarCalendariosNovos()
-            }
-        }.start()
-    }
-
-
-    /** Baixa as versões novas dos calendários; ao terminar cada uma, a lista é atualizada. */
-    private fun baixarCalendariosNovos() {
-        F2CalendarJson.atualizar(this) {
-            recarregar({ F2CalendarJson.comoEtapas(F2CalendarJson.carregar(applicationContext)) }) { etapasF2Dinamicas = it }
-        }
-
-        F3CalendarJson.atualizar(this) {
-            recarregar({ F3CalendarJson.comoEtapas(F3CalendarJson.carregar(applicationContext)) }) { etapasF3Dinamicas = it }
-        }
-
-        F1AcademyCalendarJson.atualizar(this) {
-            recarregar({ F1AcademyCalendarJson.comoEtapas(F1AcademyCalendarJson.carregar(applicationContext)) }) { etapasF1AcademyDinamicas = it }
-        }
-
-        IndyCarCalendarJson.atualizar(this) {
-            recarregar({ IndyCarCalendarJson.comoEtapas(IndyCarCalendarJson.carregar(applicationContext)) }) { etapasIndyCarDinamicas = it }
-        }
-
-        FormulaECalendarJson.atualizar(this) {
-            recarregar({ FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(applicationContext)) }) { etapasFormulaEDinamicas = it }
-        }
-
-        // MotoGP, Moto2, Moto3 e WEC usam as mesmas telas; cada classe tem o seu calendário.
-        // As 4 classes costumam terminar quase juntas: agrupa tudo em uma única recarga.
-        for (classe in ClasseMoto.values()) {
-            MotoCalendarJson.atualizar(this, classe) {
-                if (recargaMotoAgendada) return@atualizar
-                recargaMotoAgendada = true
-                handlerRedesenho.postDelayed({
-                    recargaMotoAgendada = false
-                    recarregar({ MotoCalendarJson.etapasDeTodas(applicationContext) }) { etapasMotoDinamicas = it }
-                }, 800)
-            }
-        }
-
-        F1CalendarApi.atualizar(this) {
-            recarregar({ F1CalendarApi.carregarCache(applicationContext) }) { etapasF1Dinamicas = it }
-        }
-    }
-
-    /**
-     * Relê um calendário fora da thread principal (disco + JSON), reagenda os avisos e só então
-     * aplica o resultado na tela, se ela ainda existir.
-     */
-    private fun recarregar(carga: () -> List<Etapa>?, aplicar: (List<Etapa>?) -> Unit) {
-        val app = applicationContext
-        Thread {
-            val etapas = lerEtapas("recarregar", carga)
-            val coletadas = coletarSessoes(app)
-            AgendadorDeAvisos.reagendarEmSegundoPlano(app)
-            runOnUiThread {
-                if (isFinishing || isDestroyed) return@runOnUiThread
-                if (etapas != null) aplicar(etapas)
-                sessoes = coletadas
-                redesenharListaDepois()
-            }
-        }.start()
-    }
 
     override fun onResume() {
         super.onResume()
@@ -451,6 +268,7 @@ class MainActivity : AppCompatActivity() {
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
 
         configurarBotaoTopo()
+        configurarAtualizacao()
         atualizarBotaoFiltro()
         atualizarBarraDeFinalizadas()
 
@@ -493,33 +311,63 @@ class MainActivity : AppCompatActivity() {
 
             override fun onDrawerClosed(drawerView: View) {
                 jaAnimou.remove(drawerView.id)
+
+                // O painel dos favoritos fechou: agora a lista é refeita, já à vista.
+                if (drawerView.id == R.id.scrollFiltros && listaDesatualizada) {
+                    handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
+                    handlerRedesenho.postDelayed(redesenhoDosFiltros, 60)
+                }
             }
         })
     }
 
+    /** Há uma mudança de filtro ainda não refletida na lista da tela inicial. */
+    private var listaDesatualizada = false
+    private var rolarAoTopoPendente = false
+
+    private val redesenhoDosFiltros = Runnable {
+        if (!listaDesatualizada || categoriaAtual.isNotEmpty()) return@Runnable
+
+        listaDesatualizada = false
+        mostrarEtapas(animar = true)
+
+        if (rolarAoTopoPendente) {
+            rolarAoTopoPendente = false
+            findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+        }
+    }
+
     /**
      * Aplica uma mudança vinda do painel do coração ou do interruptor "Finalizadas": guarda o
-     * que é gravado no aparelho (categorias favoritas) e redesenha a lista.
+     * que é gravado no aparelho (categorias favoritas) e atualiza a lista.
+     *
+     * Refazer a lista é o trabalho mais pesado do app e travava as animações do toque. Por isso
+     * ele espera: com o painel da direita aberto, só acontece quando ele fecha; com o
+     * interruptor, começa depois da animação dele.
      */
     private fun aplicarFiltros(novos: FiltrosDeEtapas) {
         val anteriores = filtros
 
         filtros = RegrasDeFiltro.podar(todasEtapas, novos, java.time.LocalDate.now())
 
-        if (filtros.categoriasFavoritas != anteriores.categoriasFavoritas) {
+        val favoritasMudaram = filtros.categoriasFavoritas != anteriores.categoriasFavoritas
+
+        if (favoritasMudaram) {
             PreferenciasDeFavoritas.definirCategorias(this, filtros.categoriasFavoritas)
         }
 
         atualizarBotaoFiltro()
         atualizarBarraDeFinalizadas()
 
-        val listaMudou = filtros.categoriasFavoritas != anteriores.categoriasFavoritas ||
-            filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas
+        if (favoritasMudaram || filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas) {
+            listaDesatualizada = true
+            if (favoritasMudaram) rolarAoTopoPendente = true
 
-        if (listaMudou) {
-            mostrarEtapas(animar = true)
-            if (filtros.categoriasFavoritas != anteriores.categoriasFavoritas) {
-                findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+            handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
+
+            val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
+            if (gaveta == null || !gaveta.isDrawerOpen(GravityCompat.END)) {
+                handlerRedesenho.postDelayed(redesenhoDosFiltros, 220)
             }
         }
     }
@@ -538,8 +386,8 @@ class MainActivity : AppCompatActivity() {
                 ligado,
                 anterior,
                 corLigado = getColor(R.color.azul_destaque),
-                corDaTrilha = getColor(R.color.fundo_tela),
-                corDoContorno = getColor(R.color.borda_suave)
+                corDaTrilha = getColor(R.color.azul_marinho),
+                corDoContorno = getColor(R.color.azul_marinho_borda)
             ).apply {
                 isClickable = true
                 isFocusable = true
@@ -558,23 +406,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Puxar a lista para baixo, estando no topo, atualiza: baixa os calendários de novo e refaz
+     * os avisos. A lista se atualiza sozinha quando cada calendário termina de baixar.
+     */
+    private fun configurarAtualizacao() {
+        val puxar = findViewById<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.atualizarLista)
+            ?: return
+
+        puxar.setColorSchemeColors(getColor(R.color.azul_destaque))
+        puxar.setProgressBackgroundColorSchemeColor(getColor(R.color.superficie))
+
+        puxar.setOnRefreshListener {
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            baixarCalendariosNovos()
+            redesenharListaDepois()
+
+            // Os downloads seguem em segundo plano; o indicador some depois de um instante.
+            handlerRedesenho.postDelayed({ puxar.isRefreshing = false }, 1400)
+        }
+    }
+
     /** Botão redondo que aparece ao rolar a lista para baixo e leva de volta ao topo. */
     private fun configurarBotaoTopo() {
         val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
         val botao = findViewById<View>(R.id.btnTopo) ?: return
 
         botaoTopoVisivel = false
+        mesNoTopo = -1
         val limite = emPx(240f)
 
         rolagem.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             mostrarBotaoTopo(botao, scrollY > topoDaLista() + limite)
-            atualizarMesFlutuante()
+            atualizarMesDoTopo()
         }
 
         // Cards entram aos poucos e as finalizadas aparecem por cima: o mês é refeito a cada layout.
-        listaEtapas.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> atualizarMesFlutuante() }
-        findViewById<TextView>(R.id.mesFlutuante)?.typeface =
-            android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+        listaEtapas.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> atualizarMesDoTopo() }
+        findViewById<TextView>(R.id.mesTopo)?.typeface =
+            android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
         botao.setOnClickListener { rolagem.smoothScrollTo(0, topoDaLista()) }
         botao.comEfeitoDeToque(escala = 0.88f)
     }
@@ -672,67 +542,84 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** "NOVEMBRO" ou, fora do ano atual, "JANEIRO 2027". */
-    private fun textoDoMes(data: java.time.LocalDate): String {
-        val idiomaApp = Idioma.locale(this)
-        val anoAtual = java.time.LocalDate.now().year
+    /** Mês mostrado agora na faixa azul (ano*12+mês); evita animar quando nada mudou. */
+    private var mesNoTopo = -1
 
-        return data.month.getDisplayName(java.time.format.TextStyle.FULL, idiomaApp)
-            .uppercase(idiomaApp) + if (data.year != anoAtual) " ${data.year}" else ""
+    /** "Novembro" em destaque e, fora do ano atual, o ano menor e mais claro ao lado. */
+    private fun rotuloDoMes(data: java.time.LocalDate): CharSequence {
+        val idiomaApp = Idioma.locale(this)
+        val nome = data.month.getDisplayName(java.time.format.TextStyle.FULL, idiomaApp)
+            .replaceFirstChar { it.titlecase(idiomaApp) }
+
+        if (data.year == java.time.LocalDate.now().year) return nome
+
+        val texto = android.text.SpannableString("$nome ${data.year}")
+        val inicioDoAno = nome.length + 1
+        texto.setSpan(
+            android.text.style.RelativeSizeSpan(0.68f),
+            inicioDoAno, texto.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        texto.setSpan(
+            android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#9FB4DC")),
+            inicioDoAno, texto.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        return texto
     }
 
-    /**
-     * Mês fixo no topo da lista. Mostra o mês da etapa que está passando e troca quando a
-     * rolagem chega às etapas de outro mês; o próximo mês empurra o atual para cima ao chegar.
-     */
-    private fun atualizarMesFlutuante() {
-        val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
-        val flutuante = findViewById<TextView>(R.id.mesFlutuante) ?: return
+    /** Troca o mês da faixa azul: o antigo sobe e some, o novo sobe de baixo. */
+    private fun mostrarMesNoTopo(data: java.time.LocalDate) {
+        val rotulo = findViewById<TextView>(R.id.mesTopo) ?: return
+        val chave = data.year * 12 + data.monthValue
 
-        val altura = flutuante.height.takeIf { it > 0 } ?: emPx(36f)
-        val topoDaTela = rolagem.scrollY
-        val deslocamento = listaEtapas.top
+        if (chave == mesNoTopo) return
 
-        var atual: View? = null
-        var proximo: View? = null
+        val primeiraVez = mesNoTopo == -1
+        mesNoTopo = chave
 
-        // O mês só passa a ser fixo quando o cabeçalho dele já saiu por baixo do mês fixo.
-        for (cabecalho in cabecalhosDeMes
-            .filter { it.parent === listaEtapas && it.visibility == View.VISIBLE }
-            .sortedBy { it.top }
-        ) {
-            if (deslocamento + cabecalho.top + cabecalho.height <= topoDaTela + altura) {
-                atual = cabecalho
-            } else {
-                proximo = cabecalho
-                break
-            }
-        }
+        rotulo.animate().cancel()
 
-        val mes = atual?.tag as? java.time.LocalDate
-
-        if (mes == null) {
-            flutuante.visibility = View.INVISIBLE
+        if (primeiraVez) {
+            rotulo.text = rotuloDoMes(data)
+            rotulo.alpha = 1f
+            rotulo.translationY = 0f
             return
         }
 
-        val texto = textoDoMes(mes)
-        if (flutuante.text.toString() != texto) {
-            val tinhaTexto = flutuante.text.isNotEmpty()
-            flutuante.text = texto
-            if (tinhaTexto) {
-                flutuante.alpha = 0f
-                flutuante.animate().alpha(1f).setDuration(200).start()
-            }
-        }
-        flutuante.visibility = View.VISIBLE
+        val deslocamento = emPx(10f).toFloat()
+        rotulo.animate().alpha(0f).translationY(-deslocamento).setDuration(110).withEndAction {
+            rotulo.text = rotuloDoMes(data)
+            rotulo.translationY = deslocamento
+            rotulo.animate().alpha(1f).translationY(0f).setDuration(200)
+                .setInterpolator(DecelerateInterpolator()).start()
+        }.start()
+    }
 
-        val distancia = if (proximo != null) deslocamento + proximo.top - topoDaTela else Int.MAX_VALUE
-        flutuante.translationY = if (distancia < altura) (distancia - altura).toFloat() else 0f
+    /**
+     * Mês da faixa azul. Acompanha a rolagem: troca quando a lista chega às etapas de outro mês.
+     * Os cabeçalhos de mês da lista são só marcadores; o mês é lido da etiqueta de cada um.
+     */
+    private fun atualizarMesDoTopo() {
+        val rolagem = findViewById<ScrollView>(R.id.scrollPrincipal) ?: return
+
+        val marcadores = cabecalhosDeMes
+            .filter { it.parent === listaEtapas && it.visibility == View.VISIBLE }
+            .sortedBy { it.top }
+
+        if (marcadores.isEmpty()) return
+
+        val linhaDeCorte = rolagem.scrollY + emPx(12f)
+        var atual = marcadores.first()
+
+        for (marcador in marcadores) {
+            if (listaEtapas.top + marcador.top <= linhaDeCorte) atual = marcador else break
+        }
+
+        (atual.tag as? java.time.LocalDate)?.let { mostrarMesNoTopo(it) }
     }
 
     /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
     private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
+        // O nome do mês fica na faixa azul; aqui só um respiro e uma linha fina entre os meses.
         val coluna = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         if (!primeiro) {
@@ -742,21 +629,19 @@ class MainActivity : AppCompatActivity() {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         emPx(1f).coerceAtLeast(1)
-                    ).apply { topMargin = emPx(10f) }
+                    ).apply { topMargin = emPx(8f); bottomMargin = emPx(8f) }
+                }
+            )
+        } else {
+            coluna.addView(
+                android.view.View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        emPx(6f)
+                    )
                 }
             )
         }
-
-        coluna.addView(
-            TextView(this).apply {
-                text = textoDoMes(data)
-                setTextColor(getColor(R.color.texto_suave))
-                textSize = 13f
-                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
-                letterSpacing = 0.16f
-                setPadding(emPx(4f), emPx(if (primeiro) 6f else 16f), 0, emPx(8f))
-            }
-        )
 
         return coluna
     }

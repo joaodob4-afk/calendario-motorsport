@@ -166,4 +166,6 @@
     <string name="favoritas_dica">A tela inicial mostra só as favoritas. Sem nenhuma, mostra todas.</string>
     <string name="cd_favoritar_categoria">Favoritar %s</string>
     <string name="cd_desfavoritar_categoria">Remover %s dos favoritos</string>
+    <string name="personalizar_marcadas">%d marcadas</string>
+    <string name="favoritas_limpar">Limpar favoritas</string>
 </resources>

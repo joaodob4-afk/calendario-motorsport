@@ -13,109 +13,144 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Cabeçalho: menu, título e filtros. Cada toque tem 48dp. -->
+        <!-- Faixa azul: menu, título e coração; embaixo, o mês da lista (esquerda) e "Finalizadas" (direita) -->
         <LinearLayout
+            android:id="@+id/cabecalho"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@color/azul_marinho"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp">
+            android:orientation="vertical"
+            android:background="@drawable/fundo_cabecalho"
+            android:elevation="4dp"
+            android:paddingBottom="8dp">
 
-            <ImageView
-                android:id="@+id/btnMenu"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:padding="12dp"
-                android:src="@drawable/ic_menu"
-                android:background="@drawable/bg_botao_icone"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/cd_menu" />
-
-            <!-- Título do app; as categorias agora ficam no painel de filtros (à direita) -->
-            <TextView
-                android:id="@+id/tituloApp"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginStart="12dp"
+            <!-- Cabeçalho: menu, título e filtros. Cada toque tem 48dp. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:singleLine="true"
-                android:text="@string/app_name"
-                android:textColor="#FFFFFF"
-                android:textSize="19sp"
-                android:textStyle="bold" />
-
-            <!-- Filtros, com um selo mostrando quantos estão ligados (Kotlin) -->
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="8dp">
+                android:paddingTop="6dp">
 
                 <ImageView
-                    android:id="@+id/btnFiltro"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:id="@+id/btnMenu"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
                     android:padding="12dp"
-                    android:src="@drawable/ic_coracao"
+                    android:src="@drawable/ic_menu"
                     android:background="@drawable/bg_botao_icone"
                     android:clickable="true"
                     android:focusable="true"
-                    android:contentDescription="@string/cd_favoritas" />
+                    android:contentDescription="@string/cd_menu" />
 
+                <!-- Título do app; as categorias agora ficam no painel de filtros (à direita) -->
                 <TextView
-                    android:id="@+id/badgeFiltro"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:background="@drawable/bg_selo_filtro"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:textColor="#0B0D0F"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:importantForAccessibility="no"
-                    android:visibility="gone" />
-            </FrameLayout>
-        </LinearLayout>
+                    android:id="@+id/tituloApp"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:gravity="center_vertical"
+                    android:singleLine="true"
+                    android:text="@string/app_name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
 
-        <!-- "Finalizadas" + interruptor, acima das etapas (o interruptor é criado pelo Kotlin) -->
-        <LinearLayout
-            android:id="@+id/barraFinalizadas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="12dp">
+                <!-- Filtros, com um selo mostrando quantos estão ligados (Kotlin) -->
+                <FrameLayout
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="8dp">
 
-            <TextView
-                android:id="@+id/rotuloFinalizadas"
-                android:layout_width="0dp"
+                    <ImageView
+                        android:id="@+id/btnFiltro"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_coracao"
+                        android:background="@drawable/bg_botao_icone"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="@string/cd_favoritas" />
+
+                    <TextView
+                        android:id="@+id/badgeFiltro"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginEnd="1dp"
+                        android:background="@drawable/bg_selo_filtro"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:textColor="#0B0D0F"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:importantForAccessibility="no"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/finalizadas_rotulo"
-                android:textColor="@color/texto_principal"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="14dp">
 
-            <FrameLayout
-                android:id="@+id/trocoFinalizadas"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                <!-- Mês da etapa que está passando; o texto vem do Kotlin -->
+                <TextView
+                    android:id="@+id/mesTopo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <!-- "Finalizadas" + interruptor (o interruptor é criado pelo Kotlin) -->
+                <LinearLayout
+                    android:id="@+id/barraFinalizadas"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="8dp"
+                    android:background="@drawable/bg_pilula_finalizadas">
+
+                    <TextView
+                        android:id="@+id/rotuloFinalizadas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:text="@string/finalizadas_rotulo"
+                        android:textColor="#DCE6FA"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <FrameLayout
+                        android:id="@+id/trocoFinalizadas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+            </LinearLayout>
         </LinearLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1">
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/atualizarLista"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
             <ScrollView
                 android:id="@+id/scrollPrincipal"
@@ -134,23 +169,7 @@
                     android:layout_marginBottom="16dp"
                     android:orientation="vertical" />
             </ScrollView>
-
-            <!-- Mês que acompanha a rolagem; o texto e a posição vêm do Kotlin -->
-            <TextView
-                android:id="@+id/mesFlutuante"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:background="@color/fundo_tela"
-                android:paddingStart="4dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
-                android:letterSpacing="0.16"
-                android:textColor="@color/texto_suave"
-                android:textSize="13sp"
-                android:visibility="invisible"
-                android:importantForAccessibility="no" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <!-- Aparece depois de rolar a lista para baixo (Kotlin) -->
             <ImageView

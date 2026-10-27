@@ -292,14 +292,14 @@ internal object MenuPrincipal {
 
         val ponto = View(activity).apply {
             background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
                 setColor(Color.parseColor(categoria.cor))
+                cornerRadius = activity.emPx(2f).toFloat()
             }
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(10f), activity.emPx(10f))
-                .apply { marginEnd = activity.emPx(8f) }
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(4f), activity.emPx(28f))
+                .apply { marginEnd = activity.emPx(10f) }
         }
 
-        val nome = texto(activity, categoria.nome, 14f, principal(activity), Typeface.BOLD).apply {
+        val nome = texto(activity, categoria.nome, 15f, principal(activity), Typeface.BOLD).apply {
             isSingleLine = true
             ellipsize = android.text.TextUtils.TruncateAt.END
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -308,8 +308,8 @@ internal object MenuPrincipal {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = activity.emPx(56f)
-            setPadding(activity.emPx(12f), activity.emPx(8f), activity.emPx(6f), activity.emPx(8f))
+            minimumHeight = activity.emPx(60f)
+            setPadding(activity.emPx(14f), activity.emPx(8f), activity.emPx(10f), activity.emPx(8f))
             addView(ponto)
             addView(nome)
             addView(
@@ -346,10 +346,10 @@ internal object MenuPrincipal {
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             background = forma(activity, activity.getColor(R.color.fundo_tela), activity.getColor(R.color.borda_suave), 12f)
-            setPadding(activity.emPx(2f), activity.emPx(3f), activity.emPx(2f), activity.emPx(3f))
+            setPadding(activity.emPx(3f), activity.emPx(3f), activity.emPx(3f), activity.emPx(3f))
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                activity.emPx(38f)
+                activity.emPx(40f)
             )
 
             ModoDeAviso.values().forEach { modo ->
@@ -384,8 +384,9 @@ internal object MenuPrincipal {
                         } else {
                             comToque(activity, Color.TRANSPARENT, null, 9f)
                         }
+                        // Larguras iguais: os seletores de todas as categorias ficam alinhados.
                         layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            activity.emPx(60f),
                             LinearLayout.LayoutParams.MATCH_PARENT
                         )
                         setOnClickListener { aoEscolher(modo) }

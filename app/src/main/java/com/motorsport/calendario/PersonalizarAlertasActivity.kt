@@ -26,8 +26,18 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
     private val corDoTextoSobreCor = Color.parseColor("#0E1012")
 
-    private lateinit var grupoDeAntecedencias: LinhasQuebradas
+    private lateinit var corpo: LinearLayout
+    private lateinit var gradeDeAntecedencias: LinearLayout
+    private lateinit var contagem: TextView
     private lateinit var secaoDeCategorias: LinearLayout
+
+    /** Antecedência recém-marcada: a cápsula refeita "estoura" para confirmar o toque. */
+    private var recemMarcada: Int? = null
+
+    private companion object {
+        /** Colunas da grade de antecedências; 12 opções formam 3 linhas iguais de 4. */
+        const val COLUNAS = 4
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +45,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
         // Só na abertura: numa troca de tema a página é refeita no lugar, sem animar de novo.
         if (savedInstanceState == null) {
-            (grupoDeAntecedencias.parent as? ViewGroup)?.entrarEmCascata()
+            corpo.entrarEmCascata()
         }
     }
 
@@ -56,17 +66,30 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
         raiz.addView(cabecalho())
 
-        grupoDeAntecedencias = LinhasQuebradas(this).apply {
-            espacoHorizontal = emPx(8f)
-            espacoVertical = emPx(8f)
+        gradeDeAntecedencias = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(emPx(8f), emPx(8f), emPx(8f), emPx(8f))
+            background = cartao()
         }
         secaoDeCategorias = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
-        val corpo = LinearLayout(this).apply {
+        contagem = TextView(this).apply {
+            textSize = 12f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            setTextColor(corDoTextoSobreCor)
+            gravity = Gravity.CENTER
+            setPadding(emPx(10f), emPx(3f), emPx(10f), emPx(3f))
+            background = GradientDrawable().apply {
+                setColor(getColor(R.color.azul_destaque))
+                cornerRadius = emPx(10f).toFloat()
+            }
+        }
+
+        corpo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(emPx(16f), emPx(4f), emPx(16f), emPx(24f))
-            addView(tituloDeSecao(R.string.personalizar_antecedencia))
-            addView(grupoDeAntecedencias)
+            setPadding(emPx(16f), emPx(4f), emPx(16f), emPx(28f))
+            addView(tituloDaPrimeiraSecao())
+            addView(gradeDeAntecedencias)
             addView(tituloDeSecao(R.string.por_categoria_titulo))
             addView(secaoDeCategorias)
         }
@@ -115,7 +138,27 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
         }
     }
 
-    private fun tituloDeSecao(textoRes: Int): View =
+    /** "ALERTA POR ANTECEDÊNCIA" e, à direita, quantas estão marcadas. */
+    private fun tituloDaPrimeiraSecao(): View =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(
+                tituloDeSecao(R.string.personalizar_antecedencia).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                }
+            )
+            addView(contagem)
+        }
+
+    private fun cartao() =
+        GradientDrawable().apply {
+            setColor(getColor(R.color.superficie))
+            setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
+            cornerRadius = emPx(18f).toFloat()
+        }
+
+    private fun tituloDeSecao(textoRes: Int): TextView =
         TextView(this).apply {
             text = getString(textoRes).uppercase(Idioma.locale(this@PersonalizarAlertasActivity))
             setTextColor(getColor(R.color.texto_suave))
@@ -125,48 +168,70 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             setPadding(emPx(4f), emPx(20f), 0, emPx(10f))
         }
 
-    /** Refaz só as cápsulas de antecedência (a rolagem da página não se mexe). */
+    /** Refaz só a grade de antecedências (a rolagem da página não se mexe). */
     private fun desenharAntecedencias() {
         val selecionados = PreferenciasDeAviso.minutosSelecionados(this)
+        val opcoes = PreferenciasDeAviso.todasAsOpcoes.sorted()
 
-        grupoDeAntecedencias.removeAllViews()
+        gradeDeAntecedencias.removeAllViews()
 
-        for (opcao in PreferenciasDeAviso.todasAsOpcoes.sorted()) {
-            val marcada = opcao in selecionados
+        contagem.visibility = if (selecionados.isEmpty()) View.GONE else View.VISIBLE
+        contagem.text = getString(R.string.personalizar_marcadas, selecionados.size)
 
-            grupoDeAntecedencias.addView(
-                TextView(this).apply {
-                    text = rotuloCurtoDaAntecedencia(this@PersonalizarAlertasActivity, opcao)
-                    textSize = 15f
-                    maxLines = 1
-                    gravity = Gravity.CENTER
-                    includeFontPadding = false
-                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                    minHeight = emPx(44f)
-                    minWidth = emPx(72f)
-                    setPadding(emPx(18f), 0, emPx(18f), 0)
-                    isClickable = true
-                    isFocusable = true
-                    contentDescription = descricaoDaAntecedencia(this@PersonalizarAlertasActivity, opcao)
-                    setTextColor(if (marcada) corDoTextoSobreCor else getColor(R.color.texto_principal))
-                    background = RippleDrawable(
-                        ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
-                        forma(
-                            if (marcada) getColor(R.color.azul_destaque) else getColor(R.color.superficie),
-                            if (marcada) null else getColor(R.color.borda_suave)
-                        ),
-                        forma(Color.WHITE, null)
-                    )
-                    setOnClickListener {
-                        val novos = if (marcada) selecionados - opcao else selecionados + opcao
-                        aplicarAntecedencias(novos)
-                        if (!marcada) animarPop()
-                    }
-                    comEfeitoDeToque(escala = 0.94f)
-                }
-            )
+        opcoes.chunked(COLUNAS).forEach { linha ->
+            val linhaView = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+
+            repeat(COLUNAS) { coluna ->
+                val opcao = linha.getOrNull(coluna)
+                linhaView.addView(
+                    if (opcao != null) capsula(opcao, opcao in selecionados, selecionados) else espaco()
+                )
+            }
+
+            gradeDeAntecedencias.addView(linhaView)
         }
     }
+
+    private fun parametrosDaCelula() =
+        LinearLayout.LayoutParams(0, emPx(52f), 1f).apply {
+            setMargins(emPx(4f), emPx(4f), emPx(4f), emPx(4f))
+        }
+
+    private fun espaco(): View = View(this).apply { layoutParams = parametrosDaCelula() }
+
+    private fun capsula(opcao: Int, marcada: Boolean, selecionados: List<Int>): View =
+        TextView(this).apply {
+            text = rotuloCurtoDaAntecedencia(this@PersonalizarAlertasActivity, opcao)
+            textSize = 15f
+            maxLines = 1
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            typeface = Typeface.create("sans-serif-medium", if (marcada) Typeface.BOLD else Typeface.NORMAL)
+            layoutParams = parametrosDaCelula()
+            isClickable = true
+            isFocusable = true
+            contentDescription = descricaoDaAntecedencia(this@PersonalizarAlertasActivity, opcao)
+            setTextColor(if (marcada) corDoTextoSobreCor else getColor(R.color.texto_principal))
+            background = RippleDrawable(
+                ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
+                forma(
+                    if (marcada) getColor(R.color.azul_destaque) else getColor(R.color.fundo_tela),
+                    if (marcada) null else getColor(R.color.borda_suave)
+                ),
+                forma(Color.WHITE, null)
+            )
+            setOnClickListener {
+                val novos = if (marcada) selecionados - opcao else selecionados + opcao
+                recemMarcada = if (marcada) null else opcao
+                aplicarAntecedencias(novos)
+            }
+            comEfeitoDeToque(escala = 0.93f)
+
+            if (opcao == recemMarcada) {
+                recemMarcada = null
+                post { animarPop() }
+            }
+        }
 
     /** Lista de categorias, uma por linha, com Todas, Corridas e Nenhuma ao lado. */
     private fun desenharCategorias() {
@@ -197,7 +262,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
     private fun forma(preenchimento: Int, borda: Int?) =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = emPx(22f).toFloat()
+            cornerRadius = emPx(14f).toFloat()
             setColor(preenchimento)
             if (borda != null) setStroke(emPx(1f).coerceAtLeast(1), borda)
         }
