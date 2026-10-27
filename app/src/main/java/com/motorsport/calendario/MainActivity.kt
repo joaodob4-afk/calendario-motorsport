@@ -56,10 +56,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var listaEtapas: LinearLayout
 
-    /** Categoria, favoritas e finalizadas escolhidas (painel de filtros e interruptor da tela inicial). */
+    /** Categorias favoritas e finalizadas escolhidas (painel do coração e interruptor da tela inicial). */
     private var filtros = FiltrosDeEtapas()
 
-    /** Painel que abre pela direita (categorias e etapas favoritas); criado em [mostrarMenu]. */
+    /** Painel que abre pela direita (categorias favoritas); criado em [mostrarMenu]. */
     private var menuDeFiltros: MenuDeFiltros? = null
 
     /** Cabeçalhos de mês da lista atual; o primeiro que já passou do topo vira o mês flutuante. */
@@ -188,11 +188,8 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        // As favoritas e o "só favoritas" ficam gravados no aparelho.
-        filtros = filtros.copy(
-            favoritas = PreferenciasDeFavoritas.favoritas(this),
-            somenteFavoritas = PreferenciasDeFavoritas.somenteFavoritas(this)
-        )
+        // As categorias favoritas ficam gravadas no aparelho.
+        filtros = filtros.copy(categoriasFavoritas = PreferenciasDeFavoritas.categorias(this))
 
         // Em rotação/recriação, não baixa tudo de novo (o cache já está atualizado).
         carregarCalendarios(baixar = savedInstanceState == null)
@@ -306,7 +303,6 @@ class MainActivity : AppCompatActivity() {
                 if (categoriaAtual.isEmpty()) {
                     atualizarBotaoFiltro()
                     atualizarBarraDeFinalizadas()
-                    menuDeFiltros?.atualizar()
                     mostrarEtapas(animar = true)
                 }
 
@@ -441,14 +437,11 @@ class MainActivity : AppCompatActivity() {
         menuDeFiltros = MenuDeFiltros(
             activity = this,
             container = findViewById(R.id.containerFiltros),
-            todasEtapas = { todasEtapas },
-            sessoes = { sessoes },
-            filtros = { filtros },
-            nomeDaEtapa = { etapa ->
-                nomeDoEvento(etapa).ifBlank { lugarExibido(etapa.pais) }
-            },
-            aoMudar = { novos -> aplicarFiltros(novos) }
+            favoritas = { filtros.categoriasFavoritas },
+            aoMudar = { novas -> aplicarFiltros(filtros.copy(categoriasFavoritas = novas)) }
         ).also { it.montar() }
+
+        configurarAnimacaoDosPaineis()
 
         findViewById<View>(R.id.btnFiltro).setOnClickListener {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.END)
@@ -464,56 +457,70 @@ class MainActivity : AppCompatActivity() {
         mostrarEtapas()
     }
 
-    /** Selo no botão de filtros: categoria escolhida e "só favoritas" ligados (some quando são 0). */
+    /** Selo no coração: quantas categorias favoritas há (some quando são 0). */
     private fun atualizarBotaoFiltro() {
         val selo = findViewById<TextView>(R.id.badgeFiltro) ?: return
-        val quantos = (if (filtros.categoria.isNotBlank()) 1 else 0) +
-            (if (filtros.somenteFavoritas) 1 else 0)
+        val quantos = filtros.categoriasFavoritas.size
         val estavaVisivel = selo.visibility == View.VISIBLE
+        val antes = selo.text.toString()
 
         selo.text = quantos.toString()
         selo.visibility = if (quantos > 0) View.VISIBLE else View.GONE
 
-        if (quantos > 0 && !estavaVisivel) selo.animarPop()
+        if (quantos > 0 && (!estavaVisivel || antes != quantos.toString())) selo.animarPop()
+        if (quantos > 0 && antes != quantos.toString()) {
+            findViewById<View>(R.id.btnFiltro)?.animarPop()
+        }
     }
 
     /**
-     * Aplica uma mudança vinda do painel de filtros ou do interruptor "Finalizadas": guarda o
-     * que é gravado no aparelho (favoritas) e redesenha a lista.
+     * Os dois painéis laterais entram em cascata: cada linha sobe e aparece, uma após a outra,
+     * assim que o painel começa a abrir.
+     */
+    private fun configurarAnimacaoDosPaineis() {
+        val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout) ?: return
+        val jaAnimou = HashSet<Int>()
+
+        gaveta.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+                if (slideOffset <= 0f || !jaAnimou.add(drawerView.id)) return
+
+                when (drawerView.id) {
+                    R.id.scrollFiltros -> menuDeFiltros?.animarEntrada()
+                    else -> findViewById<LinearLayout>(R.id.containerMenuLateral)?.entrarEmCascata()
+                }
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                jaAnimou.remove(drawerView.id)
+            }
+        })
+    }
+
+    /**
+     * Aplica uma mudança vinda do painel do coração ou do interruptor "Finalizadas": guarda o
+     * que é gravado no aparelho (categorias favoritas) e redesenha a lista.
      */
     private fun aplicarFiltros(novos: FiltrosDeEtapas) {
         val anteriores = filtros
-        val hoje = java.time.LocalDate.now()
 
-        filtros = RegrasDeFiltro.podar(todasEtapas, novos, hoje)
+        filtros = RegrasDeFiltro.podar(todasEtapas, novos, java.time.LocalDate.now())
 
-        if (filtros.favoritas != anteriores.favoritas) {
-            PreferenciasDeFavoritas.definirFavoritas(this, filtros.favoritas)
+        if (filtros.categoriasFavoritas != anteriores.categoriasFavoritas) {
+            PreferenciasDeFavoritas.definirCategorias(this, filtros.categoriasFavoritas)
         }
-        if (filtros.somenteFavoritas != anteriores.somenteFavoritas) {
-            PreferenciasDeFavoritas.definirSomenteFavoritas(this, filtros.somenteFavoritas)
-        }
-
-        val categoriaMudou = Formatacao.normalizar(filtros.categoria) !=
-            Formatacao.normalizar(anteriores.categoria)
-
-        // Só a estrela de uma etapa mudou e a lista não depende disso: nada a redesenhar.
-        val listaMudou = categoriaMudou ||
-            filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas ||
-            filtros.somenteFavoritas != anteriores.somenteFavoritas ||
-            (filtros.somenteFavoritas && filtros.favoritas != anteriores.favoritas)
 
         atualizarBotaoFiltro()
         atualizarBarraDeFinalizadas()
 
-        // A lista de etapas do painel da direita também esconde ou mostra as finalizadas.
-        if (filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas) {
-            menuDeFiltros?.atualizar()
-        }
+        val listaMudou = filtros.categoriasFavoritas != anteriores.categoriasFavoritas ||
+            filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas
 
         if (listaMudou) {
             mostrarEtapas(animar = true)
-            if (categoriaMudou) findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+            if (filtros.categoriasFavoritas != anteriores.categoriasFavoritas) {
+                findViewById<ScrollView>(R.id.scrollPrincipal)?.scrollTo(0, 0)
+            }
         }
     }
 
@@ -710,7 +717,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         val texto = textoDoMes(mes)
-        if (flutuante.text.toString() != texto) flutuante.text = texto
+        if (flutuante.text.toString() != texto) {
+            val tinhaTexto = flutuante.text.isNotEmpty()
+            flutuante.text = texto
+            if (tinhaTexto) {
+                flutuante.alpha = 0f
+                flutuante.animate().alpha(1f).setDuration(200).start()
+            }
+        }
         flutuante.visibility = View.VISIBLE
 
         val distancia = if (proximo != null) deslocamento + proximo.top - topoDaTela else Int.MAX_VALUE

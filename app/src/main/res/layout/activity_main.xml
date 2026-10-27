@@ -61,11 +61,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="12dp"
-                    android:src="@drawable/ic_filtro"
+                    android:src="@drawable/ic_coracao"
                     android:background="@drawable/bg_botao_icone"
                     android:clickable="true"
                     android:focusable="true"
-                    android:contentDescription="@string/cd_filtros" />
+                    android:contentDescription="@string/cd_favoritas" />
 
                 <TextView
                     android:id="@+id/badgeFiltro"

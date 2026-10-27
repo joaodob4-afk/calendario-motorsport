@@ -160,4 +160,11 @@
     <string name="cd_desfavoritar">Remove %s from favorites</string>
     <string name="finalizadas_rotulo">Finished</string>
     <string name="cd_finalizadas">Show finished rounds</string>
+
+    <string name="personalizar_antecedencia">Alert by lead time</string>
+    <string name="cd_favoritas">Favorite categories</string>
+    <string name="favoritas_titulo">Favorite categories</string>
+    <string name="favoritas_dica">The home screen lists only your favorites. With none, it lists all.</string>
+    <string name="cd_favoritar_categoria">Add %s to favorites</string>
+    <string name="cd_desfavoritar_categoria">Remove %s from favorites</string>
 </resources>

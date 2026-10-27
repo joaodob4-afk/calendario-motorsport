@@ -43,27 +43,11 @@ class MenuPrincipalTest {
     private fun textos(): List<String> =
         todas(container).filterIsInstance<TextView>().map { it.text.toString() }
 
-    /** A linha de uma categoria: o nome à esquerda e, ao lado, as três opções. */
-    private fun linhaDa(categoria: String): ViewGroup = textView(categoria).parent as ViewGroup
-
-    private fun opcaoDa(categoria: String, rotulo: String): TextView =
-        todas(linhaDa(categoria)).filterIsInstance<TextView>().first { it.text.toString() == rotulo }
-
-    private fun textosIguais(texto: String) = textos().count { it == texto }
-
-    private fun textView(texto: String): TextView =
+    private fun textoDe(texto: String): TextView =
         todas(container).filterIsInstance<TextView>().first { it.text.toString() == texto }
 
     private fun comDescricao(descricao: String): View =
         todas(container).first { it.contentDescription == descricao }
-
-    /** As categorias começam recolhidas; este toque abre a lista. */
-    private fun abrirCategorias() {
-        comDescricao(activity.getString(R.string.filtros_categorias)).performClick()
-    }
-
-    /** O cartão que reúne todas as categorias (é nele que o esmaecimento é aplicado). */
-    private fun cartaoDaCategoria(categoria: String) = linhaDa(categoria).parent as View
 
     @Test
     fun asSecoesAparecemNaOrdemPedida() {
@@ -71,9 +55,7 @@ class MenuPrincipalTest {
         val ordem = listOf(
             R.string.menu_titulo,
             R.string.na_hora_curto,
-            R.string.antecedencia_titulo,
             R.string.personalizar_alertas,
-            R.string.filtros_categorias,
             R.string.botao_teste,
             R.string.alertas_nao_chegam,
             R.string.botao_bateria
@@ -86,137 +68,51 @@ class MenuPrincipalTest {
     }
 
     @Test
-    fun mostraOsQuatroBotoesDeAntecedenciaEUmaLinhaPorCategoria() {
-        abrirCategorias()
+    fun oPainelNaoTemMaisAntecedenciaNemCategorias() {
         val textos = textos()
 
         listOf("15 min", "30 min", "45 min", activity.getString(R.string.antecedencia_chip_hora))
-            .forEach { assertTrue("Falta o botão $it", it in textos) }
+            .forEach { assertFalse("Não devia ter $it", it in textos) }
 
         Categorias.todas.forEach {
-            assertTrue("Falta a categoria ${it.nome}", it.nome in textos)
+            assertFalse("Não devia ter ${it.nome}", it.nome in textos)
         }
-    }
-
-    @Test
-    fun asCategoriasComecamRecolhidasComAQuantidadeAoLado() {
-        Categorias.todas.forEach {
-            assertFalse("Não devia mostrar ${it.nome}", it.nome in textos())
-        }
-        assertTrue(Categorias.todas.size.toString() in textos())
-
-        abrirCategorias()
-        Categorias.todas.forEach { assertTrue(it.nome in textos()) }
-
-        abrirCategorias()
-        assertFalse(Categorias.todas.first().nome in textos())
-    }
-
-    @Test
-    fun temOBotaoPersonalizarAlertasESemALegendaDeMaisDeUm() {
-        assertTrue(activity.getString(R.string.personalizar_alertas) in textos())
-        assertFalse(textos().any { it.contains("mais de um", ignoreCase = true) || it.contains("more than one", ignoreCase = true) })
-    }
-
-    @Test
-    fun cadaCategoriaAparecePelaCorEPeloNomeUmaVezSo() {
-        abrirCategorias()
-        Categorias.todas.forEach {
-            assertEquals("Nome repetido: ${it.nome}", 1, textosIguais(it.nome))
-        }
+        assertFalse(activity.getString(R.string.antecedencia_titulo) in textos)
     }
 
     @Test
     fun oAvisoDaHoraDeComecarVemLigadoNoAndroid12EAnteriores() {
-        abrirCategorias()
         assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
         assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
-        assertEquals(1f, cartaoDaCategoria("F1").alpha, 0.001f)
     }
 
     @Test
-    fun ligarEDesligarOAvisoDaHoraDeComecarFuncionaSemNenhumaAntecedencia() {
-        abrirCategorias()
+    fun ligarEDesligarOAvisoDaHoraDeComecar() {
         comDescricao(activity.getString(R.string.cd_desligar_na_hora)).performClick()
         assertFalse(PreferenciasDeAviso.avisarNaHora(activity))
-        // Sem antecedência e sem aviso na hora, nada é avisado: as categorias ficam esmaecidas.
-        assertEquals(0.45f, cartaoDaCategoria("F1").alpha, 0.001f)
 
         comDescricao(activity.getString(R.string.cd_ligar_na_hora)).performClick()
         assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
-        assertEquals(1f, cartaoDaCategoria("F1").alpha, 0.001f)
     }
 
     @Test
-    fun podeMarcarMaisDeUmaAntecedenciaEDesmarcarTodasSemMexerNoAvisoNaHora() {
-        textView("15 min").performClick()
-        assertEquals(listOf(15), PreferenciasDeAviso.minutosSelecionados(activity))
+    fun oBotaoPersonalizarMostraQuantasAntecedenciasEstaoMarcadas() {
+        assertFalse("+2" in textos())
 
-        textView("45 min").performClick()
-        assertEquals(listOf(15, 45), PreferenciasDeAviso.minutosSelecionados(activity))
+        PreferenciasDeAviso.definirSelecionados(activity, listOf(15, 90))
+        MenuPrincipal.montar(activity, container)
 
-        textView("15 min").performClick()
-        assertEquals(listOf(45), PreferenciasDeAviso.minutosSelecionados(activity))
-
-        textView("45 min").performClick()
-        assertEquals(emptyList<Int>(), PreferenciasDeAviso.minutosSelecionados(activity))
-        assertEquals(listOf(45), PreferenciasDeAviso.ultimasSelecionadas(activity))
-
-        // O aviso da hora de começar não depende das antecedências.
-        assertTrue(PreferenciasDeAviso.avisarNaHora(activity))
+        assertTrue("+2" in textos())
     }
 
     @Test
-    fun asTresOpcoesFicamSempreAoLadoDoNomeDeCadaCategoria() {
-        abrirCategorias()
-        val rotulos = listOf(R.string.modo_todas, R.string.modo_corridas, R.string.modo_nenhuma)
-            .map { activity.getString(it) }
-
-        Categorias.todas.forEach { categoria ->
-            val textosDaLinha = todas(linhaDa(categoria.nome))
-                .filterIsInstance<TextView>()
-                .map { it.text.toString() }
-
-            rotulos.forEach { rotulo ->
-                assertTrue("${categoria.nome} sem a opção $rotulo", rotulo in textosDaLinha)
-            }
-        }
-    }
-
-    @Test
-    fun escolherUmModoGravaSemAbrirNemFecharNada() {
-        abrirCategorias()
-        val corridas = activity.getString(R.string.modo_corridas)
-        val quantasAntes = textosIguais(corridas)
-
-        opcaoDa("F2", corridas).performClick()
-
-        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
-        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(activity, "F1"))
-        assertEquals(quantasAntes, textosIguais(corridas))
-
-        opcaoDa("F2", activity.getString(R.string.modo_nenhuma)).performClick()
-        assertEquals(ModoDeAviso.NENHUMA, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
-    }
-
-    @Test
-    fun soOsBotoesERespondemAoToque() {
-        abrirCategorias()
-        val selo = textView("MotoGP")
-        val linha = selo.parent as View
-        val cartao = linha.parent as View
-
-        assertFalse(selo.isClickable)
-        assertFalse(linha.isClickable)
-        assertFalse(cartao.isClickable)
-
+    fun soOsBotoesEOInterruptorRespondemAoToque() {
         val interruptores = todas(container).filterIsInstance<InterruptorModerno>()
         assertEquals(1, interruptores.size)
         assertTrue(interruptores.all { it.isClickable })
 
-        val titulo = textView(activity.getString(R.string.na_hora_curto))
+        val titulo = textoDe(activity.getString(R.string.na_hora_curto))
         assertFalse(titulo.isClickable)
         assertFalse((titulo.parent as View).isClickable)
-        assertFalse(((titulo.parent as View).parent as View).isClickable)
     }
 }

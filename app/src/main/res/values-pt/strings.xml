@@ -159,4 +159,11 @@
     <string name="cd_desfavoritar">Remover %s dos favoritos</string>
     <string name="finalizadas_rotulo">Finalizadas</string>
     <string name="cd_finalizadas">Mostrar etapas finalizadas</string>
+
+    <string name="personalizar_antecedencia">Alerta por antecedência</string>
+    <string name="cd_favoritas">Categorias favoritas</string>
+    <string name="favoritas_titulo">Categorias favoritas</string>
+    <string name="favoritas_dica">A tela inicial mostra só as favoritas. Sem nenhuma, mostra todas.</string>
+    <string name="cd_favoritar_categoria">Favoritar %s</string>
+    <string name="cd_desfavoritar_categoria">Remover %s dos favoritos</string>
 </resources>
