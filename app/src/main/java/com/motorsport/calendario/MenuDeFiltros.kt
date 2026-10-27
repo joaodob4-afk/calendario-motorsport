@@ -7,121 +7,70 @@ import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
-import android.os.Handler
-import android.os.Looper
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.graphics.ColorUtils
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.format.TextStyle
 
 /**
- * Conteúdo do painel que abre pela direita da tela inicial (botão de filtros).
- *
- * Ordem: categorias (mostram só aquela categoria na lista), o interruptor "só favoritas" e a
- * lista de etapas, cada uma com uma estrela para favoritar. Os toques já atualizam a lista da
- * tela inicial. As partes são redesenhadas no lugar, sem refazer o painel inteiro, para a
- * rolagem não voltar ao topo a cada toque.
+ * Conteúdo do painel que abre pela direita da tela inicial (botão de coração): a lista das
+ * categorias, cada uma com um coração para favoritar. A tela inicial mostra só as favoritas;
+ * sem nenhuma favorita, mostra todas. Tocar na linha já atualiza a lista que está atrás.
  */
 internal class MenuDeFiltros(
     private val activity: Activity,
     private val container: LinearLayout,
-    private val todasEtapas: () -> List<MainActivity.Etapa>,
-    private val sessoes: () -> List<SessaoParaAviso>,
-    private val filtros: () -> FiltrosDeEtapas,
-    private val nomeDaEtapa: (MainActivity.Etapa) -> String,
-    private val aoMudar: (FiltrosDeEtapas) -> Unit
+    private val favoritas: () -> Set<String>,
+    private val aoMudar: (Set<String>) -> Unit
 ) {
 
     private companion object {
-        const val LINHAS_POR_LOTE = 24
-        val corDaEstrela: Int = Color.parseColor("#FFC83D")
-        val corDoTextoSobreCor: Int = Color.parseColor("#0B0D0F")
+        val corDoCoracao: Int = Color.parseColor("#FF4D6D")
     }
 
-    private val handler = Handler(Looper.getMainLooper())
-    private val categorias = LinhasQuebradas(activity)
-    private val cartaoDoInterruptor = LinearLayout(activity)
-    private val tituloDasEtapas = TextView(activity)
-    private val listaDeEtapas = LinearLayout(activity)
+    private val cartao = LinearLayout(activity)
 
-    /** Muda a cada redesenho da lista; lotes de um desenho antigo se cancelam ao ver que mudou. */
-    private var geracao = 0
-
-    private var estadoAnteriorDoInterruptor: Boolean? = null
-
-    /** Monta o painel. Chamado ao criar a tela e quando as etapas terminam de carregar. */
     fun montar() {
         container.removeAllViews()
 
         container.addView(cabecalho())
 
-        container.addView(titulo(activity.getString(R.string.filtros_categorias), topo = 22f))
-        categorias.apply {
-            espacoHorizontal = activity.emPx(8f)
-            espacoVertical = activity.emPx(8f)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
-        container.addView(categorias)
+        container.addView(
+            TextView(activity).apply {
+                text = activity.getString(R.string.favoritas_dica)
+                setTextColor(activity.getColor(R.color.texto_suave))
+                textSize = 13f
+                setLineSpacing(0f, 1.15f)
+                setPadding(activity.emPx(2f), activity.emPx(18f), 0, activity.emPx(14f))
+            }
+        )
 
-        container.addView(titulo(activity.getString(R.string.filtros_favoritas_titulo), topo = 24f))
-        cartaoDoInterruptor.apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(activity.emPx(16f), activity.emPx(8f), activity.emPx(10f), activity.emPx(8f))
+        cartao.apply {
+            orientation = LinearLayout.VERTICAL
             background = forma(activity.getColor(R.color.superficie), activity.getColor(R.color.borda_suave), 16f)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
-        container.addView(cartaoDoInterruptor)
+        container.addView(cartao)
 
-        tituloDasEtapas.apply {
-            setTextColor(activity.getColor(R.color.texto_suave))
-            textSize = 12f
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            letterSpacing = 0.12f
-            setPadding(activity.emPx(2f), activity.emPx(18f), 0, activity.emPx(10f))
-        }
-        container.addView(tituloDasEtapas)
-
-        listaDeEtapas.orientation = LinearLayout.VERTICAL
-        container.addView(
-            listaDeEtapas,
-            LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        )
-
-        desenharCategorias()
-        desenharInterruptor()
-        desenharEtapas()
+        desenhar()
     }
 
-    /** Refaz só a parte que depende do filtro atual (usado quando ele muda por fora do painel). */
-    fun atualizar() {
-        desenharCategorias()
-        desenharInterruptor()
-        desenharEtapas()
+    /** Entrada em cascata: usada cada vez que o painel abre. */
+    fun animarEntrada() {
+        container.entrarEmCascata()
+        cartao.entrarEmCascata(deslocamentoDp = 10f, passoMs = 35L, limite = 12)
     }
-
-    // ---------------------------------------------------------------- blocos
 
     private fun cabecalho(): View {
         val icone = ImageView(activity).apply {
-            setImageResource(R.drawable.ic_filtro)
-            setColorFilter(Color.WHITE)
+            setImageResource(R.drawable.ic_coracao_cheio)
+            setColorFilter(corDoCoracao)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setPadding(activity.emPx(9f), activity.emPx(9f), activity.emPx(9f), activity.emPx(9f))
             background = GradientDrawable().apply {
@@ -133,7 +82,7 @@ internal class MenuDeFiltros(
         }
 
         val texto = TextView(activity).apply {
-            text = activity.getString(R.string.filtros_titulo)
+            text = activity.getString(R.string.favoritas_titulo)
             setTextColor(activity.getColor(R.color.texto_principal))
             textSize = 22f
             typeface = Typeface.create("sans-serif", Typeface.BOLD)
@@ -150,238 +99,14 @@ internal class MenuDeFiltros(
         }
     }
 
-    private fun titulo(texto: String, topo: Float): View =
-        TextView(activity).apply {
-            text = texto.uppercase(Idioma.locale(activity))
-            setTextColor(activity.getColor(R.color.texto_suave))
-            textSize = 12f
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            letterSpacing = 0.12f
-            setPadding(activity.emPx(2f), activity.emPx(topo), 0, activity.emPx(10f))
-        }
+    private fun desenhar() {
+        cartao.removeAllViews()
 
-    /** Uma cápsula por categoria; tocar escolhe só ela, tocar de novo volta a mostrar todas. */
-    private fun desenharCategorias() {
-        categorias.removeAllViews()
-
-        val escolhida = Formatacao.normalizar(filtros().categoria)
-
-        for (categoria in Categorias.todas) {
-            val cor = Color.parseColor(categoria.cor)
-            val marcada = escolhida.isNotEmpty() && Formatacao.normalizar(categoria.nome) == escolhida
-
-            val capsula = TextView(activity).apply {
-                text = categoria.nome
-                textSize = 14f
-                maxLines = 1
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                minHeight = activity.emPx(40f)
-                isClickable = true
-                isFocusable = true
-                contentDescription = categoria.nome
-
-                if (marcada) {
-                    setPadding(activity.emPx(16f), 0, activity.emPx(16f), 0)
-                    setTextColor(corDoTextoSobreCor)
-                    background = GradientDrawable().apply {
-                        setColor(cor)
-                        cornerRadius = activity.emPx(20f).toFloat()
-                    }
-                } else {
-                    setPadding(activity.emPx(12f), 0, activity.emPx(16f), 0)
-                    setTextColor(activity.getColor(R.color.texto_principal))
-                    background = GradientDrawable().apply {
-                        setColor(ColorUtils.blendARGB(activity.getColor(R.color.superficie), cor, 0.12f))
-                        cornerRadius = activity.emPx(20f).toFloat()
-                        setStroke(
-                            activity.emPx(1f).coerceAtLeast(1),
-                            ColorUtils.blendARGB(activity.getColor(R.color.borda_suave), cor, 0.5f)
-                        )
-                    }
-                    setCompoundDrawablesRelativeWithIntrinsicBounds(
-                        GradientDrawable().apply {
-                            shape = GradientDrawable.OVAL
-                            setColor(cor)
-                            setSize(activity.emPx(10f), activity.emPx(10f))
-                        },
-                        null,
-                        null,
-                        null
-                    )
-                    compoundDrawablePadding = activity.emPx(8f)
-                }
-
-                setOnClickListener {
-                    val novaCategoria = if (marcada) "" else categoria.nome
-                    aoMudar(filtros().copy(categoria = novaCategoria))
-                    desenharCategorias()
-                    desenharEtapas()
-                    if (!marcada) animarPop()
-                }
-                comEfeitoDeToque(escala = 0.94f)
-            }
-
-            categorias.addView(capsula)
+        Categorias.todas.forEachIndexed { indice, categoria ->
+            if (indice > 0) cartao.addView(divisor())
+            cartao.addView(linha(categoria))
         }
     }
-
-    /** "Mostrar só favoritas": a tela inicial lista apenas as etapas com estrela. */
-    private fun desenharInterruptor() {
-        cartaoDoInterruptor.removeAllViews()
-
-        val atual = filtros()
-        val ligado = atual.somenteFavoritas
-        val anterior = estadoAnteriorDoInterruptor
-        estadoAnteriorDoInterruptor = ligado
-
-        val textos = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginEnd = activity.emPx(8f) }
-            addView(
-                TextView(activity).apply {
-                    text = activity.getString(R.string.filtros_so_favoritas)
-                    setTextColor(activity.getColor(R.color.texto_principal))
-                    textSize = 15f
-                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                }
-            )
-            addView(
-                TextView(activity).apply {
-                    text = activity.getString(R.string.filtros_so_favoritas_dica)
-                    setTextColor(activity.getColor(R.color.texto_suave))
-                    textSize = 12f
-                    setPadding(0, activity.emPx(2f), 0, 0)
-                }
-            )
-        }
-
-        val interruptor = InterruptorModerno(
-            activity,
-            ligado,
-            anterior,
-            corLigado = activity.getColor(R.color.azul_destaque),
-            corDaTrilha = activity.getColor(R.color.fundo_tela),
-            corDoContorno = activity.getColor(R.color.borda_suave)
-        ).apply {
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(R.string.filtros_so_favoritas)
-            setOnClickListener {
-                aoMudar(filtros().copy(somenteFavoritas = !ligado))
-                desenharInterruptor()
-            }
-        }
-
-        cartaoDoInterruptor.addView(textos)
-        cartaoDoInterruptor.addView(interruptor)
-    }
-
-    private sealed class Linha {
-        class Mes(val mes: YearMonth) : Linha()
-        class Etapa(val etapa: MainActivity.Etapa) : Linha()
-    }
-
-    /**
-     * A lista de etapas (já respeitando a categoria e as finalizadas escolhidas na tela inicial),
-     * agrupada por mês. Criada em lotes pequenos para o painel abrir sem travar.
-     */
-    private fun desenharEtapas() {
-        geracao++
-        val minhaGeracao = geracao
-        handler.removeCallbacksAndMessages(null)
-
-        listaDeEtapas.removeAllViews()
-
-        val etapas = RegrasDeFiltro.aplicar(
-            todasEtapas(),
-            filtros().copy(somenteFavoritas = false),
-            LocalDate.now(),
-            sessoes()
-        )
-
-        val favoritas = filtros().favoritas.size
-        val titulo = activity.getString(R.string.filtros_etapas)
-        tituloDasEtapas.text =
-            (if (favoritas > 0) "$titulo · ★ $favoritas" else titulo).uppercase(Idioma.locale(activity))
-
-        if (etapas.isEmpty()) {
-            listaDeEtapas.addView(
-                TextView(activity).apply {
-                    text = activity.getString(R.string.lista_vazia)
-                    setTextColor(activity.getColor(R.color.texto_suave))
-                    textSize = 14f
-                    gravity = Gravity.CENTER
-                    setPadding(0, activity.emPx(32f), 0, activity.emPx(32f))
-                }
-            )
-            return
-        }
-
-        val linhas = ArrayList<Linha>()
-        var mesAnterior: YearMonth? = null
-
-        for (etapa in etapas) {
-            val inicio = RegrasDeFiltro.inicio(etapa)
-
-            if (inicio != null) {
-                val mes = YearMonth.from(inicio)
-                if (mes != mesAnterior) {
-                    linhas.add(Linha.Mes(mes))
-                    mesAnterior = mes
-                }
-            }
-
-            linhas.add(Linha.Etapa(etapa))
-        }
-
-        var proxima = 0
-        var cartaoAtual: LinearLayout? = null
-
-        fun desenharLote() {
-            if (minhaGeracao != geracao) return
-
-            var criadas = 0
-
-            while (proxima < linhas.size && criadas < LINHAS_POR_LOTE) {
-                when (val linha = linhas[proxima]) {
-                    is Linha.Mes -> {
-                        listaDeEtapas.addView(rotuloDoMes(linha.mes, primeiro = listaDeEtapas.childCount == 0))
-                        cartaoAtual = novoCartao().also { listaDeEtapas.addView(it) }
-                    }
-
-                    is Linha.Etapa -> {
-                        val cartao = cartaoAtual ?: novoCartao().also {
-                            listaDeEtapas.addView(it)
-                            cartaoAtual = it
-                        }
-
-                        if (cartao.childCount > 0) cartao.addView(divisor())
-                        cartao.addView(linhaDaEtapa(linha.etapa))
-                    }
-                }
-
-                proxima++
-                criadas++
-            }
-
-            if (proxima < linhas.size) handler.post { desenharLote() }
-        }
-
-        desenharLote()
-    }
-
-    private fun novoCartao(): LinearLayout =
-        LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            background = forma(activity.getColor(R.color.superficie), activity.getColor(R.color.borda_suave), 16f)
-            layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        }
 
     private fun divisor(): View =
         View(activity).apply {
@@ -395,78 +120,50 @@ internal class MenuDeFiltros(
             }
         }
 
-    private fun rotuloDoMes(mes: YearMonth, primeiro: Boolean): View {
-        val locale = Idioma.locale(activity)
-        val nome = mes.month.getDisplayName(TextStyle.FULL, locale).uppercase(locale)
-        val ano = if (mes.year != LocalDate.now().year) " ${mes.year}" else ""
+    /** Ponto na cor da categoria, o nome e o coração. Tocar em qualquer lugar da linha favorita. */
+    private fun linha(categoria: CategoriaInfo): View {
+        val chave = Formatacao.normalizar(categoria.nome)
+        val cor = Color.parseColor(categoria.cor)
 
-        return TextView(activity).apply {
-            text = nome + ano
-            setTextColor(activity.getColor(R.color.texto_suave))
-            textSize = 12f
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            letterSpacing = 0.14f
-            setPadding(activity.emPx(4f), activity.emPx(if (primeiro) 0f else 14f), 0, activity.emPx(6f))
+        val ponto = View(activity).apply {
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(cor)
+            }
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(12f), activity.emPx(12f))
+                .apply { marginStart = activity.emPx(8f); marginEnd = activity.emPx(14f) }
         }
-    }
 
-    /** Estrela, cor da categoria, nome do evento e datas. Tocar em qualquer lugar favorita. */
-    private fun linhaDaEtapa(etapa: MainActivity.Etapa): View {
-        val chave = RegrasDeFiltro.chaveDaEtapa(etapa)
-        val cor = Color.parseColor(Categorias.corHex(etapa.categoria))
-        val nome = nomeDaEtapa(etapa)
+        val nome = TextView(activity).apply {
+            text = categoria.nome
+            setTextColor(activity.getColor(R.color.texto_principal))
+            textSize = 16f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            maxLines = 1
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        }
 
-        val estrela = ImageView(activity).apply {
+        val coracao = ImageView(activity).apply {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setPadding(activity.emPx(8f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
             layoutParams = LinearLayout.LayoutParams(activity.emPx(40f), activity.emPx(40f))
         }
 
         fun pintar(favorita: Boolean) {
-            estrela.setImageResource(if (favorita) R.drawable.ic_estrela_cheia else R.drawable.ic_estrela)
-            estrela.setColorFilter(if (favorita) corDaEstrela else activity.getColor(R.color.texto_suave))
+            coracao.setImageResource(if (favorita) R.drawable.ic_coracao_cheio else R.drawable.ic_coracao)
+            coracao.setColorFilter(if (favorita) corDoCoracao else activity.getColor(R.color.texto_suave))
         }
 
-        val faixa = View(activity).apply {
-            background = GradientDrawable().apply {
-                setColor(cor)
-                cornerRadius = activity.emPx(2f).toFloat()
-            }
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(4f), activity.emPx(34f))
-                .apply { marginStart = activity.emPx(4f); marginEnd = activity.emPx(10f) }
-        }
-
-        val textos = LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-
-            addView(
-                TextView(activity).apply {
-                    text = nome
-                    setTextColor(activity.getColor(R.color.texto_principal))
-                    textSize = 14f
-                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                }
-            )
-            addView(
-                TextView(activity).apply {
-                    text = "${Categorias.rotuloDoSelo(etapa.categoria)} · ${datasDaEtapa(etapa)}"
-                    setTextColor(activity.getColor(R.color.texto_suave))
-                    textSize = 12f
-                    maxLines = 1
-                    ellipsize = TextUtils.TruncateAt.END
-                    setPadding(0, activity.emPx(1f), 0, 0)
-                }
-            )
-        }
+        fun descricao(favorita: Boolean) = activity.getString(
+            if (favorita) R.string.cd_desfavoritar_categoria else R.string.cd_favoritar_categoria,
+            categoria.nome
+        )
 
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = activity.emPx(56f)
-            setPadding(activity.emPx(6f), activity.emPx(6f), activity.emPx(6f), activity.emPx(6f))
+            minimumHeight = activity.emPx(58f)
+            setPadding(activity.emPx(8f), activity.emPx(4f), activity.emPx(8f), activity.emPx(4f))
             isClickable = true
             isFocusable = true
             background = RippleDrawable(
@@ -475,52 +172,37 @@ internal class MenuDeFiltros(
                 ColorDrawable(Color.WHITE)
             )
 
-            addView(faixa)
-            addView(textos)
-            addView(estrela)
+            addView(ponto)
+            addView(nome)
+            addView(coracao)
 
-            var favorita = chave in filtros().favoritas
+            var favorita = chave in favoritas()
             pintar(favorita)
-            contentDescription = activity.getString(
-                if (favorita) R.string.cd_desfavoritar else R.string.cd_favoritar,
-                nome
-            )
+            contentDescription = descricao(favorita)
 
             setOnClickListener {
-                val atuais = filtros().favoritas
+                val atuais = favoritas()
                 favorita = chave !in atuais
-                val novas = if (favorita) atuais + chave else atuais - chave
+                aoMudar(if (favorita) atuais + chave else atuais - chave)
 
                 pintar(favorita)
-                contentDescription = activity.getString(
-                    if (favorita) R.string.cd_desfavoritar else R.string.cd_favoritar,
-                    nome
-                )
-                if (favorita) estrela.animarPop()
+                contentDescription = descricao(favorita)
 
-                aoMudar(filtros().copy(favoritas = novas))
-                atualizarContagem()
+                // O coração "estoura" ao favoritar e murcha ao desfavoritar.
+                coracao.animate().cancel()
+                if (favorita) {
+                    coracao.scaleX = 0.4f
+                    coracao.scaleY = 0.4f
+                    coracao.animate().scaleX(1f).scaleY(1f).setDuration(380)
+                        .setInterpolator(OvershootInterpolator(3.2f)).start()
+                } else {
+                    coracao.animate().scaleX(0.7f).scaleY(0.7f).setDuration(90).withEndAction {
+                        coracao.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+                    }.start()
+                }
             }
+            comEfeitoDeToque(escala = 0.98f)
         }
-    }
-
-    /** Só o número de favoritas no título da lista, sem refazer as linhas. */
-    private fun atualizarContagem() {
-        val favoritas = filtros().favoritas.size
-        val titulo = activity.getString(R.string.filtros_etapas)
-
-        tituloDasEtapas.text =
-            (if (favoritas > 0) "$titulo · ★ $favoritas" else titulo).uppercase(Idioma.locale(activity))
-    }
-
-    /** "23/10" ou "23/10 – 25/10", no formato de data escolhido nas configurações. */
-    private fun datasDaEtapa(etapa: MainActivity.Etapa): String {
-        val inicio = RegrasDeFiltro.inicio(etapa) ?: return etapa.data
-        val fim = RegrasDeFiltro.fim(etapa, inicio)
-
-        val comeco = PreferenciasDeData.curta(activity, inicio)
-
-        return if (fim.isAfter(inicio)) "$comeco – ${PreferenciasDeData.curta(activity, fim)}" else comeco
     }
 
     private fun forma(preenchimento: Int, borda: Int?, raioDp: Float) =

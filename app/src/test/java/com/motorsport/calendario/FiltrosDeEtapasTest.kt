@@ -184,12 +184,10 @@ class FiltrosDeEtapasTest {
     }
 
     @Test
-    fun somenteFavoritas_mostraSoAsMarcadas() {
-        val favoritas = setOf(RegrasDeFiltro.chaveDaEtapa(novembro), RegrasDeFiltro.chaveDaEtapa(dezembro))
-
+    fun categoriasFavoritas_mostramSoEssasCategorias() {
         val lista = RegrasDeFiltro.aplicar(
             todas,
-            FiltrosDeEtapas(somenteFavoritas = true, favoritas = favoritas),
+            FiltrosDeEtapas(categoriasFavoritas = setOf("f1", "moto2")),
             hoje
         )
 
@@ -197,19 +195,20 @@ class FiltrosDeEtapasTest {
     }
 
     @Test
-    fun favoritasMarcadasSemOInterruptorNaoMudamALista() {
-        val favoritas = setOf(RegrasDeFiltro.chaveDaEtapa(novembro))
-
-        val lista = RegrasDeFiltro.aplicar(todas, FiltrosDeEtapas(favoritas = favoritas), hoje)
+    fun semCategoriasFavoritas_mostraTodas() {
+        val lista = RegrasDeFiltro.aplicar(todas, FiltrosDeEtapas(categoriasFavoritas = emptySet()), hoje)
 
         assertEquals(listOf("andando", "novembro", "dezembro", "semdata"), circuitos(lista))
     }
 
     @Test
-    fun chaveDaFavoritaNaoDependeDoDiaDaEtapa() {
-        val remarcada = novembro.copy(dataInicio = "2026-11-06", dataFim = "2026-11-08")
+    fun categoriasFavoritas_combinamComFinalizadas() {
+        val lista = RegrasDeFiltro.aplicar(
+            todas,
+            FiltrosDeEtapas(mostrarFinalizadas = true, categoriasFavoritas = setOf("f1")),
+            hoje
+        )
 
-        assertEquals(RegrasDeFiltro.chaveDaEtapa(novembro), RegrasDeFiltro.chaveDaEtapa(remarcada))
-        assertFalse(RegrasDeFiltro.chaveDaEtapa(novembro) == RegrasDeFiltro.chaveDaEtapa(monaco))
+        assertEquals(listOf("passada", "novembro"), circuitos(lista))
     }
 }

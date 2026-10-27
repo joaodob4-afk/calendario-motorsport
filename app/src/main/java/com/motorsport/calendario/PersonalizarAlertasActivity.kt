@@ -16,35 +16,33 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * "Personalizar alertas": página que desce do topo com todas as antecedências disponíveis.
- * Dá para marcar quantas quiser. A escolha é gravada e os alarmes refeitos exatamente como no
- * painel de alertas: aqui só muda o que é oferecido, não como os avisos são enviados.
+ * "Personalizar alertas": página aberta pelo painel de notificações. Tem as antecedências
+ * (dá para marcar quantas quiser) e, por categoria, o que avisar: todas as sessões, só as
+ * corridas ou nenhuma. As escolhas são gravadas e os alarmes refeitos como sempre; aqui só
+ * muda onde se escolhe, não como os avisos são enviados.
+ * A abertura e a saída usam a transição padrão do Android.
  */
 class PersonalizarAlertasActivity : AppCompatActivity() {
 
     private val corDoTextoSobreCor = Color.parseColor("#0E1012")
 
-    /** Minutos até 45; a partir de uma hora, horas e dia. */
-    private val minutos get() = PreferenciasDeAviso.todasAsOpcoes.filter { it < 60 }.sorted()
-    private val horas get() = PreferenciasDeAviso.todasAsOpcoes.filter { it >= 60 }.sorted()
-
-    private lateinit var grupoDeMinutos: LinhasQuebradas
-    private lateinit var grupoDeHoras: LinhasQuebradas
+    private lateinit var grupoDeAntecedencias: LinhasQuebradas
+    private lateinit var secaoDeCategorias: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         montar()
+
+        // Só na abertura: numa troca de tema a página é refeita no lugar, sem animar de novo.
+        if (savedInstanceState == null) {
+            (grupoDeAntecedencias.parent as? ViewGroup)?.entrarEmCascata()
+        }
     }
 
     /** A troca de tema é tratada aqui (uiMode no manifesto): refaz as views no lugar. */
     override fun onConfigurationChanged(novaConfiguracao: android.content.res.Configuration) {
         super.onConfigurationChanged(novaConfiguracao)
         montar()
-    }
-
-    override fun finish() {
-        super.finish()
-        overridePendingTransition(R.anim.parada, R.anim.subir_saida)
     }
 
     private fun montar() {
@@ -58,16 +56,19 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
         raiz.addView(cabecalho())
 
-        grupoDeMinutos = novoGrupo()
-        grupoDeHoras = novoGrupo()
+        grupoDeAntecedencias = LinhasQuebradas(this).apply {
+            espacoHorizontal = emPx(8f)
+            espacoVertical = emPx(8f)
+        }
+        secaoDeCategorias = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         val corpo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(emPx(16f), emPx(4f), emPx(16f), emPx(24f))
-            addView(tituloDeSecao(R.string.personalizar_minutos))
-            addView(grupoDeMinutos)
-            addView(tituloDeSecao(R.string.personalizar_horas))
-            addView(grupoDeHoras)
+            addView(tituloDeSecao(R.string.personalizar_antecedencia))
+            addView(grupoDeAntecedencias)
+            addView(tituloDeSecao(R.string.por_categoria_titulo))
+            addView(secaoDeCategorias)
         }
 
         raiz.addView(
@@ -78,15 +79,15 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
         )
 
-        desenhar()
+        desenharAntecedencias()
+        desenharCategorias()
     }
 
     private fun cabecalho(): View {
         val voltar = ImageView(this).apply {
-            setImageResource(R.drawable.ic_chevron)
-            rotation = 180f
+            setImageResource(R.drawable.ic_seta_voltar)
             background = getDrawable(R.drawable.bg_botao_icone)
-            setPadding(emPx(10f), emPx(10f), emPx(10f), emPx(10f))
+            setPadding(emPx(12f), emPx(12f), emPx(12f), emPx(12f))
             isClickable = true
             isFocusable = true
             contentDescription = getString(R.string.cd_voltar)
@@ -124,27 +125,16 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             setPadding(emPx(4f), emPx(20f), 0, emPx(10f))
         }
 
-    private fun novoGrupo() =
-        LinhasQuebradas(this).apply {
-            espacoHorizontal = emPx(8f)
-            espacoVertical = emPx(8f)
-        }
-
-    /** Refaz só as cápsulas (a rolagem da página não se mexe). */
-    private fun desenhar() {
+    /** Refaz só as cápsulas de antecedência (a rolagem da página não se mexe). */
+    private fun desenharAntecedencias() {
         val selecionados = PreferenciasDeAviso.minutosSelecionados(this)
 
-        preencher(grupoDeMinutos, minutos, selecionados)
-        preencher(grupoDeHoras, horas, selecionados)
-    }
+        grupoDeAntecedencias.removeAllViews()
 
-    private fun preencher(grupo: LinhasQuebradas, opcoes: List<Int>, selecionados: List<Int>) {
-        grupo.removeAllViews()
-
-        for (opcao in opcoes) {
+        for (opcao in PreferenciasDeAviso.todasAsOpcoes.sorted()) {
             val marcada = opcao in selecionados
 
-            grupo.addView(
+            grupoDeAntecedencias.addView(
                 TextView(this).apply {
                     text = rotuloCurtoDaAntecedencia(this@PersonalizarAlertasActivity, opcao)
                     textSize = 15f
@@ -169,7 +159,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
                     )
                     setOnClickListener {
                         val novos = if (marcada) selecionados - opcao else selecionados + opcao
-                        aplicar(novos)
+                        aplicarAntecedencias(novos)
                         if (!marcada) animarPop()
                     }
                     comEfeitoDeToque(escala = 0.94f)
@@ -178,8 +168,21 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
         }
     }
 
+    /** Lista de categorias, uma por linha, com Todas, Corridas e Nenhuma ao lado. */
+    private fun desenharCategorias() {
+        secaoDeCategorias.removeAllViews()
+
+        val ativo = PreferenciasDeAviso.avisarNaHora(this) ||
+            PreferenciasDeAviso.minutosSelecionados(this).isNotEmpty()
+
+        secaoDeCategorias.addView(
+            MenuPrincipal.cartaoDeCategorias(this, ativo) { desenharCategorias() }
+        )
+        secaoDeCategorias.addView(MenuPrincipal.legendaDosModos(this))
+    }
+
     /** Salva, pede permissão de notificação se preciso e refaz os alarmes (igual ao painel). */
-    private fun aplicar(minutos: Collection<Int>) {
+    private fun aplicarAntecedencias(minutos: Collection<Int>) {
         PreferenciasDeAviso.definirSelecionados(this, minutos)
 
         if (minutos.isNotEmpty() && Notificacoes.precisaPedirPermissao(this)) {
@@ -187,7 +190,8 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
         }
 
         AgendadorDeAvisos.reagendarEmSegundoPlano(this)
-        desenhar()
+        desenharAntecedencias()
+        desenharCategorias()
     }
 
     private fun forma(preenchimento: Int, borda: Int?) =

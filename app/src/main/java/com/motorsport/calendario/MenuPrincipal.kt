@@ -25,9 +25,9 @@ internal fun fundoDeToque(): RippleDrawable =
 /**
  * Conteúdo do painel que abre pelo lado da tela inicial (botão no canto superior esquerdo).
  *
- * Ordem: alertar na hora de começar, antecedências (dá para marcar mais de uma), as categorias
- * (em cada linha o nome e, ao lado, as três opções sempre à vista), envio de teste e atalho da
- * bateria. Só os botões e o interruptor respondem ao toque.
+ * Ordem: alertar na hora de começar, o botão "Personalizar alertas" (antecedências e opções por
+ * categoria ficam na página que ele abre), envio de teste e atalho da bateria. Só os botões e
+ * o interruptor respondem ao toque.
  * Para incluir uma função nova no futuro, crie um bloco novo e chame-o em [montar].
  */
 internal object MenuPrincipal {
@@ -42,11 +42,7 @@ internal object MenuPrincipal {
      */
     internal fun reiniciar() {
         estadoAnteriorDosInterruptores.clear()
-        categoriasAbertas = false
     }
-
-    /** Lista de categorias recolhida (só o título e a quantidade) ou aberta. */
-    private var categoriasAbertas = false
 
     fun montar(activity: Activity, container: LinearLayout) {
         container.removeAllViews()
@@ -61,11 +57,7 @@ internal object MenuPrincipal {
 
         container.addView(cartaoNaHora(activity, container, naHora))
 
-        container.addView(tituloDeSecao(activity, R.string.antecedencia_titulo, topo = 18f, baixo = 10f))
-        container.addView(botoesDeAntecedencia(activity, container, selecionados))
         container.addView(botaoPersonalizar(activity, selecionados))
-
-        container.addView(cartaoRecolhivelDeCategorias(activity, container, ativo))
 
         if (ativo && !Notificacoes.permitidas(activity)) {
             container.addView(cartaoDeBloqueio(activity))
@@ -207,62 +199,11 @@ internal object MenuPrincipal {
     }
 
     /**
-     * Por antecedência: quatro botões arredondados, e dá para marcar mais de um. Os marcados
-     * ficam preenchidos de azul. Sem nenhum marcado, só o aviso da hora de começar continua valendo.
-     */
-    private fun botoesDeAntecedencia(
-        activity: Activity,
-        container: LinearLayout,
-        selecionados: List<Int>
-    ): View =
-        LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = parametros(activity)
-
-            PreferenciasDeAviso.opcoes.reversed().forEachIndexed { indice, opcao ->
-                val selecionada = opcao in selecionados
-                val rotulo = rotuloCurtoDaAntecedencia(activity, opcao)
-
-                addView(
-                    texto(
-                        activity,
-                        rotulo,
-                        14f,
-                        if (selecionada) corDoTextoSobreCor else principal(activity),
-                        if (selecionada) Typeface.BOLD else Typeface.NORMAL
-                    ).apply {
-                        gravity = Gravity.CENTER
-                        contentDescription = descricaoDaAntecedencia(activity, opcao)
-                        isClickable = true
-                        isFocusable = true
-                        background = if (selecionada) {
-                            comToque(activity, activity.getColor(R.color.azul_destaque), null, 20f)
-                        } else {
-                            comToque(
-                                activity,
-                                activity.getColor(R.color.superficie),
-                                activity.getColor(R.color.borda_suave),
-                                20f
-                            )
-                        }
-                        layoutParams = LinearLayout.LayoutParams(0, activity.emPx(40f), 1f).apply {
-                            if (indice > 0) marginStart = activity.emPx(8f)
-                        }
-                        setOnClickListener {
-                            val novo = if (selecionada) selecionados - opcao else selecionados + opcao
-                            aplicarAntecedencia(activity, container, novo)
-                        }
-                    }
-                )
-            }
-        }
-
-    /**
-     * "Personalizar alertas": abre, descendo do topo, a página com todas as antecedências.
-     * Quando há antecedências fora dos botões rápidos marcadas, mostra quantas são.
+     * "Personalizar alertas": abre a página com as antecedências e as opções por categoria.
+     * Mostra quantas antecedências estão marcadas.
      */
     private fun botaoPersonalizar(activity: Activity, selecionados: List<Int>): View {
-        val extras = selecionados.count { it !in PreferenciasDeAviso.opcoes }
+        val extras = selecionados.size
 
         val rotulo = texto(
             activity,
@@ -285,7 +226,7 @@ internal object MenuPrincipal {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 activity.emPx(46f)
-            ).apply { topMargin = activity.emPx(12f) }
+            ).apply { topMargin = activity.emPx(18f) }
 
             addView(rotulo)
 
@@ -301,94 +242,8 @@ internal object MenuPrincipal {
             }
 
             setOnClickListener {
+                // Transição padrão do Android, tanto ao abrir quanto ao sair.
                 activity.startActivity(Intent(activity, PersonalizarAlertasActivity::class.java))
-                activity.overridePendingTransition(R.anim.descer_entrada, R.anim.parada)
-            }
-        }
-    }
-
-    /**
-     * "Categorias" com a quantidade ao lado, como um menu que abre ao toque. Fechado, só mostra
-     * o título; aberto, mostra uma linha por categoria com as opções Todas, Corridas e Nenhuma.
-     */
-    private fun cartaoRecolhivelDeCategorias(
-        activity: Activity,
-        container: LinearLayout,
-        ativo: Boolean
-    ): View {
-        val quantidade = texto(
-            activity,
-            Categorias.todas.size.toString(),
-            16f,
-            principal(activity),
-            Typeface.NORMAL
-        )
-
-        val seta = ImageView(activity).apply {
-            setImageResource(R.drawable.ic_chevron)
-            setColorFilter(activity.getColor(R.color.texto_suave))
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            rotation = if (categoriasAbertas) 180f else 0f
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(20f), activity.emPx(20f))
-                .apply { marginStart = activity.emPx(6f) }
-        }
-
-        val caixa = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            background = forma(activity, activity.getColor(R.color.fundo_tela), activity.getColor(R.color.borda_suave), 12f)
-            setPadding(activity.emPx(14f), activity.emPx(8f), activity.emPx(10f), activity.emPx(8f))
-            addView(quantidade)
-            addView(seta)
-        }
-
-        val cabecalhoDoCartao = LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            isClickable = true
-            isFocusable = true
-            contentDescription = activity.getString(R.string.filtros_categorias)
-            minimumHeight = activity.emPx(48f)
-            background = comToque(activity, Color.TRANSPARENT, null, 14f)
-            setPadding(activity.emPx(16f), activity.emPx(6f), activity.emPx(12f), activity.emPx(6f))
-            addView(
-                texto(
-                    activity,
-                    activity.getString(R.string.filtros_categorias),
-                    16f,
-                    principal(activity),
-                    Typeface.BOLD
-                ).apply {
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                }
-            )
-            addView(caixa)
-            setOnClickListener {
-                categoriasAbertas = !categoriasAbertas
-                montar(activity, container)
-            }
-        }
-
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            background = forma(
-                activity,
-                activity.getColor(R.color.superficie),
-                activity.getColor(R.color.borda_suave),
-                16f
-            )
-            layoutParams = parametros(activity, topo = 14f)
-            addView(cabecalhoDoCartao)
-
-            if (categoriasAbertas) {
-                addView(
-                    LinearLayout(activity).apply {
-                        orientation = LinearLayout.VERTICAL
-                        setPadding(activity.emPx(8f), 0, activity.emPx(8f), activity.emPx(10f))
-                        addView(cartaoDeCategorias(activity, container, ativo).apply { background = null })
-                        addView(legendaDosModos(activity))
-                    }
-                )
             }
         }
     }
@@ -397,7 +252,7 @@ internal object MenuPrincipal {
      * Um cartão com todas as categorias. Em cada linha, o nome (com a cor dela) à esquerda e, ao
      * lado, as três opções sempre à vista: Todas, Corridas e Nenhuma. Nada abre ou fecha.
      */
-    private fun cartaoDeCategorias(activity: Activity, container: LinearLayout, ativo: Boolean): View =
+    internal fun cartaoDeCategorias(activity: Activity, ativo: Boolean, aoMudar: () -> Unit): View =
         LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             background = forma(
@@ -412,7 +267,7 @@ internal object MenuPrincipal {
 
             Categorias.todas.forEachIndexed { indice, categoria ->
                 if (indice > 0) addView(divisor(activity))
-                addView(linhaDaCategoria(activity, container, categoria))
+                addView(linhaDaCategoria(activity, categoria, aoMudar))
             }
         }
 
@@ -430,8 +285,8 @@ internal object MenuPrincipal {
 
     private fun linhaDaCategoria(
         activity: Activity,
-        container: LinearLayout,
-        categoria: CategoriaInfo
+        categoria: CategoriaInfo,
+        aoMudar: () -> Unit
     ): View {
         val modoAtual = PreferenciasDeAviso.modoDaCategoria(activity, categoria.nome)
 
@@ -461,13 +316,13 @@ internal object MenuPrincipal {
                 seletorDeModo(activity, modoAtual, categoria.cor) { novo ->
                     PreferenciasDeAviso.definirModo(activity, categoria.nome, novo)
                     AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
-                    montar(activity, container)
+                    aoMudar()
                 }
             )
         }
     }
 
-    private fun legendaDosModos(activity: Activity) =
+    internal fun legendaDosModos(activity: Activity) =
         texto(
             activity,
             activity.getString(R.string.campeonato_legenda),
@@ -623,18 +478,6 @@ internal object MenuPrincipal {
         }
 
     // --------------------------------------------------------------- ações
-
-    /** Salva as antecedências (lista vazia desliga), pede permissão se preciso e redesenha. */
-    private fun aplicarAntecedencia(activity: Activity, container: LinearLayout, minutos: Collection<Int>) {
-        PreferenciasDeAviso.definirSelecionados(activity, minutos)
-
-        if (minutos.isNotEmpty() && Notificacoes.precisaPedirPermissao(activity)) {
-            Notificacoes.pedirPermissao(activity)
-        }
-
-        AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
-        montar(activity, container)
-    }
 
     // ------------------------------------------------------------- apoio
 
