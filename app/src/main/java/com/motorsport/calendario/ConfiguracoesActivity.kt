@@ -309,7 +309,8 @@ class ConfiguracoesActivity : AppCompatActivity() {
         return FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(tamanho, tamanho)
             background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = emPx(6f).toFloat()
                 if (marcado) {
                     setColor(getColor(R.color.azul_destaque))
                 } else {

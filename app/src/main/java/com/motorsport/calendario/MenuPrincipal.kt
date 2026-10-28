@@ -78,9 +78,8 @@ internal object MenuPrincipal {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setPadding(activity.emPx(9f), activity.emPx(9f), activity.emPx(9f), activity.emPx(9f))
             background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
                 setColor(activity.getColor(R.color.azul_marinho_claro))
-                setStroke(activity.emPx(1f), activity.getColor(R.color.azul_marinho_borda))
+                cornerRadius = activity.emPx(8f).toFloat()
             }
             layoutParams = LinearLayout.LayoutParams(activity.emPx(40f), activity.emPx(40f))
         }
@@ -122,7 +121,7 @@ internal object MenuPrincipal {
             activity,
             activity.getColor(R.color.superficie),
             activity.getColor(R.color.borda_suave),
-            16f
+            12f
         )
         setPadding(activity.emPx(16f), activity.emPx(14f), activity.emPx(16f), activity.emPx(14f))
         layoutParams = parametros(activity)
@@ -221,7 +220,7 @@ internal object MenuPrincipal {
             isClickable = true
             isFocusable = true
             contentDescription = activity.getString(R.string.personalizar_alertas)
-            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 14f)
+            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 8f)
             setPadding(activity.emPx(16f), 0, activity.emPx(14f), 0)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -236,7 +235,7 @@ internal object MenuPrincipal {
                         gravity = Gravity.CENTER
                         minWidth = activity.emPx(24f)
                         setPadding(activity.emPx(7f), activity.emPx(2f), activity.emPx(7f), activity.emPx(2f))
-                        background = forma(activity, activity.getColor(R.color.azul_destaque), null, 10f)
+                        background = forma(activity, activity.getColor(R.color.azul_destaque), null, 6f)
                     }
                 )
             }
@@ -248,161 +247,13 @@ internal object MenuPrincipal {
         }
     }
 
-    /**
-     * Um cartão com todas as categorias. Em cada linha, o nome (com a cor dela) à esquerda e, ao
-     * lado, as três opções sempre à vista: Todas, Corridas e Nenhuma. Nada abre ou fecha.
-     */
-    internal fun cartaoDeCategorias(activity: Activity, ativo: Boolean, aoMudar: () -> Unit): View =
-        LinearLayout(activity).apply {
-            orientation = LinearLayout.VERTICAL
-            background = forma(
-                activity,
-                activity.getColor(R.color.superficie),
-                activity.getColor(R.color.borda_suave),
-                16f
-            )
-            // Esmaecido quando os avisos estão desligados; as escolhas continuam valendo.
-            alpha = if (ativo) 1f else 0.45f
-            layoutParams = parametros(activity)
-
-            Categorias.todas.forEachIndexed { indice, categoria ->
-                if (indice > 0) addView(divisor(activity))
-                addView(linhaDaCategoria(activity, categoria, aoMudar))
-            }
-        }
-
-    private fun divisor(activity: Activity) =
-        View(activity).apply {
-            setBackgroundColor(activity.getColor(R.color.borda_suave))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                activity.emPx(1f).coerceAtLeast(1)
-            ).apply {
-                marginStart = activity.emPx(14f)
-                marginEnd = activity.emPx(14f)
-            }
-        }
-
-    private fun linhaDaCategoria(
-        activity: Activity,
-        categoria: CategoriaInfo,
-        aoMudar: () -> Unit
-    ): View {
-        val modoAtual = PreferenciasDeAviso.modoDaCategoria(activity, categoria.nome)
-
-        val ponto = View(activity).apply {
-            background = GradientDrawable().apply {
-                setColor(Color.parseColor(categoria.cor))
-                cornerRadius = activity.emPx(2f).toFloat()
-            }
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(4f), activity.emPx(28f))
-                .apply { marginEnd = activity.emPx(10f) }
-        }
-
-        val nome = texto(activity, categoria.nome, 15f, principal(activity), Typeface.BOLD).apply {
-            isSingleLine = true
-            ellipsize = android.text.TextUtils.TruncateAt.END
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = activity.emPx(60f)
-            setPadding(activity.emPx(14f), activity.emPx(8f), activity.emPx(10f), activity.emPx(8f))
-            addView(ponto)
-            addView(nome)
-            addView(
-                seletorDeModo(activity, modoAtual, categoria.cor) { novo ->
-                    PreferenciasDeAviso.definirModo(activity, categoria.nome, novo)
-                    AgendadorDeAvisos.reagendarEmSegundoPlano(activity)
-                    aoMudar()
-                }
-            )
-        }
-    }
-
-    internal fun legendaDosModos(activity: Activity) =
-        texto(
-            activity,
-            activity.getString(R.string.campeonato_legenda),
-            12f,
-            activity.getColor(R.color.texto_suave),
-            Typeface.NORMAL
-        ).apply {
-            setLineSpacing(0f, 1.15f)
-            layoutParams = parametros(activity, topo = 8f, inicio = 2f)
-        }
-
-    /** Três opções lado a lado; a escolhida ganha a cor do campeonato. */
-    private fun seletorDeModo(
-        activity: Activity,
-        atual: ModoDeAviso,
-        corHex: String,
-        aoEscolher: (ModoDeAviso) -> Unit
-    ): View {
-        val suave = activity.getColor(R.color.texto_suave)
-
-        return LinearLayout(activity).apply {
-            orientation = LinearLayout.HORIZONTAL
-            background = forma(activity, activity.getColor(R.color.fundo_tela), activity.getColor(R.color.borda_suave), 12f)
-            setPadding(activity.emPx(3f), activity.emPx(3f), activity.emPx(3f), activity.emPx(3f))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                activity.emPx(40f)
-            )
-
-            ModoDeAviso.values().forEach { modo ->
-                val marcado = modo == atual
-                val corMarcada = if (modo == ModoDeAviso.NENHUMA) {
-                    Color.parseColor("#6B7280")
-                } else {
-                    Color.parseColor(corHex)
-                }
-                val corDoTexto = when {
-                    !marcado -> suave
-                    modo == ModoDeAviso.NENHUMA -> Color.WHITE
-                    else -> corDoTextoSobreCor
-                }
-
-                addView(
-                    texto(
-                        activity,
-                        rotuloDoModo(activity, modo),
-                        11f,
-                        corDoTexto,
-                        if (marcado) Typeface.BOLD else Typeface.NORMAL
-                    ).apply {
-                        gravity = Gravity.CENTER
-                        isSingleLine = true
-                        isClickable = true
-                        isFocusable = true
-                        contentDescription = rotuloDoModo(activity, modo)
-                        setPadding(activity.emPx(4f), 0, activity.emPx(4f), 0)
-                        background = if (marcado) {
-                            comToque(activity, corMarcada, null, 9f)
-                        } else {
-                            comToque(activity, Color.TRANSPARENT, null, 9f)
-                        }
-                        // Larguras iguais: os seletores de todas as categorias ficam alinhados.
-                        layoutParams = LinearLayout.LayoutParams(
-                            activity.emPx(60f),
-                            LinearLayout.LayoutParams.MATCH_PARENT
-                        )
-                        setOnClickListener { aoEscolher(modo) }
-                    }
-                )
-            }
-        }
-    }
-
     /** Aparece quando há avisos ligados, mas o Android bloqueia as notificações do app. */
     private fun cartaoDeBloqueio(activity: Activity): View =
         LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
             isClickable = true
             isFocusable = true
-            background = comToque(activity, Color.parseColor("#2A2113"), corDoAviso, 14f)
+            background = comToque(activity, Color.parseColor("#2A2113"), corDoAviso, 8f)
             setPadding(activity.emPx(16f), activity.emPx(14f), activity.emPx(16f), activity.emPx(14f))
             layoutParams = parametros(activity, topo = 16f)
             addView(texto(activity, activity.getString(R.string.bloqueio_titulo), 15f, corDoAviso, Typeface.BOLD))
@@ -439,7 +290,7 @@ internal object MenuPrincipal {
             isClickable = true
             isFocusable = true
             contentDescription = activity.getString(R.string.botao_teste)
-            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 14f)
+            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 8f)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 activity.emPx(46f)
@@ -470,7 +321,7 @@ internal object MenuPrincipal {
             gravity = Gravity.CENTER
             isClickable = true
             isFocusable = true
-            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 14f)
+            background = comToque(activity, Color.TRANSPARENT, activity.getColor(R.color.borda_suave), 8f)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 activity.emPx(44f)
@@ -481,15 +332,6 @@ internal object MenuPrincipal {
     // --------------------------------------------------------------- ações
 
     // ------------------------------------------------------------- apoio
-
-    private fun rotuloDoModo(activity: Activity, modo: ModoDeAviso): String =
-        activity.getString(
-            when (modo) {
-                ModoDeAviso.TODAS -> R.string.modo_todas
-                ModoDeAviso.CORRIDAS -> R.string.modo_corridas
-                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
-            }
-        )
 
     /** Cor do texto principal no tema atual (branco no escuro, quase preto no claro). */
     private fun principal(activity: Activity): Int = activity.getColor(R.color.texto_principal)

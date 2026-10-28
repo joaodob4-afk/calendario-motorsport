@@ -44,14 +44,21 @@ class PersonalizarAlertasTest {
         todas(raiz()).filterIsInstance<TextView>().first { it.text.toString() == texto }
 
     @Test
-    fun mostraTodasAsAntecedenciasEUmaLinhaPorCategoria() {
+    fun mostraTodasAsAntecedenciasEOInterruptorDasFavoritas() {
         val textos = textos()
 
         PreferenciasDeAviso.todasAsOpcoes.forEach {
             val rotulo = rotuloCurtoDaAntecedencia(activity, it)
             assertTrue("Falta $rotulo", rotulo in textos)
         }
-        Categorias.todas.forEach { assertTrue("Falta ${it.nome}", it.nome in textos) }
+        assertTrue(activity.getString(R.string.avisar_so_favoritas) in textos)
+    }
+
+    @Test
+    fun aPaginaNaoTemMaisAListaDeCategorias() {
+        val textos = textos()
+
+        Categorias.todas.forEach { assertFalse("Não devia ter ${it.nome}", it.nome in textos) }
     }
 
     @Test
@@ -70,12 +77,18 @@ class PersonalizarAlertasTest {
     }
 
     @Test
-    fun escolherUmModoDeCategoriaGrava() {
-        val corridas = activity.getString(R.string.modo_corridas)
-        val linhaF2 = textView("F2").parent as ViewGroup
-        todas(linhaF2).filterIsInstance<TextView>().first { it.text.toString() == corridas }.performClick()
+    fun ligarSoFavoritasSilenciaQuemNaoEFavoritaSemPerderAEscolha() {
+        PreferenciasDeAviso.definirModo(activity, "F2", ModoDeAviso.TODAS)
+        PreferenciasDeFavoritas.definirCategorias(activity, setOf("f1"))
 
-        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
+        todas(raiz()).filterIsInstance<InterruptorModerno>().first().performClick()
+
+        assertTrue(PreferenciasDeAviso.avisarSoFavoritas(activity))
+        assertEquals(ModoDeAviso.NENHUMA, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
         assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(activity, "F1"))
+
+        // A escolha de F2 continua guardada: ao desligar, ela volta.
+        todas(raiz()).filterIsInstance<InterruptorModerno>().first().performClick()
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(activity, "F2"))
     }
 }

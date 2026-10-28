@@ -16,10 +16,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * "Personalizar alertas": página aberta pelo painel de notificações. Tem as antecedências
- * (dá para marcar quantas quiser) e, por categoria, o que avisar: todas as sessões, só as
- * corridas ou nenhuma. As escolhas são gravadas e os alarmes refeitos como sempre; aqui só
- * muda onde se escolhe, não como os avisos são enviados.
+ * "Personalizar alertas": página aberta pelo painel de notificações, só com o que vale para
+ * tudo: "avisar só das favoritas" e as antecedências (dá para marcar quantas quiser). O aviso
+ * de cada categoria fica no painel "Minhas categorias" (coração). As escolhas são gravadas e os
+ * alarmes refeitos como sempre; aqui só muda onde se escolhe, não como os avisos são enviados.
  * A abertura e a saída usam a transição padrão do Android.
  */
 class PersonalizarAlertasActivity : AppCompatActivity() {
@@ -29,7 +29,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
     private lateinit var corpo: LinearLayout
     private lateinit var gradeDeAntecedencias: LinearLayout
     private lateinit var contagem: TextView
-    private lateinit var secaoDeCategorias: LinearLayout
+    private lateinit var cartaoDasFavoritas: LinearLayout
 
     /** Antecedência recém-marcada: a cápsula refeita "estoura" para confirmar o toque. */
     private var recemMarcada: Int? = null
@@ -71,7 +71,16 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             setPadding(emPx(8f), emPx(8f), emPx(8f), emPx(8f))
             background = cartao()
         }
-        secaoDeCategorias = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        cartaoDasFavoritas = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(emPx(16f), emPx(12f), emPx(12f), emPx(12f))
+            background = cartao()
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = emPx(4f) }
+        }
 
         contagem = TextView(this).apply {
             textSize = 12f
@@ -81,17 +90,16 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             setPadding(emPx(10f), emPx(3f), emPx(10f), emPx(3f))
             background = GradientDrawable().apply {
                 setColor(getColor(R.color.azul_destaque))
-                cornerRadius = emPx(10f).toFloat()
+                cornerRadius = emPx(6f).toFloat()
             }
         }
 
         corpo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(emPx(16f), emPx(4f), emPx(16f), emPx(28f))
+            addView(cartaoDasFavoritas)
             addView(tituloDaPrimeiraSecao())
             addView(gradeDeAntecedencias)
-            addView(tituloDeSecao(R.string.por_categoria_titulo))
-            addView(secaoDeCategorias)
         }
 
         raiz.addView(
@@ -102,8 +110,8 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
         )
 
+        desenharFavoritas()
         desenharAntecedencias()
-        desenharCategorias()
     }
 
     private fun cabecalho(): View {
@@ -155,7 +163,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
         GradientDrawable().apply {
             setColor(getColor(R.color.superficie))
             setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.borda_suave))
-            cornerRadius = emPx(18f).toFloat()
+            cornerRadius = emPx(12f).toFloat()
         }
 
     private fun tituloDeSecao(textoRes: Int): TextView =
@@ -233,17 +241,59 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             }
         }
 
-    /** Lista de categorias, uma por linha, com Todas, Corridas e Nenhuma ao lado. */
-    private fun desenharCategorias() {
-        secaoDeCategorias.removeAllViews()
+    /** Estado do interruptor antes do toque; faz a bolinha deslizar quando o cartão é refeito. */
+    private var favoritasAntes: Boolean? = null
 
-        val ativo = PreferenciasDeAviso.avisarNaHora(this) ||
-            PreferenciasDeAviso.minutosSelecionados(this).isNotEmpty()
+    /** "Avisar só das favoritas": as outras categorias ficam sem avisos, sem perder o que foi escolhido. */
+    private fun desenharFavoritas() {
+        cartaoDasFavoritas.removeAllViews()
 
-        secaoDeCategorias.addView(
-            MenuPrincipal.cartaoDeCategorias(this, ativo) { desenharCategorias() }
-        )
-        secaoDeCategorias.addView(MenuPrincipal.legendaDosModos(this))
+        val ligado = PreferenciasDeAviso.avisarSoFavoritas(this)
+        val anterior = favoritasAntes
+        favoritasAntes = ligado
+
+        val textos = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                .apply { marginEnd = emPx(8f) }
+            addView(
+                TextView(this@PersonalizarAlertasActivity).apply {
+                    text = getString(R.string.avisar_so_favoritas)
+                    setTextColor(getColor(R.color.texto_principal))
+                    textSize = 16f
+                    typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+                }
+            )
+            addView(
+                TextView(this@PersonalizarAlertasActivity).apply {
+                    text = getString(R.string.avisar_so_favoritas_dica)
+                    setTextColor(getColor(R.color.texto_suave))
+                    textSize = 13f
+                    setPadding(0, emPx(2f), 0, 0)
+                }
+            )
+        }
+
+        val interruptor = InterruptorModerno(
+            this,
+            ligado,
+            anterior,
+            corLigado = getColor(R.color.azul_destaque),
+            corDaTrilha = getColor(R.color.fundo_tela),
+            corDoContorno = getColor(R.color.borda_suave)
+        ).apply {
+            isClickable = true
+            isFocusable = true
+            contentDescription = getString(R.string.avisar_so_favoritas)
+            setOnClickListener {
+                PreferenciasDeAviso.definirAvisarSoFavoritas(this@PersonalizarAlertasActivity, !ligado)
+                AgendadorDeAvisos.reagendarEmSegundoPlano(this@PersonalizarAlertasActivity)
+                desenharFavoritas()
+            }
+        }
+
+        cartaoDasFavoritas.addView(textos)
+        cartaoDasFavoritas.addView(interruptor)
     }
 
     /** Salva, pede permissão de notificação se preciso e refaz os alarmes (igual ao painel). */
@@ -256,13 +306,12 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
         AgendadorDeAvisos.reagendarEmSegundoPlano(this)
         desenharAntecedencias()
-        desenharCategorias()
     }
 
     private fun forma(preenchimento: Int, borda: Int?) =
         GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = emPx(14f).toFloat()
+            cornerRadius = emPx(8f).toFloat()
             setColor(preenchimento)
             if (borda != null) setStroke(emPx(1f).coerceAtLeast(1), borda)
         }

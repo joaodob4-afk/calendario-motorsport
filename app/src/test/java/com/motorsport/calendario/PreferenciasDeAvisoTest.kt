@@ -2,6 +2,7 @@ package com.motorsport.calendario
 
 import android.content.Context
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -24,6 +25,38 @@ class PreferenciasDeAvisoTest {
     @Test
     fun opcoesVaoDeUmaHoraAteQuinzeMinutos() {
         assertEquals(listOf(60, 45, 30, 15), PreferenciasDeAviso.opcoes)
+    }
+
+    @Test
+    fun soFavoritasDesligadoNaoMudaOModoDeNinguem() {
+        PreferenciasDeFavoritas.definirCategorias(context, setOf("f1"))
+        PreferenciasDeAviso.definirModo(context, "F2", ModoDeAviso.CORRIDAS)
+
+        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(context, "F2"))
+        assertFalse(PreferenciasDeAviso.silenciadaPorFavoritas(context, "F2"))
+    }
+
+    @Test
+    fun soFavoritasLigadoCalaAsOutrasEPreservaOModoSalvo() {
+        PreferenciasDeFavoritas.definirCategorias(context, setOf("f1"))
+        PreferenciasDeAviso.definirModo(context, "F2", ModoDeAviso.CORRIDAS)
+        PreferenciasDeAviso.definirAvisarSoFavoritas(context, true)
+
+        assertEquals(ModoDeAviso.NENHUMA, PreferenciasDeAviso.modoDaCategoria(context, "F2"))
+        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoSalvoDaCategoria(context, "F2"))
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(context, "F1"))
+
+        PreferenciasDeAviso.definirAvisarSoFavoritas(context, false)
+        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoDaCategoria(context, "F2"))
+    }
+
+    @Test
+    fun modoFoiEscolhidoSoDepoisDeDefinir() {
+        assertFalse(PreferenciasDeAviso.modoFoiEscolhido(context, "F3"))
+
+        PreferenciasDeAviso.definirModo(context, "F3", ModoDeAviso.NENHUMA)
+
+        assertTrue(PreferenciasDeAviso.modoFoiEscolhido(context, "F3"))
     }
 
     @Test

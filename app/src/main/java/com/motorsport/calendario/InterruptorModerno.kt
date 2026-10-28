@@ -38,6 +38,7 @@ internal class InterruptorModerno(
     private val ligadoPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = corLigado }
     private val bolinha = Paint(Paint.ANTI_ALIAS_FLAG)
     private val area = RectF()
+    private val polegar = RectF()
     private val avaliadorDeCor = ArgbEvaluator()
 
     /** 0 = desligado, 1 = ligado. Começa no estado anterior, se houver. */
@@ -80,7 +81,8 @@ internal class InterruptorModerno(
         val altura = dp(28f)
         val esquerda = (width - largura) / 2f
         val topo = (height - altura) / 2f
-        val raio = altura / 2f
+        // Cantos pouco arredondados: nada de formato de pílula nem de bolinha.
+        val raio = dp(6f)
 
         area.set(esquerda, topo, esquerda + largura, topo + altura)
 
@@ -93,16 +95,13 @@ internal class InterruptorModerno(
         canvas.drawRoundRect(area, raio, raio, ligadoPaint)
 
         val margem = dp(3f)
-        val raioDaBolinha = raio - margem
-        val xEsquerda = area.left + margem + raioDaBolinha
-        val xDireita = area.right - margem - raioDaBolinha
+        val lado = altura - 2 * margem
+        val xEsquerda = area.left + margem
+        val xDireita = area.right - margem - lado
+        val x = xEsquerda + (xDireita - xEsquerda) * progresso
 
         bolinha.color = avaliadorDeCor.evaluate(progresso, corDaBolinhaApagada, Color.WHITE) as Int
-        canvas.drawCircle(
-            xEsquerda + (xDireita - xEsquerda) * progresso,
-            area.centerY(),
-            raioDaBolinha,
-            bolinha
-        )
+        polegar.set(x, area.top + margem, x + lado, area.bottom - margem)
+        canvas.drawRoundRect(polegar, dp(4f), dp(4f), bolinha)
     }
 }
