@@ -72,7 +72,7 @@ internal object BarraInferior {
                 if (indice == selecionado) {
                     background = GradientDrawable().apply {
                         setColor(activity.getColor(R.color.azul_marinho_claro))
-                        cornerRadius = activity.emPx(15f).toFloat()
+                        cornerRadius = activity.emPx(8f).toFloat()
                     }
                 }
                 addView(icone)

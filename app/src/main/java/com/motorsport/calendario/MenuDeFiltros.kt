@@ -6,6 +6,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -72,7 +74,7 @@ internal class MenuDeFiltros(
             background = RippleDrawable(
                 ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
                 null,
-                forma(Color.WHITE, null, 14f)
+                forma(Color.WHITE, null, 8f)
             )
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -81,6 +83,7 @@ internal class MenuDeFiltros(
             setOnClickListener {
                 aoMudar(emptySet())
                 desenhar()
+                agendarNovosAvisos()
             }
             comEfeitoDeToque(escala = 0.97f)
         }
@@ -102,9 +105,8 @@ internal class MenuDeFiltros(
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setPadding(activity.emPx(9f), activity.emPx(9f), activity.emPx(9f), activity.emPx(9f))
             background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
                 setColor(activity.getColor(R.color.azul_marinho_claro))
-                setStroke(activity.emPx(1f), activity.getColor(R.color.azul_marinho_borda))
+                cornerRadius = activity.emPx(8f).toFloat()
             }
             layoutParams = LinearLayout.LayoutParams(activity.emPx(40f), activity.emPx(40f))
         }
@@ -127,7 +129,7 @@ internal class MenuDeFiltros(
             setPadding(activity.emPx(10f), activity.emPx(4f), activity.emPx(10f), activity.emPx(4f))
             background = GradientDrawable().apply {
                 setColor(corDoCoracao)
-                cornerRadius = activity.emPx(12f).toFloat()
+                cornerRadius = activity.emPx(6f).toFloat()
             }
         }
 
@@ -157,9 +159,35 @@ internal class MenuDeFiltros(
         limpar.visibility = if (quantas > 0) View.VISIBLE else View.GONE
     }
 
+    private fun rotuloDoModo(modo: ModoDeAviso): String =
+        activity.getString(
+            when (modo) {
+                ModoDeAviso.TODAS -> R.string.modo_todas
+                ModoDeAviso.CORRIDAS -> R.string.modo_so_corridas
+                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
+            }
+        )
+
+    /** Botão só com o ícone: sem círculo e sem borda; ao tocar, uma ondulação retangular. */
+    private fun botaoDeIcone(): ImageView =
+        ImageView(activity).apply {
+            setPadding(activity.emPx(8f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
+            isClickable = true
+            isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(40f), activity.emPx(40f))
+            background = RippleDrawable(
+                ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
+                null,
+                forma(Color.WHITE, null, 8f)
+            )
+            comEfeitoDeToque(escala = 0.88f)
+        }
+
     /**
-     * Um cartão por categoria: faixa na cor dela, o nome e o coração num botão redondo. Favoritada,
-     * o cartão ganha um tom e um contorno da cor da categoria (a troca é animada).
+     * Um cartão por categoria, com tudo dela num lugar só: faixa na cor da categoria, o nome, o
+     * que ela avisa e dois botões. O coração acompanha a categoria (ela entra na lista da tela
+     * inicial); o sino muda o aviso: todas as sessões, só corridas ou nenhuma. Favoritada, o
+     * cartão ganha um tom da cor da categoria (a troca é animada).
      */
     private fun linha(categoria: CategoriaInfo): View {
         val chave = Formatacao.normalizar(categoria.nome)
@@ -171,7 +199,7 @@ internal class MenuDeFiltros(
         val bordaFavorita = ColorUtils.blendARGB(bordaNormal, cor, 0.85f)
 
         val fundo = GradientDrawable().apply {
-            cornerRadius = activity.emPx(16f).toFloat()
+            cornerRadius = activity.emPx(12f).toFloat()
         }
 
         fun aplicarCores(mistura: Float) {
@@ -187,7 +215,7 @@ internal class MenuDeFiltros(
                 setColor(cor)
                 cornerRadius = activity.emPx(2f).toFloat()
             }
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(4f), activity.emPx(30f))
+            layoutParams = LinearLayout.LayoutParams(activity.emPx(4f), activity.emPx(36f))
                 .apply { marginStart = activity.emPx(4f); marginEnd = activity.emPx(14f) }
         }
 
@@ -197,37 +225,61 @@ internal class MenuDeFiltros(
             textSize = 16f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             maxLines = 1
+        }
+
+        val aviso = TextView(activity).apply {
+            setTextColor(activity.getColor(R.color.texto_suave))
+            textSize = 12f
+            maxLines = 1
+            setPadding(0, activity.emPx(2f), 0, 0)
+        }
+
+        val textos = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            addView(nome)
+            addView(aviso)
         }
 
-        val coracao = ImageView(activity).apply {
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setPadding(activity.emPx(8f), activity.emPx(8f), activity.emPx(8f), activity.emPx(8f))
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(38f), activity.emPx(38f))
-        }
+        val sino = botaoDeIcone().apply { setImageResource(R.drawable.ic_sino) }
+        val coracao = botaoDeIcone()
 
-        val botao = FrameLayout(activity).apply {
-            layoutParams = LinearLayout.LayoutParams(activity.emPx(38f), activity.emPx(38f))
-            addView(coracao)
-        }
-
-        fun pintar(favorita: Boolean) {
+        fun pintarCoracao(favorita: Boolean) {
             coracao.setImageResource(if (favorita) R.drawable.ic_coracao_cheio else R.drawable.ic_coracao)
             coracao.setColorFilter(if (favorita) corDoCoracao else activity.getColor(R.color.texto_suave))
+            coracao.contentDescription = activity.getString(
+                if (favorita) R.string.cd_desfavoritar_categoria else R.string.cd_favoritar_categoria,
+                categoria.nome
+            )
         }
 
-        fun descricao(favorita: Boolean) = activity.getString(
-            if (favorita) R.string.cd_desfavoritar_categoria else R.string.cd_favoritar_categoria,
-            categoria.nome
-        )
+        /** Texto do aviso e cor do sino, de acordo com o que a categoria realmente avisa agora. */
+        fun pintarAviso() {
+            val silenciada = PreferenciasDeAviso.silenciadaPorFavoritas(activity, categoria.nome)
+            val modo = PreferenciasDeAviso.modoSalvoDaCategoria(activity, categoria.nome)
+            val avisa = !silenciada && modo != ModoDeAviso.NENHUMA
+
+            aviso.text = if (silenciada) {
+                activity.getString(R.string.favoritas_silenciada)
+            } else {
+                activity.getString(R.string.favoritas_avisos, rotuloDoModo(modo))
+            }
+            sino.setColorFilter(
+                if (avisa) activity.getColor(R.color.azul_destaque) else activity.getColor(R.color.texto_suave)
+            )
+            sino.alpha = if (silenciada) 0.5f else 1f
+            sino.contentDescription = activity.getString(
+                R.string.cd_alternar_aviso,
+                categoria.nome,
+                rotuloDoModo(modo)
+            )
+        }
 
         return LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            minimumHeight = activity.emPx(60f)
-            setPadding(activity.emPx(10f), activity.emPx(6f), activity.emPx(10f), activity.emPx(6f))
-            isClickable = true
-            isFocusable = true
+            minimumHeight = activity.emPx(64f)
+            setPadding(activity.emPx(10f), activity.emPx(6f), activity.emPx(6f), activity.emPx(6f))
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -235,25 +287,48 @@ internal class MenuDeFiltros(
 
             var favorita = chave in favoritas()
             aplicarCores(if (favorita) 1f else 0f)
-            background = RippleDrawable(
-                ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
-                fundo,
-                forma(Color.WHITE, null, 16f)
-            )
+            background = fundo
 
             addView(faixa)
-            addView(nome)
-            addView(botao)
+            addView(textos)
+            addView(sino)
+            addView(coracao)
 
-            pintar(favorita)
-            contentDescription = descricao(favorita)
+            pintarCoracao(favorita)
+            pintarAviso()
 
-            setOnClickListener {
+            sino.setOnClickListener {
+                val proximo = when (PreferenciasDeAviso.modoSalvoDaCategoria(activity, categoria.nome)) {
+                    ModoDeAviso.TODAS -> ModoDeAviso.CORRIDAS
+                    ModoDeAviso.CORRIDAS -> ModoDeAviso.NENHUMA
+                    ModoDeAviso.NENHUMA -> ModoDeAviso.TODAS
+                }
+
+                PreferenciasDeAviso.definirModo(activity, categoria.nome, proximo)
+                pintarAviso()
+                agendarNovosAvisos()
+                sino.animarPop()
+            }
+
+            coracao.setOnClickListener {
                 val atuais = favoritas()
                 favorita = chave !in atuais
 
-                pintar(favorita)
-                contentDescription = descricao(favorita)
+                // Favoritar já liga o aviso das corridas, se a categoria não avisava nada de especial.
+                if (favorita &&
+                    (!PreferenciasDeAviso.modoFoiEscolhido(activity, categoria.nome) ||
+                        PreferenciasDeAviso.modoSalvoDaCategoria(activity, categoria.nome) == ModoDeAviso.NENHUMA)
+                ) {
+                    PreferenciasDeAviso.definirModo(activity, categoria.nome, ModoDeAviso.CORRIDAS)
+                }
+
+                // Os favoritos são gravados na hora: "só favoritas" lê daqui para saber quem avisa.
+                aoMudar(if (favorita) atuais + chave else atuais - chave)
+
+                pintarCoracao(favorita)
+                pintarAviso()
+                atualizarContagem()
+                agendarNovosAvisos()
 
                 // O tom do cartão aparece (ou some) suavemente.
                 ValueAnimator.ofFloat(if (favorita) 0f else 1f, if (favorita) 1f else 0f).apply {
@@ -274,13 +349,17 @@ internal class MenuDeFiltros(
                         coracao.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
                     }.start()
                 }
-
-                // A lista que está atrás é atualizada depois que o painel fecha (MainActivity).
-                aoMudar(if (favorita) atuais + chave else atuais - chave)
-                atualizarContagem()
             }
-            comEfeitoDeToque(escala = 0.98f)
         }
+    }
+
+    private val handlerDosAvisos = Handler(Looper.getMainLooper())
+    private val reagendarAvisos = Runnable { AgendadorDeAvisos.reagendarEmSegundoPlano(activity) }
+
+    /** Refaz os alarmes um instante depois do último toque (vários toques seguidos viram um só). */
+    private fun agendarNovosAvisos() {
+        handlerDosAvisos.removeCallbacks(reagendarAvisos)
+        handlerDosAvisos.postDelayed(reagendarAvisos, 700)
     }
 
     private fun forma(preenchimento: Int, borda: Int?, raioDp: Float) =

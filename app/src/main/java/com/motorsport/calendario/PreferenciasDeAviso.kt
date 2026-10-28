@@ -11,6 +11,7 @@ import android.os.Build
 internal object PreferenciasDeAviso {
 
     private const val ARQUIVO = "preferencias"
+    private const val CHAVE_SO_FAVORITAS = "avisar_so_favoritas"
     private const val CHAVE_MINUTOS = "aviso_minutos_antes"
     private const val CHAVE_ULTIMOS_MINUTOS = "aviso_ultimos_minutos"
     private const val CHAVE_LISTA = "aviso_minutos_lista"
@@ -126,12 +127,40 @@ internal object PreferenciasDeAviso {
     private fun chaveDoModo(categoria: String) =
         PREFIXO_MODO + Formatacao.normalizar(categoria)
 
-    /** O que avisar da categoria. Sem escolha, avisa de todas as sessões. */
-    fun modoDaCategoria(context: Context, categoria: String): ModoDeAviso {
+    /** O que o usuário escolheu para a categoria, sem olhar o "só favoritas". Sem escolha, todas. */
+    fun modoSalvoDaCategoria(context: Context, categoria: String): ModoDeAviso {
         val salvo = arquivo(context).getString(chaveDoModo(categoria), null)
 
         return ModoDeAviso.values().firstOrNull { it.name == salvo } ?: ModoDeAviso.TODAS
     }
+
+    /** Verdadeiro se o usuário já escolheu um modo para a categoria (e não é o padrão). */
+    fun modoFoiEscolhido(context: Context, categoria: String): Boolean =
+        arquivo(context).contains(chaveDoModo(categoria))
+
+    /** Com "só favoritas" ligado, só as categorias favoritas avisam; as outras ficam em silêncio. */
+    fun avisarSoFavoritas(context: Context): Boolean =
+        arquivo(context).getBoolean(CHAVE_SO_FAVORITAS, false)
+
+    fun definirAvisarSoFavoritas(context: Context, ligado: Boolean) {
+        arquivo(context).edit().putBoolean(CHAVE_SO_FAVORITAS, ligado).apply()
+    }
+
+    /** A categoria está calada só porque "só favoritas" está ligado e ela não é favorita. */
+    fun silenciadaPorFavoritas(context: Context, categoria: String): Boolean =
+        avisarSoFavoritas(context) &&
+            Formatacao.normalizar(categoria) !in PreferenciasDeFavoritas.categorias(context)
+
+    /**
+     * O que avisar da categoria, já considerando "só favoritas". É este que o agendador consulta;
+     * o que o usuário escolheu continua guardado e volta quando "só favoritas" é desligado.
+     */
+    fun modoDaCategoria(context: Context, categoria: String): ModoDeAviso =
+        if (silenciadaPorFavoritas(context, categoria)) {
+            ModoDeAviso.NENHUMA
+        } else {
+            modoSalvoDaCategoria(context, categoria)
+        }
 
     fun definirModo(context: Context, categoria: String, modo: ModoDeAviso) {
         arquivo(context).edit().putString(chaveDoModo(categoria), modo.name).apply()

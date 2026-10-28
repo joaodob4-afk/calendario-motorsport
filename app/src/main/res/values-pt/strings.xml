@@ -161,11 +161,16 @@
     <string name="cd_finalizadas">Mostrar etapas finalizadas</string>
 
     <string name="personalizar_antecedencia">Alerta por antecedência</string>
-    <string name="cd_favoritas">Categorias favoritas</string>
-    <string name="favoritas_titulo">Categorias favoritas</string>
-    <string name="favoritas_dica">A tela inicial mostra só as favoritas. Sem nenhuma, mostra todas.</string>
+    <string name="cd_favoritas">Minhas categorias</string>
+    <string name="favoritas_titulo">Minhas categorias</string>
+    <string name="favoritas_dica">Coração: mostrar na tela inicial. Sino: escolher quais sessões avisam. Sem nenhuma favorita, a tela inicial mostra todas.</string>
     <string name="cd_favoritar_categoria">Favoritar %s</string>
     <string name="cd_desfavoritar_categoria">Remover %s dos favoritos</string>
     <string name="personalizar_marcadas">%d marcadas</string>
     <string name="favoritas_limpar">Limpar favoritas</string>
+    <string name="favoritas_avisos">Avisos: %s</string>
+    <string name="favoritas_silenciada">Silenciada (só as favoritas avisam)</string>
+    <string name="cd_alternar_aviso">Avisos de %1$s: %2$s. Toque para mudar.</string>
+    <string name="avisar_so_favoritas">Avisar só das favoritas</string>
+    <string name="avisar_so_favoritas_dica">Categorias que não são favoritas não enviam avisos</string>
 </resources>

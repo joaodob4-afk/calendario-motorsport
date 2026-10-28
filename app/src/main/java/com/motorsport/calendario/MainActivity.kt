@@ -1295,7 +1295,7 @@ class MainActivity : AppCompatActivity() {
         calendario.background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
             setColor(android.graphics.Color.BLACK)
-            cornerRadius = 14f * resources.displayMetrics.density
+            cornerRadius = 8f * resources.displayMetrics.density
             setStroke(
                 (2 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
                 corCategoria
