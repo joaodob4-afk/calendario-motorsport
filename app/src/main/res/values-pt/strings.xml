@@ -179,4 +179,10 @@
     <string name="cd_mostrar_categoria">Mostrar %s na página inicial</string>
     <string name="cd_ocultar_categoria">Ocultar %s da página inicial</string>
     <string name="personalizar_categorias">Avisos por categoria</string>
+    <string name="atualizacao_ok">Calendários atualizados</string>
+    <string name="atualizacao_falha">Sem conexão. Mantendo os dados salvos.</string>
+    <string name="config_dados">Dados</string>
+    <string name="config_calendarios">Calendários</string>
+    <string name="config_atualizado">Última atualização: %1$s. Puxe a lista para baixo para atualizar.</string>
+    <string name="config_nunca_atualizado">Ainda não atualizado neste aparelho. Puxe a lista para baixo para atualizar.</string>
 </resources>

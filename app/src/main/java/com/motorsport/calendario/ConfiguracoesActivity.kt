@@ -85,6 +85,9 @@ class ConfiguracoesActivity : AppCompatActivity() {
         corpo.addView(tituloDeSecao(R.string.config_hora))
         corpo.addView(cartaoDeHora())
 
+        corpo.addView(tituloDeSecao(R.string.config_dados))
+        corpo.addView(cartaoDeAtualizacao())
+
         val novaRolagem = ScrollView(this).apply {
             isVerticalScrollBarEnabled = false
             addView(corpo)
@@ -215,6 +218,20 @@ class ConfiguracoesActivity : AppCompatActivity() {
             ColorDrawable(Color.WHITE)
         )
         linha.setOnClickListener { aoTocar() }
+    }
+
+    /** Quando os calendários foram baixados pela última vez (puxar a lista para baixo atualiza). */
+    private fun cartaoDeAtualizacao(): View {
+        val quando = UltimaAtualizacao.texto(this)
+        val descricao = if (quando != null) {
+            getString(R.string.config_atualizado, quando)
+        } else {
+            getString(R.string.config_nunca_atualizado)
+        }
+
+        return cartao().apply {
+            addView(linhaBase(R.drawable.ic_calendario, getString(R.string.config_calendarios), descricao))
+        }
     }
 
     private fun cartaoDeHora(): View {
