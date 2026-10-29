@@ -22,6 +22,9 @@ import java.time.format.DateTimeFormatter
 class MainActivity : AppCompatActivity() {
 
     private companion object {
+        /** Tempo máximo esperando algum calendário chegar numa atualização manual. */
+        const val TEMPO_DA_ATUALIZACAO_MS = 11_000L
+
         const val CHAVE_CATEGORIA = "categoria_atual"
         const val CHAVE_FILTRO_CATEGORIA = "filtro_categoria"
         const val CHAVE_FILTRO_FINALIZADAS = "filtro_finalizadas"
@@ -376,8 +379,13 @@ class MainActivity : AppCompatActivity() {
      * Relê um calendário fora da thread principal (disco + JSON), reagenda os avisos e só então
      * aplica o resultado na tela, se ela ainda existir.
      */
+    /** Quantos calendários foram baixados e gravados desde que o app abriu (a atualização manual compara). */
+    private var calendariosGravados = 0
+
     private fun recarregar(carga: () -> List<Etapa>?, aplicar: (List<Etapa>?) -> Unit) {
         val app = applicationContext
+        calendariosGravados++
+        UltimaAtualizacao.registrar(app)
         Thread {
             val etapas = lerEtapas("recarregar", carga)
             val coletadas = coletarSessoes(app)
@@ -617,12 +625,36 @@ class MainActivity : AppCompatActivity() {
         puxar.setProgressBackgroundColorSchemeColor(getColor(R.color.superficie))
 
         puxar.setOnRefreshListener {
+            val antes = calendariosGravados
+            val inicio = android.os.SystemClock.elapsedRealtime()
+
             AgendadorDeAvisos.reagendarEmSegundoPlano(this)
             baixarCalendariosNovos()
             redesenharListaDepois()
 
-            // Os downloads seguem em segundo plano; o indicador some depois de um instante.
-            handlerRedesenho.postDelayed({ puxar.isRefreshing = false }, 1400)
+            // O indicador gira até o primeiro calendário chegar ou até acabar o tempo (os downloads
+            // têm 10 s de limite). Aí o app diz o que aconteceu, em vez de ficar em silêncio.
+            lateinit var verificar: Runnable
+            verificar = Runnable {
+                if (isFinishing || isDestroyed) return@Runnable
+
+                val chegou = calendariosGravados > antes
+                val esgotou = android.os.SystemClock.elapsedRealtime() - inicio > TEMPO_DA_ATUALIZACAO_MS
+
+                if (chegou || esgotou) {
+                    puxar.isRefreshing = false
+                    android.widget.Toast.makeText(
+                        this,
+                        if (chegou) R.string.atualizacao_ok else R.string.atualizacao_falha,
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    handlerRedesenho.postDelayed(verificar, 300)
+                }
+            }
+
+            // Pelo menos um instante girando, para o gesto parecer ter feito algo.
+            handlerRedesenho.postDelayed(verificar, 900)
         }
     }
 
