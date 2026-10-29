@@ -169,8 +169,14 @@
     <string name="personalizar_marcadas">%d marcadas</string>
     <string name="favoritas_limpar">Limpar favoritas</string>
     <string name="favoritas_avisos">Avisos: %s</string>
-    <string name="favoritas_silenciada">Silenciada (só as favoritas avisam)</string>
+    <string name="favoritas_silenciada">Silenciada (oculta na página inicial)</string>
     <string name="cd_alternar_aviso">Avisos de %1$s: %2$s. Toque para mudar.</string>
-    <string name="avisar_so_favoritas">Avisar só das favoritas</string>
-    <string name="avisar_so_favoritas_dica">Categorias que não são favoritas não enviam avisos</string>
+    <string name="avisar_so_favoritas">Avisar só das categorias da inicial</string>
+    <string name="avisar_so_favoritas_dica">Categorias ocultas na página inicial não enviam avisos</string>
+    <string name="cd_categorias_inicio">Categorias da página inicial</string>
+    <string name="inicial_titulo">Na página inicial</string>
+    <string name="inicial_todas">Todas</string>
+    <string name="cd_mostrar_categoria">Mostrar %s na página inicial</string>
+    <string name="cd_ocultar_categoria">Ocultar %s da página inicial</string>
+    <string name="personalizar_categorias">Avisos por categoria</string>
 </resources>

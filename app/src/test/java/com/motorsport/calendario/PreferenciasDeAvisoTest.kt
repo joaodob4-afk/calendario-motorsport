@@ -51,6 +51,14 @@ class PreferenciasDeAvisoTest {
     }
 
     @Test
+    fun soDaInicialLigadoSemNenhumaEscolhidaNaoSilenciaNinguem() {
+        PreferenciasDeAviso.definirAvisarSoFavoritas(context, true)
+
+        assertFalse(PreferenciasDeAviso.silenciadaPorFavoritas(context, "F1"))
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoDaCategoria(context, "F1"))
+    }
+
+    @Test
     fun modoFoiEscolhidoSoDepoisDeDefinir() {
         assertFalse(PreferenciasDeAviso.modoFoiEscolhido(context, "F3"))
 

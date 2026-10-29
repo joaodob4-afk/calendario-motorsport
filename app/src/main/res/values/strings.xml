@@ -170,8 +170,14 @@
     <string name="personalizar_marcadas">%d selected</string>
     <string name="favoritas_limpar">Clear favorites</string>
     <string name="favoritas_avisos">Alerts: %s</string>
-    <string name="favoritas_silenciada">Silenced (only favorites alert)</string>
+    <string name="favoritas_silenciada">Silenced (hidden on the home screen)</string>
     <string name="cd_alternar_aviso">Alerts for %1$s: %2$s. Tap to change.</string>
-    <string name="avisar_so_favoritas">Alert only for favorites</string>
-    <string name="avisar_so_favoritas_dica">Categories that are not favorites send no alerts</string>
+    <string name="avisar_so_favoritas">Alert only for home categories</string>
+    <string name="avisar_so_favoritas_dica">Categories hidden on the home screen send no alerts</string>
+    <string name="cd_categorias_inicio">Categories on the home screen</string>
+    <string name="inicial_titulo">On the home screen</string>
+    <string name="inicial_todas">All</string>
+    <string name="cd_mostrar_categoria">Show %s on the home screen</string>
+    <string name="cd_ocultar_categoria">Hide %s from the home screen</string>
+    <string name="personalizar_categorias">Alerts by category</string>
 </resources>

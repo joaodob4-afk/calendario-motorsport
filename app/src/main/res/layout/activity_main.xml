@@ -23,7 +23,7 @@
             android:elevation="4dp"
             android:paddingBottom="8dp">
 
-            <!-- Cabeçalho: menu, título e filtros. Cada toque tem 48dp. -->
+            <!-- Linha de cima: menu à esquerda e a seta das categorias à direita. Cada toque tem 48dp. -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -43,21 +43,13 @@
                     android:focusable="true"
                     android:contentDescription="@string/cd_menu" />
 
-                <!-- Título do app; as categorias agora ficam no painel de filtros (à direita) -->
-                <TextView
-                    android:id="@+id/tituloApp"
+                <!-- Sem o nome do app: o espaço fica livre entre o menu e a seta -->
+                <Space
                     android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="12dp"
-                    android:gravity="center_vertical"
-                    android:singleLine="true"
-                    android:text="@string/app_name"
-                    android:textColor="#FFFFFF"
-                    android:textSize="19sp"
-                    android:textStyle="bold" />
+                    android:layout_weight="1" />
 
-                <!-- Filtros, com um selo mostrando quantos estão ligados (Kotlin) -->
+                <!-- Seta das categorias da página inicial, com um selo quando só algumas aparecem (Kotlin) -->
                 <FrameLayout
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -69,11 +61,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:padding="12dp"
-                        android:src="@drawable/ic_coracao"
+                        android:src="@drawable/ic_chevron"
                         android:background="@drawable/bg_botao_icone"
                         android:clickable="true"
                         android:focusable="true"
-                        android:contentDescription="@string/cd_favoritas" />
+                        android:contentDescription="@string/cd_categorias_inicio" />
 
                     <TextView
                         android:id="@+id/badgeFiltro"
@@ -92,6 +84,15 @@
                         android:visibility="gone" />
                 </FrameLayout>
             </LinearLayout>
+
+            <!-- Linha fina separando os dois andares do cabeçalho -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="4dp"
+                android:background="@color/azul_marinho_borda" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -112,6 +113,13 @@
                     android:textColor="#FFFFFF"
                     android:textSize="22sp"
                     android:textStyle="bold" />
+
+                <!-- Linha vertical entre o mês e "Finalizadas" -->
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@color/azul_marinho_borda" />
 
                 <!-- "Finalizadas" + interruptor (o interruptor é criado pelo Kotlin) -->
                 <LinearLayout
@@ -224,25 +232,4 @@
             android:paddingBottom="24dp" />
     </ScrollView>
 
-    <!-- Painel de filtros e favoritas (pela direita): o conteúdo vem de MenuDeFiltros (Kotlin) -->
-    <ScrollView
-        android:id="@+id/scrollFiltros"
-        android:layout_width="340dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="end"
-        android:background="@drawable/painel_lateral_direito"
-        android:clickable="true"
-        android:focusable="true"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:id="@+id/containerFiltros"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="22dp"
-            android:paddingEnd="22dp"
-            android:paddingTop="28dp"
-            android:paddingBottom="24dp" />
-    </ScrollView>
 </androidx.drawerlayout.widget.DrawerLayout>

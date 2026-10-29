@@ -16,10 +16,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 /**
- * "Personalizar alertas": página aberta pelo painel de notificações, só com o que vale para
- * tudo: "avisar só das favoritas" e as antecedências (dá para marcar quantas quiser). O aviso
- * de cada categoria fica no painel "Minhas categorias" (coração). As escolhas são gravadas e os
- * alarmes refeitos como sempre; aqui só muda onde se escolhe, não como os avisos são enviados.
+ * "Personalizar alertas": página aberta pelo painel de notificações. Tem "avisar só das
+ * categorias da página inicial", as antecedências (dá para marcar quantas quiser) e, por
+ * categoria, o sino que escolhe o que avisar: todas as sessões, só corridas ou nenhuma. As
+ * escolhas são gravadas e os alarmes refeitos como sempre; aqui só muda onde se escolhe, não
+ * como os avisos são enviados.
  * A abertura e a saída usam a transição padrão do Android.
  */
 class PersonalizarAlertasActivity : AppCompatActivity() {
@@ -30,6 +31,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
     private lateinit var gradeDeAntecedencias: LinearLayout
     private lateinit var contagem: TextView
     private lateinit var cartaoDasFavoritas: LinearLayout
+    private lateinit var secaoDeCategorias: LinearLayout
 
     /** Antecedência recém-marcada: a cápsula refeita "estoura" para confirmar o toque. */
     private var recemMarcada: Int? = null
@@ -94,12 +96,16 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
             }
         }
 
+        secaoDeCategorias = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
         corpo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(emPx(16f), emPx(4f), emPx(16f), emPx(28f))
             addView(cartaoDasFavoritas)
             addView(tituloDaPrimeiraSecao())
             addView(gradeDeAntecedencias)
+            addView(tituloDeSecao(R.string.personalizar_categorias))
+            addView(secaoDeCategorias)
         }
 
         raiz.addView(
@@ -112,6 +118,7 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
 
         desenharFavoritas()
         desenharAntecedencias()
+        desenharCategorias()
     }
 
     private fun cabecalho(): View {
@@ -289,11 +296,150 @@ class PersonalizarAlertasActivity : AppCompatActivity() {
                 PreferenciasDeAviso.definirAvisarSoFavoritas(this@PersonalizarAlertasActivity, !ligado)
                 AgendadorDeAvisos.reagendarEmSegundoPlano(this@PersonalizarAlertasActivity)
                 desenharFavoritas()
+                desenharCategorias()
             }
         }
 
         cartaoDasFavoritas.addView(textos)
         cartaoDasFavoritas.addView(interruptor)
+    }
+
+    private fun rotuloDoModo(modo: ModoDeAviso): String =
+        getString(
+            when (modo) {
+                ModoDeAviso.TODAS -> R.string.modo_todas
+                ModoDeAviso.CORRIDAS -> R.string.modo_so_corridas
+                ModoDeAviso.NENHUMA -> R.string.modo_nenhuma
+            }
+        )
+
+    /**
+     * Uma linha por categoria, num cartão só: faixa na cor dela, o nome, o que ela avisa e o sino.
+     * Tocar no sino troca o aviso: todas as sessões, só corridas ou nenhuma.
+     */
+    private fun desenharCategorias() {
+        secaoDeCategorias.removeAllViews()
+
+        val lista = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            background = cartao()
+        }
+
+        Categorias.todas.forEachIndexed { indice, categoria ->
+            if (indice > 0) {
+                lista.addView(
+                    View(this).apply {
+                        setBackgroundColor(getColor(R.color.borda_suave))
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            emPx(1f).coerceAtLeast(1)
+                        ).apply { marginStart = emPx(16f); marginEnd = emPx(16f) }
+                    }
+                )
+            }
+            lista.addView(linhaDaCategoria(categoria))
+        }
+
+        secaoDeCategorias.addView(lista)
+        secaoDeCategorias.addView(
+            TextView(this).apply {
+                text = getString(R.string.campeonato_legenda)
+                setTextColor(getColor(R.color.texto_suave))
+                textSize = 12f
+                setLineSpacing(0f, 1.15f)
+                setPadding(emPx(4f), emPx(10f), emPx(4f), 0)
+            }
+        )
+    }
+
+    private fun linhaDaCategoria(categoria: CategoriaInfo): View {
+        val cor = Color.parseColor(categoria.cor)
+
+        val faixa = View(this).apply {
+            background = GradientDrawable().apply {
+                setColor(cor)
+                cornerRadius = emPx(2f).toFloat()
+            }
+            layoutParams = LinearLayout.LayoutParams(emPx(4f), emPx(34f))
+                .apply { marginStart = emPx(4f); marginEnd = emPx(14f) }
+        }
+
+        val nome = TextView(this).apply {
+            text = categoria.nome
+            setTextColor(getColor(R.color.texto_principal))
+            textSize = 16f
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            maxLines = 1
+        }
+
+        val aviso = TextView(this).apply {
+            setTextColor(getColor(R.color.texto_suave))
+            textSize = 12f
+            maxLines = 1
+            setPadding(0, emPx(2f), 0, 0)
+        }
+
+        val sino = ImageView(this).apply {
+            setImageResource(R.drawable.ic_sino)
+            setPadding(emPx(8f), emPx(8f), emPx(8f), emPx(8f))
+            isClickable = true
+            isFocusable = true
+            layoutParams = LinearLayout.LayoutParams(emPx(44f), emPx(44f))
+            background = RippleDrawable(
+                ColorStateList.valueOf(Color.parseColor("#334C8DFF")),
+                null,
+                forma(Color.WHITE, null)
+            )
+            comEfeitoDeToque(escala = 0.88f)
+        }
+
+        /** Texto do aviso e cor do sino, de acordo com o que a categoria realmente avisa agora. */
+        fun pintar() {
+            val silenciada = PreferenciasDeAviso.silenciadaPorFavoritas(this, categoria.nome)
+            val modo = PreferenciasDeAviso.modoSalvoDaCategoria(this, categoria.nome)
+            val avisa = !silenciada && modo != ModoDeAviso.NENHUMA
+
+            aviso.text = if (silenciada) {
+                getString(R.string.favoritas_silenciada)
+            } else {
+                getString(R.string.favoritas_avisos, rotuloDoModo(modo))
+            }
+            sino.setColorFilter(if (avisa) getColor(R.color.azul_destaque) else getColor(R.color.texto_suave))
+            sino.alpha = if (silenciada) 0.5f else 1f
+            sino.contentDescription = getString(R.string.cd_alternar_aviso, categoria.nome, rotuloDoModo(modo))
+        }
+
+        val textos = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            addView(nome)
+            addView(aviso)
+        }
+
+        sino.setOnClickListener {
+            val proximo = when (PreferenciasDeAviso.modoSalvoDaCategoria(this, categoria.nome)) {
+                ModoDeAviso.TODAS -> ModoDeAviso.CORRIDAS
+                ModoDeAviso.CORRIDAS -> ModoDeAviso.NENHUMA
+                ModoDeAviso.NENHUMA -> ModoDeAviso.TODAS
+            }
+
+            PreferenciasDeAviso.definirModo(this, categoria.nome, proximo)
+            AgendadorDeAvisos.reagendarEmSegundoPlano(this)
+            pintar()
+            sino.animarPop()
+        }
+
+        pintar()
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = emPx(64f)
+            setPadding(emPx(10f), emPx(6f), emPx(8f), emPx(6f))
+            addView(faixa)
+            addView(textos)
+            addView(sino)
+        }
     }
 
     /** Salva, pede permissão de notificação se preciso e refaz os alarmes (igual ao painel). */
