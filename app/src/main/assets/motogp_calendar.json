@@ -963,42 +963,42 @@
         {
           "nome": "Treino Livre 1",
           "data": "06/11/2026",
-          "horario": "09:45"
+          "horario": "08:45"
         },
         {
           "nome": "Treino",
           "data": "06/11/2026",
-          "horario": "14:00"
+          "horario": "13:00"
         },
         {
           "nome": "Treino Livre 2",
           "data": "07/11/2026",
-          "horario": "09:00"
+          "horario": "08:00"
         },
         {
           "nome": "Classificação 1",
           "data": "07/11/2026",
-          "horario": "09:40"
+          "horario": "08:40"
         },
         {
           "nome": "Classificação 2",
           "data": "07/11/2026",
-          "horario": "10:05"
+          "horario": "09:05"
         },
         {
           "nome": "Corrida Sprint",
           "data": "07/11/2026",
-          "horario": "14:00"
+          "horario": "13:00"
         },
         {
           "nome": "Warm-up",
           "data": "08/11/2026",
-          "horario": "09:40"
+          "horario": "08:40"
         },
         {
           "nome": "Corrida",
           "data": "08/11/2026",
-          "horario": "14:00"
+          "horario": "13:00"
         }
       ]
     },

@@ -773,32 +773,32 @@
         {
           "nome": "Treino Livre 1",
           "data": "06/11/2026",
-          "horario": "08:50"
+          "horario": "07:50"
         },
         {
           "nome": "Treino",
           "data": "06/11/2026",
-          "horario": "13:05"
+          "horario": "12:05"
         },
         {
           "nome": "Treino Livre 2",
           "data": "07/11/2026",
-          "horario": "08:15"
+          "horario": "07:15"
         },
         {
           "nome": "Classificação 1",
           "data": "07/11/2026",
-          "horario": "12:40"
+          "horario": "11:45"
         },
         {
           "nome": "Classificação 2",
           "data": "07/11/2026",
-          "horario": "13:05"
+          "horario": "12:10"
         },
         {
           "nome": "Corrida",
           "data": "08/11/2026",
-          "horario": "12:15"
+          "horario": "11:15"
         }
       ]
     },
