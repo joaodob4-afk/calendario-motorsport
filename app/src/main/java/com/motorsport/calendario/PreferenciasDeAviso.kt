@@ -146,10 +146,15 @@ internal object PreferenciasDeAviso {
         arquivo(context).edit().putBoolean(CHAVE_SO_FAVORITAS, ligado).apply()
     }
 
-    /** A categoria está calada só porque "só favoritas" está ligado e ela não é favorita. */
-    fun silenciadaPorFavoritas(context: Context, categoria: String): Boolean =
-        avisarSoFavoritas(context) &&
-            Formatacao.normalizar(categoria) !in PreferenciasDeFavoritas.categorias(context)
+    /** A categoria está calada só porque "só da inicial" está ligado e ela não aparece na página inicial. */
+    fun silenciadaPorFavoritas(context: Context, categoria: String): Boolean {
+        if (!avisarSoFavoritas(context)) return false
+
+        // Sem nenhuma escolhida, a página inicial mostra todas e ninguém fica em silêncio.
+        val daInicial = PreferenciasDeFavoritas.categorias(context)
+
+        return daInicial.isNotEmpty() && Formatacao.normalizar(categoria) !in daInicial
+    }
 
     /**
      * O que avisar da categoria, já considerando "só favoritas". É este que o agendador consulta;

@@ -55,10 +55,22 @@ class PersonalizarAlertasTest {
     }
 
     @Test
-    fun aPaginaNaoTemMaisAListaDeCategorias() {
+    fun temUmaLinhaPorCategoriaComOSinoDeAlerta() {
         val textos = textos()
 
-        Categorias.todas.forEach { assertFalse("Não devia ter ${it.nome}", it.nome in textos) }
+        Categorias.todas.forEach { assertTrue("Falta ${it.nome}", it.nome in textos) }
+    }
+
+    @Test
+    fun tocarNoSinoTrocaOAvisoDaCategoria() {
+        val todas = activity.getString(R.string.modo_todas)
+        val sino = todas(raiz()).first {
+            it.contentDescription == activity.getString(R.string.cd_alternar_aviso, "F2", todas)
+        }
+
+        sino.performClick()
+        assertEquals(ModoDeAviso.CORRIDAS, PreferenciasDeAviso.modoSalvoDaCategoria(activity, "F2"))
+        assertEquals(ModoDeAviso.TODAS, PreferenciasDeAviso.modoSalvoDaCategoria(activity, "F1"))
     }
 
     @Test

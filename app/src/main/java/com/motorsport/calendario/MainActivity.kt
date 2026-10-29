@@ -59,8 +59,8 @@ class MainActivity : AppCompatActivity() {
     /** Categorias favoritas e finalizadas escolhidas (painel do coração e interruptor da tela inicial). */
     private var filtros = FiltrosDeEtapas()
 
-    /** Painel que abre pela direita (categorias favoritas); criado em [mostrarMenu]. */
-    private var menuDeFiltros: MenuDeFiltros? = null
+    /** Janelinha da seta, com as categorias que aparecem na página inicial; criada em [mostrarMenu]. */
+    private var miniPagina: MiniPaginaDeCategorias? = null
 
     /** Cabeçalhos de mês da lista atual; o primeiro que já passou do topo vira o mês flutuante. */
     private val cabecalhosDeMes = mutableListOf<View>()
@@ -226,10 +226,6 @@ class MainActivity : AppCompatActivity() {
                     if (categoriaAtual.isEmpty() && gaveta != null) {
                         if (gaveta.isDrawerOpen(GravityCompat.START)) {
                             gaveta.closeDrawer(GravityCompat.START)
-                            return
-                        }
-                        if (gaveta.isDrawerOpen(GravityCompat.END)) {
-                            gaveta.closeDrawer(GravityCompat.END)
                             return
                         }
                     }
@@ -459,18 +455,25 @@ class MainActivity : AppCompatActivity() {
             findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.START)
         }
 
-        menuDeFiltros = MenuDeFiltros(
+        configurarAnimacaoDoMenu()
+
+        val seta = findViewById<View>(R.id.btnFiltro)
+        miniPagina = MiniPaginaDeCategorias(
             activity = this,
-            container = findViewById(R.id.containerFiltros),
-            favoritas = { filtros.categoriasFavoritas },
-            aoMudar = { novas -> aplicarFiltros(filtros.copy(categoriasFavoritas = novas)) }
-        ).also { it.montar() }
+            selecionadas = { filtros.categoriasFavoritas },
+            aoMudar = { novas -> aplicarFiltros(filtros.copy(categoriasFavoritas = novas)) },
+            aoAbrirOuFechar = { aberta ->
+                // A seta gira para cima enquanto a janelinha está aberta.
+                seta.animate().rotation(if (aberta) 180f else 0f).setDuration(220).start()
 
-        configurarAnimacaoDosPaineis()
-
-        findViewById<View>(R.id.btnFiltro).setOnClickListener {
-            findViewById<DrawerLayout>(R.id.drawerLayout).openDrawer(GravityCompat.END)
-        }
+                // Fechou: a lista da página inicial é atualizada, já à vista.
+                if (!aberta && listaDesatualizada) {
+                    handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
+                    handlerRedesenho.postDelayed(redesenhoDosFiltros, 60)
+                }
+            }
+        )
+        seta.setOnClickListener { miniPagina?.alternar(seta) }
         findViewById<View>(R.id.btnMenu).comEfeitoDeToque(escala = 0.9f)
         findViewById<View>(R.id.btnFiltro).comEfeitoDeToque(escala = 0.9f)
         BarraInferior.montar(this, findViewById(R.id.barraInferior))
@@ -483,10 +486,10 @@ class MainActivity : AppCompatActivity() {
         mostrarEtapas()
     }
 
-    /** Selo no coração: quantas categorias favoritas há (some quando são 0). */
+    /** Selo na seta: quantas categorias aparecem quando são só algumas (some quando aparecem todas). */
     private fun atualizarBotaoFiltro() {
         val selo = findViewById<TextView>(R.id.badgeFiltro) ?: return
-        val quantos = filtros.categoriasFavoritas.size
+        val quantos = filtros.categoriasFavoritas.size.takeIf { it < Categorias.todas.size } ?: 0
         val estavaVisivel = selo.visibility == View.VISIBLE
         val antes = selo.text.toString()
 
@@ -495,36 +498,24 @@ class MainActivity : AppCompatActivity() {
 
         if (quantos > 0 && (!estavaVisivel || antes != quantos.toString())) selo.animarPop()
         if (quantos > 0 && antes != quantos.toString()) {
-            findViewById<View>(R.id.btnFiltro)?.animarPop()
         }
     }
 
-    /**
-     * Os dois painéis laterais entram em cascata: cada linha sobe e aparece, uma após a outra,
-     * assim que o painel começa a abrir.
-     */
-    private fun configurarAnimacaoDosPaineis() {
+    /** O painel de alertas (menu lateral) entra em cascata: cada linha sobe e aparece, uma após a outra. */
+    private fun configurarAnimacaoDoMenu() {
         val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout) ?: return
-        val jaAnimou = HashSet<Int>()
+        var animou = false
 
         gaveta.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-                if (slideOffset <= 0f || !jaAnimou.add(drawerView.id)) return
+                if (slideOffset <= 0f || animou) return
 
-                when (drawerView.id) {
-                    R.id.scrollFiltros -> menuDeFiltros?.animarEntrada()
-                    else -> findViewById<LinearLayout>(R.id.containerMenuLateral)?.entrarEmCascata()
-                }
+                animou = true
+                findViewById<LinearLayout>(R.id.containerMenuLateral)?.entrarEmCascata()
             }
 
             override fun onDrawerClosed(drawerView: View) {
-                jaAnimou.remove(drawerView.id)
-
-                // O painel dos favoritos fechou: agora a lista é refeita, já à vista.
-                if (drawerView.id == R.id.scrollFiltros && listaDesatualizada) {
-                    handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
-                    handlerRedesenho.postDelayed(redesenhoDosFiltros, 60)
-                }
+                animou = false
             }
         })
     }
@@ -550,7 +541,7 @@ class MainActivity : AppCompatActivity() {
      * que é gravado no aparelho (categorias favoritas) e atualiza a lista.
      *
      * Refazer a lista é o trabalho mais pesado do app e travava as animações do toque. Por isso
-     * ele espera: com o painel da direita aberto, só acontece quando ele fecha; com o
+     * ele espera: com a janelinha da seta aberta, só acontece quando ela fecha; com o
      * interruptor, começa depois da animação dele.
      */
     private fun aplicarFiltros(novos: FiltrosDeEtapas) {
@@ -573,8 +564,8 @@ class MainActivity : AppCompatActivity() {
 
             handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
 
-            val gaveta = findViewById<DrawerLayout>(R.id.drawerLayout)
-            if (gaveta == null || !gaveta.isDrawerOpen(GravityCompat.END)) {
+            // Com a janelinha aberta, a lista espera ela fechar (ver aoAbrirOuFechar).
+            if (miniPagina?.aberta != true) {
                 handlerRedesenho.postDelayed(redesenhoDosFiltros, 220)
             }
         }
