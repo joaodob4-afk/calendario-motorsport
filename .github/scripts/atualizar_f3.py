@@ -69,14 +69,26 @@ def descobrir_calendario():
     for temporada in TEMPORADAS_PREFERIDAS:
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
         for url in urls:
-            try:
-                html = baixar(url)
-            except Exception as erro:
-                print(f"Calendário {temporada} indisponível em {url}: {erro}")
-                continue
-            slugs = listar_slugs(html, temporada)
-            if slugs:
-                return temporada, slugs
+            amostras = []
+            for _ in range(2):
+                try:
+                    html = baixar(url)
+                except Exception as erro:
+                    print(f"Calendário {temporada} indisponível em {url}: {erro}")
+                    amostras = []
+                    break
+                slugs = listar_slugs(html, temporada)
+                if not slugs:
+                    amostras = []
+                    break
+                amostras.append(slugs)
+
+            # Uma resposta isolada pode estar truncada. Exigimos que duas leituras
+            # independentes da mesma rota confirmem a mesma lista de etapas.
+            if len(amostras) == 2 and amostras[0] == amostras[1]:
+                return temporada, amostras[0]
+            if len(amostras) == 2:
+                print(f"Índice F3 {temporada} mudou entre leituras; tentando outra rota.")
         print(f"Calendário {temporada} ainda não publicado como página de etapas.")
     return None, []
 
