@@ -124,17 +124,21 @@ internal class FonteDeCalendario<T>(
     internal fun gravarCacheBaixado(context: Context, texto: String): Boolean =
         gravarCacheInterno(context, texto, exigirIndiceConfirmado = true)
 
-    private fun gravarCacheInterno(context: Context, texto: String, exigirIndiceConfirmado: Boolean): Boolean {
+    private fun gravarCacheInterno(
+        context: Context,
+        texto: String,
+        exigirIndiceConfirmado: Boolean
+    ): Boolean {
         if (eventosValidos(texto) == null) return false
-        if (exigirIndiceConfirmado && !try {
+
+        val indiceConfirmado = !exigirIndiceConfirmado || try {
             validarIndiceConfirmado(texto)
         } catch (e: Exception) {
             registrarDescarte("$nome.indiceNaoConfirmado", e)
             false
-        }) {
-            registrarDescarte("$nome.indiceNaoConfirmado", null)
-            return false
         }
+        if (!indiceConfirmado) return false
+
         return try {
             gravarAtomicamente(AtomicFile(File(context.filesDir, arquivoCache)), texto)
             true
