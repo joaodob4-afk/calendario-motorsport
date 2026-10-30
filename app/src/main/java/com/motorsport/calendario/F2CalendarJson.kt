@@ -6,5 +6,6 @@ object F2CalendarJson : CalendarioFormulaJunior(
     urlJson =
         "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/f2_calendar.json",
     arquivoAsset = "f2_calendar.json",
-    arquivoCache = "f2_calendar_cache.json"
+    arquivoCache = "f2_calendar_cache.json",
+    exigirIndiceConfirmado = true
 )
