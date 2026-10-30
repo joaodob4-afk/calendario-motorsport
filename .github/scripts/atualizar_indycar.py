@@ -343,7 +343,7 @@ def main():
         )
 
     ano = next(iter(cartoes.values()))["ano"]
-    novo = {"temporada": ano, "categoria": "IndyCar", "etapas": saida}
+    novo = {"indice_confirmado": True, "temporada": ano, "categoria": "IndyCar", "etapas": saida}
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
