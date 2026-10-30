@@ -80,6 +80,26 @@ class ArquivosTest(unittest.TestCase):
             ruim.write_text("{", encoding="utf-8")
             self.assertIsNone(u.ler_existente(ruim))
 
+    def test_gravacao_atomica_preserva_arquivo_anterior_se_replace_falhar(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "cal.json"
+            original = u.serializar({"etapas": ["antigas"]})
+            caminho.write_text(original, encoding="utf-8")
+
+            with patch.object(u.os, "replace", side_effect=OSError("falha simulada")):
+                with self.assertRaisesRegex(OSError, "falha simulada"):
+                    u.gravar_se_mudou(caminho, {"etapas": ["novas"]})
+
+            self.assertEqual(caminho.read_text(encoding="utf-8"), original)
+            self.assertEqual(list(Path(pasta).iterdir()), [caminho])
+
+    def test_gravacao_atomica_deixa_json_valido(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = Path(pasta) / "cal.json"
+            self.assertTrue(u.gravar_se_mudou(caminho, {"etapas": [1]}))
+            self.assertEqual(json.loads(caminho.read_text(encoding="utf-8")), {"etapas": [1]})
+            self.assertEqual(list(Path(pasta).iterdir()), [caminho])
+
     def test_total_de_sessoes(self):
         dados = {"etapas": [{"sessoes": [1, 2]}, {"sessoes": [3]}, {}]}
         self.assertEqual(u.total_de_sessoes(dados), 3)
