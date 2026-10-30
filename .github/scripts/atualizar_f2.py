@@ -90,29 +90,47 @@ def descobrir_calendario():
     temporadas = (TEMPORADA_ATUAL, TEMPORADA_ATUAL - 1)
 
     for temporada in temporadas:
+        indice_observado = False
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
         visitadas = set()
         for url in urls:
             if url in visitadas:
                 continue
             visitadas.add(url)
-            try:
-                html, url_final = baixar_com_url(url)
-            except Exception as erro:
-                print(f"Calendário F2 {temporada} indisponível em {url}: {erro}")
-                continue
+            amostras = []
+            for _ in range(2):
+                try:
+                    html, url_final = baixar_com_url(url)
+                except Exception as erro:
+                    print(f"Calendário F2 {temporada} indisponível em {url}: {erro}")
+                    amostras = []
+                    break
 
-            # Se a URL final expõe um ano, ele precisa coincidir com o alvo.
-            # Algumas versões do site podem trocar a rota por uma URL canônica
-            # sem ano; nesse caso, os links das etapas precisam carregar
-            # explicitamente o ano solicitado, sem depender do endereço final.
-            ano_url = re.search(r"/en/racing/(\d{4})(?:/|$)", url_final)
-            if ano_url and int(ano_url.group(1)) != temporada:
-                continue
+                # Se a URL final expõe um ano, ele precisa coincidir com o alvo.
+                # Algumas versões do site podem trocar a rota por uma URL canônica
+                # sem ano; nesse caso, os links das etapas precisam carregar
+                # explicitamente o ano solicitado.
+                ano_url = re.search(r"/en/racing/(\d{4})(?:/|$)", url_final)
+                if ano_url and int(ano_url.group(1)) != temporada:
+                    amostras = []
+                    break
 
-            slugs = listar_slugs(html, temporada)
-            if slugs:
-                return temporada, slugs
+                slugs = listar_slugs(html, temporada)
+                if not slugs:
+                    amostras = []
+                    break
+                indice_observado = True
+                amostras.append(slugs)
+
+            # Uma resposta isolada pode vir truncada. Só usamos o índice quando
+            # duas leituras independentes da mesma rota apresentam as mesmas etapas.
+            if len(amostras) == 2 and amostras[0] == amostras[1]:
+                return temporada, amostras[0]
+            if len(amostras) == 2:
+                print(f"Índice F2 {temporada} mudou entre leituras; tentando outra rota.")
+        if temporada == TEMPORADA_ATUAL and indice_observado:
+            print("Índice F2 atual sem confirmação; preservando a temporada já publicada.")
+            return None, []
         print(f"Calendário F2 {temporada} ainda não publicado como página de etapas.")
     return None, []
 
