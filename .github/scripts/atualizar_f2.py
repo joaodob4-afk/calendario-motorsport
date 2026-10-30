@@ -90,6 +90,7 @@ def descobrir_calendario():
     temporadas = (TEMPORADA_ATUAL, TEMPORADA_ATUAL - 1)
 
     for temporada in temporadas:
+        indice_observado = False
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
         visitadas = set()
         for url in urls:
@@ -118,6 +119,7 @@ def descobrir_calendario():
                 if not slugs:
                     amostras = []
                     break
+                indice_observado = True
                 amostras.append(slugs)
 
             # Uma resposta isolada pode vir truncada. Só usamos o índice quando
@@ -126,6 +128,9 @@ def descobrir_calendario():
                 return temporada, amostras[0]
             if len(amostras) == 2:
                 print(f"Índice F2 {temporada} mudou entre leituras; tentando outra rota.")
+        if temporada == TEMPORADA_ATUAL and indice_observado:
+            print("Índice F2 atual sem confirmação; preservando a temporada já publicada.")
+            return None, []
         print(f"Calendário F2 {temporada} ainda não publicado como página de etapas.")
     return None, []
 
