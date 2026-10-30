@@ -22,6 +22,28 @@ class AtualizadorIndyCarTest(unittest.TestCase):
                     len(indycar.validar_cartoes_fonte(cartoes)), quantidade
                 )
 
+
+    def test_indice_oficial_e_aceito_quando_duas_leituras_coincidem(self):
+        cartoes = {"st-petersburg": {"ano": 2027, "titulo": "St. Petersburg"}}
+        from unittest.mock import patch
+        with patch.object(indycar, "baixar", return_value="<html></html>"), patch.object(
+            indycar, "extrair_cartoes", side_effect=[cartoes, cartoes]
+        ):
+            self.assertEqual(indycar.obter_cartoes_confirmados(), cartoes)
+
+    def test_indice_oficial_instavel_e_rejeitado(self):
+        parcial = {"st-petersburg": {"ano": 2027, "titulo": "St. Petersburg"}}
+        completo = {
+            **parcial,
+            "long-beach": {"ano": 2027, "titulo": "Long Beach"},
+        }
+        from unittest.mock import patch
+        with patch.object(indycar, "baixar", return_value="<html></html>"), patch.object(
+            indycar, "extrair_cartoes", side_effect=[parcial, completo]
+        ):
+            with self.assertRaisesRegex(ValueError, "mudou entre leituras"):
+                indycar.obter_cartoes_confirmados()
+
     def test_rejeita_fonte_sem_etapas_para_nao_apagar_calendario(self):
         with self.assertRaisesRegex(ValueError, "Nenhuma etapa encontrada"):
             indycar.validar_cartoes_fonte({})
