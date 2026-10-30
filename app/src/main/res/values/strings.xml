@@ -180,10 +180,4 @@
     <string name="cd_mostrar_categoria">Show %s on the home screen</string>
     <string name="cd_ocultar_categoria">Hide %s from the home screen</string>
     <string name="personalizar_categorias">Alerts by category</string>
-    <string name="atualizacao_ok">Calendars updated</string>
-    <string name="atualizacao_falha">No connection. Keeping the saved data.</string>
-    <string name="config_dados">Data</string>
-    <string name="config_calendarios">Calendars</string>
-    <string name="config_atualizado">Last updated: %1$s. Pull the list down to update.</string>
-    <string name="config_nunca_atualizado">Not updated on this device yet. Pull the list down to update.</string>
 </resources>
