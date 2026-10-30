@@ -88,6 +88,21 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(ano, temporada)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
+
+    def test_indice_atual_instavel_nao_faz_fallback_para_temporada_anterior(self):
+        temporada = f3.TEMPORADAS_PREFERIDAS[0]
+        parcial = f'<a href="/en/racing/{temporada}/melbourne">Melbourne</a>'
+        completo = parcial + f'<a href="/en/racing/{temporada}/monza">Monza</a>'
+        with patch.object(
+            f3,
+            "baixar",
+            side_effect=[parcial, completo, parcial, completo],
+        ) as baixar:
+            ano, slugs = f3.descobrir_calendario()
+        self.assertIsNone(ano)
+        self.assertEqual(slugs, [])
+        self.assertEqual(baixar.call_count, 4)
+
     def test_aceita_etapa_com_duas_sessoes_publicadas(self):
         html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'
         etapa = f3.montar_etapa("sakhir", html)
