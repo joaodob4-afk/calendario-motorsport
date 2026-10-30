@@ -44,6 +44,15 @@ def validar_cartoes_fonte(cartoes):
     return cartoes
 
 
+def obter_cartoes_confirmados():
+    """Confirma que duas leituras do índice oficial apresentam os mesmos cartões."""
+    primeira = validar_cartoes_fonte(extrair_cartoes(baixar(LISTA)))
+    segunda = validar_cartoes_fonte(extrair_cartoes(baixar(LISTA)))
+    if primeira != segunda:
+        raise ValueError("Índice oficial mudou entre leituras; atualização cancelada")
+    return segunda
+
+
 def linhas_de_texto(trecho):
     trecho = re.sub(
         r"<script[\s\S]*?</script>|<style[\s\S]*?</style>|<svg[\s\S]*?</svg>", "", trecho
@@ -305,7 +314,7 @@ def montar_etapa(cartao, html_evento):
 def main():
     print("Consultando páginas oficiais da IndyCar...")
     try:
-        cartoes = validar_cartoes_fonte(extrair_cartoes(baixar(LISTA)))
+        cartoes = obter_cartoes_confirmados()
     except Exception as e:  # noqa: BLE001
         print("ERRO:", e)
         print("Nada foi alterado.")
