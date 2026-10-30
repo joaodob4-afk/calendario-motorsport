@@ -67,6 +67,7 @@ def listar_slugs(html, temporada=None):
 def descobrir_calendario():
     """Descobre somente a temporada atual, usando a rota oficial estável como alternativa."""
     for temporada in TEMPORADAS_PREFERIDAS:
+        indice_observado = False
         urls = (f"{BASE}/en/racing/{temporada}", f"{BASE}/en/racing")
         for url in urls:
             amostras = []
@@ -81,6 +82,7 @@ def descobrir_calendario():
                 if not slugs:
                     amostras = []
                     break
+                indice_observado = True
                 amostras.append(slugs)
 
             # Uma resposta isolada pode estar truncada. Exigimos que duas leituras
@@ -89,6 +91,9 @@ def descobrir_calendario():
                 return temporada, amostras[0]
             if len(amostras) == 2:
                 print(f"Índice F3 {temporada} mudou entre leituras; tentando outra rota.")
+        if temporada == TEMPORADAS_PREFERIDAS[0] and indice_observado:
+            print("Índice F3 atual sem confirmação; preservando a temporada já publicada.")
+            return None, []
         print(f"Calendário {temporada} ainda não publicado como página de etapas.")
     return None, []
 
