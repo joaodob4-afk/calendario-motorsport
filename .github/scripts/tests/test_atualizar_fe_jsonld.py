@@ -71,6 +71,25 @@ class DescobertaItemListJsonLdTest(unittest.TestCase):
         ]}
         self.assertEqual(fe.extrair_rodadas(dados)[0]["cidade"], "Berlim")
 
+
+    def test_indice_oficial_e_aceito_quando_duas_leituras_coincidem(self):
+        from unittest.mock import patch
+        rodadas = [{"rodada": 1, "cidade": "São Paulo", "pais": "Brasil", "data": fe.date(2027, 1, 1)}]
+        with patch.object(fe, "baixar", return_value="<html></html>"), patch.object(
+            fe, "lista_do_calendario", return_value={}
+        ), patch.object(fe, "extrair_rodadas", side_effect=[rodadas, rodadas]):
+            self.assertEqual(fe.obter_rodadas_confirmadas(), rodadas)
+
+    def test_indice_oficial_instavel_e_rejeitado(self):
+        from unittest.mock import patch
+        parcial = [{"rodada": 1, "cidade": "São Paulo", "pais": "Brasil", "data": fe.date(2027, 1, 1)}]
+        completo = parcial + [{"rodada": 2, "cidade": "Cidade do México", "pais": "México", "data": fe.date(2027, 1, 15)}]
+        with patch.object(fe, "baixar", return_value="<html></html>"), patch.object(
+            fe, "lista_do_calendario", return_value={}
+        ), patch.object(fe, "extrair_rodadas", side_effect=[parcial, completo]):
+            with self.assertRaisesRegex(ValueError, "mudou entre leituras"):
+                fe.obter_rodadas_confirmadas()
+
     def test_rotulo_temporada_com_dois_anos(self):
         rodadas = [
             {"data": fe.date(2026, 12, 5)},
