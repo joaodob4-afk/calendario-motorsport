@@ -79,6 +79,26 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         self.assertEqual(ano, temporada)
         self.assertEqual(slugs, ["melbourne", "monza"])
 
+
+    def test_indice_atual_instavel_nao_faz_fallback_para_temporada_anterior(self):
+        from unittest.mock import patch
+        temporada = f2.TEMPORADA_ATUAL
+        parcial = f'<a href="/en/racing/{temporada}/melbourne">Melbourne</a>'
+        completo = parcial + f'<a href="/en/racing/{temporada}/monza">Monza</a>'
+        url_final = f"https://www.fiaformula2.com/en/racing/{temporada}"
+        with patch.object(
+            f2,
+            "baixar_com_url",
+            side_effect=[
+                (parcial, url_final), (completo, url_final),
+                (parcial, url_final), (completo, url_final),
+            ],
+        ) as baixar:
+            ano, slugs = f2.descobrir_calendario()
+        self.assertIsNone(ano)
+        self.assertEqual(slugs, [])
+        self.assertEqual(baixar.call_count, 4)
+
     def test_aceita_etapa_com_duas_sessoes_publicadas(self):
         html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"},{"name":"Race","startDate":"2026-03-08T00:25:00Z"}]}</script>'
         etapa = f2.montar_etapa("sakhir", html)
