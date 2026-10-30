@@ -127,6 +127,15 @@ def extrair_rodadas(dados):
     return rodadas
 
 
+def obter_rodadas_confirmadas():
+    """Confirma o índice oficial em duas leituras antes de substituir o calendário."""
+    primeira = extrair_rodadas(lista_do_calendario(baixar(URL)))
+    segunda = extrair_rodadas(lista_do_calendario(baixar(URL)))
+    if primeira != segunda:
+        raise ValueError("Índice oficial mudou entre leituras; atualização cancelada")
+    return segunda
+
+
 def agrupar_etapas(rodadas):
     """Rodadas seguidas na mesma cidade (até 3 dias) viram uma etapa."""
     grupos = []
@@ -179,8 +188,7 @@ def montar(grupos):
 def main():
     print("Consultando calendário oficial da Fórmula E...")
     try:
-        dados = lista_do_calendario(baixar(URL))
-        rodadas = extrair_rodadas(dados)
+        rodadas = obter_rodadas_confirmadas()
     except Exception as e:
         print("ERRO:", e)
         print("Nada foi alterado.")
