@@ -57,7 +57,7 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         html_atual = f'<a href="/en/racing/{temporada_atual}/melbourne">Melbourne</a><a href="/en/racing/{temporada_atual}/monza">Monza</a>'
         with patch.object(
             f3, "baixar",
-            side_effect=[RuntimeError("HTTP 500"), html_atual],
+            side_effect=[RuntimeError("HTTP 500"), html_atual, html_atual],
         ):
             temporada, slugs = f3.descobrir_calendario()
         self.assertEqual(temporada, temporada_atual)
