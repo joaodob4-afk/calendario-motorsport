@@ -30,6 +30,5 @@ jobs:
             echo "Nada para salvar."
           else
             git commit -m "Atualizar calendário F1"
-            git pull --rebase
-            git push
+            bash .github/scripts/publicar_calendarios.sh
           fi
