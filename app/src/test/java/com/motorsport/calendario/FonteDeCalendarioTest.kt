@@ -38,10 +38,13 @@ class FonteDeCalendarioTest {
         """{"temporada": $temporada, "etapas": [${(1..etapas).joinToString(",")}]}"""
 
     /** [asset] "f2_calendar.json" existe no APK; o padrão não existe (simula APK sem dados). */
-    private fun fonte(asset: String = "nao_existe.json") =
-        FonteDeCalendario("Teste", "http://localhost/nao-usado", asset, arquivoCache) {
-            interpretar(it)
-        }
+    private fun fonte(asset: String = "nao_existe.json", exigirIndiceConfirmado: Boolean = false) =
+        FonteDeCalendario(
+            "Teste", "http://localhost/nao-usado", asset, arquivoCache,
+            validarIndiceConfirmado = { texto ->
+                !exigirIndiceConfirmado || JSONObject(texto).optBoolean("indice_confirmado", false)
+            }
+        ) { interpretar(it) }
 
     @Before
     fun limparCache() {
@@ -80,6 +83,23 @@ class FonteDeCalendarioTest {
         assertFalse(fonte.gravarCache(context, """{"temporada": 2026}"""))
 
         assertEquals(5, fonte.carregar(context).size)
+    }
+
+    @Test
+    fun downloadSemIndiceConfirmadoPreservaCacheAnterior() {
+        val fonte = fonte(exigirIndiceConfirmado = true)
+        assertTrue(fonte.gravarCache(context, json(2026, 4)))
+        assertFalse(fonte.gravarCacheBaixado(context, json(2026, 9)))
+        assertEquals(4, fonte.carregar(context).size)
+    }
+
+    @Test
+    fun downloadComIndiceConfirmadoAtualizaCache() {
+        val fonte = fonte(exigirIndiceConfirmado = true)
+        assertTrue(fonte.gravarCache(context, json(2026, 4)))
+        val confirmado = json(2026, 6).replace("\"temporada\"", "\"indice_confirmado\": true, \"temporada\"")
+        assertTrue(fonte.gravarCacheBaixado(context, confirmado))
+        assertEquals(6, fonte.carregar(context).size)
     }
 
     @Test

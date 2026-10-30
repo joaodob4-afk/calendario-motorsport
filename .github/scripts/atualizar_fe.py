@@ -206,7 +206,7 @@ def main():
     for e in etapas:
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
-    novo = {"temporada": rotulo_temporada(rodadas), "categoria": "Formula E", "etapas": etapas}
+    novo = {"indice_confirmado": True, "temporada": rotulo_temporada(rodadas), "categoria": "Formula E", "etapas": etapas}
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0

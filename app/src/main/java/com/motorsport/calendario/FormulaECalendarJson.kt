@@ -44,7 +44,8 @@ object FormulaECalendarJson {
         nome = "FormulaECalendarJson",
         urlJson = URL_JSON,
         arquivoAsset = "fe_calendar.json",
-        arquivoCache = ARQUIVO_CACHE
+        arquivoCache = ARQUIVO_CACHE,
+        validarIndiceConfirmado = { texto -> JSONObject(texto).optBoolean("indice_confirmado", false) }
     ) { interpretar(it) }
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */

@@ -42,7 +42,8 @@ object IndyCarCalendarJson {
         nome = "IndyCarCalendarJson",
         urlJson = URL_JSON,
         arquivoAsset = "indycar_calendar.json",
-        arquivoCache = ARQUIVO_CACHE
+        arquivoCache = ARQUIVO_CACHE,
+        validarIndiceConfirmado = { texto -> JSONObject(texto).optBoolean("indice_confirmado", false) }
     ) { interpretar(it) }
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */

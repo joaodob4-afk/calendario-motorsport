@@ -14,7 +14,8 @@ abstract class CalendarioFormulaJunior(
     private val categoria: String,
     urlJson: String,
     arquivoAsset: String,
-    arquivoCache: String
+    arquivoCache: String,
+    exigirIndiceConfirmado: Boolean = false
 ) {
 
     // O calendário pode legitimamente ter menos etapas após uma alteração oficial.
@@ -28,7 +29,10 @@ abstract class CalendarioFormulaJunior(
         nome = "${categoria}CalendarJson",
         urlJson = urlJson,
         arquivoAsset = arquivoAsset,
-        arquivoCache = arquivoCache
+        arquivoCache = arquivoCache,
+        validarIndiceConfirmado = { texto ->
+            !exigirIndiceConfirmado || JSONObject(texto).optBoolean("indice_confirmado", false)
+        }
     ) { interpretar(it) }
 
     /** Cache baixado ou JSON do APK, o que for mais recente. Lista vazia se nenhum for válido. */

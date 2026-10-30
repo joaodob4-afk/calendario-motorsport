@@ -313,7 +313,7 @@ def main():
         for e in etapas
     ]
 
-    novo = {"temporada": temporada, "categoria": "F2", "etapas": etapas}
+    novo = {"indice_confirmado": True, "temporada": temporada, "categoria": "F2", "etapas": etapas}
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0

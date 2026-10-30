@@ -24,6 +24,7 @@ internal class FonteDeCalendario<T>(
     private val urlJson: String,
     private val arquivoAsset: String,
     private val arquivoCache: String,
+    private val validarIndiceConfirmado: (String) -> Boolean = { true },
     private val interpretar: (String) -> List<T>
 ) {
     private val trava = Any()
@@ -87,7 +88,7 @@ internal class FonteDeCalendario<T>(
                         .bufferedReader(Charsets.UTF_8)
                         .use { it.readText() }
 
-                    gravou = gravarCache(app, texto)
+                    gravou = gravarCacheBaixado(app, texto)
                 }
             } catch (e: Exception) {
                 registrarFalha("$nome.atualizar", e)
@@ -116,8 +117,27 @@ internal class FonteDeCalendario<T>(
      * Valida e grava no cache. Devolve false, sem tocar no cache, se o texto for
      * inválido ou se a gravação falhar.
      */
-    fun gravarCache(context: Context, texto: String): Boolean {
+    fun gravarCache(context: Context, texto: String): Boolean =
+        gravarCacheInterno(context, texto, exigirIndiceConfirmado = false)
+
+    /** Só aceita conteúdo remoto produzido após a confirmação do índice oficial. */
+    internal fun gravarCacheBaixado(context: Context, texto: String): Boolean =
+        gravarCacheInterno(context, texto, exigirIndiceConfirmado = true)
+
+    private fun gravarCacheInterno(
+        context: Context,
+        texto: String,
+        exigirIndiceConfirmado: Boolean
+    ): Boolean {
         if (eventosValidos(texto) == null) return false
+
+        val indiceConfirmado = !exigirIndiceConfirmado || try {
+            validarIndiceConfirmado(texto)
+        } catch (e: Exception) {
+            registrarDescarte("$nome.indiceNaoConfirmado", e)
+            false
+        }
+        if (!indiceConfirmado) return false
 
         return try {
             gravarAtomicamente(AtomicFile(File(context.filesDir, arquivoCache)), texto)
