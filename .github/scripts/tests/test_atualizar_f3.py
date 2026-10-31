@@ -182,5 +182,28 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "leituras consecutivas"):
                 f3.obter_etapa_confirmada("sakhir", 2026)
 
+
+    def test_fim_de_semana_expandido_de_madrid_preserva_duas_classificacoes_e_duas_features(self):
+        subs = [
+            {"name": "Qualifying 1", "startDate": "2026-09-11T10:00:00Z"},
+            {"name": "Qualifying 2", "startDate": "2026-09-11T10:30:00Z"},
+            {"name": "Race", "startDate": "2026-09-12T09:00:00Z"},
+            {"name": "Race", "startDate": "2026-09-12T14:00:00Z"},
+            {"name": "Race", "startDate": "2026-09-13T08:00:00Z"},
+        ]
+        sessoes = f3.traduzir_sessoes(subs)
+        self.assertEqual(
+            [nome for nome, _ in sessoes],
+            [
+                "Classificação 1",
+                "Classificação 2",
+                "Corrida Sprint",
+                "Corrida Feature 1",
+                "Corrida Feature 2",
+            ],
+        )
+        self.assertEqual(sessoes, sorted(sessoes, key=lambda item: item[1]))
+
+
 if __name__ == "__main__":
     unittest.main()
