@@ -218,8 +218,27 @@ def local_da_etapa(caminho, evento):
 
     local = (evento or {}).get("location") or {}
     nome = str(local.get("name") or "").strip() or base.replace("-", " ").title()
-    codigo = str(local.get("address") or "").split(",")[-1].strip().upper()
-    return nome, PAISES.get(codigo, codigo or "—")
+    endereco = local.get("address")
+    if isinstance(endereco, dict):
+        pais_bruto = endereco.get("addressCountry") or ""
+        if isinstance(pais_bruto, dict):
+            pais_bruto = pais_bruto.get("name") or pais_bruto.get("identifier") or ""
+    else:
+        pais_bruto = str(endereco or "").split(",")[-1].strip()
+
+    pais_bruto = str(pais_bruto).strip()
+    if not pais_bruto:
+        raise ValueError(f"{caminho}: país ausente na localização oficial")
+
+    codigo = pais_bruto.upper()
+    if codigo in PAISES:
+        pais = PAISES[codigo]
+    elif re.fullmatch(r"[A-Z]{2,3}", codigo):
+        raise ValueError(f"{caminho}: código de país não reconhecido: {codigo}")
+    else:
+        pais = pais_bruto
+
+    return nome, pais
 
 
 def ler_etapa(caminho, html):
