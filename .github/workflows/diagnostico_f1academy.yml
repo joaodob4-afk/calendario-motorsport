@@ -10,14 +10,14 @@ jobs:
   diagnostico:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
       - name: Rodar diagnóstico F1 Academy
         run: python .github/scripts/diagnostico_f1academy.py
       - name: Guardar HTML baixado
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: paginas-f1academy
