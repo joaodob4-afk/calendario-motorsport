@@ -133,7 +133,7 @@ class AtualizadorMotoTest(unittest.TestCase):
     def test_recusa_calendario_vazio(self):
         vazio = {"temporada": 2026, "categoria": "MotoGP", "etapas": []}
         with self.assertRaises(ValueError):
-            moto.validar(vazio, None)
+            moto.validar(vazio)
 
     def test_aceita_reducao_confirmada_de_sessoes_e_etapas(self):
         atual = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
@@ -141,7 +141,7 @@ class AtualizadorMotoTest(unittest.TestCase):
             [gp(1, "THA", "2026-02-27", "2026-03-01")], "MGP", "MotoGP", 2026
         )
 
-        moto.validar(reduzido, atual)
+        moto.validar(reduzido)
 
     def test_assinatura_detecta_sessao_ausente_entre_leituras(self):
         primeira = self.eventos_tailandia()
@@ -155,13 +155,13 @@ class AtualizadorMotoTest(unittest.TestCase):
 
     def test_aceita_atualizacao_normal(self):
         atual = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
-        moto.validar(atual, atual)
+        moto.validar(atual)
 
     def test_temporada_nova_nao_e_comparada_com_a_antiga(self):
         antiga = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
         nova = moto.montar([gp(1, "THA", "2027-02-27", "2027-03-01")], "MGP", "MotoGP", 2027)
 
-        moto.validar(nova, antiga)
+        moto.validar(nova)
 
     def test_escolhe_temporada_atual_enquanto_ha_corridas_por_fazer(self):
         dados = {2026: [gp(1, "THA", "2026-02-27", "2026-03-01", status="NOT-STARTED")]}
