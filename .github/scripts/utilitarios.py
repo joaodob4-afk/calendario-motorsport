@@ -65,7 +65,7 @@ def localizar_evento_jsonld(html):
     import re
 
     blocos = re.findall(
-        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
 
     def procurar(dados):
