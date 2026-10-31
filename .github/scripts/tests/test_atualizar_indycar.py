@@ -181,5 +181,44 @@ class AtualizadorIndyCarTest(unittest.TestCase):
         self.assertEqual([s[0] for s in outro_evento], ["Pre-Race", "Pre-Race Show", "Corrida"])
 
 
+
+    def test_confirma_programacao_da_pagina_em_duas_leituras(self):
+        from unittest.mock import patch
+        html = """
+        <main>
+          <button>Toggle Schedule</button>
+          <div>Friday, Mar 6</div>
+          <div>10:00AM ET</div><div>Practice 1</div>
+          <div>Find Local Radio Station</div>
+        </main>
+        """
+        cartao = {
+            "ano": 2026, "slug": "st-petersburg", "titulo": "St. Petersburg",
+            "pista": "St. Petersburg", "local": "St. Petersburg, Florida",
+            "data": (3, 6), "hora": (10, 0, "AM"),
+        }
+        with patch.object(indycar, "baixar", side_effect=[html, html]) as baixar:
+            etapa = indycar.obter_etapa_confirmada(cartao)
+        self.assertEqual([s["nome"] for s in etapa["sessoes"]], ["Treino Livre 1"])
+        self.assertEqual(baixar.call_count, 2)
+
+    def test_rejeita_programacao_da_pagina_instavel(self):
+        from unittest.mock import patch
+        parcial = """
+        <main><button>Toggle Schedule</button>
+        <div>Friday, Mar 6</div><div>10:00AM ET</div><div>Practice 1</div>
+        <div>Find Local Radio Station</div></main>
+        """
+        completa = """
+        <main><button>Toggle Schedule</button>
+        <div>Friday, Mar 6</div><div>10:00AM ET</div><div>Practice 1</div>
+        <div>2:00PM ET</div><div>Qualifications</div>
+        <div>Find Local Radio Station</div></main>
+        """
+        cartao = {"ano": 2026, "slug": "st-petersburg"}
+        with patch.object(indycar, "baixar", side_effect=[parcial, completa]):
+            with self.assertRaisesRegex(ValueError, "leituras consecutivas"):
+                indycar.obter_etapa_confirmada(cartao)
+
 if __name__ == "__main__":
     unittest.main()

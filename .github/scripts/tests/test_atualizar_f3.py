@@ -167,5 +167,20 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
         self.assertEqual(len(f3.sub_eventos(html)), 1)
 
 
+
+    def test_confirma_pagina_individual_em_duas_leituras(self):
+        html = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'
+        with patch.object(f3, "baixar", side_effect=[html, html]) as baixar:
+            etapa = f3.obter_etapa_confirmada("sakhir", 2026)
+        self.assertEqual(len(etapa["sessoes"]), 2)
+        self.assertEqual(baixar.call_count, 2)
+
+    def test_rejeita_pagina_individual_instavel(self):
+        parcial = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"}]}</script>'
+        completa = '<script type="application/ld+json">{"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'
+        with patch.object(f3, "baixar", side_effect=[parcial, completa]):
+            with self.assertRaisesRegex(ValueError, "leituras consecutivas"):
+                f3.obter_etapa_confirmada("sakhir", 2026)
+
 if __name__ == "__main__":
     unittest.main()

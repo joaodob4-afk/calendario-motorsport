@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, parse_utc  # noqa: E402
+from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, obter_leitura_confirmada, parse_utc  # noqa: E402
 
 BASE = "https://www.fiaformula2.com"
 TEMPORADA_ATUAL = datetime.now().year
@@ -285,6 +285,19 @@ def montar_etapa(slug, html):
 
 
 
+def obter_etapa_confirmada(slug, temporada):
+    url = f"{BASE}/en/racing/{temporada}/{slug}"
+    html = obter_leitura_confirmada(
+        lambda: baixar(url),
+        lambda pagina: sorted(
+            (evento.get("name", ""), evento.get("startDate", ""))
+            for evento in sub_eventos(pagina)
+        ),
+        f"F2 {slug}",
+    )
+    return montar_etapa(slug, html)
+
+
 def main():
     print("Consultando páginas oficiais da F2...")
     temporada, slugs = descobrir_calendario()
@@ -297,7 +310,7 @@ def main():
     etapas = []
     for slug in slugs:
         try:
-            etapas.append(montar_etapa(slug, baixar(f"{BASE}/en/racing/{temporada}/{slug}")))
+            etapas.append(obter_etapa_confirmada(slug, temporada))
             print("OK  ", slug)
         except Exception as e:
             print("ERRO", slug, "->", e)

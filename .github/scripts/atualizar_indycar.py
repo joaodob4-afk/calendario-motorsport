@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_texto, formatar_data as fmt, gravar_se_mudou  # noqa: E402
+from utilitarios import baixar_texto, formatar_data as fmt, gravar_se_mudou, obter_leitura_confirmada  # noqa: E402
 
 
 def baixar(url):
@@ -311,6 +311,19 @@ def montar_etapa(cartao, html_evento):
     }
 
 
+def obter_etapa_confirmada(cartao):
+    url = f"{BASE}/Schedule/{cartao['ano']}/{cartao['slug']}"
+    html_evento = obter_leitura_confirmada(
+        lambda: baixar(url),
+        lambda pagina: [
+            (nome, instante.isoformat(), dia)
+            for nome, instante, dia in extrair_sessoes(pagina, cartao["ano"])
+        ],
+        f"IndyCar {cartao['slug']}",
+    )
+    return montar_etapa(cartao, html_evento)
+
+
 def main():
     print("Consultando páginas oficiais da IndyCar...")
     try:
@@ -325,8 +338,7 @@ def main():
     etapas = []
     for slug, cartao in cartoes.items():
         try:
-            html_evento = baixar(f"{BASE}/Schedule/{cartao['ano']}/{slug}")
-            etapas.append(montar_etapa(cartao, html_evento))
+            etapas.append(obter_etapa_confirmada(cartao))
             print("OK  ", slug)
         except Exception as e:  # noqa: BLE001
             print("ERRO", slug, "->", e)
