@@ -7,6 +7,7 @@ A temporada 12 é a 2025/26 (já terminou, serve de modelo); a 13 é a 2026/27.
 """
 import json
 import re
+from pathlib import Path
 import urllib.error
 import urllib.request
 
@@ -54,13 +55,18 @@ def contextos(texto, palavra, quantos=3, raio=170):
         print("      ...", texto[max(0, p - raio): p + raio].replace("\n", " "))
 
 
-def analisar(url):
+def analisar(url, indice):
     print("=" * 60)
     print("Página:", url)
     status, html = baixar(url)
     print("  status:", status, "| tamanho:", len(html))
     if status != 200 or not html:
         return
+
+    arquivo = Path(f"fe_pagina_{indice}.html")
+    arquivo.write_text(html, encoding="utf-8")
+    print("  HTML salvo:", arquivo)
+
     titulo = re.search(r"<title>(.*?)</title>", html, flags=re.S)
     print("  título:", titulo.group(1).strip() if titulo else "?")
     print("  __NEXT_DATA__:", "__NEXT_DATA__" in html, "| JSON-LD:", html.count("application/ld+json"))
@@ -74,8 +80,8 @@ def analisar(url):
 
 
 def main():
-    for url in URLS:
-        analisar(url)
+    for indice, url in enumerate(URLS, start=1):
+        analisar(url, indice)
 
 
 if __name__ == "__main__":
