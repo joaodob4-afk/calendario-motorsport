@@ -230,14 +230,14 @@ class AtualizadorWecTest(unittest.TestCase):
         )
 
         with self.assertRaises(ValueError):
-            wec.validar(vazio, None)
-        wec.validar(reduzido, atual)
+            wec.validar(vazio)
+        wec.validar(reduzido)
 
         nova_temporada = wec.montar(
             [{"circuito": "A", "pais": "x", "inicio": "17/04/2027", "fim": "19/04/2027", "sessoes": []}],
             2027,
         )
-        wec.validar(nova_temporada, atual)
+        wec.validar(nova_temporada)
 
     def test_indice_instavel_e_rejeitado(self):
         indice_a = '<a href="/en/race/6-hours-of-barcelona-2026">a</a>'
