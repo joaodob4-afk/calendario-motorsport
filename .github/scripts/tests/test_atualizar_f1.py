@@ -97,7 +97,7 @@ class ValidarTest(unittest.TestCase):
             f1.validar(f1.normalizar(resposta()))
         repetido = f1.normalizar(resposta(evento(1, "a", 15), evento(2, "b", 15)))
         with self.assertRaises(ValueError):
-            f1.validar(repetido, None)
+            f1.validar(repetido)
 
     def test_aceita_primeiro_calendario(self):
         f1.validar(self.calendario(5))
@@ -116,9 +116,8 @@ class ValidarTest(unittest.TestCase):
         f1.validar(novo)
 
     def test_outra_temporada_pode_ter_menos_corridas(self):
-        antigo = self.calendario(20)
         novo = f1.normalizar(resposta(*[evento(i + 1, f"c{i}", 3 + i) for i in range(5)], ano=2027))
-        f1.validar(novo, antigo)
+        f1.validar(novo)
 
 
 if __name__ == "__main__":
