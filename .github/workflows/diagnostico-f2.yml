@@ -1,9 +1,6 @@
 name: Diagnostico F2
 
 on:
-  push:
-    branches:
-      - fix/f2-f3-dynamic-venue-metadata
   workflow_dispatch:
 
 permissions:
