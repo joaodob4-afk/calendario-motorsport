@@ -19,6 +19,33 @@ def resposta(corpo: bytes):
     return r
 
 
+class ConfirmacaoLeituraTest(unittest.TestCase):
+    def test_devolve_segunda_leitura_quando_as_assinaturas_coincidem(self):
+        leituras = iter([{"etapas": [1]}, {"etapas": [1]}])
+        chamadas = []
+
+        def obter():
+            chamadas.append(True)
+            return next(leituras)
+
+        resultado = u.obter_leitura_confirmada(
+            obter, lambda dados: tuple(dados["etapas"]), "fonte teste"
+        )
+
+        self.assertEqual(resultado, {"etapas": [1]})
+        self.assertEqual(len(chamadas), 2)
+
+    def test_rejeita_leituras_com_estruturas_diferentes(self):
+        leituras = iter([{"etapas": [1, 2]}, {"etapas": [1]}])
+
+        with self.assertRaisesRegex(ValueError, "fonte teste"):
+            u.obter_leitura_confirmada(
+                lambda: next(leituras),
+                lambda dados: tuple(dados["etapas"]),
+                "fonte teste",
+            )
+
+
 class BaixarTest(unittest.TestCase):
     def test_texto_com_uma_tentativa_nao_espera_e_repassa_o_erro(self):
         erro = urllib.error.HTTPError("http://x", 404, "nao existe", {}, None)
