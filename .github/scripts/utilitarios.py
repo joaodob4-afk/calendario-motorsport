@@ -47,6 +47,15 @@ def baixar_json(url, tentativas=3):
     )
 
 
+def obter_leitura_confirmada(obter, assinatura, fonte):
+    """Faz duas leituras independentes e só devolve a segunda se a estrutura coincidir."""
+    primeira = obter()
+    segunda = obter()
+    if assinatura(primeira) != assinatura(segunda):
+        raise ValueError(f"{fonte}: a fonte retornou dados diferentes em leituras consecutivas")
+    return segunda
+
+
 def parse_utc(texto):
     """'2026-03-06T10:30:00Z' -> datetime com fuso UTC."""
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
