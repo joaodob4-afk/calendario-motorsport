@@ -46,6 +46,23 @@ class AtualizadorF1AcademyTest(unittest.TestCase):
         html = '<a href="/Racing-Series/Results?raceid=24">x</a><a href="?raceid=22">y</a><a href="?raceid=22">z</a>'
         self.assertEqual(f1a.ids_das_etapas(html), [22, 24])
 
+    def test_indice_confirmado_rejeita_listas_diferentes(self):
+        paginas = iter([
+            '<a href="?raceid=22">a</a><a href="?raceid=24">b</a>',
+            '<a href="?raceid=22">a</a>',
+        ])
+        with self.assertRaisesRegex(ValueError, "F1 Academy: índice de etapas"):
+            f1a.obter_ids_confirmados(lambda url: next(paginas))
+
+    def test_etapa_confirmada_rejeita_dados_diferentes(self):
+        paginas = iter([XANGAI, VEGAS])
+        with self.assertRaisesRegex(ValueError, "F1 Academy: etapa 22"):
+            f1a.obter_etapa_confirmada(22, lambda url: next(paginas))
+
+    def test_indice_confirmado_retorna_ids(self):
+        html = '<a href="?raceid=24">b</a><a href="?raceid=22">a</a>'
+        self.assertEqual(f1a.obter_ids_confirmados(lambda url: html), [22, 24])
+
     def test_etapa_confirmada_vai_para_brasilia_em_ordem(self):
         etapa = f1a.montar_etapa(XANGAI)
         self.assertEqual((etapa["circuito"], etapa["pais"]), ("Xangai", "China"))
