@@ -5,17 +5,20 @@ cópia. Este script guarda uma cópia no repositório, no MESMO formato do cache
 (MRData.RaceTable.Races, estilo Ergast), para o app usar como reserva e como semente na
 primeira abertura sem internet. Se qualquer validação falhar, nenhum arquivo é alterado.
 """
-import math
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_json, gravar_se_mudou, ler_existente  # noqa: E402
+from utilitarios import (  # noqa: E402
+    baixar_json,
+    gravar_se_mudou,
+    ler_existente,
+    obter_leitura_confirmada,
+)
 
 URL = "https://api.jolpi.ca/f1/alpha/schedules/{ano}/"
 SAIDA = Path("app/src/main/assets/f1_calendar.json")
-FRACAO_MINIMA = 0.20  # não aceita um calendário com menos de 20% das corridas que já havia
 
 CAMPOS_DE_SESSAO = {
     "FP1": "FirstPractice",
@@ -52,8 +55,10 @@ def normalizar(resposta, ano_padrao=None):
         rodada = evento.get("round")
         circuito = evento.get("circuit")
         if not isinstance(rodada, dict) or not isinstance(circuito, dict):
-            continue
+            raise ValueError(f"F1: evento {i + 1} sem rodada ou circuito")
         agenda = evento.get("schedule") or []
+        if not isinstance(agenda, list):
+            raise ValueError(f"F1: programação inválida na rodada {i + 1}")
 
         sessoes = {}
         data_corrida = hora_corrida = ""
@@ -76,7 +81,7 @@ def normalizar(resposta, ano_padrao=None):
             if primeira is not None:
                 data_corrida = primeira.date().isoformat()
         if not data_corrida:
-            continue
+            raise ValueError(f"F1: rodada {rodada.get('number') or i + 1} sem data de corrida")
 
         corrida = {
             "season": str(ano),
@@ -103,6 +108,39 @@ def normalizar(resposta, ano_padrao=None):
             "RaceTable": {"season": str(ano), "Races": corridas},
         }
     }
+
+
+def assinatura_resposta(resposta):
+    """Identidade das corridas e tipos de sessão publicados pela API."""
+    raiz = resposta.get("data")
+    eventos = raiz.get("events") if isinstance(raiz, dict) else None
+    if not isinstance(eventos, list) or not eventos:
+        raise ValueError("F1: a API não retornou uma lista de corridas")
+
+    assinatura = []
+    rodadas = set()
+    for indice, evento in enumerate(eventos, start=1):
+        if not isinstance(evento, dict):
+            raise ValueError(f"F1: evento {indice} inválido")
+        rodada = evento.get("round")
+        circuito = evento.get("circuit")
+        if not isinstance(rodada, dict) or not isinstance(circuito, dict):
+            raise ValueError(f"F1: evento {indice} sem rodada ou circuito")
+        numero = str(rodada.get("number") or "")
+        circuito_id = str(circuito.get("id") or "")
+        if not numero or not circuito_id or numero in rodadas:
+            raise ValueError(f"F1: identificação inválida ou repetida na rodada {indice}")
+        rodadas.add(numero)
+        agenda = evento.get("schedule")
+        if not isinstance(agenda, list):
+            raise ValueError(f"F1: programação inválida na rodada {numero}")
+        codigos = tuple(sorted(
+            str(item.get("code") or "").upper()
+            for item in agenda
+            if isinstance(item, dict)
+        ))
+        assinatura.append((numero, circuito_id, codigos))
+    return tuple(assinatura)
 
 
 def _corridas(dados):
@@ -136,21 +174,18 @@ def validar(novo, antigo):
     if not mesma_temporada:
         return  # outra temporada pode ter outra quantidade de corridas
 
-    minimo = math.ceil(len(_corridas(antigo)) * FRACAO_MINIMA)
-    if len(corridas) < minimo:
-        raise ValueError(f"F1: {len(corridas)} corridas (havia {len(_corridas(antigo))})")
-    minimo_sessoes = math.ceil(_total_de_sessoes(antigo) * FRACAO_MINIMA)
-    if _total_de_sessoes(novo) < minimo_sessoes:
-        raise ValueError(
-            f"F1: {_total_de_sessoes(novo)} sessões (havia {_total_de_sessoes(antigo)})"
-        )
 
 
 def main():
     ano = datetime.now().year
     print(f"Consultando a Jolpica para a temporada {ano}...")
     try:
-        novo = normalizar(baixar_json(URL.format(ano=ano)), ano)
+        resposta = obter_leitura_confirmada(
+            lambda: baixar_json(URL.format(ano=ano)),
+            assinatura_resposta,
+            "F1",
+        )
+        novo = normalizar(resposta, ano)
         validar(novo, ler_existente(SAIDA))
     except Exception as erro:  # noqa: BLE001
         print("ERRO:", erro)
