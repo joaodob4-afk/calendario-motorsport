@@ -137,7 +137,7 @@ def assinatura_resposta(resposta):
         codigos = tuple(sorted(
             (
                 str(item.get("code") or "").upper(),
-                _instante(item.get("timestamp")) is not None,
+                str(item.get("timestamp") or ""),
             )
             for item in agenda
             if isinstance(item, dict)
