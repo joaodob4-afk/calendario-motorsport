@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_json,
     gravar_se_mudou,
-    ler_existente,
     obter_leitura_confirmada,
 )
 
@@ -159,7 +158,7 @@ def _total_de_sessoes(dados):
     )
 
 
-def validar(novo, antigo):
+def validar(novo):
     """Valida corridas, datas e consistência básica do calendário."""
     corridas = _corridas(novo)
     if not corridas:
@@ -168,14 +167,6 @@ def validar(novo, antigo):
     if len(set(datas)) != len(datas):
         raise ValueError("F1: duas corridas na mesma data")
 
-    if not antigo:
-        return
-    mesma_temporada = (
-        novo["MRData"]["RaceTable"].get("season")
-        == antigo.get("MRData", {}).get("RaceTable", {}).get("season")
-    )
-    if not mesma_temporada:
-        return  # outra temporada pode ter outra quantidade de corridas
 
 
 def main():
@@ -188,7 +179,7 @@ def main():
             "F1",
         )
         novo = normalizar(resposta, ano)
-        validar(novo, ler_existente(SAIDA))
+        validar(novo)
     except Exception as erro:  # noqa: BLE001
         print("ERRO:", erro)
         print("Nada foi alterado.")
