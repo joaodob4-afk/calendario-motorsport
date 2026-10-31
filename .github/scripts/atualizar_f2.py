@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, obter_leitura_confirmada, parse_utc  # noqa: E402
+from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, localizar_evento_jsonld, obter_leitura_confirmada, parse_utc  # noqa: E402
 
 BASE = "https://www.fiaformula2.com"
 TEMPORADA_ATUAL = datetime.now().year
@@ -238,11 +238,20 @@ def avisos_de_horario(slug, sessoes):
 
 
 def montar_etapa(slug, html):
-    if slug not in CIRCUITOS:
-        raise ValueError(f"Circuito não mapeado: {slug}")
-    circuito, pais, fuso = CIRCUITOS[slug]
+    metadados = CIRCUITOS.get(slug)
+    if metadados:
+        circuito, pais, fuso = metadados
+    else:
+        localizacao = localizar_evento_jsonld(html)
+        endereco = (localizacao or {}).get("endereco", "")
+        partes = [parte.strip() for parte in endereco.split(",") if parte.strip()]
+        circuito = (localizacao or {}).get("nome", "")
+        if not circuito or len(partes) < 2 or partes[-1].casefold() == circuito.casefold():
+            raise ValueError(f"{slug}: localização oficial sem circuito e país identificáveis")
+        pais = partes[-1]
+        fuso = None
     sessoes = traduzir_sessoes(sub_eventos(html))
-    local = ZoneInfo(fuso)
+    local = ZoneInfo(fuso) if fuso else BRASILIA
 
     # O site oficial ainda publica os horários de Yas Marina como meia-noite
     # local (placeholder), inclusive com sessões diferentes no mesmo instante.

@@ -127,6 +127,30 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             ["Treino Livre", "Autograph Session"],
         )
 
+    def test_nova_etapa_usa_localizacao_oficial_do_jsonld(self):
+        html = '<script type="application/ld+json">{"name":"NEW GRAND PRIX","location":{"@type":"City","name":"Nova Cidade","address":"Nova Cidade, Novo Pais"},"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"},{"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}]}</script>'
+        etapa = f3.montar_etapa("nova-etapa", html)
+        self.assertEqual(etapa["circuito"], "Nova Cidade")
+        self.assertEqual(etapa["pais"], "Novo Pais")
+        self.assertEqual(len(etapa["sessoes"]), 2)
+
+
+    def test_nova_etapa_aceita_endereco_postal_address(self):
+        html = '<script type="application/ld+json">{"location":{"name":"Novo Circuito","address":{"@type":"PostalAddress","addressLocality":"Nova Cidade","addressRegion":"Região","addressCountry":{"@type":"Country","name":"Novo País"}}},"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"}]}</script>'
+        etapa = f3.montar_etapa("novo-circuito", html)
+        self.assertEqual(etapa["circuito"], "Novo Circuito")
+        self.assertEqual(etapa["pais"], "Novo País")
+
+    def test_nova_etapa_recusa_postal_address_sem_pais(self):
+        html = '<script type="application/ld+json">{"location":{"name":"Novo Circuito","address":{"addressLocality":"Nova Cidade"}},"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"}]}</script>'
+        with self.assertRaisesRegex(ValueError, "localização oficial"):
+            f3.montar_etapa("novo-circuito", html)
+
+    def test_nova_etapa_sem_pais_identificavel_e_recusada(self):
+        html = '<script type="application/ld+json">{"location":{"name":"Nova Cidade","address":"Nova Cidade"},"subEvent":[{"name":"Practice","startDate":"2026-06-04T11:25:00Z"}]}</script>'
+        with self.assertRaisesRegex(ValueError, "localização oficial"):
+            f3.montar_etapa("nova-etapa", html)
+
     def test_etapa_sem_sessoes_continua_sendo_recusada(self):
         with self.assertRaisesRegex(ValueError, "nenhuma sessão encontrada"):
             f3.montar_etapa("sakhir", "<html></html>")

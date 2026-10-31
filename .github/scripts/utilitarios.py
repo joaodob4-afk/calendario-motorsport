@@ -60,6 +60,59 @@ def parse_utc(texto):
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
 
+def localizar_evento_jsonld(html):
+    """Extrai nome e endereço da localização do evento principal em JSON-LD."""
+    import re
+
+    blocos = re.findall(
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
+    )
+
+    def procurar(dados):
+        if isinstance(dados, dict):
+            local = dados.get("location")
+            if isinstance(local, dict) and dados.get("subEvent"):
+                return local
+            for valor in dados.values():
+                encontrado = procurar(valor)
+                if encontrado:
+                    return encontrado
+        elif isinstance(dados, list):
+            for item in dados:
+                encontrado = procurar(item)
+                if encontrado:
+                    return encontrado
+        return None
+
+    for bloco in blocos:
+        try:
+            dados = json.loads(bloco)
+        except ValueError:
+            continue
+        local = procurar(dados)
+        if local:
+            endereco = local.get("address")
+            if isinstance(endereco, dict):
+                pais = endereco.get("addressCountry") or ""
+                if isinstance(pais, dict):
+                    pais = pais.get("name") or pais.get("identifier") or ""
+                partes = [
+                    str(endereco.get("addressLocality") or "").strip(),
+                    str(endereco.get("addressRegion") or "").strip(),
+                    str(pais).strip(),
+                ]
+                texto_endereco = ", ".join(parte for parte in partes if parte)
+                if not pais:
+                    texto_endereco = ""
+            else:
+                texto_endereco = str(endereco or "").strip() if isinstance(endereco, str) else ""
+            return {
+                "nome": str(local.get("name") or "").strip(),
+                "endereco": texto_endereco,
+            }
+    return None
+
+
 def formatar_data(d):
     """date -> 'dd/mm/aaaa', o formato dos JSONs do app."""
     return d.strftime("%d/%m/%Y")
