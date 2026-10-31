@@ -309,7 +309,7 @@ def coletar(baixar=baixar_texto):
         try:
             corridas = obter_leitura_confirmada(
                 lambda: descobrir_corridas(baixar(pagina)),
-                tuple,
+                lambda caminhos: tuple(sorted(caminhos)),
                 "WEC: índice de etapas",
             )
         except Exception as e:  # noqa: BLE001
