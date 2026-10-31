@@ -16,12 +16,12 @@ SPEC.loader.exec_module(wec)
 ASSET = RAIZ / "app" / "src" / "main" / "assets" / "wec_calendar.json"
 
 
-def pagina(titulo, periodo, nome_evento, sessoes, menu=""):
+def pagina(titulo, periodo, nome_evento, sessoes, menu="", location=None):
     ld = {
         "@context": "https://schema.org",
         "@type": "SportsEvent",
         "name": nome_evento,
-        "location": {"name": "Barcelona", "address": "Barcelona, ESP"},
+        "location": location or {"name": "Barcelona", "address": "Barcelona, ESP"},
         "subEvent": [
             {"@type": "SportsEvent", "name": nome, "startDate": inicio}
             for nome, inicio in sessoes
@@ -150,11 +150,39 @@ class AtualizadorWecTest(unittest.TestCase):
 
     def test_etapa_nova_usa_dados_da_pagina(self):
         html = pagina(
-            "6 Hours of Novolandia", "From 1 to 3 May 2027", "WEC 6 Hours of Novolandia 2027", []
+            "6 Hours of Novolandia",
+            "From 1 to 3 May 2027",
+            "WEC 6 Hours of Novolandia 2027",
+            [],
+            location={"name": "Novolandia", "address": "Novolandia, ESP"},
         )
         etapa = wec.ler_etapa("6-hours-of-novolandia-2027", html)
 
-        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Barcelona", "Espanha"))
+        self.assertEqual((etapa["circuito"], etapa["pais"]), ("Novolandia", "Espanha"))
+
+    def test_etapa_nova_aceita_pais_em_postal_address(self):
+        evento = {
+            "location": {
+                "name": "Novolandia",
+                "address": {"addressCountry": {"name": "Portugal", "identifier": "PRT"}},
+            }
+        }
+        self.assertEqual(
+            wec.local_da_etapa("6-hours-of-novolandia-2027", evento),
+            ("Novolandia", "Portugal"),
+        )
+
+    def test_etapa_nova_recusa_codigo_de_pais_desconhecido(self):
+        evento = {
+            "location": {"name": "Novolandia", "address": "Novolandia, XYZ"}
+        }
+        with self.assertRaisesRegex(ValueError, "código de país não reconhecido"):
+            wec.local_da_etapa("6-hours-of-novolandia-2027", evento)
+
+    def test_etapa_nova_recusa_pais_ausente(self):
+        evento = {"location": {"name": "Novolandia"}}
+        with self.assertRaisesRegex(ValueError, "país ausente"):
+            wec.local_da_etapa("6-hours-of-novolandia-2027", evento)
 
     def test_sessao_sem_fuso_e_ignorada(self):
         html = pagina(
