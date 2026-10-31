@@ -290,7 +290,7 @@ def montar(etapas, ano):
 
 
 def validar(novo, antigo):
-    """Recusa calendário vazio ou muito menor que o atual da mesma temporada."""
+    """Recusa calendário vazio e etapas com dados inválidos."""
     if not novo["etapas"]:
         raise ValueError("WEC: nenhuma etapa encontrada")
 
@@ -299,7 +299,6 @@ def validar(novo, antigo):
             raise ValueError(f"WEC: etapa {e['etapa']} sem circuito ou país")
         if parse_data(e["fim"]) < parse_data(e["inicio"]):
             raise ValueError(f"WEC: etapa {e['etapa']} com fim antes do início")
-
 
 
 def coletar(baixar=baixar_texto):
