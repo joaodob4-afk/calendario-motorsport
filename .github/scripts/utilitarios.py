@@ -5,6 +5,8 @@ Ficam aqui para não repetir o mesmo código em cada script. As regras de cada f
 """
 import json
 import math
+import os
+import tempfile
 import time
 import urllib.request
 from datetime import datetime
@@ -90,9 +92,21 @@ def total_de_sessoes(dados):
 
 
 def gravar_se_mudou(caminho, dados):
-    """Grava o JSON só se o conteúdo mudou. Devolve True quando gravou."""
+    """Grava o JSON só se mudou, substituindo o arquivo atomicamente."""
     texto = serializar(dados)
     if caminho.exists() and caminho.read_text(encoding="utf-8") == texto:
         return False
-    caminho.write_text(texto, encoding="utf-8")
+
+    descritor, temporario = tempfile.mkstemp(
+        prefix=f".{caminho.name}.", suffix=".tmp", dir=caminho.parent
+    )
+    try:
+        with os.fdopen(descritor, "w", encoding="utf-8") as arquivo:
+            arquivo.write(texto)
+            arquivo.flush()
+            os.fsync(arquivo.fileno())
+        os.replace(temporario, caminho)
+    finally:
+        if os.path.exists(temporario):
+            os.unlink(temporario)
     return True
