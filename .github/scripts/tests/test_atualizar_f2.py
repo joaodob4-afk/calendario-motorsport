@@ -1,4 +1,5 @@
 """Testes offline de regressão para descoberta de calendário e sessões da F2."""
+# A localização dinâmica deve vir exclusivamente do JSON-LD oficial.
 import importlib.util
 import unittest
 from pathlib import Path
