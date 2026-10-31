@@ -135,7 +135,10 @@ def assinatura_resposta(resposta):
         if not isinstance(agenda, list):
             raise ValueError(f"F1: programação inválida na rodada {numero}")
         codigos = tuple(sorted(
-            str(item.get("code") or "").upper()
+            (
+                str(item.get("code") or "").upper(),
+                _instante(item.get("timestamp")) is not None,
+            )
             for item in agenda
             if isinstance(item, dict)
         ))
@@ -157,7 +160,7 @@ def _total_de_sessoes(dados):
 
 
 def validar(novo, antigo):
-    """Levanta ValueError se o calendário novo não merece substituir o antigo."""
+    """Valida corridas, datas e consistência básica do calendário."""
     corridas = _corridas(novo)
     if not corridas:
         raise ValueError("F1: nenhuma corrida encontrada")
@@ -173,7 +176,6 @@ def validar(novo, antigo):
     )
     if not mesma_temporada:
         return  # outra temporada pode ter outra quantidade de corridas
-
 
 
 def main():
