@@ -17,8 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_texto as baixar,
     gravar_se_mudou,
-    ler_existente,
-    validar_encolhimento,
+    obter_leitura_confirmada,
 )
 
 BASE = "https://www.f1academy.com"
@@ -62,6 +61,25 @@ PAISES = {
 def ids_das_etapas(html):
     """raceids da página de calendário (a temporada atual), em ordem crescente."""
     return sorted({int(i) for i in re.findall(r"raceid=(\d+)", html)})
+
+
+def obter_ids_confirmados(baixar_pagina=baixar):
+    """Confirma que o índice oficial lista as mesmas etapas em duas leituras."""
+    return obter_leitura_confirmada(
+        lambda: ids_das_etapas(baixar_pagina(CALENDARIO)),
+        tuple,
+        "F1 Academy: índice de etapas",
+    )
+
+
+def obter_etapa_confirmada(raceid, baixar_pagina=baixar):
+    """Confirma os dados e sessões da página individual da etapa."""
+    url = f"{BASE}/Racing-Series/Results?raceid={raceid}"
+    return obter_leitura_confirmada(
+        lambda: montar_etapa(baixar_pagina(url)),
+        lambda etapa: etapa,
+        f"F1 Academy: etapa {raceid}",
+    )
 
 
 def dados_da_pagina(html):
@@ -170,7 +188,7 @@ def montar_calendario(etapas):
 def main():
     print("Consultando o site oficial da F1 Academy...")
     try:
-        ids = ids_das_etapas(baixar(CALENDARIO))
+        ids = obter_ids_confirmados()
     except Exception as e:  # noqa: BLE001
         print("ERRO ao baixar o calendário:", e)
         print("Nada foi alterado.")
@@ -183,7 +201,7 @@ def main():
     etapas = []
     for raceid in ids:
         try:
-            etapas.append(montar_etapa(baixar(f"{BASE}/Racing-Series/Results?raceid={raceid}")))
+            etapas.append(obter_etapa_confirmada(raceid))
             print("OK  ", raceid)
         except Exception as e:  # noqa: BLE001
             print("ERRO", raceid, "->", e)
@@ -192,7 +210,6 @@ def main():
 
     try:
         novo = montar_calendario(etapas)
-        validar_encolhimento(novo, ler_existente(SAIDA), "F1 Academy")
     except ValueError as e:
         print("ERRO:", e)
         print("Nada foi alterado.")

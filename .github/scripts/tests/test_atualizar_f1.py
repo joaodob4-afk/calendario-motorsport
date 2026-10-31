@@ -62,19 +62,30 @@ class NormalizarTest(unittest.TestCase):
         self.assertNotIn("SecondPractice", corrida)
         self.assertNotIn("ThirdPractice", corrida)
 
-    def test_sem_corrida_usa_primeira_sessao_e_sem_nada_descarta(self):
+    def test_sem_corrida_usa_primeira_sessao(self):
         sem_r = evento(1, "x", 15)
         sem_r["schedule"] = [sem_r["schedule"][0]]
-        vazio = evento(2, "y", 20)
-        vazio["schedule"] = []
-        corridas = f1.normalizar(resposta(sem_r, vazio))["MRData"]["RaceTable"]["Races"]
+        corridas = f1.normalizar(resposta(sem_r))["MRData"]["RaceTable"]["Races"]
         self.assertEqual(len(corridas), 1)
         self.assertEqual(corridas[0]["date"], "2026-03-13")
         self.assertNotIn("time", corridas[0])
 
-    def test_evento_sem_circuito_e_ignorado(self):
+    def test_evento_sem_circuito_e_rejeitado(self):
         ruim = {"round": {"number": 1, "name": "x"}, "schedule": []}
-        self.assertEqual(f1._corridas(f1.normalizar(resposta(ruim))), [])
+        with self.assertRaisesRegex(ValueError, "sem rodada ou circuito"):
+            f1.normalizar(resposta(ruim))
+
+    def test_evento_sem_data_e_rejeitado(self):
+        vazio = evento(1, "x", 20)
+        vazio["schedule"] = []
+        with self.assertRaisesRegex(ValueError, "sem data de corrida"):
+            f1.normalizar(resposta(vazio))
+
+    def test_assinatura_detecta_sessao_ausente_entre_leituras(self):
+        primeira = resposta(evento(1, "x", 15))
+        segunda = copy.deepcopy(primeira)
+        segunda["data"]["events"][0]["schedule"].pop(0)
+        self.assertNotEqual(f1.assinatura_resposta(primeira), f1.assinatura_resposta(segunda))
 
 
 class ValidarTest(unittest.TestCase):
@@ -83,33 +94,30 @@ class ValidarTest(unittest.TestCase):
 
     def test_rejeita_vazio_e_datas_repetidas(self):
         with self.assertRaises(ValueError):
-            f1.validar(f1.normalizar(resposta()), None)
+            f1.validar(f1.normalizar(resposta()))
         repetido = f1.normalizar(resposta(evento(1, "a", 15), evento(2, "b", 15)))
         with self.assertRaises(ValueError):
-            f1.validar(repetido, None)
+            f1.validar(repetido)
 
     def test_aceita_primeiro_calendario(self):
-        f1.validar(self.calendario(5), None)
+        f1.validar(self.calendario(5))
 
-    def test_rejeita_queda_grande_na_mesma_temporada(self):
+    def test_aceita_reducao_confirmada_na_mesma_temporada(self):
         antigo = self.calendario(20)
-        with self.assertRaises(ValueError):
-            f1.validar(self.calendario(3), antigo)  # 3 de 20 (< 20%)
-        f1.validar(self.calendario(4), antigo)
+        novo = self.calendario(3)
+        f1.validar(novo)
 
-    def test_rejeita_perda_de_sessoes(self):
+    def test_validacao_nao_impede_remocao_oficial_de_sessoes(self):
         antigo = self.calendario(5)
         novo = copy.deepcopy(antigo)
-        for c in f1._corridas(novo):
-            for campo in ("FirstPractice", "Qualifying"):
-                c.pop(campo)
-        with self.assertRaises(ValueError):
-            f1.validar(novo, antigo)
+        for corrida in f1._corridas(novo):
+            corrida.pop("FirstPractice", None)
+            corrida.pop("Qualifying", None)
+        f1.validar(novo)
 
     def test_outra_temporada_pode_ter_menos_corridas(self):
-        antigo = self.calendario(20)
         novo = f1.normalizar(resposta(*[evento(i + 1, f"c{i}", 3 + i) for i in range(5)], ano=2027))
-        f1.validar(novo, antigo)
+        f1.validar(novo)
 
 
 if __name__ == "__main__":

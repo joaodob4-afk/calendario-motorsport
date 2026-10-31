@@ -214,31 +214,60 @@ class AtualizadorWecTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             wec.coletar(baixar=lambda url: "<html></html>")
 
-    def test_recusa_calendario_vazio_ou_muito_menor(self):
+    def test_rejeita_calendario_vazio_mas_aceita_reducao_confirmada(self):
         atual = wec.montar(
             [
                 {"circuito": "A", "pais": "x", "inicio": "17/04/2026", "fim": "19/04/2026",
                  "sessoes": [{"nome": "Corrida", "data": "19/04/2026", "horario": "08:00"}] * 4},
+                {"circuito": "B", "pais": "x", "inicio": "17/06/2026", "fim": "19/06/2026", "sessoes": []},
             ],
             2026,
         )
         vazio = {"temporada": 2026, "categoria": "WEC", "etapas": []}
-        sem_sessoes = wec.montar(
+        reduzido = wec.montar(
             [{"circuito": "A", "pais": "x", "inicio": "17/04/2026", "fim": "19/04/2026", "sessoes": []}],
             2026,
         )
 
         with self.assertRaises(ValueError):
-            wec.validar(vazio, None)
-        with self.assertRaises(ValueError):
-            wec.validar(sem_sessoes, atual)
-        wec.validar(atual, atual)
+            wec.validar(vazio)
+        wec.validar(reduzido)
 
         nova_temporada = wec.montar(
             [{"circuito": "A", "pais": "x", "inicio": "17/04/2027", "fim": "19/04/2027", "sessoes": []}],
             2027,
         )
-        wec.validar(nova_temporada, atual)
+        wec.validar(nova_temporada)
+
+    def test_indice_instavel_e_rejeitado(self):
+        indice_a = '<a href="/en/race/6-hours-of-barcelona-2026">a</a>'
+        indice_b = '<a href="/en/race/qatar-1812km-2026">b</a>'
+        leituras = iter([indice_a, indice_b])
+
+        def baixar(url):
+            if url == wec.PAGINAS_INICIAIS[0]:
+                return next(leituras)
+            return "<html></html>"
+
+        with self.assertRaisesRegex(ValueError, "Nenhuma etapa confirmada"):
+            wec.coletar(baixar=baixar)
+
+    def test_pagina_de_etapa_instavel_e_rejeitada(self):
+        indice = '<a href="/en/race/6-hours-of-barcelona-2026">a</a>'
+        detalhe = iter([
+            HTML_BARCELONA,
+            HTML_BARCELONA.replace("From 16 to 18 October 2026", "From 17 to 19 October 2026"),
+        ])
+
+        def baixar(url):
+            if url == wec.PAGINAS_INICIAIS[0]:
+                return indice
+            if url == wec.BASE + "/en/race/6-hours-of-barcelona-2026":
+                return next(detalhe)
+            return "<html></html>"
+
+        with self.assertRaisesRegex(ValueError, "WEC: 6-hours-of-barcelona-2026"):
+            wec.coletar(baixar=baixar)
 
 
 class CalendarioWecEmbutidoTest(unittest.TestCase):

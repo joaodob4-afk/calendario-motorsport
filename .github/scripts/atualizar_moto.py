@@ -5,13 +5,17 @@ calendário do motogp.com.
 Os horários da API vêm com fuso (ex.: 2026-02-27T10:45:00+0700); o JSON sai em horário de
 Brasília. Se qualquer validação falhar, NENHUM arquivo é alterado e o script sai com erro.
 """
-import math
 import sys
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_json, gravar_se_mudou, ler_existente, total_de_sessoes  # noqa: E402
+from utilitarios import (  # noqa: E402
+    baixar_json,
+    gravar_se_mudou,
+    obter_leitura_confirmada,
+    total_de_sessoes,
+)
 
 
 def baixar(url):
@@ -72,19 +76,18 @@ ETAPAS = {
     "VAL": ("Valencia", "Espanha"),
 }
 
-# Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
-FRACAO_MINIMA = 0.20
-
 
 def obter_eventos(ano):
     """Eventos da temporada, tentando os dois nomes de servidor."""
     ultimo = None
     for servidor in SERVIDORES:
         try:
-            dados = baixar(servidor + CAMINHO.format(ano=ano))
-            if isinstance(dados, list):
-                return dados
-            ultimo = ValueError("resposta da API não é uma lista")
+            url = servidor + CAMINHO.format(ano=ano)
+            return obter_leitura_confirmada(
+                lambda: baixar(url),
+                assinatura_eventos,
+                "MotoGP",
+            )
         except Exception as e:  # noqa: BLE001
             ultimo = e
     raise ultimo
@@ -92,6 +95,43 @@ def obter_eventos(ano):
 
 def grandes_premios(eventos):
     return [e for e in eventos if e.get("kind") == "GP"]
+
+
+def assinatura_eventos(eventos):
+    """Identidade dos GPs e das sessões publicadas pela API."""
+    if not isinstance(eventos, list):
+        raise ValueError("MotoGP: resposta da API não é uma lista")
+    gps = grandes_premios(eventos)
+    if not gps:
+        raise ValueError("MotoGP: a API não trouxe Grandes Prêmios")
+
+    assinatura = []
+    sequencias = set()
+    for evento in gps:
+        sequencia = str(evento.get("sequence") or "")
+        sigla = str(evento.get("shortname") or "")
+        inicio = str(evento.get("date_start") or "")
+        fim = str(evento.get("date_end") or "")
+        if not sequencia or not sigla or not inicio or not fim or sequencia in sequencias:
+            raise ValueError("MotoGP: Grande Prêmio com identificação incompleta ou repetida")
+        sequencias.add(sequencia)
+
+        broadcasts = evento.get("broadcasts") or []
+        if not isinstance(broadcasts, list):
+            raise ValueError(f"MotoGP: sessões inválidas no GP {sigla}")
+        sessoes = tuple(sorted(
+            (
+                str((item.get("category") or {}).get("acronym") or "").upper(),
+                str(item.get("shortname") or ""),
+                str(item.get("type") or ""),
+                str(item.get("kind") or ""),
+                str(item.get("date_start") or ""),
+            )
+            for item in broadcasts
+            if isinstance(item, dict)
+        ))
+        assinatura.append((sequencia, sigla, inicio, fim, sessoes))
+    return tuple(assinatura)
 
 
 def escolher_temporada(ano_atual, obter=obter_eventos):
@@ -218,8 +258,8 @@ def montar(eventos, sigla, rotulo, ano):
     return {"temporada": ano, "categoria": rotulo, "etapas": etapas}
 
 
-def validar(novo, antigo):
-    """Recusa calendário vazio ou muito menor que o atual da mesma temporada."""
+def validar(novo):
+    """Recusa calendário vazio e etapas com dados inválidos."""
     if not novo["etapas"]:
         raise ValueError(f"{novo['categoria']}: nenhuma etapa encontrada")
 
@@ -229,18 +269,6 @@ def validar(novo, antigo):
         if datetime.strptime(e["fim"], "%d/%m/%Y") < datetime.strptime(e["inicio"], "%d/%m/%Y"):
             raise ValueError(f"{novo['categoria']}: etapa {e['etapa']} com fim antes do início")
 
-    if antigo and str(antigo.get("temporada")) == str(novo["temporada"]):
-        minimo_etapas = max(1, math.ceil(len(antigo["etapas"]) * FRACAO_MINIMA))
-        if len(novo["etapas"]) < minimo_etapas:
-            raise ValueError(
-                f"{novo['categoria']}: {len(novo['etapas'])} etapas (havia {len(antigo['etapas'])})"
-            )
-        minimo_sessoes = math.ceil(total_de_sessoes(antigo) * FRACAO_MINIMA)
-        if total_de_sessoes(novo) < minimo_sessoes:
-            raise ValueError(
-                f"{novo['categoria']}: {total_de_sessoes(novo)} sessões "
-                f"(havia {total_de_sessoes(antigo)})"
-            )
 
 
 def main():
@@ -250,7 +278,7 @@ def main():
     saidas = {}
     for sigla, (rotulo, arquivo) in CLASSES.items():
         novo = montar(eventos, sigla, rotulo, ano)
-        validar(novo, ler_existente(PASTA / arquivo))
+        validar(novo)
         saidas[arquivo] = novo
 
     # Só grava depois que as três classes passaram na validação.

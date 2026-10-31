@@ -1,4 +1,5 @@
 """Testes offline do atualizador de MotoGP, Moto2 e Moto3 e dos JSONs embutidos no app."""
+import copy
 import importlib.util
 import json
 import re
@@ -132,26 +133,35 @@ class AtualizadorMotoTest(unittest.TestCase):
     def test_recusa_calendario_vazio(self):
         vazio = {"temporada": 2026, "categoria": "MotoGP", "etapas": []}
         with self.assertRaises(ValueError):
-            moto.validar(vazio, None)
+            moto.validar(vazio)
 
-    def test_recusa_resposta_com_muito_menos_sessoes_que_o_arquivo_atual(self):
+    def test_aceita_reducao_confirmada_de_sessoes_e_etapas(self):
         atual = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
-        sem_sessoes = moto.montar(
+        reduzido = moto.montar(
             [gp(1, "THA", "2026-02-27", "2026-03-01")], "MGP", "MotoGP", 2026
         )
 
-        with self.assertRaises(ValueError):
-            moto.validar(sem_sessoes, atual)
+        moto.validar(reduzido)
+
+    def test_assinatura_detecta_sessao_ausente_entre_leituras(self):
+        primeira = self.eventos_tailandia()
+        segunda = copy.deepcopy(primeira)
+        segunda[0]["broadcasts"].pop(0)
+
+        self.assertNotEqual(
+            moto.assinatura_eventos(primeira),
+            moto.assinatura_eventos(segunda),
+        )
 
     def test_aceita_atualizacao_normal(self):
         atual = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
-        moto.validar(atual, atual)
+        moto.validar(atual)
 
     def test_temporada_nova_nao_e_comparada_com_a_antiga(self):
         antiga = moto.montar(self.eventos_tailandia(), "MGP", "MotoGP", 2026)
         nova = moto.montar([gp(1, "THA", "2027-02-27", "2027-03-01")], "MGP", "MotoGP", 2027)
 
-        moto.validar(nova, antiga)
+        moto.validar(nova)
 
     def test_escolhe_temporada_atual_enquanto_ha_corridas_por_fazer(self):
         dados = {2026: [gp(1, "THA", "2026-02-27", "2026-03-01", status="NOT-STARTED")]}
