@@ -87,6 +87,21 @@ class NormalizarTest(unittest.TestCase):
         segunda["data"]["events"][0]["schedule"].pop(0)
         self.assertNotEqual(f1.assinatura_resposta(primeira), f1.assinatura_resposta(segunda))
 
+    def test_assinatura_usa_fallbacks_da_normalizacao(self):
+        ev = evento(1, "x", 15)
+        ev["round"]["number"] = None
+        ev["circuit"].pop("id")
+        assinatura = f1.assinatura_resposta(resposta(ev))
+        corrida = f1.normalizar(resposta(ev))["MRData"]["RaceTable"]["Races"][0]
+        self.assertEqual(assinatura[0][0], corrida["round"])
+        self.assertEqual(assinatura[0][1], corrida["Circuit"]["circuitId"])
+
+    def test_assinatura_rejeita_numero_de_rodada_duplicado(self):
+        primeira = evento(1, "x", 15)
+        segunda = evento(1, "y", 20)
+        with self.assertRaisesRegex(ValueError, "número de rodada duplicado: 1"):
+            f1.assinatura_resposta(resposta(primeira, segunda))
+
 
 class ValidarTest(unittest.TestCase):
     def calendario(self, n):

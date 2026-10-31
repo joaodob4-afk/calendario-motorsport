@@ -125,10 +125,12 @@ def assinatura_resposta(resposta):
         circuito = evento.get("circuit")
         if not isinstance(rodada, dict) or not isinstance(circuito, dict):
             raise ValueError(f"F1: evento {indice} sem rodada ou circuito")
-        numero = str(rodada.get("number") or "")
-        circuito_id = str(circuito.get("id") or "")
-        if not numero or not circuito_id or numero in rodadas:
-            raise ValueError(f"F1: identificação inválida ou repetida na rodada {indice}")
+        # Usa os mesmos fallbacks de normalizar(): a API pode publicar um evento
+        # antes de preencher o número da rodada ou o ID do circuito.
+        numero = str(rodada.get("number") or indice)
+        circuito_id = str(circuito.get("id") or f"round_{indice}")
+        if numero in rodadas:
+            raise ValueError(f"F1: número de rodada duplicado: {numero}")
         rodadas.add(numero)
         agenda = evento.get("schedule")
         if not isinstance(agenda, list):
