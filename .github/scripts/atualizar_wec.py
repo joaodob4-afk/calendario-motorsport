@@ -16,7 +16,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_texto as baixar_texto_comum,
     gravar_se_mudou,
-    ler_existente,
     obter_leitura_confirmada,
     total_de_sessoes,
 )
@@ -289,7 +288,7 @@ def montar(etapas, ano):
     }
 
 
-def validar(novo, antigo):
+def validar(novo):
     """Recusa calendário vazio e etapas com dados inválidos."""
     if not novo["etapas"]:
         raise ValueError("WEC: nenhuma etapa encontrada")
@@ -341,7 +340,7 @@ def main():
     ano = escolher_temporada(por_ano, hoje)
 
     novo = montar(por_ano[ano], ano)
-    validar(novo, ler_existente(ARQUIVO))
+    validar(novo)
 
     if not gravar_se_mudou(ARQUIVO, novo):
         print("wec_calendar.json: sem mudanças")
