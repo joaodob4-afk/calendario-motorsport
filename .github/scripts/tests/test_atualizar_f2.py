@@ -132,9 +132,17 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "nenhuma sessão encontrada"):
             f2.montar_etapa("sakhir", "<html></html>")
 
-    def test_circuito_nao_mapeado_continua_sendo_recusado(self):
-        with self.assertRaisesRegex(ValueError, "Circuito não mapeado"):
-            f2.montar_etapa("circuito-inexistente", "<html></html>")
+    def test_nova_etapa_usa_localizacao_oficial_do_jsonld(self):
+        html = '''<script type="application/ld+json">{"name":"NEW GRAND PRIX","location":{"@type":"City","name":"Nova Cidade","address":"Nova Cidade, Novo País"},"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"},{"name":"Race","startDate":"2026-03-08T00:25:00Z"}]}</script>'''
+        etapa = f2.montar_etapa("nova-etapa", html)
+        self.assertEqual(etapa["circuito"], "Nova Cidade")
+        self.assertEqual(etapa["pais"], "Novo País")
+        self.assertEqual(len(etapa["sessoes"]), 2)
+
+    def test_nova_etapa_sem_pais_identificavel_e_recusada(self):
+        html = '''<script type="application/ld+json">{"location":{"name":"Nova Cidade","address":"Nova Cidade"},"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"}]}</script>'''
+        with self.assertRaisesRegex(ValueError, "localização oficial"):
+            f2.montar_etapa("nova-etapa", html)
 
     def test_extrai_subevent_de_lista_jsonld(self):
         html = (
