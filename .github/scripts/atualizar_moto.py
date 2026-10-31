@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_json,
     gravar_se_mudou,
-    ler_existente,
     obter_leitura_confirmada,
     total_de_sessoes,
 )
@@ -259,7 +258,7 @@ def montar(eventos, sigla, rotulo, ano):
     return {"temporada": ano, "categoria": rotulo, "etapas": etapas}
 
 
-def validar(novo, antigo):
+def validar(novo):
     """Recusa calendário vazio e etapas com dados inválidos."""
     if not novo["etapas"]:
         raise ValueError(f"{novo['categoria']}: nenhuma etapa encontrada")
@@ -279,7 +278,7 @@ def main():
     saidas = {}
     for sigla, (rotulo, arquivo) in CLASSES.items():
         novo = montar(eventos, sigla, rotulo, ano)
-        validar(novo, ler_existente(PASTA / arquivo))
+        validar(novo)
         saidas[arquivo] = novo
 
     # Só grava depois que as três classes passaram na validação.
