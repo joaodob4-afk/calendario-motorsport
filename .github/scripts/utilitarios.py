@@ -91,10 +91,24 @@ def localizar_evento_jsonld(html):
             continue
         local = procurar(dados)
         if local:
+            endereco = local.get("address")
+            if isinstance(endereco, dict):
+                pais = endereco.get("addressCountry") or ""
+                if isinstance(pais, dict):
+                    pais = pais.get("name") or pais.get("identifier") or ""
+                partes = [
+                    str(endereco.get("addressLocality") or "").strip(),
+                    str(endereco.get("addressRegion") or "").strip(),
+                    str(pais).strip(),
+                ]
+                texto_endereco = ", ".join(parte for parte in partes if parte)
+                if not pais:
+                    texto_endereco = ""
+            else:
+                texto_endereco = str(endereco or "").strip() if isinstance(endereco, str) else ""
             return {
-                "nome": (local.get("name") or "").strip(),
-                "endereco": (local.get("address") or "").strip()
-                if isinstance(local.get("address"), str) else "",
+                "nome": str(local.get("name") or "").strip(),
+                "endereco": texto_endereco,
             }
     return None
 
