@@ -32,8 +32,32 @@ MESES = {
     )
 }
 
-PROVINCIAS_CANADA = {"Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba"}
-PAISES_INTERNACIONAIS = {"Spain": "Espanha"}
+PROVINCIAS_CANADA = {
+    "Alberta", "British Columbia", "Manitoba", "New Brunswick",
+    "Newfoundland and Labrador", "Nova Scotia", "Ontario", "Prince Edward Island",
+    "Quebec", "Saskatchewan", "Northwest Territories", "Nunavut", "Yukon",
+}
+ESTADOS_EUA = {
+    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+    "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
+    "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
+    "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+    "New Hampshire", "New Jersey", "New Mexico", "New York",
+    "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+    "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
+    "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
+    "West Virginia", "Wisconsin", "Wyoming", "District of Columbia",
+}
+PAISES_INTERNACIONAIS = {
+    "Spain": "Espanha",
+    "United States": "Estados Unidos",
+    "United States of America": "Estados Unidos",
+    "USA": "Estados Unidos",
+    "US": "Estados Unidos",
+    "Canada": "Canadá",
+    "Mexico": "México",
+}
 PREFIXO = "NTT INDYCAR SERIES - "
 
 
@@ -250,19 +274,19 @@ def filtrar_pre_race_indianapolis(cartao, sessoes):
 
 
 def separar_local_e_pais(local):
-    """Separa os países internacionais conhecidos sem alterar locais domésticos."""
+    """Interpreta cidade/região/país sem assumir que um destino desconhecido é dos EUA."""
     partes = [parte.strip() for parte in str(local).split(",") if parte.strip()]
     if len(partes) < 2:
-        return str(local).strip(), "Estados Unidos"
+        raise ValueError(f"Localização oficial incompleta: {local!r}")
 
-    regiao = partes[-1]
-    if regiao in PROVINCIAS_CANADA:
+    ultima = partes[-1]
+    if ultima in PROVINCIAS_CANADA:
         return ", ".join(partes), "Canadá"
-    if regiao in PAISES_INTERNACIONAIS:
-        return ", ".join(partes[:-1]), PAISES_INTERNACIONAIS[regiao]
+    if ultima in ESTADOS_EUA:
+        return ", ".join(partes), "Estados Unidos"
 
-    # Os demais locais publicados no calendário são tratados como locais dos EUA.
-    return ", ".join(partes), "Estados Unidos"
+    pais = PAISES_INTERNACIONAIS.get(ultima, ultima)
+    return ", ".join(partes[:-1]), pais
 
 
 def montar_etapa(cartao, html_evento):
