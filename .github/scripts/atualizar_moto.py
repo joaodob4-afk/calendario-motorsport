@@ -126,7 +126,7 @@ def assinatura_eventos(eventos):
                 str(item.get("shortname") or ""),
                 str(item.get("type") or ""),
                 str(item.get("kind") or ""),
-                bool(item.get("date_start")),
+                str(item.get("date_start") or ""),
             )
             for item in broadcasts
             if isinstance(item, dict)
