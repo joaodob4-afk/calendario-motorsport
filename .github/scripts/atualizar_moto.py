@@ -126,6 +126,7 @@ def assinatura_eventos(eventos):
                 str(item.get("shortname") or ""),
                 str(item.get("type") or ""),
                 str(item.get("kind") or ""),
+                bool(item.get("date_start")),
             )
             for item in broadcasts
             if isinstance(item, dict)
@@ -259,7 +260,7 @@ def montar(eventos, sigla, rotulo, ano):
 
 
 def validar(novo, antigo):
-    """Recusa calendário vazio ou muito menor que o atual da mesma temporada."""
+    """Recusa calendário vazio e etapas com dados inválidos."""
     if not novo["etapas"]:
         raise ValueError(f"{novo['categoria']}: nenhuma etapa encontrada")
 
