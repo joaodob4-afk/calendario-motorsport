@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - fix/wec-validate-new-event-location
 
   workflow_dispatch:
 
