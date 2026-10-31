@@ -66,6 +66,28 @@ class AtualizadorIndyCarTest(unittest.TestCase):
             ("Markham, Ontario", "Canadá"),
         )
 
+    def test_extrai_pais_quando_fonte_publica_cidade_estado_e_pais(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Barcelona, Catalonia, Spain"),
+            ("Barcelona, Catalonia", "Espanha"),
+        )
+
+    def test_pais_internacional_novo_nao_e_classificado_como_eua(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Cidade Nova, Região Nova, País Novo"),
+            ("Cidade Nova, Região Nova", "País Novo"),
+        )
+
+    def test_estado_americano_desconhecido_na_lista_antiga_continua_domestico(self):
+        self.assertEqual(
+            indycar.separar_local_e_pais("Portland, Oregon"),
+            ("Portland, Oregon", "Estados Unidos"),
+        )
+
+    def test_localizacao_sem_pais_ou_regiao_e_recusada(self):
+        with self.assertRaisesRegex(ValueError, "Localização oficial incompleta"):
+            indycar.separar_local_e_pais("Indianapolis")
+
     def test_converte_horario_et_para_brasilia_no_horario_de_verao(self):
         instante = indycar.converter_hora(2026, 5, 1, 10, 0, "AM")
         brasilia = instante.astimezone(indycar.BRASILIA)
