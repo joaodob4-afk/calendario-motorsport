@@ -7,7 +7,6 @@ arquivo é alterado e o script sai com erro.
 """
 import html as htmllib
 import json
-import math
 import re
 import sys
 from datetime import date, datetime
@@ -18,6 +17,7 @@ from utilitarios import (  # noqa: E402
     baixar_texto as baixar_texto_comum,
     gravar_se_mudou,
     ler_existente,
+    obter_leitura_confirmada,
     total_de_sessoes,
 )
 
@@ -59,9 +59,6 @@ MESES = {
         start=1,
     )
 }
-
-# Quanto o novo calendário pode encolher em relação ao atual antes de ser recusado.
-FRACAO_MINIMA = 0.20
 
 CABECALHOS = {
     "User-Agent": (
@@ -303,15 +300,6 @@ def validar(novo, antigo):
         if parse_data(e["fim"]) < parse_data(e["inicio"]):
             raise ValueError(f"WEC: etapa {e['etapa']} com fim antes do início")
 
-    if antigo and str(antigo.get("temporada")) == str(novo["temporada"]):
-        minimo_etapas = max(1, math.ceil(len(antigo["etapas"]) * FRACAO_MINIMA))
-        if len(novo["etapas"]) < minimo_etapas:
-            raise ValueError(f"WEC: {len(novo['etapas'])} etapas (havia {len(antigo['etapas'])})")
-        minimo_sessoes = math.ceil(total_de_sessoes(antigo) * FRACAO_MINIMA)
-        if total_de_sessoes(novo) < minimo_sessoes:
-            raise ValueError(
-                f"WEC: {total_de_sessoes(novo)} sessões (havia {total_de_sessoes(antigo)})"
-            )
 
 
 def coletar(baixar=baixar_texto):
@@ -320,20 +308,27 @@ def coletar(baixar=baixar_texto):
     ultimo_erro = None
     for pagina in PAGINAS_INICIAIS:
         try:
-            corridas = descobrir_corridas(baixar(pagina))
+            corridas = obter_leitura_confirmada(
+                lambda: descobrir_corridas(baixar(pagina)),
+                tuple,
+                "WEC: índice de etapas",
+            )
         except Exception as e:  # noqa: BLE001
             ultimo_erro = e
             continue
         if corridas:
             break
     if not corridas:
-        raise ValueError(f"Nenhuma etapa encontrada no site do WEC ({ultimo_erro})")
+        raise ValueError(f"Nenhuma etapa confirmada no site do WEC ({ultimo_erro})")
 
     por_ano = {}
     for caminho in corridas:
-        # Se uma página falhar, o erro sobe: melhor não atualizar do que perder uma etapa.
-        html = baixar(f"{BASE}/en/race/{caminho}")
-        etapa = ler_etapa(caminho, html)
+        # Confirma a página da etapa também: sessões incompletas não substituem o calendário.
+        etapa = obter_leitura_confirmada(
+            lambda: ler_etapa(caminho, baixar(f"{BASE}/en/race/{caminho}")),
+            lambda dados: dados,
+            f"WEC: {caminho}",
+        )
         print(
             f"{caminho}: {len(etapa['sessoes'])} sessões, {etapa['inicio']} a {etapa['fim']}"
         )
