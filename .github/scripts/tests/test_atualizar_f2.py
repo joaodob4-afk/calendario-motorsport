@@ -140,6 +140,18 @@ class AtualizadorF2SessoesTest(unittest.TestCase):
         self.assertEqual(etapa["pais"], "Novo País")
         self.assertEqual(len(etapa["sessoes"]), 2)
 
+
+    def test_nova_etapa_aceita_endereco_postal_address(self):
+        html = '''<script type="application/ld+json">{"location":{"name":"Novo Circuito","address":{"@type":"PostalAddress","addressLocality":"Nova Cidade","addressRegion":"Região","addressCountry":{"@type":"Country","name":"Novo País"}}},"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"}]}</script>'''
+        etapa = f2.montar_etapa("novo-circuito", html)
+        self.assertEqual(etapa["circuito"], "Novo Circuito")
+        self.assertEqual(etapa["pais"], "Novo País")
+
+    def test_nova_etapa_recusa_postal_address_sem_pais(self):
+        html = '''<script type="application/ld+json">{"location":{"name":"Novo Circuito","address":{"addressLocality":"Nova Cidade"}},"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"}]}</script>'''
+        with self.assertRaisesRegex(ValueError, "localização oficial"):
+            f2.montar_etapa("novo-circuito", html)
+
     def test_nova_etapa_sem_pais_identificavel_e_recusada(self):
         html = '''<script type="application/ld+json">{"location":{"name":"Nova Cidade","address":"Nova Cidade"},"subEvent":[{"name":"Practice","startDate":"2026-03-06T00:00:00Z"}]}</script>'''
         with self.assertRaisesRegex(ValueError, "localização oficial"):
