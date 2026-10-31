@@ -94,18 +94,18 @@ class ValidarTest(unittest.TestCase):
 
     def test_rejeita_vazio_e_datas_repetidas(self):
         with self.assertRaises(ValueError):
-            f1.validar(f1.normalizar(resposta()), None)
+            f1.validar(f1.normalizar(resposta()))
         repetido = f1.normalizar(resposta(evento(1, "a", 15), evento(2, "b", 15)))
         with self.assertRaises(ValueError):
             f1.validar(repetido, None)
 
     def test_aceita_primeiro_calendario(self):
-        f1.validar(self.calendario(5), None)
+        f1.validar(self.calendario(5))
 
     def test_aceita_reducao_confirmada_na_mesma_temporada(self):
         antigo = self.calendario(20)
         novo = self.calendario(3)
-        f1.validar(novo, antigo)
+        f1.validar(novo)
 
     def test_validacao_nao_impede_remocao_oficial_de_sessoes(self):
         antigo = self.calendario(5)
@@ -113,7 +113,7 @@ class ValidarTest(unittest.TestCase):
         for corrida in f1._corridas(novo):
             corrida.pop("FirstPractice", None)
             corrida.pop("Qualifying", None)
-        f1.validar(novo, antigo)
+        f1.validar(novo)
 
     def test_outra_temporada_pode_ter_menos_corridas(self):
         antigo = self.calendario(20)
