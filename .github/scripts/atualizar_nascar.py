@@ -1,7 +1,7 @@
-"""Atualiza os calendários NASCAR a partir do feed oficial separado por série.
+"""Atualiza os calendários NASCAR usando os feeds oficiais por série.
 
-Cada série tem seu próprio race_list_basic.json. Isso evita misturar corridas
-e sessões de Cup, Xfinity e Truck que acontecem no mesmo fim de semana.
+Cup possui endpoint próprio. Xfinity/O'Reilly e Truck compartilham o feed
+geral e são separados pelas chaves series_2 e series_3.
 """
 import sys
 from datetime import datetime, timezone
@@ -44,14 +44,31 @@ def nome_sessao(evento, tipo):
     return evento or "Treino"
 
 
+def selecionar_corridas(resposta, series_id):
+    """Seleciona somente a série pedida no formato real do feed NASCAR."""
+    if isinstance(resposta, list):
+        if series_id == 1:
+            return resposta
+        raise ValueError(f"Feed compartilhado inválido para a série {series_id}")
+
+    if isinstance(resposta, dict):
+        chave = f"series_{series_id}"
+        for nome, corridas in resposta.items():
+            if str(nome).casefold() == chave:
+                if isinstance(corridas, list):
+                    return corridas
+                break
+
+    raise ValueError(f"Feed NASCAR sem lista válida para series_{series_id}")
+
+
 def extrair_temporada(temporada, series_id, resposta):
     """Converte a lista de corridas de uma única série em etapas do app."""
     categoria, _ = SERIES[series_id]
-    if not isinstance(resposta, list):
-        raise ValueError(f"Resposta inválida para {categoria}")
+    corridas = selecionar_corridas(resposta, series_id)
 
     etapas = []
-    for corrida in resposta:
+    for corrida in corridas:
         if not isinstance(corrida, dict):
             continue
         nome_evento = str(corrida.get("race_name") or "").strip()
@@ -116,12 +133,18 @@ def extrair_temporada(temporada, series_id, resposta):
 def atualizar(temporada=None, saida=None, baixar=baixar_json):
     temporada = temporada or datetime.now(timezone.utc).year
     saida = saida or Path("app/src/main/assets")
+    url_cup = f"{BASE}/{temporada}/1/race_list_basic.json"
+    url_compartilhada = f"{BASE}/{temporada}/race_list_basic.json"
+
+    respostas = {
+        1: baixar(url_cup),
+        2: baixar(url_compartilhada),
+    }
+    respostas[3] = respostas[2]
     resultados = {}
 
     for series_id, (categoria, arquivo) in SERIES.items():
-        url = f"{BASE}/{temporada}/{series_id}/race_list_basic.json"
-        resposta = baixar(url)
-        dados = extrair_temporada(temporada, series_id, resposta)
+        dados = extrair_temporada(temporada, series_id, respostas[series_id])
         gravou = gravar_se_mudou(saida / arquivo, dados)
         resultados[categoria] = {
             "etapas": len(dados["etapas"]),
