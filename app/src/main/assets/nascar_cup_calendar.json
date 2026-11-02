@@ -69,17 +69,7 @@
           "nome": "Qualifying Race 1",
           "data": "12/02/2026",
           "horario": "21:00"
-        }
-      ]
-    },
-    {
-      "etapa": 4,
-      "nomeEvento": "America 250 Florida Duel at DAYTONA",
-      "circuito": "Daytona International Speedway",
-      "pais": "Estados Unidos",
-      "inicio": "12/02/2026",
-      "fim": "12/02/2026",
-      "sessoes": [
+        },
         {
           "nome": "Qualifying Race 2",
           "data": "12/02/2026",
@@ -88,7 +78,7 @@
       ]
     },
     {
-      "etapa": 5,
+      "etapa": 4,
       "nomeEvento": "Autotrader 400",
       "circuito": "Atlanta Motor Speedway",
       "pais": "Estados Unidos",
@@ -108,7 +98,7 @@
       ]
     },
     {
-      "etapa": 6,
+      "etapa": 5,
       "nomeEvento": "DuraMAX Texas Grand Prix Powered by RelaDyne",
       "circuito": "Circuit of The Americas",
       "pais": "Estados Unidos",
@@ -133,7 +123,7 @@
       ]
     },
     {
-      "etapa": 7,
+      "etapa": 6,
       "nomeEvento": "Straight Talk Wireless 500",
       "circuito": "Phoenix Raceway",
       "pais": "Estados Unidos",
@@ -158,7 +148,7 @@
       ]
     },
     {
-      "etapa": 8,
+      "etapa": 7,
       "nomeEvento": "Pennzoil 400 presented by Jiffy Lube",
       "circuito": "Las Vegas Motor Speedway",
       "pais": "Estados Unidos",
@@ -183,7 +173,7 @@
       ]
     },
     {
-      "etapa": 9,
+      "etapa": 8,
       "nomeEvento": "Goodyear 400",
       "circuito": "Darlington Raceway",
       "pais": "Estados Unidos",
@@ -208,7 +198,7 @@
       ]
     },
     {
-      "etapa": 10,
+      "etapa": 9,
       "nomeEvento": "Cook Out 400",
       "circuito": "Martinsville Speedway",
       "pais": "Estados Unidos",
@@ -233,7 +223,7 @@
       ]
     },
     {
-      "etapa": 11,
+      "etapa": 10,
       "nomeEvento": "Food City 500",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
@@ -258,7 +248,7 @@
       ]
     },
     {
-      "etapa": 12,
+      "etapa": 11,
       "nomeEvento": "AdventHealth 400",
       "circuito": "Kansas Speedway",
       "pais": "Estados Unidos",
@@ -283,7 +273,7 @@
       ]
     },
     {
-      "etapa": 13,
+      "etapa": 12,
       "nomeEvento": "Jack Link's 500",
       "circuito": "Talladega Superspeedway",
       "pais": "Estados Unidos",
@@ -303,7 +293,7 @@
       ]
     },
     {
-      "etapa": 14,
+      "etapa": 13,
       "nomeEvento": "Würth 400 presented by LIQUI MOLY",
       "circuito": "Texas Motor Speedway",
       "pais": "Estados Unidos",
@@ -328,7 +318,7 @@
       ]
     },
     {
-      "etapa": 15,
+      "etapa": 14,
       "nomeEvento": "Go Bowling at The Glen",
       "circuito": "Watkins Glen International",
       "pais": "Estados Unidos",
@@ -353,7 +343,7 @@
       ]
     },
     {
-      "etapa": 16,
+      "etapa": 15,
       "nomeEvento": "NASCAR All-Star Race",
       "circuito": "Dover Motor Speedway",
       "pais": "Estados Unidos",
@@ -378,7 +368,7 @@
       ]
     },
     {
-      "etapa": 17,
+      "etapa": 16,
       "nomeEvento": "Coca-Cola 600",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
@@ -403,7 +393,7 @@
       ]
     },
     {
-      "etapa": 18,
+      "etapa": 17,
       "nomeEvento": "Cracker Barrel 400",
       "circuito": "Nashville Superspeedway",
       "pais": "Estados Unidos",
@@ -428,7 +418,7 @@
       ]
     },
     {
-      "etapa": 19,
+      "etapa": 18,
       "nomeEvento": "FireKeepers Casino 400",
       "circuito": "Michigan International Speedway",
       "pais": "Estados Unidos",
@@ -453,7 +443,7 @@
       ]
     },
     {
-      "etapa": 20,
+      "etapa": 19,
       "nomeEvento": "Great American Getaway 400 presented by VISITPA",
       "circuito": "Pocono Raceway",
       "pais": "Estados Unidos",
@@ -478,7 +468,7 @@
       ]
     },
     {
-      "etapa": 21,
+      "etapa": 20,
       "nomeEvento": "Anduril 250",
       "circuito": "San Diego Street Course",
       "pais": "Estados Unidos",
@@ -503,7 +493,7 @@
       ]
     },
     {
-      "etapa": 22,
+      "etapa": 21,
       "nomeEvento": "Toyota / Save Mart 350",
       "circuito": "Sonoma Raceway",
       "pais": "Estados Unidos",
@@ -528,7 +518,7 @@
       ]
     },
     {
-      "etapa": 23,
+      "etapa": 22,
       "nomeEvento": "eero 400",
       "circuito": "Chicagoland Speedway",
       "pais": "Estados Unidos",
@@ -553,7 +543,7 @@
       ]
     },
     {
-      "etapa": 24,
+      "etapa": 23,
       "nomeEvento": "Quaker State 400 Available at Walmart",
       "circuito": "Atlanta Motor Speedway",
       "pais": "Estados Unidos",
@@ -573,7 +563,7 @@
       ]
     },
     {
-      "etapa": 25,
+      "etapa": 24,
       "nomeEvento": "Window World 450",
       "circuito": "North Wilkesboro Speedway",
       "pais": "Estados Unidos",
@@ -598,7 +588,7 @@
       ]
     },
     {
-      "etapa": 26,
+      "etapa": 25,
       "nomeEvento": "Brickyard 400 presented by PPG",
       "circuito": "Indianapolis Motor Speedway",
       "pais": "Estados Unidos",
@@ -623,7 +613,7 @@
       ]
     },
     {
-      "etapa": 27,
+      "etapa": 26,
       "nomeEvento": "Iowa Corn 350 Powered by Ethanol",
       "circuito": "Iowa Speedway",
       "pais": "Estados Unidos",
@@ -648,7 +638,7 @@
       ]
     },
     {
-      "etapa": 28,
+      "etapa": 27,
       "nomeEvento": "Cook Out 400",
       "circuito": "Richmond Raceway",
       "pais": "Estados Unidos",
@@ -673,7 +663,7 @@
       ]
     },
     {
-      "etapa": 29,
+      "etapa": 28,
       "nomeEvento": "Dollar Tree 301",
       "circuito": "New Hampshire Motor Speedway",
       "pais": "Estados Unidos",
@@ -698,7 +688,7 @@
       ]
     },
     {
-      "etapa": 30,
+      "etapa": 29,
       "nomeEvento": "Coke Zero Sugar 400",
       "circuito": "Daytona International Speedway",
       "pais": "Estados Unidos",
@@ -718,7 +708,7 @@
       ]
     },
     {
-      "etapa": 31,
+      "etapa": 30,
       "nomeEvento": "Cook Out Southern 500",
       "circuito": "Darlington Raceway",
       "pais": "Estados Unidos",
@@ -743,7 +733,7 @@
       ]
     },
     {
-      "etapa": 32,
+      "etapa": 31,
       "nomeEvento": "Enjoy Illinois 300",
       "circuito": "World Wide Technology Raceway",
       "pais": "Estados Unidos",
@@ -768,7 +758,7 @@
       ]
     },
     {
-      "etapa": 33,
+      "etapa": 32,
       "nomeEvento": "Bass Pro Shops Night Race",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
@@ -793,7 +783,7 @@
       ]
     },
     {
-      "etapa": 34,
+      "etapa": 33,
       "nomeEvento": "Hollywood Casino 400",
       "circuito": "Kansas Speedway",
       "pais": "Estados Unidos",
@@ -818,7 +808,7 @@
       ]
     },
     {
-      "etapa": 35,
+      "etapa": 34,
       "nomeEvento": "South Point 400",
       "circuito": "Las Vegas Motor Speedway",
       "pais": "Estados Unidos",
@@ -843,7 +833,7 @@
       ]
     },
     {
-      "etapa": 36,
+      "etapa": 35,
       "nomeEvento": "Bank of America 400",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
@@ -868,7 +858,7 @@
       ]
     },
     {
-      "etapa": 37,
+      "etapa": 36,
       "nomeEvento": "Freeway Insurance 500",
       "circuito": "Phoenix Raceway",
       "pais": "Estados Unidos",
@@ -893,7 +883,7 @@
       ]
     },
     {
-      "etapa": 38,
+      "etapa": 37,
       "nomeEvento": "YellaWood 500",
       "circuito": "Talladega Superspeedway",
       "pais": "Estados Unidos",
@@ -913,7 +903,7 @@
       ]
     },
     {
-      "etapa": 39,
+      "etapa": 38,
       "nomeEvento": "Xfinity 500",
       "circuito": "Martinsville Speedway",
       "pais": "Estados Unidos",
@@ -938,7 +928,7 @@
       ]
     },
     {
-      "etapa": 40,
+      "etapa": 39,
       "nomeEvento": "NASCAR Championship Race",
       "circuito": "Homestead-Miami Speedway",
       "pais": "Estados Unidos",

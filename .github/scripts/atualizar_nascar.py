@@ -36,6 +36,15 @@ def converter_instante(valor):
     return instante.astimezone(BRASILIA)
 
 
+def _chave_data(data):
+    dia, mes, ano = data.split("/")
+    return (ano, mes, dia)
+
+
+def _chave_sessao(sessao):
+    return (_chave_data(sessao["data"]), sessao["horario"])
+
+
 def nome_sessao(evento, tipo):
     if tipo == 3:
         return "Corrida"
@@ -121,6 +130,25 @@ def extrair_temporada(temporada, series_id, resposta):
         })
 
     etapas.sort(key=lambda e: e["_ordem"])
+
+    # Provas que o feed separa em várias corridas (ex.: os dois Duels de Daytona)
+    # viram uma única etapa, para não repetir o evento nem inflar a numeração.
+    unificadas = []
+    for etapa in etapas:
+        anterior = unificadas[-1] if unificadas else None
+        if (
+            anterior
+            and anterior["nomeEvento"] == etapa["nomeEvento"]
+            and anterior["circuito"] == etapa["circuito"]
+            and anterior["inicio"] == etapa["inicio"]
+        ):
+            anterior["sessoes"].extend(etapa["sessoes"])
+            anterior["sessoes"].sort(key=_chave_sessao)
+            anterior["fim"] = max(anterior["fim"], etapa["fim"], key=_chave_data)
+        else:
+            unificadas.append(etapa)
+    etapas = unificadas
+
     for indice, etapa in enumerate(etapas, 1):
         etapa["etapa"] = indice
         etapa.pop("_ordem", None)

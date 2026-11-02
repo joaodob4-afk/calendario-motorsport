@@ -359,6 +359,14 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
             nomeNormalizado.contains("feature") ->
                 getString(R.string.sessao_corrida_principal)
 
+            // "Practice / Qualifying" (NASCAR) tem as duas sessões no mesmo bloco
+            nomeNormalizado.contains("practice") && nomeNormalizado.contains("qualifying") ->
+                getString(R.string.sessao_treino_livre) + " / " + getString(R.string.sessao_classificacao)
+
+            // "Qualifying Race" (Duels da NASCAR) é corrida, não classificação
+            nomeNormalizado.contains("qualifying race") ->
+                Idioma.sessao(this, nomeOriginal).uppercase(idioma)
+
             nomeNormalizado.contains("practice") ||
             nomeNormalizado.contains("treino") ->
                 getString(R.string.sessao_treino_livre) + numeroTreino?.let { " $it" }.orEmpty()
