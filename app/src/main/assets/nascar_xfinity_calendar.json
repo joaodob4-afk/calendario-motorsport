@@ -4,6 +4,7 @@
   "etapas": [
     {
       "etapa": 1,
+      "nomeEvento": "United Rentals 300",
       "circuito": "Daytona International Speedway",
       "pais": "Estados Unidos",
       "inicio": "13/02/2026",
@@ -28,6 +29,7 @@
     },
     {
       "etapa": 2,
+      "nomeEvento": "Bennett Transportation & Logistics 250",
       "circuito": "Atlanta Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "20/02/2026",
@@ -47,6 +49,7 @@
     },
     {
       "etapa": 3,
+      "nomeEvento": "Focused Health 250",
       "circuito": "Circuit of The Americas",
       "pais": "Estados Unidos",
       "inicio": "27/02/2026",
@@ -71,6 +74,7 @@
     },
     {
       "etapa": 4,
+      "nomeEvento": "GOVX 200",
       "circuito": "Phoenix Raceway",
       "pais": "Estados Unidos",
       "inicio": "06/03/2026",
@@ -95,6 +99,7 @@
     },
     {
       "etapa": 5,
+      "nomeEvento": "The LiUNA",
       "circuito": "Las Vegas Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "14/03/2026",
@@ -119,6 +124,7 @@
     },
     {
       "etapa": 6,
+      "nomeEvento": "Sport Clips Haircuts VFW Help a Hero 200",
       "circuito": "Darlington Raceway",
       "pais": "Estados Unidos",
       "inicio": "21/03/2026",
@@ -143,6 +149,7 @@
     },
     {
       "etapa": 7,
+      "nomeEvento": "NFPA 250",
       "circuito": "Martinsville Speedway",
       "pais": "Estados Unidos",
       "inicio": "27/03/2026",
@@ -167,6 +174,7 @@
     },
     {
       "etapa": 8,
+      "nomeEvento": "North Carolina Education Lottery 250 Presented by Black's Tire",
       "circuito": "Rockingham Speedway",
       "pais": "Estados Unidos",
       "inicio": "03/04/2026",
@@ -191,6 +199,7 @@
     },
     {
       "etapa": 9,
+      "nomeEvento": "Suburban Propane 300",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "11/04/2026",
@@ -215,6 +224,7 @@
     },
     {
       "etapa": 10,
+      "nomeEvento": "Kansas Lottery 300",
       "circuito": "Kansas Speedway",
       "pais": "Estados Unidos",
       "inicio": "17/04/2026",
@@ -239,6 +249,7 @@
     },
     {
       "etapa": 11,
+      "nomeEvento": "AG-PRO 300",
       "circuito": "Talladega Superspeedway",
       "pais": "Estados Unidos",
       "inicio": "24/04/2026",
@@ -258,6 +269,7 @@
     },
     {
       "etapa": 12,
+      "nomeEvento": "Andy's Frozen Custard 340",
       "circuito": "Texas Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "01/05/2026",
@@ -282,6 +294,7 @@
     },
     {
       "etapa": 13,
+      "nomeEvento": "Mission 200 at The Glen",
       "circuito": "Watkins Glen International",
       "pais": "Estados Unidos",
       "inicio": "09/05/2026",
@@ -306,6 +319,7 @@
     },
     {
       "etapa": 14,
+      "nomeEvento": "BetRivers 200",
       "circuito": "Dover Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "16/05/2026",
@@ -330,6 +344,7 @@
     },
     {
       "etapa": 15,
+      "nomeEvento": "Charbroil 300",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "23/05/2026",
@@ -354,6 +369,7 @@
     },
     {
       "etapa": 16,
+      "nomeEvento": "Sports Illustrated Resorts 250",
       "circuito": "Nashville Superspeedway",
       "pais": "Estados Unidos",
       "inicio": "30/05/2026",
@@ -378,6 +394,7 @@
     },
     {
       "etapa": 17,
+      "nomeEvento": "MillerTech Battery 250 presented by KOA",
       "circuito": "Pocono Raceway",
       "pais": "Estados Unidos",
       "inicio": "13/06/2026",
@@ -402,6 +419,7 @@
     },
     {
       "etapa": 18,
+      "nomeEvento": "United Rentals Driven to Serve 250",
       "circuito": "San Diego Street Course",
       "pais": "Estados Unidos",
       "inicio": "19/06/2026",
@@ -426,6 +444,7 @@
     },
     {
       "etapa": 19,
+      "nomeEvento": "Pit Boss/FoodMaxx 250",
       "circuito": "Sonoma Raceway",
       "pais": "Estados Unidos",
       "inicio": "26/06/2026",
@@ -450,6 +469,7 @@
     },
     {
       "etapa": 20,
+      "nomeEvento": "Cuervo 300",
       "circuito": "Chicagoland Speedway",
       "pais": "Estados Unidos",
       "inicio": "03/07/2026",
@@ -479,6 +499,7 @@
     },
     {
       "etapa": 21,
+      "nomeEvento": "Focused Health 250",
       "circuito": "Atlanta Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "11/07/2026",
@@ -498,6 +519,7 @@
     },
     {
       "etapa": 22,
+      "nomeEvento": "Pennzoil 250 presented by Take 5 Oil Change",
       "circuito": "Indianapolis Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "24/07/2026",
@@ -522,6 +544,7 @@
     },
     {
       "etapa": 23,
+      "nomeEvento": "HyVee Perks 250",
       "circuito": "Iowa Speedway",
       "pais": "Estados Unidos",
       "inicio": "08/08/2026",
@@ -546,6 +569,7 @@
     },
     {
       "etapa": 24,
+      "nomeEvento": "Winn-Dixie 250 Powered by Coca-Cola",
       "circuito": "Daytona International Speedway",
       "pais": "Estados Unidos",
       "inicio": "28/08/2026",
@@ -565,6 +589,7 @@
     },
     {
       "etapa": 25,
+      "nomeEvento": "Fleetio 200",
       "circuito": "Darlington Raceway",
       "pais": "Estados Unidos",
       "inicio": "05/09/2026",
@@ -589,6 +614,7 @@
     },
     {
       "etapa": 26,
+      "nomeEvento": "Nu Way 225 Powered by Bobcat and Sauced by Blues Hog",
       "circuito": "World Wide Technology Raceway",
       "pais": "Estados Unidos",
       "inicio": "12/09/2026",
@@ -613,6 +639,7 @@
     },
     {
       "etapa": 27,
+      "nomeEvento": "Food City 300",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "18/09/2026",
@@ -637,6 +664,7 @@
     },
     {
       "etapa": 28,
+      "nomeEvento": "Focused Health 302",
       "circuito": "Las Vegas Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "03/10/2026",
@@ -661,6 +689,7 @@
     },
     {
       "etapa": 29,
+      "nomeEvento": "Blue Cross NC 300",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "10/10/2026",
@@ -685,6 +714,7 @@
     },
     {
       "etapa": 30,
+      "nomeEvento": "Timberland PRO 200",
       "circuito": "Phoenix Raceway",
       "pais": "Estados Unidos",
       "inicio": "17/10/2026",
@@ -709,6 +739,7 @@
     },
     {
       "etapa": 31,
+      "nomeEvento": "The Progress Group 250",
       "circuito": "Talladega Superspeedway",
       "pais": "Estados Unidos",
       "inicio": "24/10/2026",
@@ -728,6 +759,7 @@
     },
     {
       "etapa": 32,
+      "nomeEvento": "National Debt Relief 250",
       "circuito": "Martinsville Speedway",
       "pais": "Estados Unidos",
       "inicio": "30/10/2026",
@@ -752,6 +784,7 @@
     },
     {
       "etapa": 33,
+      "nomeEvento": "NASCAR O'Reilly Auto Parts Series Championship Race",
       "circuito": "Homestead-Miami Speedway",
       "pais": "Estados Unidos",
       "inicio": "06/11/2026",

@@ -4,6 +4,7 @@
   "etapas": [
     {
       "etapa": 1,
+      "nomeEvento": "Fresh From Florida 250",
       "circuito": "Daytona International Speedway",
       "pais": "Estados Unidos",
       "inicio": "12/02/2026",
@@ -28,6 +29,7 @@
     },
     {
       "etapa": 2,
+      "nomeEvento": "Fr8 Racing 208",
       "circuito": "Atlanta Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "20/02/2026",
@@ -47,6 +49,7 @@
     },
     {
       "etapa": 3,
+      "nomeEvento": "OnlyBulls Green Flag 150 at St. Petersburg",
       "circuito": "Grand Prix of St. Petersburg",
       "pais": "Estados Unidos",
       "inicio": "27/02/2026",
@@ -71,6 +74,7 @@
     },
     {
       "etapa": 4,
+      "nomeEvento": "Buckle Up South Carolina 200",
       "circuito": "Darlington Raceway",
       "pais": "Estados Unidos",
       "inicio": "20/03/2026",
@@ -95,6 +99,7 @@
     },
     {
       "etapa": 5,
+      "nomeEvento": "Black's Tire 200",
       "circuito": "Rockingham Speedway",
       "pais": "Estados Unidos",
       "inicio": "03/04/2026",
@@ -119,6 +124,7 @@
     },
     {
       "etapa": 6,
+      "nomeEvento": "Tennessee Army National Guard 250",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "10/04/2026",
@@ -143,6 +149,7 @@
     },
     {
       "etapa": 7,
+      "nomeEvento": "SpeedyCash.com 250",
       "circuito": "Texas Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "01/05/2026",
@@ -167,6 +174,7 @@
     },
     {
       "etapa": 8,
+      "nomeEvento": "Bully Hill Vineyards 176 at The Glen",
       "circuito": "Watkins Glen International",
       "pais": "Estados Unidos",
       "inicio": "08/05/2026",
@@ -191,6 +199,7 @@
     },
     {
       "etapa": 9,
+      "nomeEvento": "ECOSAVE 200",
       "circuito": "Dover Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "15/05/2026",
@@ -215,6 +224,7 @@
     },
     {
       "etapa": 10,
+      "nomeEvento": "North Carolina Education Lottery 200",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "22/05/2026",
@@ -249,6 +259,7 @@
     },
     {
       "etapa": 11,
+      "nomeEvento": "Allegiance 200",
       "circuito": "Nashville Superspeedway",
       "pais": "Estados Unidos",
       "inicio": "29/05/2026",
@@ -273,6 +284,7 @@
     },
     {
       "etapa": 12,
+      "nomeEvento": "DQS Solutions & Staffing 250 powered by Precision Vehicle Logistics",
       "circuito": "Michigan International Speedway",
       "pais": "Estados Unidos",
       "inicio": "06/06/2026",
@@ -297,6 +309,7 @@
     },
     {
       "etapa": 13,
+      "nomeEvento": "Navy 250",
       "circuito": "San Diego Street Course",
       "pais": "Estados Unidos",
       "inicio": "19/06/2026",
@@ -326,6 +339,7 @@
     },
     {
       "etapa": 14,
+      "nomeEvento": "Liuna 150 at Lime Rock Park",
       "circuito": "Lime Rock Park",
       "pais": "Estados Unidos",
       "inicio": "11/07/2026",
@@ -350,6 +364,7 @@
     },
     {
       "etapa": 15,
+      "nomeEvento": "FaithFest 250 presented by Mercer Transportation",
       "circuito": "North Wilkesboro Speedway",
       "pais": "Estados Unidos",
       "inicio": "17/07/2026",
@@ -374,6 +389,7 @@
     },
     {
       "etapa": 16,
+      "nomeEvento": "TSport 200 presented by Warn Industries",
       "circuito": "Lucas Oil Indianapolis Raceway Park",
       "pais": "Estados Unidos",
       "inicio": "24/07/2026",
@@ -398,6 +414,7 @@
     },
     {
       "etapa": 17,
+      "nomeEvento": "Black's Tire 250 presented by BTS Rewards",
       "circuito": "Richmond Raceway",
       "pais": "Estados Unidos",
       "inicio": "14/08/2026",
@@ -422,6 +439,7 @@
     },
     {
       "etapa": 18,
+      "nomeEvento": "Team EJP 175",
       "circuito": "New Hampshire Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "21/08/2026",
@@ -446,6 +464,7 @@
     },
     {
       "etapa": 19,
+      "nomeEvento": "UNOH 250 presented by Ohio Logistics",
       "circuito": "Bristol Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "17/09/2026",
@@ -470,6 +489,7 @@
     },
     {
       "etapa": 20,
+      "nomeEvento": "Race to Stop Suicide 200",
       "circuito": "Kansas Speedway",
       "pais": "Estados Unidos",
       "inicio": "25/09/2026",
@@ -494,6 +514,7 @@
     },
     {
       "etapa": 21,
+      "nomeEvento": "Ecosave 200",
       "circuito": "Charlotte Motor Speedway",
       "pais": "Estados Unidos",
       "inicio": "09/10/2026",
@@ -518,6 +539,7 @@
     },
     {
       "etapa": 22,
+      "nomeEvento": "Zero Carbon Bioethanol 150 Powered by POET",
       "circuito": "Phoenix Raceway",
       "pais": "Estados Unidos",
       "inicio": "16/10/2026",
@@ -542,6 +564,7 @@
     },
     {
       "etapa": 23,
+      "nomeEvento": "Love's RV Stop 225",
       "circuito": "Talladega Superspeedway",
       "pais": "Estados Unidos",
       "inicio": "23/10/2026",
@@ -561,6 +584,7 @@
     },
     {
       "etapa": 24,
+      "nomeEvento": "Black's Tire 200 presented by Down East Heating & Air Conditioning",
       "circuito": "Martinsville Speedway",
       "pais": "Estados Unidos",
       "inicio": "30/10/2026",
@@ -585,6 +609,7 @@
     },
     {
       "etapa": 25,
+      "nomeEvento": "NASCAR CRAFTSMAN Truck Series Championship Race",
       "circuito": "Homestead-Miami Speedway",
       "pais": "Estados Unidos",
       "inicio": "05/11/2026",
