@@ -72,7 +72,8 @@ abstract class CalendarioFormulaJunior(
                         circuito = evento.circuito,
                         data = F1CalendarApi.formatarPeriodo(inicio, fim),
                         dataInicio = inicio.toString(),
-                        dataFim = fim.toString()
+                        dataFim = fim.toString(),
+                        nomeEvento = evento.nomeEvento
                     )
                 )
             } catch (e: Exception) {
@@ -161,7 +162,8 @@ abstract class CalendarioFormulaJunior(
                         pais = pais,
                         inicio = inicioTexto,
                         fim = fimTexto,
-                        sessoes = sessoes
+                        sessoes = sessoes,
+                        nomeEvento = etapa.optString("nomeEvento").trim()
                     )
                 )
             }

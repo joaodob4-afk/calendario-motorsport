@@ -211,7 +211,8 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         conteudo.addView(
             estilo.heroi(
                 eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-                nome = NomesDeEventos.nome(categoria, evento.circuito)?.let { Idioma.evento(this, it) }
+                nome = evento.nomeEvento.takeIf { it.isNotBlank() }?.let { Idioma.evento(this, it) }
+                    ?: NomesDeEventos.nome(categoria, evento.circuito)?.let { Idioma.evento(this, it) }
                     ?: getString(tituloRes),
                 circuito = nomeAutodromo.ifBlank { evento.circuito },
                 bandeiraRes = obterRecursoBandeira(evento.pais),

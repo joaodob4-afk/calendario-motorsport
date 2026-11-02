@@ -13,5 +13,7 @@ data class FormulaJuniorEvent(
     val pais: String,
     val inicio: String,
     val fim: String,
-    val sessoes: List<FormulaJuniorSession>
+    val sessoes: List<FormulaJuniorSession>,
+    /** Nome oficial da prova, quando fornecido pela fonte (NASCAR). */
+    val nomeEvento: String = ""
 )
