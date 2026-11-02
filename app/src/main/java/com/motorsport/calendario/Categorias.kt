@@ -27,7 +27,10 @@ internal object Categorias {
         CategoriaInfo("MotoGP", "#FFD60A"),
         CategoriaInfo("Moto2", "#FF5FA2"),
         CategoriaInfo("Moto3", "#2EE6A6"),
-        CategoriaInfo("WEC", "#CBD5E1")
+        CategoriaInfo("WEC", "#CBD5E1"),
+        CategoriaInfo("NASCAR Cup Series", "#F5C542", "CUP"),
+        CategoriaInfo("NASCAR Xfinity Series", "#E5E7EB", "XFINITY"),
+        CategoriaInfo("NASCAR Craftsman Truck Series", "#D97706", "TRUCK")
     )
 
     fun info(nome: String): CategoriaInfo? =
