@@ -1,5 +1,778 @@
 {
   "temporada": 2026,
   "categoria": "NASCAR Xfinity Series",
-  "etapas": []
+  "etapas": [
+    {
+      "etapa": 1,
+      "circuito": "Daytona International Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "13/02/2026",
+      "fim": "14/02/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "13/02/2026",
+          "horario": "18:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "14/02/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "14/02/2026",
+          "horario": "19:00"
+        }
+      ]
+    },
+    {
+      "etapa": 2,
+      "circuito": "Atlanta Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "20/02/2026",
+      "fim": "21/02/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "20/02/2026",
+          "horario": "19:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "21/02/2026",
+          "horario": "19:00"
+        }
+      ]
+    },
+    {
+      "etapa": 3,
+      "circuito": "Circuit of The Americas",
+      "pais": "Estados Unidos",
+      "inicio": "27/02/2026",
+      "fim": "28/02/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "27/02/2026",
+          "horario": "19:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "27/02/2026",
+          "horario": "20:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "28/02/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 4,
+      "circuito": "Phoenix Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "06/03/2026",
+      "fim": "07/03/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "06/03/2026",
+          "horario": "21:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "06/03/2026",
+          "horario": "22:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "07/03/2026",
+          "horario": "21:30"
+        }
+      ]
+    },
+    {
+      "etapa": 5,
+      "circuito": "Las Vegas Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "14/03/2026",
+      "fim": "14/03/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "14/03/2026",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "14/03/2026",
+          "horario": "14:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "14/03/2026",
+          "horario": "18:30"
+        }
+      ]
+    },
+    {
+      "etapa": 6,
+      "circuito": "Darlington Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "21/03/2026",
+      "fim": "21/03/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "21/03/2026",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "21/03/2026",
+          "horario": "14:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "21/03/2026",
+          "horario": "18:30"
+        }
+      ]
+    },
+    {
+      "etapa": 7,
+      "circuito": "Martinsville Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "27/03/2026",
+      "fim": "28/03/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "27/03/2026",
+          "horario": "17:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "27/03/2026",
+          "horario": "18:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "28/03/2026",
+          "horario": "16:30"
+        }
+      ]
+    },
+    {
+      "etapa": 8,
+      "circuito": "Rockingham Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "03/04/2026",
+      "fim": "04/04/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "03/04/2026",
+          "horario": "14:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "03/04/2026",
+          "horario": "15:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "04/04/2026",
+          "horario": "15:30"
+        }
+      ]
+    },
+    {
+      "etapa": 9,
+      "circuito": "Bristol Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "11/04/2026",
+      "fim": "11/04/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "11/04/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "11/04/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "11/04/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 10,
+      "circuito": "Kansas Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "17/04/2026",
+      "fim": "18/04/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "17/04/2026",
+          "horario": "20:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "17/04/2026",
+          "horario": "21:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "18/04/2026",
+          "horario": "20:00"
+        }
+      ]
+    },
+    {
+      "etapa": 11,
+      "circuito": "Talladega Superspeedway",
+      "pais": "Estados Unidos",
+      "inicio": "24/04/2026",
+      "fim": "25/04/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "24/04/2026",
+          "horario": "18:30"
+        },
+        {
+          "nome": "Corrida",
+          "data": "25/04/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 12,
+      "circuito": "Texas Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "01/05/2026",
+      "fim": "02/05/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "01/05/2026",
+          "horario": "18:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "01/05/2026",
+          "horario": "19:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "02/05/2026",
+          "horario": "16:30"
+        }
+      ]
+    },
+    {
+      "etapa": 13,
+      "circuito": "Watkins Glen International",
+      "pais": "Estados Unidos",
+      "inicio": "09/05/2026",
+      "fim": "09/05/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "09/05/2026",
+          "horario": "11:45"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "09/05/2026",
+          "horario": "12:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "09/05/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 14,
+      "circuito": "Dover Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "16/05/2026",
+      "fim": "16/05/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "16/05/2026",
+          "horario": "10:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "16/05/2026",
+          "horario": "11:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "16/05/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 15,
+      "circuito": "Charlotte Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "23/05/2026",
+      "fim": "23/05/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "23/05/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "23/05/2026",
+          "horario": "13:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "23/05/2026",
+          "horario": "18:00"
+        }
+      ]
+    },
+    {
+      "etapa": 16,
+      "circuito": "Nashville Superspeedway",
+      "pais": "Estados Unidos",
+      "inicio": "30/05/2026",
+      "fim": "30/05/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "30/05/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Practice",
+          "data": "30/05/2026",
+          "horario": "16:10"
+        },
+        {
+          "nome": "Corrida",
+          "data": "30/05/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 17,
+      "circuito": "Pocono Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "13/06/2026",
+      "fim": "13/06/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "13/06/2026",
+          "horario": "11:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "13/06/2026",
+          "horario": "12:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "13/06/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 18,
+      "circuito": "San Diego Street Course",
+      "pais": "Estados Unidos",
+      "inicio": "19/06/2026",
+      "fim": "20/06/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "19/06/2026",
+          "horario": "16:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "20/06/2026",
+          "horario": "14:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "20/06/2026",
+          "horario": "18:00"
+        }
+      ]
+    },
+    {
+      "etapa": 19,
+      "circuito": "Sonoma Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "26/06/2026",
+      "fim": "27/06/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "26/06/2026",
+          "horario": "17:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "26/06/2026",
+          "horario": "18:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "27/06/2026",
+          "horario": "18:30"
+        }
+      ]
+    },
+    {
+      "etapa": 20,
+      "circuito": "Chicagoland Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "03/07/2026",
+      "fim": "04/07/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "03/07/2026",
+          "horario": "17:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "04/07/2026",
+          "horario": "14:30"
+        },
+        {
+          "nome": "Practice (Impound)",
+          "data": "04/07/2026",
+          "horario": "14:30"
+        },
+        {
+          "nome": "Corrida",
+          "data": "04/07/2026",
+          "horario": "18:30"
+        }
+      ]
+    },
+    {
+      "etapa": 21,
+      "circuito": "Atlanta Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "11/07/2026",
+      "fim": "11/07/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "11/07/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "11/07/2026",
+          "horario": "20:00"
+        }
+      ]
+    },
+    {
+      "etapa": 22,
+      "circuito": "Indianapolis Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "24/07/2026",
+      "fim": "25/07/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "24/07/2026",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "25/07/2026",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "25/07/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 23,
+      "circuito": "Iowa Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "08/08/2026",
+      "fim": "08/08/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "08/08/2026",
+          "horario": "12:30"
+        },
+        {
+          "nome": "Qualifying",
+          "data": "08/08/2026",
+          "horario": "13:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "08/08/2026",
+          "horario": "18:00"
+        }
+      ]
+    },
+    {
+      "etapa": 24,
+      "circuito": "Daytona International Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "28/08/2026",
+      "fim": "28/08/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "28/08/2026",
+          "horario": "16:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "28/08/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 25,
+      "circuito": "Darlington Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "05/09/2026",
+      "fim": "05/09/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "05/09/2026",
+          "horario": "14:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "05/09/2026",
+          "horario": "15:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "05/09/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 26,
+      "circuito": "World Wide Technology Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "12/09/2026",
+      "fim": "12/09/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "12/09/2026",
+          "horario": "14:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "12/09/2026",
+          "horario": "15:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "12/09/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 27,
+      "circuito": "Bristol Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "18/09/2026",
+      "fim": "18/09/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "18/09/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "18/09/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "18/09/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 28,
+      "circuito": "Las Vegas Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "03/10/2026",
+      "fim": "03/10/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "03/10/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "03/10/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "03/10/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 29,
+      "circuito": "Charlotte Motor Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "10/10/2026",
+      "fim": "11/10/2026",
+      "sessoes": [
+        {
+          "nome": "Practice (Impound)",
+          "data": "10/10/2026",
+          "horario": "09:30"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "10/10/2026",
+          "horario": "10:35"
+        },
+        {
+          "nome": "Corrida",
+          "data": "11/10/2026",
+          "horario": "21:00"
+        }
+      ]
+    },
+    {
+      "etapa": 30,
+      "circuito": "Phoenix Raceway",
+      "pais": "Estados Unidos",
+      "inicio": "17/10/2026",
+      "fim": "17/10/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "17/10/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "17/10/2026",
+          "horario": "16:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "17/10/2026",
+          "horario": "20:30"
+        }
+      ]
+    },
+    {
+      "etapa": 31,
+      "circuito": "Talladega Superspeedway",
+      "pais": "Estados Unidos",
+      "inicio": "24/10/2026",
+      "fim": "24/10/2026",
+      "sessoes": [
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "24/10/2026",
+          "horario": "12:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "24/10/2026",
+          "horario": "16:30"
+        }
+      ]
+    },
+    {
+      "etapa": 32,
+      "circuito": "Martinsville Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "30/10/2026",
+      "fim": "31/10/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "30/10/2026",
+          "horario": "16:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "30/10/2026",
+          "horario": "17:05"
+        },
+        {
+          "nome": "Corrida",
+          "data": "31/10/2026",
+          "horario": "17:00"
+        }
+      ]
+    },
+    {
+      "etapa": 33,
+      "circuito": "Homestead-Miami Speedway",
+      "pais": "Estados Unidos",
+      "inicio": "06/11/2026",
+      "fim": "07/11/2026",
+      "sessoes": [
+        {
+          "nome": "Practice",
+          "data": "06/11/2026",
+          "horario": "18:00"
+        },
+        {
+          "nome": "Qualifying (Impound)",
+          "data": "07/11/2026",
+          "horario": "15:00"
+        },
+        {
+          "nome": "Corrida",
+          "data": "07/11/2026",
+          "horario": "19:00"
+        }
+      ]
+    }
+  ]
 }
