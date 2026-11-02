@@ -5,7 +5,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from atualizar_nascar import extrair_temporada, converter_instante, atualizar
+from atualizar_nascar import (
+    extrair_temporada, converter_instante, selecionar_corridas, atualizar
+)
 
 
 def corrida(nome, pista, sessoes):
@@ -42,6 +44,10 @@ class AtualizarNascarTest(unittest.TestCase):
                 sessao("Race", 3, "2026-05-24T14:00:00Z"),
             ]),
         ]
+        self.feed_compartilhado = {
+            "Series_2": self.xfinity,
+            "series_3": self.truck,
+        }
 
     def test_preserva_nome_oficial_e_sessoes_da_corrida(self):
         dados = extrair_temporada(2026, 1, self.cup)
@@ -52,13 +58,24 @@ class AtualizarNascarTest(unittest.TestCase):
         self.assertEqual(etapa["inicio"], "11/02/2026")
         self.assertEqual(etapa["fim"], "15/02/2026")
 
-    def test_feed_de_truck_nao_inclui_corridas_de_outras_series(self):
-        dados = extrair_temporada(2026, 3, self.truck)
-        self.assertEqual(len(dados["etapas"]), 2)
-        charlotte = dados["etapas"][1]
-        self.assertEqual(charlotte["nomeEvento"], "North Carolina Education Lottery 200")
-        self.assertEqual([s["data"] for s in charlotte["sessoes"] if s["nome"] == "Corrida"],
-                         ["24/05/2026"])
+    def test_separa_xfinity_e_truck_do_feed_compartilhado(self):
+        xfinity = extrair_temporada(2026, 2, self.feed_compartilhado)
+        truck = extrair_temporada(2026, 3, self.feed_compartilhado)
+        self.assertEqual(
+            [e["nomeEvento"] for e in xfinity["etapas"]],
+            ["United Rentals 300"]
+        )
+        self.assertEqual(
+            [e["nomeEvento"] for e in truck["etapas"]],
+            ["Fresh From Florida 250", "North Carolina Education Lottery 200"]
+        )
+
+    def test_feed_sem_chave_da_serie_e_rejeitado(self):
+        with self.assertRaises(ValueError):
+            selecionar_corridas({"Series_2": self.xfinity}, 3)
+
+    def test_feed_cup_compartilhado_aceita_lista_direta(self):
+        self.assertEqual(selecionar_corridas(self.cup, 1), self.cup)
 
     def test_pista_fora_dos_eua_tem_pais_correto(self):
         canada = [corrida("Canadian race", "Circuit Gilles Villeneuve", [
@@ -69,17 +86,19 @@ class AtualizarNascarTest(unittest.TestCase):
         self.assertEqual(extrair_temporada(2026, 1, mexico)["etapas"][0]["pais"], "México")
 
     def test_horario_utc_e_convertido_para_brasilia(self):
-        self.assertEqual(converter_instante("2026-02-15T18:30:00Z").strftime("%H:%M"), "15:30")
+        self.assertEqual(
+            converter_instante("2026-02-15T18:30:00Z").strftime("%H:%M"),
+            "15:30"
+        )
 
     def test_resposta_vazia_nao_gera_calendario_invalido(self):
         with self.assertRaises(ValueError):
             extrair_temporada(2026, 1, [])
 
-    def test_atualizador_baixa_feed_individual_de_cada_serie(self):
+    def test_atualizador_baixa_feed_cup_e_feed_compartilhado(self):
         respostas = {
             "https://cf.nascar.com/cacher/2026/1/race_list_basic.json": self.cup,
-            "https://cf.nascar.com/cacher/2026/2/race_list_basic.json": self.xfinity,
-            "https://cf.nascar.com/cacher/2026/3/race_list_basic.json": self.truck,
+            "https://cf.nascar.com/cacher/2026/race_list_basic.json": self.feed_compartilhado,
         }
         chamadas = []
 
@@ -91,8 +110,11 @@ class AtualizarNascarTest(unittest.TestCase):
             resultado = atualizar(2026, Path(pasta), baixar)
             self.assertEqual(chamadas, list(respostas))
             self.assertEqual(len(resultado), 3)
-            for arquivo in ("nascar_cup_calendar.json", "nascar_xfinity_calendar.json",
-                            "nascar_truck_calendar.json"):
+            for arquivo in (
+                "nascar_cup_calendar.json",
+                "nascar_xfinity_calendar.json",
+                "nascar_truck_calendar.json",
+            ):
                 self.assertTrue((Path(pasta) / arquivo).is_file())
 
 
