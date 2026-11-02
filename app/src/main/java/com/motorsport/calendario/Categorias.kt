@@ -19,18 +19,19 @@ internal object Categorias {
 
     val todas: List<CategoriaInfo> = listOf(
         CategoriaInfo("F1", "#FF3B30"),
-        CategoriaInfo("F2", "#3D9BFF"),
-        CategoriaInfo("F3", "#FF8A2B"),
-        CategoriaInfo("F1 Academy", "#E879F9"),
-        CategoriaInfo("IndyCar", "#A58BFF"),
+        CategoriaInfo("F2", "#26A8FF"),
+        CategoriaInfo("F3", "#F28124"),
+        CategoriaInfo("F1 Academy", "#FF73FF"),
+        CategoriaInfo("IndyCar", "#B891F2"),
         CategoriaInfo("Formula E", "#22D3EE"),
-        CategoriaInfo("MotoGP", "#FFD60A"),
+        CategoriaInfo("MotoGP", "#FFCC00"),
         CategoriaInfo("Moto2", "#FF5FA2"),
-        CategoriaInfo("Moto3", "#2EE6A6"),
+        CategoriaInfo("Moto3", "#41D99C"),
         CategoriaInfo("WEC", "#CBD5E1"),
-        CategoriaInfo("NASCAR Cup Series", "#F5C542", "CUP"),
-        CategoriaInfo("NASCAR Xfinity Series", "#E5E7EB", "XFINITY"),
-        CategoriaInfo("NASCAR Craftsman Truck Series", "#D97706", "TRUCK")
+        // NASCAR: família de verdes (cores livres), longe das demais categorias e distintas entre si
+        CategoriaInfo("NASCAR Cup Series", "#81BF43", "NASCAR CUP"),
+        CategoriaInfo("NASCAR Xfinity Series", "#DBFABB", "NASCAR XFINITY"),
+        CategoriaInfo("NASCAR Craftsman Truck Series", "#2FEB2F", "NASCAR TRUCK")
     )
 
     fun info(nome: String): CategoriaInfo? =
