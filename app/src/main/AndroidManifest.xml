@@ -97,6 +97,13 @@
             android:name=".MotoCalendarActivity"
             android:exported="false" />
 
+        <activity android:name=".NascarCupActivity" android:exported="false" />
+        <activity android:name=".NascarXfinityActivity" android:exported="false" />
+        <activity android:name=".NascarTruckActivity" android:exported="false" />
+        <activity android:name=".NascarCupCalendarActivity" android:exported="false" />
+        <activity android:name=".NascarXfinityCalendarActivity" android:exported="false" />
+        <activity android:name=".NascarTruckCalendarActivity" android:exported="false" />
+
         <receiver
             android:name=".AvisoReceiver"
             android:exported="false">
