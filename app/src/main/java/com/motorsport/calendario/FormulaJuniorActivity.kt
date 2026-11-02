@@ -1,726 +1,586 @@
-
 package com.motorsport.calendario
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import org.json.JSONArray
-import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.time.LocalDate
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.os.Bundle
+import android.view.Gravity
+import android.view.View
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AppCompatActivity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
- * Monta a lista de etapas da F1 a partir da API Jolpica,
- * guarda em cache com gravação segura e nunca lança exceção
- * para a interface do aplicativo.
+ * Tela de detalhes de uma etapa de F2 ou F3 (mesmo layout e mesma lógica).
+ * F2Activity e F3Activity só informam categoria, título e fonte dos dados.
  */
-object F1CalendarApi {
+abstract class FormulaJuniorActivity : AppCompatActivity() {
 
-    private const val URL_API =
-        "https://api.jolpi.ca/ergast/f1/current/races/?limit=100"
+    protected abstract val categoria: String
+    protected abstract val tituloRes: Int
+    protected abstract val calendario: CalendarioFormulaJunior
 
-    // Cópia do calendário guardada no repositório (atualizada pelo workflow atualizar_f1).
-    // Serve de semente na primeira abertura e de reserva quando a Jolpica está fora do ar.
-    private const val ASSET_CALENDARIO = "f1_calendar.json"
-    private const val URL_COPIA =
-        "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/f1_calendar.json"
-    private const val SETE_DIAS_MS = 7L * 24 * 60 * 60 * 1000
 
-    private const val ARQUIVO_CACHE = "f1_races_cache.json"
-    private const val ARQUIVO_TEMPORARIO = "f1_races_cache.tmp"
-    private const val MINIMO_CORRIDAS_VALIDAS = 1
+    // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
+    private val estilo by lazy { DetalheEstilo(this, categoria) }
+    private val preto: Int get() = estilo.fundo
+    private val verde: Int get() = estilo.corDeDestaque
+    private val branco: Int get() = estilo.textoPrincipal
+    private val cinza: Int get() = estilo.textoSuave
+    private val linhaCinza: Int get() = estilo.borda
+    private val fundoCard: Int get() = estilo.superficie
+    private val verdeEscuro: Int get() = estilo.borda
+    private val fundoCorrida: Int get() = estilo.fundoCorrida
 
-    // Serializa atualizações que podem ser disparadas por mais de uma tela.
-    private val cacheLock = Any()
+    private val idioma: Locale by lazy { Idioma.locale(this) }
 
-    private val MESES = arrayOf(
-        "JAN", "FEV", "MAR", "ABR", "MAI", "JUN",
-        "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"
-    )
+    private lateinit var conteudo: LinearLayout
 
-    private val CONHECIDOS = mapOf(
-        "albert_park" to Pair("Austrália", "Melbourne"),
-        "shanghai" to Pair("China", "Xangai"),
-        "suzuka" to Pair("Japão", "Suzuka"),
-        "bahrain" to Pair("Bahrein", "Sakhir"),
-        "jeddah" to Pair("Arábia Saudita", "Jeddah"),
-        "miami" to Pair("Estados Unidos", "Miami"),
-        "villeneuve" to Pair("Canadá", "Montreal"),
-        "monaco" to Pair("Mônaco", "Monte Carlo"),
-        "catalunya" to Pair("Espanha", "Barcelona"),
-        "red_bull_ring" to Pair("Áustria", "Spielberg"),
-        "silverstone" to Pair("Reino Unido", "Silverstone"),
-        "spa" to Pair("Bélgica", "Spa-Francorchamps"),
-        "hungaroring" to Pair("Hungria", "Budapeste"),
-        "zandvoort" to Pair("Holanda", "Zandvoort"),
-        "monza" to Pair("Itália", "Monza"),
-        "madring" to Pair("Espanha", "Madrid"),
-        "baku" to Pair("Azerbaijão", "Baku"),
-        "marina_bay" to Pair("Singapura", "Marina Bay"),
-        "americas" to Pair("Estados Unidos", "Austin"),
-        "rodriguez" to Pair("México", "Cidade do México"),
-        "vegas" to Pair("Estados Unidos", "Las Vegas"),
-        "losail" to Pair("Catar", "Lusail"),
-        "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
-    )
+    private var etapaEhProxima = true
 
-    // O endpoint "alpha" (fonte principal) usa IDs opacos como "circuit_5jHWvmoM", que nunca
-    // batem com CONHECIDOS. Nesse caso usamos a cidade que a própria API informa.
-    private val CONHECIDOS_POR_CIDADE = mapOf(
-        "melbourne" to Pair("Austrália", "Melbourne"),
-        "shanghai" to Pair("China", "Xangai"),
-        "suzuka" to Pair("Japão", "Suzuka"),
-        "sakhir" to Pair("Bahrein", "Sakhir"),
-        "jeddah" to Pair("Arábia Saudita", "Jeddah"),
-        "miami" to Pair("Estados Unidos", "Miami"),
-        "montreal" to Pair("Canadá", "Montreal"),
-        "monte carlo" to Pair("Mônaco", "Monte Carlo"),
-        "monaco" to Pair("Mônaco", "Monte Carlo"),
-        "barcelona" to Pair("Espanha", "Barcelona"),
-        "spielberg" to Pair("Áustria", "Spielberg"),
-        "silverstone" to Pair("Reino Unido", "Silverstone"),
-        "spa" to Pair("Bélgica", "Spa-Francorchamps"),
-        "spa-francorchamps" to Pair("Bélgica", "Spa-Francorchamps"),
-        "budapest" to Pair("Hungria", "Budapeste"),
-        "zandvoort" to Pair("Holanda", "Zandvoort"),
-        "monza" to Pair("Itália", "Monza"),
-        "madrid" to Pair("Espanha", "Madrid"),
-        "baku" to Pair("Azerbaijão", "Baku"),
-        "marina bay" to Pair("Singapura", "Marina Bay"),
-        "singapore" to Pair("Singapura", "Marina Bay"),
-        "austin" to Pair("Estados Unidos", "Austin"),
-        "mexico city" to Pair("México", "Cidade do México"),
-        "las vegas" to Pair("Estados Unidos", "Las Vegas"),
-        "lusail" to Pair("Catar", "Lusail"),
-        "yas marina" to Pair("Abu Dhabi", "Yas Marina"),
-        "abu dhabi" to Pair("Abu Dhabi", "Yas Marina"),
-        "kuala lumpur" to Pair("Malásia", "Kuala Lumpur")
-    )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    private val PAISES = mapOf(
-        "Australia" to "Austrália",
-        "China" to "China",
-        "Japan" to "Japão",
-        "Bahrain" to "Bahrein",
-        "Saudi Arabia" to "Arábia Saudita",
-        "USA" to "Estados Unidos",
-        "United States" to "Estados Unidos",
-        "Canada" to "Canadá",
-        "Monaco" to "Mônaco",
-        "Spain" to "Espanha",
-        "Austria" to "Áustria",
-        "UK" to "Reino Unido",
-        "United Kingdom" to "Reino Unido",
-        "Great Britain" to "Reino Unido",
-        "Belgium" to "Bélgica",
-        "Hungary" to "Hungria",
-        "Netherlands" to "Holanda",
-        "Italy" to "Itália",
-        "Azerbaijan" to "Azerbaijão",
-        "Singapore" to "Singapura",
-        "Mexico" to "México",
-        "Brazil" to "Brasil",
-        "Qatar" to "Catar",
-        "Malaysia" to "Malásia",
-        "UAE" to "Abu Dhabi",
-        "United Arab Emirates" to "Abu Dhabi"
-    )
-
-    private val SESSOES = listOf(
-        "FirstPractice", "SecondPractice", "ThirdPractice",
-        "SprintQualifying", "SprintShootout", "Sprint", "Qualifying"
-    )
-
-    /**
-     * Se ainda não existe cache e o app traz uma cópia embutida do calendário, usa a cópia como
-     * ponto de partida. Sem a cópia (ou com cache já criado), não faz nada.
-     */
-    fun semearDoAsset(context: Context) {
-        val app = context.applicationContext
-        try {
-            val cache = File(app.filesDir, ARQUIVO_CACHE)
-            val texto = {
-                app.assets.open(ASSET_CALENDARIO).bufferedReader(Charsets.UTF_8).use { it.readText() }
+        // Atualiza os detalhes assim que o calendário novo for salvo.
+        calendario.atualizar(this) {
+            if (!isFinishing && !isDestroyed) {
+                carregarEvento()
             }
-            if (cache.isFile) {
-                // Cache baixado antes da última instalação do APK: o asset novo pode ser mais
-                // recente. Só substitui se a temporada do asset não for mais antiga.
-                val instalacao = app.packageManager.getPackageInfo(app.packageName, 0).lastUpdateTime
-                if (cache.lastModified() >= instalacao) return
-                val doAsset = temporadaDe(texto()) ?: return
-                val doCache = temporadaDe(cache.readText(Charsets.UTF_8))
-                if (doCache != null && doAsset < doCache) return
-            }
-            gravarCacheSeguro(app.filesDir, texto())
-        } catch (e: java.io.FileNotFoundException) {
-            // Este build não traz a cópia embutida: nada a semear.
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.semearDoAsset", e)
-        }
-    }
-
-    private fun temporadaDe(json: String): Int? =
-        try {
-            JSONObject(json).getJSONObject("MRData").getJSONObject("RaceTable")
-                .optString("season", "").toIntOrNull()
-        } catch (e: Exception) {
-            registrarDescarte("F1CalendarApi.temporadaDe", e)
-            null
         }
 
-    fun carregarCache(context: Context): List<MainActivity.Etapa>? {
-        semearDoAsset(context)
-        return try {
-            val arquivo = File(
-                context.applicationContext.filesDir,
-                ARQUIVO_CACHE
-            )
+        overridePendingTransition(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
 
-            if (!arquivo.exists() || !arquivo.isFile) {
-                return null
-            }
-
-            val lista = interpretar(arquivo.readText(Charsets.UTF_8))
-
-            if (lista.size < MINIMO_CORRIDAS_VALIDAS) {
-                null
-            } else {
-                lista
-            }
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.carregarCache", e)
-            null
-        }
-    }
-
-    /**
-     * Retorna o JSON de uma corrida específica usando o cache local.
-     * Assim a tela de detalhes pode funcionar sem conexão.
-     */
-    fun corridaJsonDoCache(context: Context, circuitId: String): String? {
-        if (circuitId.isBlank()) return null
-
-        semearDoAsset(context)
-        return try {
-            val arquivo = File(
-                context.applicationContext.filesDir,
-                ARQUIVO_CACHE
-            )
-            if (!arquivo.isFile) return null
-
-            val corridas = JSONObject(arquivo.readText(Charsets.UTF_8))
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-                .getJSONArray("Races")
-
-            for (i in 0 until corridas.length()) {
-                val corrida = corridas.getJSONObject(i)
-                val id = corrida.optJSONObject("Circuit")
-                    ?.optString("circuitId", "") ?: ""
-                if (id.equals(circuitId, ignoreCase = true)) {
-                    return corrida.toString()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    voltar()
                 }
             }
-            null
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.corridaJsonDoCache", e)
-            null
+        )
+
+        montarTela()
+
+        carregarEvento()
+    }
+
+    private fun carregarEvento() {
+        if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
+
+        conteudo.removeAllViews()
+
+        // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
+        val eventos = calendario.carregar(this)
+        val proximaEtapa = obterProximaEtapa(eventos)
+        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
+        val evento = eventos.find { it.etapa == etapaEscolhida }
+            ?: proximaEtapa
+
+        etapaEhProxima = evento == null || evento == proximaEtapa
+
+        if (evento != null) {
+            mostrarEvento(evento)
+        } else {
+            adicionarTexto(
+                getString(R.string.calendario_indisponivel),
+                17f,
+                verde,
+                true
+            )
+            adicionarTexto(
+                getString(R.string.sem_proxima_etapa_calendario),
+                14f,
+                cinza,
+                false
+            )
         }
     }
 
-    fun atualizar(
-        context: Context,
-        aoTerminar: (() -> Unit)? = null
-    ) {
-        val app = context.applicationContext
+    private fun obterProximaEtapa(
+        eventos: List<FormulaJuniorEvent>
+    ): FormulaJuniorEvent? {
+        val hoje = SimpleDateFormat(
+            "dd/MM/yyyy",
+            Locale.US
+        ).format(Date())
 
-        Thread {
-            var gravou = false
-            var apiRespondeu = false
+        val dataHoje = converterData(hoje) ?: return null
 
-            try {
-                // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
-                val ano = java.time.LocalDate.now().year
-                val normalizado = try {
-                    val detalhado = baixarTexto(
-                        "https://api.jolpi.ca/f1/alpha/schedules/$ano/"
-                    )
-                    normalizarProgramacaoDetalhada(detalhado)
-                } catch (e: Exception) {
-                    registrarFalha("F1CalendarApi.atualizar", e)
-                    null
-                }
-                if (normalizado != null &&
-                    interpretar(normalizado).size >= MINIMO_CORRIDAS_VALIDAS
-                ) {
-                    apiRespondeu = true
-                    gravou = gravarCacheSeguro(app.filesDir, normalizado)
+        return eventos
+            .filter { evento ->
+                val dataFim = converterData(evento.fim)
+                dataFim != null && !dataFim.before(dataHoje)
+            }
+            .sortedBy { evento ->
+                converterData(evento.inicio)?.time
+                    ?: Long.MAX_VALUE
+            }
+            .firstOrNull()
+    }
+
+    private fun montarTela() {
+        val raiz = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(preto)
+            setPadding(0, 0, 0, dp(20))
+        }
+
+        raiz.addView(
+            estilo.cabecalho(getString(tituloRes), getString(R.string.cd_voltar)) {
+                voltar()
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(14)
+            }
+        )
+
+        val scrollView = ScrollView(this).apply {
+            isFillViewport = true
+            setPadding(dp(18), 0, dp(18), 0)
+            clipToPadding = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            isVerticalFadingEdgeEnabled = false
+        }
+
+        conteudo = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, dp(2), 0, dp(20))
+        }
+
+        scrollView.addView(conteudo)
+
+        raiz.addView(
+            scrollView,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        )
+
+        setContentView(raiz)
+        aplicarInsetsDasBarras()
+
+        // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
+        pintarBarrasDoSistema(
+            preto,
+            getColor(R.color.azul_marinho),
+            getColor(R.color.azul_marinho)
+        )
+    }
+
+    private fun voltar() {
+        finish()
+
+        overridePendingTransition(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
+        )
+    }
+
+    private fun mostrarEvento(evento: FormulaJuniorEvent) {
+        conteudo.removeAllViews()
+
+        val nomeAutodromo = Autodromos.nome(evento.circuito)
+
+        val inicio = formatarData(evento.inicio)
+        val fim = formatarData(evento.fim)
+
+        val intervalo = if (
+            inicio.isNotBlank() && fim.isNotBlank()
+        ) {
+            "$inicio – $fim"
+        } else {
+            inicio.ifBlank { fim }
+        }
+
+        conteudo.addView(
+            estilo.heroi(
+                eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
+                nome = evento.nomeEvento.takeIf { it.isNotBlank() }?.let { Idioma.evento(this, it) }
+                    ?: NomesDeEventos.nome(categoria, evento.circuito)?.let { Idioma.evento(this, it) }
+                    ?: getString(tituloRes),
+                circuito = nomeAutodromo.ifBlank { evento.circuito },
+                bandeiraRes = obterRecursoBandeira(evento.pais),
+                // Sem nome de autódromo mapeado (caso da NASCAR), o circuito já aparece acima:
+                // a linha da bandeira mostra só o país, sem repetir a pista.
+                local = if (nomeAutodromo.isBlank()) {
+                    Idioma.lugar(this, evento.pais)
                 } else {
-                    // Compatibilidade: se o endpoint detalhado falhar, mantém o calendário básico.
-                    val basico = baixarTexto(URL_API)
-                    apiRespondeu = true
-                    if (
-                        interpretar(basico).size >= MINIMO_CORRIDAS_VALIDAS &&
-                        !cacheDaTemporadaTemSessoes(app, ano)
-                    ) {
-                        // Não substitui um cache detalhado da mesma temporada por
-                        // um calendário básico, que apagaria treinos e classificação offline.
-                        gravou = gravarCacheSeguro(app.filesDir, basico)
-                    }
-                }
-            } catch (e: Exception) {
-                registrarFalha("F1CalendarApi.atualizar", e)
-                // Sem internet ou resposta inválida: preserva o cache anterior.
+                    "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}"
+                },
+                periodo = intervalo.uppercase(idioma),
+                contador = estilo.contador(converterData(evento.inicio), converterData(evento.fim))
+            ),
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(18)
+            }
+        )
+
+        adicionarTexto(
+            getString(R.string.programacao),
+            15f,
+            verde,
+            true
+        ).apply {
+            letterSpacing = 0.1f
+            setPadding(0, dp(3), 0, dp(12))
+        }
+
+        if (evento.sessoes.isEmpty()) {
+            adicionarTexto(
+                getString(R.string.horarios_indisponiveis),
+                14f,
+                cinza,
+                false
+            )
+            return
+        }
+
+        val sessoesOrdenadas = evento.sessoes.map { it.noFusoDoAparelho() }.sortedWith(
+            compareBy<FormulaJuniorSession> {
+                converterData(it.data)?.time ?: Long.MAX_VALUE
+            }.thenBy {
+                extrairMinutos(it.horario)
+            }
+        )
+
+        var dataAtual: String? = null
+
+        for (sessao in sessoesOrdenadas) {
+            val dataSessao = formatarDiaPorExtenso(sessao.data)
+                .ifBlank { sessao.data }
+
+            if (dataSessao != dataAtual) {
+                adicionarGrupoDia(dataSessao)
+                dataAtual = dataSessao
             }
 
-            // Jolpica fora do ar e cache ausente ou parado há mais de 7 dias: tenta a cópia do repositório.
-            if (!apiRespondeu && !cacheRecente(app)) {
-                if (atualizarPelaCopiaDoRepositorio(app)) gravou = true
-            }
-
-            if (gravou && aoTerminar != null) {
-                Handler(Looper.getMainLooper()).post {
-                    try {
-                        aoTerminar()
-                    } catch (e: Exception) {
-                        registrarFalha("F1CalendarApi.atualizar", e)
-                        // A atualização do cache já foi concluída.
-                    }
-                }
-            }
-        }.start()
-    }
-
-    /**
-     * Detecta se já existe cache da temporada atual com programação de sessões.
-     * O endpoint básico não deve apagar esses horários se o endpoint detalhado falhar.
-     */
-    private fun cacheDaTemporadaTemSessoes(context: Context, ano: Int): Boolean {
-        return try {
-            val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE)
-            if (!arquivo.isFile) return false
-
-            val tabela = JSONObject(arquivo.readText(Charsets.UTF_8))
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-
-            if (tabela.optString("season", "") != ano.toString()) return false
-
-            val corridas = tabela.getJSONArray("Races")
-            for (i in 0 until corridas.length()) {
-                val corrida = corridas.getJSONObject(i)
-                for (sessao in SESSOES) {
-                    if (corrida.optJSONObject(sessao) != null) return true
-                }
-            }
-            false
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.cacheDaTemporadaTemSessoes", e)
-            false
+            adicionarSessao(sessao)
         }
     }
 
-    private fun cacheRecente(context: Context): Boolean {
-        val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE)
-        return arquivo.isFile && System.currentTimeMillis() - arquivo.lastModified() < SETE_DIAS_MS
-    }
-
-    private fun atualizarPelaCopiaDoRepositorio(app: Context): Boolean {
-        return try {
-            val texto = baixarTexto(URL_COPIA)
-            interpretar(texto).size >= MINIMO_CORRIDAS_VALIDAS &&
-                gravarCacheSeguro(app.filesDir, texto)
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.atualizarPelaCopiaDoRepositorio", e)
-            false
+    private fun adicionarSeparador() {
+        val separador = View(this).apply {
+            setBackgroundColor(linhaCinza)
         }
+
+        conteudo.addView(
+            separador,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(1)
+            ).apply {
+                bottomMargin = dp(16)
+            }
+        )
     }
 
-    private fun baixarTexto(endereco: String): String {
-        var conexao: HttpURLConnection? = null
-        try {
-            conexao = URL(endereco).openConnection() as HttpURLConnection
-            conexao.connectTimeout = 10000
-            conexao.readTimeout = 10000
-            conexao.requestMethod = "GET"
-            conexao.setRequestProperty("User-Agent", "CalendarioMotorsport/1.0")
-            conexao.setRequestProperty("Accept", "application/json")
-            if (conexao.responseCode != HttpURLConnection.HTTP_OK) {
-                throw java.io.IOException("HTTP ${conexao.responseCode}")
-            }
-            return conexao.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        } finally {
-            conexao?.disconnect()
+    private fun adicionarGrupoDia(data: String) {
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
-    }
 
-    /**
-     * Converte o endpoint alpha (data.events[].schedule[]) para o formato
-     * Ergast já consumido pelas telas de calendário e detalhes.
-     */
-    private fun normalizarProgramacaoDetalhada(texto: String): String? {
-        return try {
-            val raiz = JSONObject(texto).getJSONObject("data")
-            val eventos = raiz.getJSONArray("events")
-            val corridas = JSONArray()
-
-            for (i in 0 until eventos.length()) {
-                val evento = eventos.getJSONObject(i)
-                val round = evento.optJSONObject("round") ?: continue
-                val circuito = evento.optJSONObject("circuit") ?: continue
-                val agenda = evento.optJSONArray("schedule") ?: JSONArray()
-                val sessões = JSONObject()
-
-                var dataCorrida = ""
-                var horaCorrida = ""
-                for (j in 0 until agenda.length()) {
-                    val sessao = agenda.optJSONObject(j) ?: continue
-                    val codigo = sessao.optString("code", "").uppercase()
-                    val timestamp = sessao.optString("timestamp", "")
-                    if (timestamp.isBlank() || timestamp == "null") continue
-                    val instante = try {
-                        java.time.OffsetDateTime.parse(timestamp)
-                            .withOffsetSameInstant(java.time.ZoneOffset.UTC)
-                    } catch (e: Exception) {
-                        registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
-                        try {
-                            java.time.Instant.parse(timestamp).atOffset(java.time.ZoneOffset.UTC)
-                        } catch (e: Exception) {
-                            registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
-                            continue
-                        }
-                    }
-                    val data = instante.toLocalDate().toString()
-                    val hora = instante.toLocalTime().toString().take(8) + "Z"
-                    val campo = when (codigo) {
-                        "FP1" -> "FirstPractice"
-                        "FP2" -> "SecondPractice"
-                        "FP3" -> "ThirdPractice"
-                        "Q" -> "Qualifying"
-                        "SQ" -> "SprintQualifying"
-                        "SR", "S" -> "Sprint"
-                        "R" -> {
-                            dataCorrida = data
-                            horaCorrida = hora
-                            null
-                        }
-                        else -> null
-                    }
-                    if (campo != null) {
-                        sessões.put(campo, JSONObject().put("date", data).put("time", hora))
-                    }
-                }
-                if (dataCorrida.isBlank()) {
-                    val primeira = agenda.optJSONObject(0)
-                    val timestamp = primeira?.optString("timestamp", "") ?: ""
-                    if (timestamp.isNotBlank() && timestamp != "null") {
-                        dataCorrida = try {
-                            java.time.OffsetDateTime.parse(timestamp)
-                                .withOffsetSameInstant(java.time.ZoneOffset.UTC)
-                                .toLocalDate().toString()
-                        } catch (e: Exception) {
-                            registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e)
-                            try { java.time.Instant.parse(timestamp).toString().substring(0, 10) }
-                            catch (e: Exception) { registrarDescarte("F1CalendarApi.normalizarProgramacaoDetalhada", e); "" }
-                        }
-                    }
-                }
-                if (dataCorrida.isBlank()) continue
-                val local = JSONObject()
-                    .put("locality", circuito.optString("locality", ""))
-                    .put("country", circuito.optString("country", ""))
-                val circuitoErgast = JSONObject()
-                    .put("circuitId", circuito.optString("id", "round_${i + 1}"))
-                    .put("circuitName", circuito.optString("name", "Circuito"))
-                    .put("Location", local)
-                val corrida = JSONObject()
-                    .put("season", raiz.optInt("year", java.time.LocalDate.now().year).toString())
-                    .put("round", round.optInt("number", i + 1).toString())
-                    .put("raceName", round.optString("name", "Grande Prêmio"))
-                    .put("Circuit", circuitoErgast)
-                    .put("date", dataCorrida)
-                if (horaCorrida.isNotBlank()) corrida.put("time", horaCorrida)
-                val nomes = sessões.keys()
-                while (nomes.hasNext()) {
-                    val nome = nomes.next()
-                    corrida.put(nome, sessões.getJSONObject(nome))
-                }
-                corridas.put(corrida)
-            }
-            if (corridas.length() < MINIMO_CORRIDAS_VALIDAS) return null
-            JSONObject().put("MRData", JSONObject()
-                .put("series", "f1")
-                .put("RaceTable", JSONObject()
-                    .put("season", raiz.optInt("year", java.time.LocalDate.now().year).toString())
-                    .put("Races", corridas)))
-                .toString()
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.normalizarProgramacaoDetalhada", e)
-            null
+        val marcador = View(this).apply {
+            setBackgroundColor(verde)
         }
-    }
 
-    /**
-     * Salva o JSON completo do calendário recebido pela tela, preservando
-     * os campos de todas as sessões para consulta offline.
-     */
-    fun salvarCalendarioCompleto(context: Context, json: String): Boolean {
-        return try {
-            val corridas = JSONObject(json)
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-                .getJSONArray("Races")
-            if (corridas.length() < MINIMO_CORRIDAS_VALIDAS) {
-                return false
+        linha.addView(
+            marcador,
+            LinearLayout.LayoutParams(dp(3), dp(20)).apply {
+                rightMargin = dp(9)
             }
-            gravarCacheSeguro(context.applicationContext.filesDir, json)
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.salvarCalendarioCompleto", e)
-            false
+        )
+
+        val texto = TextView(this).apply {
+            text = data.uppercase(idioma)
+            textSize = 12f
+            setTextColor(branco)
+            typeface = Typeface.create(
+                "sans-serif-medium",
+                Typeface.BOLD
+            )
         }
+
+        linha.addView(
+            texto,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        conteudo.addView(
+            linha,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(7)
+                bottomMargin = dp(9)
+            }
+        )
     }
 
-    /**
-     * Escreve primeiro em um arquivo temporário no mesmo diretório.
-     * Só substitui o cache quando a gravação temporária está completa.
-     * Se a substituição falhar, preserva o cache anterior.
-     */
-    internal fun gravarCacheSeguro(
-        diretorio: File,
-        conteudo: String
-    ): Boolean = synchronized(cacheLock) {
-        val destino = File(diretorio, ARQUIVO_CACHE)
-        val temporario = File(diretorio, ARQUIVO_TEMPORARIO)
+    private fun adicionarSessao(sessao: FormulaJuniorSession) {
+        val nomeOriginal = sessao.nome.trim()
+        val nomeNormalizado = nomeOriginal.lowercase(idioma)
 
-        try {
-            if (!diretorio.exists() && !diretorio.mkdirs()) {
-                return@synchronized false
-            }
-            if (!diretorio.isDirectory) {
-                return@synchronized false
-            }
+        val corridaPrincipal =
+            nomeNormalizado.contains("feature") ||
+            nomeNormalizado.contains("corrida principal") ||
+            nomeNormalizado == "corrida" ||
+            nomeNormalizado == "race"
 
-            // Valida antes de criar ou substituir qualquer arquivo.
-            if (interpretar(conteudo).size < MINIMO_CORRIDAS_VALIDAS) {
-                return@synchronized false
-            }
-            val conteudoFinal = mesclarCamposConhecidos(destino, conteudo)
-            if (interpretar(conteudoFinal).isEmpty()) {
-                temporario.delete()
-                return@synchronized false
-            }
+        val sprint = nomeNormalizado.contains("sprint")
+        val numeroTreino = Regex("""(?:practice|treino)\s*(\d+)""")
+            .find(nomeNormalizado)?.groupValues?.get(1)
 
-            FileOutputStream(temporario, false).use { saida ->
-                saida.write(conteudoFinal.toByteArray(Charsets.UTF_8))
-                saida.flush()
-                saida.fd.sync()
-            }
+        val nomeExibido = when {
+            nomeNormalizado.contains("feature") ->
+                getString(R.string.sessao_corrida_principal)
 
-            // Confere novamente o arquivo escrito antes da troca.
-            val textoGravado = temporario.readText(Charsets.UTF_8)
-            if (interpretar(textoGravado).size < MINIMO_CORRIDAS_VALIDAS) {
-                temporario.delete()
-                return@synchronized false
-            }
+            // "Practice / Qualifying" (NASCAR) tem as duas sessões no mesmo bloco
+            nomeNormalizado.contains("practice") && nomeNormalizado.contains("qualifying") ->
+                getString(R.string.sessao_treino_livre) + " / " + getString(R.string.sessao_classificacao)
 
-            // O arquivo temporário fica no mesmo diretório; se a troca falhar,
-            // o cache antigo permanece disponível.
-            val substituiu = temporario.renameTo(destino)
-            if (!substituiu) temporario.delete()
-            substituiu
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.gravarCacheSeguro", e)
-            try {
-                temporario.delete()
-            } catch (e: Exception) {
-                registrarFalha("F1CalendarApi.gravarCacheSeguro", e)
-                // A limpeza não deve afetar o aplicativo.
-            }
-            false
+            // "Qualifying Race" (Duels da NASCAR) é corrida, não classificação
+            nomeNormalizado.contains("qualifying race") ->
+                Idioma.sessao(this, nomeOriginal).uppercase(idioma)
+
+            nomeNormalizado.contains("practice") ||
+            nomeNormalizado.contains("treino") ->
+                getString(R.string.sessao_treino_livre) + numeroTreino?.let { " $it" }.orEmpty()
+
+            nomeNormalizado.contains("qualifying") ||
+            nomeNormalizado.contains("classificação") ->
+                getString(R.string.sessao_classificacao)
+
+            sprint ->
+                getString(R.string.sessao_corrida_sprint)
+
+            // F1 Academy: a corrida de grid invertido é a sprint da categoria
+            nomeNormalizado.contains("grid invertido") ||
+            nomeNormalizado.contains("reverse") ->
+                getString(R.string.sessao_corrida_sprint)
+
+            // F1 Academy: a corrida extra das etapas com três corridas
+            nomeNormalizado.contains("abertura") ||
+            nomeNormalizado.contains("opening") ->
+                Idioma.sessao(this, nomeOriginal).uppercase(idioma)
+
+            nomeNormalizado.contains("corrida") ||
+            nomeNormalizado == "race" ->
+                getString(R.string.sessao_corrida)
+
+            else -> Idioma.sessao(this, nomeOriginal).uppercase(idioma)
         }
-    }
 
-    /**
-     * A fonte oficial controla a lista de corridas e sessões. Mesclamos somente
-     * campos vazios de uma corrida/sessão que continua existindo, para não perder
-     * um horário conhecido quando a fonte ainda não o publicou. Corridas e sessões
-     * removidas não são recriadas; valores oficiais não vazios sempre prevalecem.
-     */
-    private fun mesclarCamposConhecidos(destino: File, novoTexto: String): String {
-        if (!destino.isFile) return novoTexto
+        val cartao = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14), dp(14), dp(14), dp(14))
 
-        return try {
-            val raizNova = JSONObject(novoTexto)
-            val tabelaNova = raizNova.getJSONObject("MRData").getJSONObject("RaceTable")
-            val tabelaAntiga = JSONObject(destino.readText(Charsets.UTF_8))
-                .getJSONObject("MRData").getJSONObject("RaceTable")
-            val corridasNovas = tabelaNova.getJSONArray("Races")
-            val corridasAntigas = tabelaAntiga.getJSONArray("Races")
+            background = GradientDrawable().apply {
+                cornerRadius = dp(12).toFloat()
 
-            if (tabelaNova.optString("season", "") != tabelaAntiga.optString("season", "")) {
-                return novoTexto
-            }
-
-            fun conhecido(valor: String): Boolean {
-                val v = valor.trim()
-                return v.isNotEmpty() &&
-                    !v.equals("null", ignoreCase = true) &&
-                    !v.equals("A confirmar", ignoreCase = true) &&
-                    !v.equals("TBD", ignoreCase = true) &&
-                    !v.equals("TBA", ignoreCase = true)
-            }
-
-            val antigasPorCircuito = mutableMapOf<String, JSONObject>()
-            for (i in 0 until corridasAntigas.length()) {
-                val corrida = corridasAntigas.optJSONObject(i) ?: continue
-                val id = corrida.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")?.trim().orEmpty()
-                if (id.isNotBlank()) antigasPorCircuito[id] = corrida
-            }
-
-            for (i in 0 until corridasNovas.length()) {
-                val nova = corridasNovas.optJSONObject(i) ?: continue
-                val id = nova.optJSONObject("Circuit")
-                    ?.optString("circuitId", "")?.trim().orEmpty()
-                val antiga = antigasPorCircuito[id] ?: continue
-
-                for (campo in listOf("date", "time")) {
-                    if (!conhecido(nova.optString(campo, "")) &&
-                        conhecido(antiga.optString(campo, ""))) {
-                        nova.put(campo, antiga.optString(campo))
+                setColor(
+                    if (corridaPrincipal) {
+                        fundoCorrida
+                    } else {
+                        fundoCard
                     }
-                }
+                )
 
-                for (nomeSessao in SESSOES) {
-                    val sessaoNova = nova.optJSONObject(nomeSessao) ?: continue
-                    val sessaoAntiga = antiga.optJSONObject(nomeSessao) ?: continue
-                    for (campo in listOf("date", "time")) {
-                        if (!conhecido(sessaoNova.optString(campo, "")) &&
-                            conhecido(sessaoAntiga.optString(campo, ""))) {
-                            sessaoNova.put(campo, sessaoAntiga.optString(campo))
-                        }
-                    }
-                }
-            }
-            raizNova.toString()
-        } catch (e: Exception) {
-            registrarFalha("F1CalendarApi.conhecido", e)
-            // Se não for possível ler o cache antigo, não bloqueia a fonte nova.
-            novoTexto
-        }
-    }
-
-    private fun interpretar(json: String): List<MainActivity.Etapa> {
-        return try {
-            val corridas = JSONObject(json)
-                .getJSONObject("MRData")
-                .getJSONObject("RaceTable")
-                .getJSONArray("Races")
-
-            val lista = mutableListOf<MainActivity.Etapa>()
-
-            for (i in 0 until corridas.length()) {
-                val corrida = corridas.getJSONObject(i)
-                val circuito = corrida.getJSONObject("Circuit")
-                val circuitId = circuito.getString("circuitId")
-                // Nome que a própria fonte dá à corrida ("Australian Grand Prix"). O texto
-                // "Grande Prêmio" é o que o app grava quando a fonte não traz nome.
-                val nomeDaFonte = corrida.optString("raceName", "").trim()
-                    .takeIf { it.isNotBlank() && it != "Grande Prêmio" }.orEmpty()
-                val local = circuito.optJSONObject("Location")
-                val localidade = local?.optString("locality", "") ?: ""
-                val paisIngles = local?.optString("country", "") ?: ""
-
-                // Datas no fuso do celular: a corrida pode cair em outro dia que no horário UTC da API.
-                val fim = try {
-                    Fuso.dataDaF1(corrida.getString("date"), corrida.optString("time", ""))
-                        ?: throw IllegalArgumentException("data da corrida inválida")
-                } catch (e: Exception) {
-                    registrarDescarte("F1CalendarApi.interpretar", e)
-                    continue
-                }
-
-                var inicio = fim.minusDays(2)
-                var menor: LocalDate? = null
-
-                for (chave in SESSOES) {
-                    val sessao = corrida.optJSONObject(chave)
-                    val texto = sessao?.optString("date", "") ?: ""
-
-                    if (texto.isBlank()) continue
-
-                    val data = Fuso.dataDaF1(texto, sessao?.optString("time", "") ?: "")
-                    if (data == null) {
-                        registrarDescarte(
-                            "F1CalendarApi.interpretar",
-                            IllegalArgumentException("data da sessão inválida")
-                        )
-                        continue
-                    }
-
-                    if (menor == null || data.isBefore(menor)) {
-                        menor = data
-                    }
-                }
-
-                if (
-                    menor != null &&
-                    !menor.isAfter(fim) &&
-                    !menor.isBefore(fim.minusDays(4))
-                ) {
-                    inicio = menor
-                }
-
-                val conhecido = CONHECIDOS[circuitId]
-                    ?: CONHECIDOS_POR_CIDADE[Formatacao.normalizar(localidade)]
-                val pais = conhecido?.first
-                    ?: PAISES[paisIngles]
-                    ?: paisIngles
-                val cidade = conhecido?.second ?: localidade
-
-                lista.add(
-                    MainActivity.Etapa(
-                        categoria = "F1",
-                        pais = pais,
-                        circuito = cidade,
-                        data = formatarPeriodo(inicio, fim),
-                        dataInicio = inicio.toString(),
-                        circuitId = circuitId,
-                        dataFim = fim.toString(),
-                        nomeEvento = nomeDaFonte
-                    )
+                setStroke(
+                    dp(if (corridaPrincipal) 2 else 1),
+                    if (corridaPrincipal) verde else verdeEscuro
                 )
             }
+        }
 
-            lista.sortedBy { it.dataInicio }
+        val nome = TextView(this).apply {
+            text = nomeExibido
+            textSize = 12f
+            setTextColor(
+                if (corridaPrincipal) verde else branco
+            )
+            typeface = Typeface.create(
+                "sans-serif",
+                Typeface.BOLD
+            )
+            letterSpacing = 0.02f
+        }
+
+        cartao.addView(
+            nome,
+            LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        )
+
+        val horarioTexto = sessao.horario
+            .trim()
+            .let {
+                if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
+                    getString(R.string.a_confirmar)
+                } else {
+                    Hora.deTexto(this, it)
+                }
+            }
+
+        val horario = TextView(this).apply {
+            text = horarioTexto
+            textSize = 14f
+            setTextColor(
+                if (corridaPrincipal) verde else branco
+            )
+            typeface = Typeface.create(
+                "sans-serif",
+                Typeface.BOLD
+            )
+            gravity = Gravity.END
+        }
+
+        cartao.addView(
+            horario,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                leftMargin = dp(10)
+            }
+        )
+
+        conteudo.addView(
+            cartao,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(8)
+            }
+        )
+    }
+
+    private fun adicionarTexto(
+        texto: String,
+        tamanho: Float,
+        cor: Int,
+        negrito: Boolean
+    ): TextView {
+        val view = TextView(this).apply {
+            text = texto
+            textSize = tamanho
+            setTextColor(cor)
+
+            if (negrito) {
+                typeface = Typeface.create(
+                    "sans-serif",
+                    Typeface.BOLD
+                )
+            }
+        }
+
+        conteudo.addView(
+            view,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        return view
+    }
+
+    private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
+
+
+    /** "QUINTA-FEIRA, 19 DE OUTUBRO": o dia da semana e a data por extenso (maiúsculas ao exibir). */
+    private fun formatarDiaPorExtenso(data: String): String {
+        if (data.isBlank()) return ""
+
+        val convertida = converterData(data) ?: return data
+
+        return SimpleDateFormat(getString(R.string.formato_dia_semana), idioma).format(convertida)
+    }
+
+    private fun formatarData(data: String): String {
+        if (data.isBlank()) return ""
+
+        val convertida = converterData(data) ?: return data
+
+        return SimpleDateFormat(getString(R.string.formato_dia_mes), idioma).format(convertida)
+    }
+
+    private fun converterData(data: String): Date? {
+        val formatos = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd'T'HH:mm",
+            "yyyy-MM-dd",
+            "dd/MM/yyyy",
+            "dd-MM-yyyy"
+        )
+
+        for (formato in formatos) {
+            try {
+                val parser = SimpleDateFormat(
+                    formato,
+                    idioma
+                )
+                parser.isLenient = false
+
+                val resultado = parser.parse(data)
+
+                if (resultado != null) {
+                    return resultado
+                }
+            } catch (e: Exception) {
+                registrarDescarte("FormulaJuniorActivity.converterData", e)
+                // Tenta o próximo formato.
+            }
+        }
+
+        return null
+    }
+
+    private fun extrairMinutos(horario: String): Int {
+        val partes = horario.trim().split(":")
+
+        if (partes.size < 2) return Int.MAX_VALUE
+
+        return try {
+            partes[0].toInt() * 60 + partes[1].take(2).toInt()
         } catch (e: Exception) {
-            registrarDescarte("F1CalendarApi.interpretar", e)
-            emptyList()
+            registrarDescarte("FormulaJuniorActivity.extrairMinutos", e)
+            Int.MAX_VALUE
         }
     }
 
-    fun formatarPeriodo(
-        inicio: LocalDate,
-        fim: LocalDate
-    ): String {
-        fun dia(d: LocalDate) =
-            d.dayOfMonth.toString().padStart(2, '0')
-
-        fun mes(d: LocalDate) =
-            MESES[d.monthValue - 1]
-
-        return when {
-            inicio == fim ->
-                "${dia(fim)} ${mes(fim)}"
-
-            inicio.monthValue == fim.monthValue ->
-                "${dia(inicio)}–${dia(fim)} ${mes(fim)}"
-
-            else ->
-                "${dia(inicio)} ${mes(inicio)}–${dia(fim)} ${mes(fim)}"
-        }
+    private fun dp(valor: Int): Int {
+        return (
+            valor * resources.displayMetrics.density
+        ).toInt()
     }
 }
