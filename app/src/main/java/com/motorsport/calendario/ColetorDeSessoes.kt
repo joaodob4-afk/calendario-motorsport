@@ -81,21 +81,21 @@ internal object ColetorDeSessoes {
             seguro("NASCAR Cup") {
                 NascarCupCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("NASCAR Cup Series", evento.circuito, it.nome, it.data, it.horario, evento.circuito)
+                        sessao("NASCAR Cup Series", evento.circuito, it.nome, it.data, it.horario, evento.nomeEvento.ifBlank { evento.circuito })
                     }
                 }
             } +
             seguro("NASCAR Xfinity") {
                 NascarXfinityCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("NASCAR Xfinity Series", evento.circuito, it.nome, it.data, it.horario, evento.circuito)
+                        sessao("NASCAR Xfinity Series", evento.circuito, it.nome, it.data, it.horario, evento.nomeEvento.ifBlank { evento.circuito })
                     }
                 }
             } +
             seguro("NASCAR Truck") {
                 NascarTruckCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("NASCAR Craftsman Truck Series", evento.circuito, it.nome, it.data, it.horario, evento.circuito)
+                        sessao("NASCAR Craftsman Truck Series", evento.circuito, it.nome, it.data, it.horario, evento.nomeEvento.ifBlank { evento.circuito })
                     }
                 }
             } +
