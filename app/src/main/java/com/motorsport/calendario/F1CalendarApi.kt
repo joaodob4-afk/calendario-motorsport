@@ -62,7 +62,6 @@ object F1CalendarApi {
         "marina_bay" to Pair("Singapura", "Marina Bay"),
         "americas" to Pair("Estados Unidos", "Austin"),
         "rodriguez" to Pair("México", "Cidade do México"),
-        "interlagos" to Pair("Brasil", "Interlagos"),
         "vegas" to Pair("Estados Unidos", "Las Vegas"),
         "losail" to Pair("Catar", "Lusail"),
         "yas_marina" to Pair("Abu Dhabi", "Yas Marina")
@@ -94,8 +93,6 @@ object F1CalendarApi {
         "singapore" to Pair("Singapura", "Marina Bay"),
         "austin" to Pair("Estados Unidos", "Austin"),
         "mexico city" to Pair("México", "Cidade do México"),
-        "sao paulo" to Pair("Brasil", "Interlagos"),
-        "interlagos" to Pair("Brasil", "Interlagos"),
         "las vegas" to Pair("Estados Unidos", "Las Vegas"),
         "lusail" to Pair("Catar", "Lusail"),
         "yas marina" to Pair("Abu Dhabi", "Yas Marina"),
