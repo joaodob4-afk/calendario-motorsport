@@ -345,7 +345,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
             nomeNormalizado == "race"
 
         val sprint = nomeNormalizado.contains("sprint")
-        val numeroTreino = Regex("""(?:practice|treino)\\s*(\\d+)""")
+        val numeroTreino = Regex("""(?:practice|treino)\s*(\d+)""")
             .find(nomeNormalizado)?.groupValues?.get(1)
 
         val nomeExibido = when {
