@@ -1,0 +1,37 @@
+name: Atualizar calendários NASCAR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/scripts/atualizar_nascar.py'
+      - '.github/workflows/atualizar_nascar.yml'
+  schedule:
+    - cron: '45 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+      - name: Atualizar os calendários das três séries
+        run: python .github/scripts/atualizar_nascar.py
+      - name: Salvar mudanças
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/nascar_*_calendar.json
+          if git diff --cached --quiet; then
+            echo "Nada para salvar."
+          else
+            git commit -m "Atualizar calendários NASCAR"
+            bash .github/scripts/publicar_calendarios.sh
+          fi

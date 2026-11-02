@@ -151,6 +151,9 @@ class MainActivity : AppCompatActivity() {
     private var etapasFormulaEDinamicas: List<Etapa>? = null
     private var etapasIndyCarDinamicas: List<Etapa>? = null
     private var etapasMotoDinamicas: List<Etapa>? = null
+    private var etapasNascarCupDinamicas: List<Etapa>? = null
+    private var etapasNascarXfinityDinamicas: List<Etapa>? = null
+    private var etapasNascarTruckDinamicas: List<Etapa>? = null
 
     /** Resultado de [todasEtapas] e as listas de onde ele saiu: só é refeito quando alguma muda. */
     private var cacheDeTodasEtapas: List<Etapa>? = null
@@ -164,7 +167,8 @@ class MainActivity : AppCompatActivity() {
         get() {
             val origem = listOf(
                 etapasF1Dinamicas, etapasF2Dinamicas, etapasF3Dinamicas, etapasF1AcademyDinamicas,
-                etapasFormulaEDinamicas, etapasIndyCarDinamicas, etapasMotoDinamicas, sessoes
+                etapasFormulaEDinamicas, etapasIndyCarDinamicas, etapasMotoDinamicas,
+                etapasNascarCupDinamicas, etapasNascarXfinityDinamicas, etapasNascarTruckDinamicas, sessoes
             )
             val guardado = cacheDeTodasEtapas
 
@@ -179,7 +183,10 @@ class MainActivity : AppCompatActivity() {
                     (etapasF1AcademyDinamicas ?: emptyList()) +
                     (etapasFormulaEDinamicas ?: emptyList()) +
                     (etapasIndyCarDinamicas ?: emptyList()) +
-                    (etapasMotoDinamicas ?: emptyList()),
+                    (etapasMotoDinamicas ?: emptyList()) +
+                    (etapasNascarCupDinamicas ?: emptyList()) +
+                    (etapasNascarXfinityDinamicas ?: emptyList()) +
+                    (etapasNascarTruckDinamicas ?: emptyList()),
                 sessoes
             )
 
@@ -302,6 +309,15 @@ class MainActivity : AppCompatActivity() {
                 FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(app))
             }
             val moto = lerEtapas("Moto") { MotoCalendarJson.etapasDeTodas(app) }
+            val nascarCup = lerEtapas("NASCAR Cup") {
+                NascarCupCalendarJson.comoEtapas(NascarCupCalendarJson.carregar(app))
+            }
+            val nascarXfinity = lerEtapas("NASCAR Xfinity") {
+                NascarXfinityCalendarJson.comoEtapas(NascarXfinityCalendarJson.carregar(app))
+            }
+            val nascarTruck = lerEtapas("NASCAR Truck") {
+                NascarTruckCalendarJson.comoEtapas(NascarTruckCalendarJson.carregar(app))
+            }
             val coletadas = coletarSessoes(app)
 
             runOnUiThread {
@@ -314,6 +330,9 @@ class MainActivity : AppCompatActivity() {
                 etapasIndyCarDinamicas = indy
                 etapasFormulaEDinamicas = fe
                 etapasMotoDinamicas = moto
+                etapasNascarCupDinamicas = nascarCup
+                etapasNascarXfinityDinamicas = nascarXfinity
+                etapasNascarTruckDinamicas = nascarTruck
                 sessoes = coletadas
                 carregandoCalendarios = false
 
@@ -352,6 +371,16 @@ class MainActivity : AppCompatActivity() {
 
         FormulaECalendarJson.atualizar(this) {
             recarregar({ FormulaECalendarJson.comoEtapas(FormulaECalendarJson.carregar(applicationContext)) }) { etapasFormulaEDinamicas = it }
+        }
+
+        NascarCupCalendarJson.atualizar(this) {
+            recarregar({ NascarCupCalendarJson.comoEtapas(NascarCupCalendarJson.carregar(applicationContext)) }) { etapasNascarCupDinamicas = it }
+        }
+        NascarXfinityCalendarJson.atualizar(this) {
+            recarregar({ NascarXfinityCalendarJson.comoEtapas(NascarXfinityCalendarJson.carregar(applicationContext)) }) { etapasNascarXfinityDinamicas = it }
+        }
+        NascarTruckCalendarJson.atualizar(this) {
+            recarregar({ NascarTruckCalendarJson.comoEtapas(NascarTruckCalendarJson.carregar(applicationContext)) }) { etapasNascarTruckDinamicas = it }
         }
 
         // MotoGP, Moto2, Moto3 e WEC usam as mesmas telas; cada classe tem o seu calendário.
@@ -701,6 +730,9 @@ class MainActivity : AppCompatActivity() {
             "Formula E" -> abrirEventoFormulaEPelaEtapa(etapa)
             "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
             "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
+            "NASCAR Cup Series" -> abrirEventoNascarPelaEtapa(etapa, NascarCupCalendarJson, NascarCupActivity::class.java)
+            "NASCAR Xfinity Series" -> abrirEventoNascarPelaEtapa(etapa, NascarXfinityCalendarJson, NascarXfinityActivity::class.java)
+            "NASCAR Craftsman Truck Series" -> abrirEventoNascarPelaEtapa(etapa, NascarTruckCalendarJson, NascarTruckActivity::class.java)
         }
     }
 
@@ -1242,6 +1274,9 @@ class MainActivity : AppCompatActivity() {
             "Moto2" -> "MOTO2"
             "Moto3" -> "MOTO3"
             "WEC" -> "WEC"
+            "NASCAR Cup Series" -> getString(R.string.nascar_cup)
+            "NASCAR Xfinity Series" -> getString(R.string.nascar_xfinity)
+            "NASCAR Craftsman Truck Series" -> getString(R.string.nascar_truck)
             else -> getString(R.string.formula_e)
         }
 
@@ -1342,11 +1377,36 @@ class MainActivity : AppCompatActivity() {
                     overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 }
 
+                "NASCAR Cup Series" -> abrirCalendarioNascar(NascarCupCalendarActivity::class.java)
+                "NASCAR Xfinity Series" -> abrirCalendarioNascar(NascarXfinityCalendarActivity::class.java)
+                "NASCAR Craftsman Truck Series" -> abrirCalendarioNascar(NascarTruckCalendarActivity::class.java)
+
                 else -> {
                     // Categoria sem calendário.
                 }
             }
         }
+    }
+
+    private fun abrirCalendarioNascar(tela: Class<out android.app.Activity>) {
+        startActivity(Intent(this, tela))
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
+
+    private fun abrirEventoNascarPelaEtapa(
+        etapa: Etapa,
+        calendario: CalendarioFormulaJunior,
+        tela: Class<out android.app.Activity>
+    ) {
+        val eventos = calendario.carregar(this)
+            .filter { it.circuito.equals(etapa.circuito, ignoreCase = true) }
+        val evento = eventos.firstOrNull { mesmaData(it.inicio, etapa) } ?: eventos.firstOrNull()
+        if (evento == null) {
+            abrirCategoria(etapa.categoria)
+            return
+        }
+        startActivity(Intent(this, tela).putExtra("ETAPA", evento.etapa))
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
     private fun abrirEventoF1PelaEtapa(etapa: Etapa) {

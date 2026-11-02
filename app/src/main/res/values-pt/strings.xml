@@ -131,6 +131,9 @@
     <string name="fe_formato_unico">Formato da corrida: E-Prix (45 min).</string>
     <string name="nome_formula_e">Fórmula E</string>
     <string name="nome_indycar">IndyCar</string>
+    <string name="nascar_cup">NASCAR CUP SERIES</string>
+    <string name="nascar_xfinity">NASCAR XFINITY SERIES</string>
+    <string name="nascar_truck">NASCAR CRAFTSMAN TRUCK SERIES</string>
     <string name="calendario_nao_carregado">O calendário da %1$s ainda não foi carregado. Abra o app com internet e tente novamente.</string>
     <string name="temporada_terminou">A temporada da %1$s já terminou.</string>
 
