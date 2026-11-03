@@ -16,15 +16,48 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Como uma sessão aparece na programação: o texto do card e se ela é a corrida em destaque. */
+class DescricaoDeSessao(val nome: String, val destaque: Boolean)
+
 /**
- * Tela de detalhes de uma etapa de F2 ou F3 (mesmo layout e mesma lógica).
- * F2Activity e F3Activity só informam categoria, título e fonte dos dados.
+ * Tela de detalhes de uma etapa. É a tela de todas as categorias que a usam: cada uma só informa
+ * categoria, título e fonte dos dados (F2, F3, F1 Academy, NASCAR) e, se precisar, ajusta alguns
+ * detalhes pelos métodos abertos abaixo (Fórmula E).
  */
 abstract class FormulaJuniorActivity : AppCompatActivity() {
 
     protected abstract val categoria: String
     protected abstract val tituloRes: Int
-    protected abstract val calendario: CalendarioFormulaJunior
+
+    /** Fonte padrão (JSON no formato de F2/F3). Quem tem outra fonte sobrescreve os dois métodos abaixo. */
+    protected open val calendario: CalendarioFormulaJunior? = null
+
+    /** Eventos da categoria, com início e fim já no fuso do aparelho. */
+    protected open fun carregarEventos(): List<FormulaJuniorEvent> =
+        calendario?.carregar(this).orEmpty()
+
+    /** Baixa o calendário mais recente; [aoTerminar] roda quando ele for salvo. */
+    protected open fun atualizarCalendario(aoTerminar: () -> Unit) {
+        calendario?.atualizar(this, aoTerminar)
+    }
+
+    /** Nome do evento quando a fonte não traz um e não há nome conhecido. */
+    protected open fun nomePadraoDoEvento(evento: FormulaJuniorEvent): String = getString(tituloRes)
+
+    /** Linha do circuito na parte de cima da tela. */
+    protected open fun circuitoDoHeroi(evento: FormulaJuniorEvent, nomeAutodromo: String): String =
+        nomeAutodromo.ifBlank { evento.circuito }
+
+    /** Linha da bandeira: sem nome de autódromo mapeado, o circuito já aparece acima e só o país entra. */
+    protected open fun localDoHeroi(evento: FormulaJuniorEvent, nomeAutodromo: String): String =
+        if (nomeAutodromo.isBlank()) {
+            Idioma.lugar(this, evento.pais)
+        } else {
+            "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}"
+        }
+
+    /** Texto do período (ex.: "12 – 14 MAIO"); null usa o formato padrão da tela. */
+    protected open fun periodoDoHeroi(evento: FormulaJuniorEvent): String? = null
 
 
     // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
@@ -38,7 +71,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
     private val verdeEscuro: Int get() = estilo.borda
     private val fundoCorrida: Int get() = estilo.fundoCorrida
 
-    private val idioma: Locale by lazy { Idioma.locale(this) }
+    protected val idioma: Locale by lazy { Idioma.locale(this) }
 
     private lateinit var conteudo: LinearLayout
 
@@ -48,7 +81,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Atualiza os detalhes assim que o calendário novo for salvo.
-        calendario.atualizar(this) {
+        atualizarCalendario {
             if (!isFinishing && !isDestroyed) {
                 carregarEvento()
             }
@@ -79,7 +112,7 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         conteudo.removeAllViews()
 
         // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
-        val eventos = calendario.carregar(this)
+        val eventos = carregarEventos()
         val proximaEtapa = obterProximaEtapa(eventos)
         val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
         val evento = eventos.find { it.etapa == etapaEscolhida }
@@ -101,6 +134,17 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
                 14f,
                 cinza,
                 false
+            )
+
+            conteudo.addView(
+                TextView(this).apply {
+                    text = getString(R.string.f1_tentar_novamente)
+                    textSize = 13f
+                    setTextColor(verde)
+                    typeface = Typeface.DEFAULT_BOLD
+                    setPadding(0, dp(12), 0, dp(12))
+                    setOnClickListener { carregarEvento() }
+                }
             )
         }
     }
@@ -213,17 +257,11 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
                 eyebrow = if (etapaEhProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
                 nome = evento.nomeEvento.takeIf { it.isNotBlank() }?.let { Idioma.evento(this, it) }
                     ?: NomesDeEventos.nome(categoria, evento.circuito)?.let { Idioma.evento(this, it) }
-                    ?: getString(tituloRes),
-                circuito = nomeAutodromo.ifBlank { evento.circuito },
+                    ?: nomePadraoDoEvento(evento),
+                circuito = circuitoDoHeroi(evento, nomeAutodromo),
                 bandeiraRes = obterRecursoBandeira(evento.pais),
-                // Sem nome de autódromo mapeado (caso da NASCAR), o circuito já aparece acima:
-                // a linha da bandeira mostra só o país, sem repetir a pista.
-                local = if (nomeAutodromo.isBlank()) {
-                    Idioma.lugar(this, evento.pais)
-                } else {
-                    "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}"
-                },
-                periodo = intervalo.uppercase(idioma),
+                local = localDoHeroi(evento, nomeAutodromo),
+                periodo = periodoDoHeroi(evento) ?: intervalo.uppercase(idioma),
                 contador = estilo.contador(converterData(evento.inicio), converterData(evento.fim))
             ),
             LinearLayout.LayoutParams(
@@ -341,7 +379,8 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         )
     }
 
-    private fun adicionarSessao(sessao: FormulaJuniorSession) {
+    /** Nome exibido e destaque de uma sessão. Padrão: os nomes de F2, F3, F1 Academy e NASCAR. */
+    protected open fun descreverSessao(sessao: FormulaJuniorSession): DescricaoDeSessao {
         val nomeOriginal = sessao.nome.trim()
         val nomeNormalizado = nomeOriginal.lowercase(idioma)
 
@@ -394,6 +433,14 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
 
             else -> Idioma.sessao(this, nomeOriginal).uppercase(idioma)
         }
+
+        return DescricaoDeSessao(nomeExibido, corridaPrincipal)
+    }
+
+    private fun adicionarSessao(sessao: FormulaJuniorSession) {
+        val descricao = descreverSessao(sessao)
+        val nomeExibido = descricao.nome
+        val corridaPrincipal = descricao.destaque
 
         val cartao = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL

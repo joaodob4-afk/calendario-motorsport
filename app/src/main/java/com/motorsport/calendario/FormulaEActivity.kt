@@ -1,128 +1,20 @@
 package com.motorsport.calendario
 
-import android.graphics.Color
-import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
-import android.os.Bundle
-import android.view.Gravity
-import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-class FormulaEActivity : AppCompatActivity() {
+/**
+ * Detalhes de uma etapa da Fórmula E. A tela é a de [FormulaJuniorActivity]; aqui ficam só as
+ * diferenças da categoria: de onde vêm os dados, o nome das sessões (cada corrida da rodada
+ * dupla é destacada) e o texto do topo (cidade em vez de autódromo).
+ */
+class FormulaEActivity : FormulaJuniorActivity() {
 
-    // Visual igual ao da tela inicial: a cor de destaque é a da categoria (ver DetalheEstilo).
-    private val estilo by lazy { DetalheEstilo(this, "Formula E") }
-    private val preto: Int get() = estilo.fundo
-    private val verde: Int get() = estilo.corDeDestaque
-    private val branco: Int get() = estilo.textoPrincipal
-    private val cinza: Int get() = estilo.textoSuave
-    private val linhaCinza: Int get() = estilo.borda
-    private val fundoCard: Int get() = estilo.superficie
-    private val verdeEscuro: Int get() = estilo.borda
-    private val fundoCorrida: Int get() = estilo.fundoCorrida
+    override val categoria = "Formula E"
+    override val tituloRes = R.string.formula_e
 
-    private val idioma: Locale by lazy { Idioma.locale(this) }
     private val formatoData = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-    private lateinit var conteudo: LinearLayout
-    private lateinit var scrollView: ScrollView
-
-    data class Sessao(
-        val nome: String,
-        val data: LocalDate,
-        val horario: String?,
-        val corrida: Boolean
-    )
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // O botão físico (ou o gesto) de voltar usa o mesmo slide do botão da tela.
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : androidx.activity.OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    finish()
-                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
-                }
-            }
-        )
-
-        montarTela()
-
-        // Baixa o calendário mais recente para a próxima abertura.
-        FormulaECalendarJson.atualizar(this)
-
-        carregarEvento()
-    }
-
-    private fun montarTela() {
-        val raiz = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(preto)
-            setPadding(0, 0, 0, dp(20))
-        }
-
-        raiz.addView(
-            estilo.cabecalho(getString(R.string.formula_e), getString(R.string.cd_voltar)) {
-                finish()
-                overridePendingTransition(
-                    R.anim.slide_in_left,
-                    R.anim.slide_out_right
-                )
-            },
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(14)
-            }
-        )
-
-        scrollView = ScrollView(this).apply {
-            isFillViewport = true
-            setPadding(dp(18), 0, dp(18), 0)
-            clipToPadding = false
-
-            overScrollMode = View.OVER_SCROLL_NEVER
-            isVerticalScrollBarEnabled = false
-            isHorizontalScrollBarEnabled = false
-            isVerticalFadingEdgeEnabled = false
-        }
-
-        conteudo = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, dp(2), 0, dp(20))
-        }
-
-        scrollView.addView(conteudo)
-
-        raiz.addView(
-            scrollView,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1f
-            )
-        )
-
-        setContentView(raiz)
-        aplicarInsetsDasBarras()
-
-        // A janela e as barras do sistema seguem a cor do fundo, sem faixa mais escura.
-        pintarBarrasDoSistema(
-            preto,
-            getColor(R.color.azul_marinho),
-            getColor(R.color.azul_marinho)
-        )
-    }
+    private val horaValida = Regex("^\\d{1,2}:\\d{2}$")
 
     private fun lerData(texto: String): LocalDate? {
         return try {
@@ -133,100 +25,49 @@ class FormulaEActivity : AppCompatActivity() {
         }
     }
 
-    private fun carregarEvento() {
-        conteudo.removeAllViews()
-
-        val eventos = FormulaECalendarJson.carregar(this)
-
-        if (eventos.isEmpty()) {
-            mostrarErro(
-                getString(R.string.calendario_nao_carregado, getString(R.string.nome_formula_e))
+    /** Converte o formato da Fórmula E para o da tela; sessões sem data válida ficam de fora. */
+    override fun carregarEventos(): List<FormulaJuniorEvent> =
+        FormulaECalendarJson.carregar(this).map { evento ->
+            FormulaJuniorEvent(
+                etapa = evento.etapa,
+                circuito = evento.circuito,
+                pais = evento.pais,
+                inicio = evento.inicio,
+                fim = evento.fim,
+                sessoes = evento.sessoes.mapNotNull { sessao ->
+                    if (lerData(sessao.data) == null) {
+                        null
+                    } else {
+                        FormulaJuniorSession(
+                            nome = sessao.nome,
+                            data = sessao.data,
+                            horario = sessao.horario.trim().takeIf { horaValida.matches(it) }.orEmpty()
+                        )
+                    }
+                }
             )
-            return
         }
 
-        val hoje = LocalDate.now()
-
-        val proximo = eventos.firstOrNull {
-            val fim = lerData(it.fim)
-            fim != null && !fim.isBefore(hoje)
-        }
-
-        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-
-        val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximo
-
-        if (evento == null) {
-            mostrarErro(getString(R.string.temporada_terminou, getString(R.string.nome_formula_e)))
-            return
-        }
-
-        mostrarEvento(evento, evento == proximo)
+    override fun atualizarCalendario(aoTerminar: () -> Unit) {
+        FormulaECalendarJson.atualizar(this, aoTerminar)
     }
 
-    private fun mostrarEvento(
-        evento: FormulaEEvent,
-        ehProxima: Boolean
-    ) {
-        conteudo.removeAllViews()
+    override fun descreverSessao(sessao: FormulaJuniorSession) = DescricaoDeSessao(
+        nome = Idioma.sessao(this, sessao.nome).uppercase(idioma),
+        destaque = sessao.nome.contains("corrida", ignoreCase = true)
+    )
 
-        conteudo.addView(
-            estilo.heroi(
-                eyebrow = if (ehProxima) getString(R.string.etapa_proxima) else getString(R.string.etapa),
-                nome = Idioma.evento(
-                    this,
-                    NomesDeEventos.nome("Formula E", evento.circuito)
-                        ?: "${Idioma.lugar(this, evento.circuito)} E-Prix"
-                ),
-                circuito = if (evento.sessoes.size <= 1) getString(R.string.fe_formato_unico) else "",
-                bandeiraRes = obterRecursoBandeira(evento.pais),
-                local = "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}",
-                periodo = textoDoIntervalo(evento),
-                contador = estilo.contador(lerData(evento.inicio), lerData(evento.fim))
-            ),
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(18)
-            }
-        )
+    override fun nomePadraoDoEvento(evento: FormulaJuniorEvent): String =
+        Idioma.evento(this, "${Idioma.lugar(this, evento.circuito)} E-Prix")
 
-        adicionarTexto(
-            getString(R.string.programacao),
-            15f,
-            verde,
-            true
-        ).apply {
-            letterSpacing = 0.1f
-            setPadding(0, dp(3), 0, dp(12))
-        }
+    // A Fórmula E corre em ruas de cidades: no topo vai a cidade com o país, sem nome de autódromo.
+    override fun circuitoDoHeroi(evento: FormulaJuniorEvent, nomeAutodromo: String): String =
+        if (evento.sessoes.size <= 1) getString(R.string.fe_formato_unico) else ""
 
-        val sessoes = obterSessoes(evento)
+    override fun localDoHeroi(evento: FormulaJuniorEvent, nomeAutodromo: String): String =
+        "${Idioma.lugar(this, evento.circuito)}, ${Idioma.lugar(this, evento.pais)}"
 
-        if (sessoes.isEmpty()) {
-            adicionarTexto(
-                getString(R.string.horarios_indisponiveis),
-                14f,
-                cinza,
-                false
-            )
-            return
-        }
-
-        val grupos = sessoes.groupBy { it.data }.toSortedMap()
-
-        for ((data, sessoesDoDia) in grupos) {
-            adicionarGrupoDia(data)
-
-            for (sessao in sessoesDoDia.sortedBy { it.horario ?: "99:99" }) {
-                adicionarSessao(sessao)
-            }
-        }
-
-    }
-
-    private fun textoDoIntervalo(evento: FormulaEEvent): String {
+    override fun periodoDoHeroi(evento: FormulaJuniorEvent): String? {
         val inicio = lerData(evento.inicio)
         val fim = lerData(evento.fim)
 
@@ -242,9 +83,7 @@ class FormulaEActivity : AppCompatActivity() {
 
         return when {
             inicio == fim ->
-                fim.format(
-                    DateTimeFormatter.ofPattern("dd MMMM yyyy", idioma)
-                )
+                fim.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", idioma))
 
             inicio.year != fim.year ->
                 "${inicio.format(DateTimeFormatter.ofPattern("dd MMM yyyy", idioma))} – " +
@@ -258,247 +97,5 @@ class FormulaEActivity : AppCompatActivity() {
                 "${inicio.format(formatoDia)} – ${fim.format(formatoDia)} " +
                     fim.format(formatoMesCompleto)
         }.uppercase(idioma)
-    }
-
-    private fun obterSessoes(evento: FormulaEEvent): List<Sessao> {
-        val horaValida = Regex("^\\d{1,2}:\\d{2}$")
-        val resultado = mutableListOf<Sessao>()
-
-        for (sessao in evento.sessoes.map { it.noFusoDoAparelho() }) {
-            val data = lerData(sessao.data) ?: continue
-
-            val horario = sessao.horario.trim().takeIf {
-                horaValida.matches(it)
-            }
-
-            resultado.add(
-                Sessao(
-                    nome = Idioma.sessao(this, sessao.nome).uppercase(idioma),
-                    data = data,
-                    horario = horario,
-                    corrida = sessao.nome.contains("corrida", ignoreCase = true)
-                )
-            )
-        }
-
-        return resultado
-    }
-
-    private fun adicionarSeparador() {
-        val separador = View(this).apply {
-            setBackgroundColor(linhaCinza)
-        }
-
-        conteudo.addView(
-            separador,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(1)
-            ).apply {
-                bottomMargin = dp(16)
-            }
-        )
-    }
-
-    private fun adicionarGrupoDia(data: LocalDate) {
-        val titulo = data.format(
-            DateTimeFormatter.ofPattern(
-                getString(R.string.formato_dia_semana),
-                idioma
-            )
-        ).uppercase(idioma)
-
-        val linha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val marcador = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        linha.addView(
-            marcador,
-            LinearLayout.LayoutParams(dp(3), dp(20)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val texto = TextView(this).apply {
-            text = titulo
-            textSize = 12f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-medium",
-                Typeface.BOLD
-            )
-        }
-
-        linha.addView(
-            texto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        conteudo.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(7)
-                bottomMargin = dp(9)
-            }
-        )
-    }
-
-    private fun adicionarSessao(sessao: Sessao) {
-        val cartao = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-
-            background = GradientDrawable().apply {
-                cornerRadius = dp(12).toFloat()
-
-                setColor(
-                    if (sessao.corrida) {
-                        fundoCorrida
-                    } else {
-                        fundoCard
-                    }
-                )
-
-                setStroke(
-                    dp(if (sessao.corrida) 2 else 1),
-                    if (sessao.corrida) verde else verdeEscuro
-                )
-            }
-        }
-
-        val nome = TextView(this).apply {
-            text = sessao.nome
-            textSize = 12f
-            setTextColor(if (sessao.corrida) verde else branco)
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            letterSpacing = 0.02f
-        }
-
-        cartao.addView(
-            nome,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        val horario = TextView(this).apply {
-            text = sessao.horario?.let { Hora.deTexto(context, it) } ?: getString(R.string.a_confirmar)
-            textSize = if (sessao.horario != null) 16f else 12f
-            setTextColor(if (sessao.corrida) verde else branco)
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            gravity = Gravity.END
-        }
-
-        cartao.addView(
-            horario,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                leftMargin = dp(10)
-            }
-        )
-
-        conteudo.addView(
-            cartao,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
-        )
-    }
-
-    private fun adicionarTexto(
-        texto: String,
-        tamanho: Float,
-        cor: Int,
-        negrito: Boolean
-    ): TextView {
-        val view = TextView(this).apply {
-            text = texto
-            textSize = tamanho
-            setTextColor(cor)
-
-            if (negrito) {
-                typeface = Typeface.create(
-                    "sans-serif",
-                    Typeface.BOLD
-                )
-            }
-        }
-
-        conteudo.addView(
-            view,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        )
-
-        return view
-    }
-
-    private fun mostrarErro(mensagem: String) {
-        conteudo.removeAllViews()
-
-        adicionarTexto(
-            getString(R.string.f1_nao_foi_possivel),
-            17f,
-            verde,
-            true
-        )
-
-        adicionarTexto(
-            mensagem,
-            14f,
-            branco,
-            false
-        ).setPadding(0, dp(10), 0, dp(15))
-
-        val tentarNovamente = TextView(this).apply {
-            text = getString(R.string.f1_tentar_novamente)
-            textSize = 13f
-            setTextColor(verde)
-            typeface = Typeface.DEFAULT_BOLD
-            setPadding(0, dp(12), 0, dp(12))
-
-            setOnClickListener {
-                carregarEvento()
-            }
-        }
-
-        conteudo.addView(tentarNovamente)
-    }
-
-    private fun obterRecursoBandeira(pais: String): Int = Bandeiras.recurso(this, pais)
-
-
-    private fun dp(valor: Int): Int {
-        return (
-            valor * resources.displayMetrics.density
-        ).toInt()
     }
 }
