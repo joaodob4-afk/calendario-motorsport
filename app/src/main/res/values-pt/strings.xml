@@ -160,6 +160,8 @@
     <string name="filtros_so_favoritas_dica">A tela inicial mostra só as etapas com estrela</string>
     <string name="cd_favoritar">Favoritar %s</string>
     <string name="cd_desfavoritar">Remover %s dos favoritos</string>
+    <string name="corridas_no_dia">%d corridas</string>
+    <string name="chip_todas">Todas</string>
     <string name="finalizadas_rotulo">Finalizadas</string>
     <string name="cd_finalizadas">Mostrar etapas finalizadas</string>
 

@@ -115,7 +115,13 @@ class MainActivity : AppCompatActivity() {
      */
     private var ancoraDoTopo: View? = null
 
-    private class LinhaDaLista(val etapa: Etapa?, val mes: java.time.LocalDate?)
+    /** Uma linha da lista: card de etapa, cabeçalho de mês ([mes]) ou cabeçalho de dia ([dia]). */
+    private class LinhaDaLista(
+        val etapa: Etapa?,
+        val mes: java.time.LocalDate?,
+        val dia: java.time.LocalDate? = null,
+        val corridas: Int = 0
+    )
 
     /** Dia em que a lista foi desenhada pela última vez; se o dia mudar, ela é refeita. */
     private var dataDaUltimaLista: java.time.LocalDate? = null
@@ -342,6 +348,7 @@ class MainActivity : AppCompatActivity() {
                 if (categoriaAtual.isEmpty()) {
                     atualizarBotaoFiltro()
                     atualizarBarraDeFinalizadas()
+                    montarChipsDeCategoria()
                     mostrarEtapas(animar = true)
                 }
 
@@ -511,6 +518,7 @@ class MainActivity : AppCompatActivity() {
         configurarAtualizacao()
         atualizarBotaoFiltro()
         atualizarBarraDeFinalizadas()
+        montarChipsDeCategoria()
 
         mostrarEtapas()
     }
@@ -578,7 +586,15 @@ class MainActivity : AppCompatActivity() {
 
         filtros = RegrasDeFiltro.podar(todasEtapas, novos, java.time.LocalDate.now())
 
+        // A categoria escolhida nos chips some das opções se deixar de ser favorita.
+        if (filtros.categoria.isNotEmpty() && filtros.categoriasFavoritas.isNotEmpty() &&
+            Formatacao.normalizar(filtros.categoria) !in filtros.categoriasFavoritas
+        ) {
+            filtros = filtros.copy(categoria = "")
+        }
+
         val favoritasMudaram = filtros.categoriasFavoritas != anteriores.categoriasFavoritas
+        val categoriaMudou = filtros.categoria != anteriores.categoria
 
         if (favoritasMudaram) {
             PreferenciasDeFavoritas.definirCategorias(this, filtros.categoriasFavoritas)
@@ -586,16 +602,99 @@ class MainActivity : AppCompatActivity() {
 
         atualizarBotaoFiltro()
         atualizarBarraDeFinalizadas()
+        if (favoritasMudaram || categoriaMudou) montarChipsDeCategoria()
 
-        if (favoritasMudaram || filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas) {
+        if (favoritasMudaram || categoriaMudou ||
+            filtros.mostrarFinalizadas != anteriores.mostrarFinalizadas
+        ) {
             listaDesatualizada = true
-            if (favoritasMudaram) rolarAoTopoPendente = true
+            if (favoritasMudaram || categoriaMudou) rolarAoTopoPendente = true
 
             handlerRedesenho.removeCallbacks(redesenhoDosFiltros)
 
             // Com a janelinha aberta, a lista espera ela fechar (ver aoAbrirOuFechar).
             if (miniPagina?.aberta != true) {
                 handlerRedesenho.postDelayed(redesenhoDosFiltros, 220)
+            }
+        }
+    }
+
+    /**
+     * Chips de categoria na faixa azul: "Todas" e uma por categoria com etapas (e favorita, quando
+     * há favoritas). Tocar filtra a lista por ela; tocar de novo na mesma volta a "Todas".
+     */
+    private fun montarChipsDeCategoria() {
+        val container = findViewById<LinearLayout>(R.id.containerChips) ?: return
+        val faixa = findViewById<View>(R.id.chipsCategorias)
+
+        val favoritas = filtros.categoriasFavoritas
+        val disponiveis = Categorias.todas.filter { info ->
+            todasEtapas.any { Formatacao.normalizar(it.categoria) == Formatacao.normalizar(info.nome) } &&
+                (favoritas.isEmpty() || Formatacao.normalizar(info.nome) in favoritas)
+        }
+
+        container.removeAllViews()
+        faixa?.visibility = if (disponiveis.size > 1) View.VISIBLE else View.GONE
+        if (disponiveis.size <= 1) return
+
+        val atual = Formatacao.normalizar(filtros.categoria)
+        val escuro = android.graphics.Color.parseColor("#0B2046")
+        val claro = android.graphics.Color.parseColor("#DCE6FA")
+
+        fun chip(texto: String, cor: Int?, selecionado: Boolean, aoTocar: () -> Unit) {
+            val corDeFundo = cor ?: android.graphics.Color.parseColor("#E8EEF8")
+
+            val chip = TextView(this).apply {
+                this.text = texto
+                textSize = 13f
+                typeface = android.graphics.Typeface.DEFAULT_BOLD
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(emPx(14f), 0, emPx(14f), 0)
+                setTextColor(if (selecionado) escuro else claro)
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    cornerRadius = emPx(18f).toFloat()
+                    if (selecionado) {
+                        setColor(corDeFundo)
+                    } else {
+                        setColor(android.graphics.Color.TRANSPARENT)
+                        setStroke(emPx(1f).coerceAtLeast(1), getColor(R.color.azul_marinho_borda))
+                    }
+                }
+
+                if (cor != null && !selecionado) {
+                    val ponto = android.graphics.drawable.GradientDrawable().apply {
+                        shape = android.graphics.drawable.GradientDrawable.OVAL
+                        setColor(cor)
+                        setSize(emPx(8f), emPx(8f))
+                    }
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(ponto, null, null, null)
+                    compoundDrawablePadding = emPx(6f)
+                }
+
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    emPx(36f)
+                ).apply { marginEnd = emPx(8f) }
+
+                isClickable = true
+                setOnClickListener { aoTocar() }
+            }
+
+            container.addView(chip)
+        }
+
+        chip(getString(R.string.chip_todas), null, atual.isEmpty()) {
+            aplicarFiltros(filtros.copy(categoria = ""))
+        }
+
+        for (info in disponiveis) {
+            val selecionada = Formatacao.normalizar(info.nome) == atual
+            chip(
+                Categorias.rotuloDoSelo(info.nome),
+                android.graphics.Color.parseColor(info.cor),
+                selecionada
+            ) {
+                aplicarFiltros(filtros.copy(categoria = if (selecionada) "" else info.nome))
             }
         }
     }
@@ -848,6 +947,42 @@ class MainActivity : AppCompatActivity() {
         (atual.tag as? java.time.LocalDate)?.let { mostrarMesNoTopo(it) }
     }
 
+    /** Cabeçalho de dia de corrida: "Dom, 08/11" à esquerda e, com várias corridas, quantas são. */
+    private fun cabecalhoDia(
+        dia: java.time.LocalDate,
+        corridas: Int,
+        hoje: java.time.LocalDate
+    ): android.view.View {
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            setPadding(emPx(8f), emPx(10f), emPx(8f), emPx(6f))
+        }
+
+        val titulo = TextView(this).apply {
+            val data = linhaDeData(dia, null, "")
+            text = if (dia == hoje) "$data · ${getString(R.string.contador_hoje)}" else data
+            setTextColor(getColor(R.color.texto_principal))
+            textSize = 14f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        linha.addView(titulo)
+
+        if (corridas > 1) {
+            linha.addView(
+                TextView(this).apply {
+                    text = getString(R.string.corridas_no_dia, corridas)
+                    setTextColor(getColor(R.color.texto_suave))
+                    textSize = 12f
+                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+                }
+            )
+        }
+
+        return linha
+    }
+
     /** Cabeçalho de mês, com uma linha fina separando do grupo anterior. */
     private fun cabecalhoMes(data: java.time.LocalDate, primeiro: Boolean): android.view.View {
         // O nome do mês fica na faixa azul; aqui só um respiro e uma linha fina entre os meses.
@@ -945,18 +1080,38 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // As linhas da lista: um cabeçalho a cada mês novo e um card por etapa.
+        // Dia da corrida (última sessão, no fuso do aparelho). Sem horários, vale o último dia da etapa.
+        val zonaDaLista = java.time.ZoneId.systemDefault()
+        fun diaDaCorrida(etapa: Etapa): java.time.LocalDate? =
+            ultimasSessoesDaLista[etapa]?.atZone(zonaDaLista)?.toLocalDate()
+                ?: parseDataSegura(etapa.dataFim)
+                ?: parseDataSegura(etapa.dataInicio)
+
+        // A lista segue a ordem das corridas: quem corre primeiro vem primeiro.
+        val etapasPorCorrida = etapasOrdenadas.sortedBy { etapa ->
+            ultimasSessoesDaLista[etapa]
+                ?: diaDaCorrida(etapa)?.atStartOfDay(zonaDaLista)?.toInstant()
+                ?: java.time.Instant.MAX
+        }
+        val corridasPorDia = etapasPorCorrida.groupingBy { diaDaCorrida(it) }.eachCount()
+
+        // As linhas da lista: um cabeçalho a cada mês novo, um por dia de corrida e um card por etapa.
         val linhas = ArrayList<LinhaDaLista>()
         var mesAnterior = -1
+        var diaAnterior: java.time.LocalDate? = null
         var primeiraAtiva = -1
 
-        for (etapa in etapasOrdenadas) {
-            val inicioItem = parseDataSegura(etapa.dataInicio)
-            if (inicioItem != null) {
-                val chaveMes = inicioItem.year * 12 + inicioItem.monthValue
+        for (etapa in etapasPorCorrida) {
+            val diaItem = diaDaCorrida(etapa)
+            if (diaItem != null) {
+                val chaveMes = diaItem.year * 12 + diaItem.monthValue
                 if (chaveMes != mesAnterior) {
-                    linhas.add(LinhaDaLista(null, inicioItem))
+                    linhas.add(LinhaDaLista(null, diaItem))
                     mesAnterior = chaveMes
+                }
+                if (diaItem != diaAnterior) {
+                    linhas.add(LinhaDaLista(null, null, diaItem, corridasPorDia[diaItem] ?: 1))
+                    diaAnterior = diaItem
                 }
             }
 
@@ -969,7 +1124,7 @@ class MainActivity : AppCompatActivity() {
         // A lista começa no cabeçalho do mês da primeira etapa não finalizada. As finalizadas
         // (quando ligadas) entram por cima, sem mexer no que o usuário está vendo.
         var ancora = if (primeiraAtiva > 0) primeiraAtiva else 0
-        while (ancora > 0 && linhas[ancora].etapa != null) ancora--
+        while (ancora > 0 && (linhas[ancora].etapa != null || linhas[ancora].dia != null)) ancora--
         if (linhas[ancora].etapa != null) ancora = maxOf(primeiraAtiva, 0)
 
         val inflater = LayoutInflater.from(this)
@@ -980,16 +1135,24 @@ class MainActivity : AppCompatActivity() {
         val acima = ArrayList<View>()
 
         fun criarLinha(indice: Int): View {
-            val etapa = linhas[indice].etapa
-            val mes = linhas[indice].mes
+            val linha = linhas[indice]
+            val etapa = linha.etapa
+            val mes = linha.mes
+            val dia = linha.dia
 
-            return if (etapa == null && mes != null) {
-                cabecalhoMes(mes, indice == 0).also {
+            return if (etapa != null) {
+                // O primeiro card ainda não finalizado é a próxima corrida: ganha destaque.
+                criarCard(
+                    inflater, etapa, statusEtapa(etapa, hoje, proximas), hoje,
+                    destaque = indice == primeiraAtiva
+                )
+            } else if (dia != null) {
+                cabecalhoDia(dia, linha.corridas, hoje)
+            } else {
+                cabecalhoMes(mes!!, indice == 0).also {
                     it.tag = mes
                     cabecalhosDeMes.add(it)
                 }
-            } else {
-                criarCard(inflater, etapa!!, statusEtapa(etapa, hoje, proximas), hoje)
             }
         }
 
@@ -1100,7 +1263,8 @@ class MainActivity : AppCompatActivity() {
         inflater: LayoutInflater,
         etapa: Etapa,
         status: String,
-        hoje: java.time.LocalDate
+        hoje: java.time.LocalDate,
+        destaque: Boolean = false
     ): View {
         val item = inflater.inflate(R.layout.item_etapa, listaEtapas, false)
 
@@ -1126,6 +1290,7 @@ class MainActivity : AppCompatActivity() {
         val inicioDaEtapa = primeira?.toLocalDate() ?: parseDataSegura(etapa.dataInicio)
 
         val textoDaData: String
+        val dataCompleta: String
         val textoDoFim: String?
 
         if (ultima != null) {
@@ -1134,14 +1299,14 @@ class MainActivity : AppCompatActivity() {
                 .lowercase(idiomaDoApp)
                 .replaceFirstChar { it.titlecase(idiomaDoApp) }
 
-            textoDaData = "$rotulo · " + linhaDeData(
-                ultima.toLocalDate(),
-                Hora.formatar(ultima.hour, ultima.minute, usa24),
-                etapa.data
-            )
+            // O dia já está no cabeçalho do grupo: o card mostra só "Corrida · 21:30".
+            val horaDaCorrida = Hora.formatar(ultima.hour, ultima.minute, usa24)
+            textoDaData = "$rotulo · $horaDaCorrida"
+            dataCompleta = linhaDeData(ultima.toLocalDate(), horaDaCorrida, etapa.data)
             textoDoFim = null
         } else {
             textoDaData = linhaDeData(inicioDaEtapa, null, etapa.data)
+            dataCompleta = textoDaData
 
             val fim = parseDataSegura(etapa.dataFim)
             textoDoFim = if (fim != null && inicioDaEtapa != null && fim.isAfter(inicioDaEtapa)) {
@@ -1152,6 +1317,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         item.findViewById<TextView>(R.id.itemData).text = textoDaData
+
+        // Próxima corrida: nome e horário maiores, para ser a primeira coisa que se lê.
+        if (destaque) {
+            item.findViewById<TextView>(R.id.itemPais).textSize = 21f
+            item.findViewById<TextView>(R.id.itemCircuito).textSize = 14f
+            item.findViewById<TextView>(R.id.itemData).apply {
+                textSize = 17f
+                (layoutParams as? LinearLayout.LayoutParams)?.topMargin = emPx(10f)
+            }
+        }
 
         val itemDataFim = item.findViewById<TextView>(R.id.itemDataFim)
         if (textoDoFim != null) {
@@ -1192,7 +1367,7 @@ class MainActivity : AppCompatActivity() {
 
         item.contentDescription =
             "${etapa.categoria}, ${nomeEvento.ifBlank { lugarExibido(etapa.pais) }}, " +
-                "${localDaEtapa(etapa, nomeEvento)}, $textoDaData, ${textoDoFim.orEmpty()}, $textoStatus"
+                "${localDaEtapa(etapa, nomeEvento)}, $dataCompleta, ${textoDoFim.orEmpty()}, $textoStatus"
 
         item.setOnClickListener { abrirEtapa(etapa) }
         item.comEfeitoDeToque(escala = 0.97f)
