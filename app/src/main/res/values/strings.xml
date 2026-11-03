@@ -161,6 +161,8 @@
     <string name="filtros_so_favoritas_dica">The home screen lists only starred rounds</string>
     <string name="cd_favoritar">Add %s to favorites</string>
     <string name="cd_desfavoritar">Remove %s from favorites</string>
+    <string name="corridas_no_dia">%d races</string>
+    <string name="chip_todas">All</string>
     <string name="finalizadas_rotulo">Finished</string>
     <string name="cd_finalizadas">Show finished rounds</string>
 

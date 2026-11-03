@@ -85,6 +85,26 @@
                 </FrameLayout>
             </LinearLayout>
 
+            <!-- Chips de categoria: filtro rápido com um toque (os botões vêm do Kotlin) -->
+            <HorizontalScrollView
+                android:id="@+id/chipsCategorias"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:overScrollMode="never"
+                android:clipToPadding="false"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:id="@+id/containerChips"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
             <!-- Linha fina separando os dois andares do cabeçalho -->
             <View
                 android:layout_width="match_parent"
