@@ -1115,29 +1115,36 @@ class MainActivity : AppCompatActivity() {
         item.findViewById<TextView>(R.id.itemPais).text = nomeEvento.ifBlank { lugarExibido(etapa.pais) }
         item.findViewById<TextView>(R.id.itemCircuito).text = localDaEtapa(etapa, nomeEvento)
 
-        // Duas linhas: o começo (primeira sessão) em cima e o fim (última sessão) embaixo, com dia
-        // da semana, data e horário no fuso do aparelho. Sem horários, valem as datas da etapa.
+        // Uma linha só: a corrida (última sessão da etapa), com dia da semana, data e horário no
+        // fuso do aparelho. Os treinos ficam para a tela de detalhes. Sem horários conhecidos,
+        // valem as datas da etapa (começo e, se houver, fim).
         val zona = java.time.ZoneId.systemDefault()
         val usa24 = Hora.usa24Horas(this)
         val primeira = primeirasSessoesDaLista[etapa]?.atZone(zona)
         val ultima = ultimasSessoesDaLista[etapa]?.atZone(zona)
 
         val inicioDaEtapa = primeira?.toLocalDate() ?: parseDataSegura(etapa.dataInicio)
-        val textoDaData = linhaDeData(
-            inicioDaEtapa,
-            primeira?.let { Hora.formatar(it.hour, it.minute, usa24) },
-            etapa.data
-        )
 
-        val textoDoFim: String? = if (primeira != null && ultima != null) {
-            if (ultima.toInstant() != primeira.toInstant()) {
-                linhaDeData(ultima.toLocalDate(), Hora.formatar(ultima.hour, ultima.minute, usa24), "")
-            } else {
-                null
-            }
+        val textoDaData: String
+        val textoDoFim: String?
+
+        if (ultima != null) {
+            val idiomaDoApp = Idioma.locale(this)
+            val rotulo = getString(R.string.sessao_corrida)
+                .lowercase(idiomaDoApp)
+                .replaceFirstChar { it.titlecase(idiomaDoApp) }
+
+            textoDaData = "$rotulo · " + linhaDeData(
+                ultima.toLocalDate(),
+                Hora.formatar(ultima.hour, ultima.minute, usa24),
+                etapa.data
+            )
+            textoDoFim = null
         } else {
+            textoDaData = linhaDeData(inicioDaEtapa, null, etapa.data)
+
             val fim = parseDataSegura(etapa.dataFim)
-            if (fim != null && inicioDaEtapa != null && fim.isAfter(inicioDaEtapa)) {
+            textoDoFim = if (fim != null && inicioDaEtapa != null && fim.isAfter(inicioDaEtapa)) {
                 linhaDeData(fim, null, "")
             } else {
                 null
