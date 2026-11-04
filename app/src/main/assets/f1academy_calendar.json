@@ -41,27 +41,27 @@
         {
           "nome": "Treino Livre",
           "data": "22/05/2026",
-          "horario": "10:00"
+          "horario": "11:00"
         },
         {
           "nome": "Classificação",
           "data": "22/05/2026",
-          "horario": "19:18"
+          "horario": "20:18"
         },
         {
           "nome": "Corrida de Abertura",
           "data": "23/05/2026",
-          "horario": "10:45"
+          "horario": "11:45"
         },
         {
           "nome": "Corrida Grid Invertido",
           "data": "23/05/2026",
-          "horario": "19:05"
+          "horario": "20:05"
         },
         {
           "nome": "Corrida Feature",
           "data": "24/05/2026",
-          "horario": "11:45"
+          "horario": "12:45"
         }
       ]
     },
@@ -75,22 +75,22 @@
         {
           "nome": "Treino Livre",
           "data": "03/07/2026",
-          "horario": "03:45"
+          "horario": "04:45"
         },
         {
           "nome": "Classificação",
           "data": "03/07/2026",
-          "horario": "14:00"
+          "horario": "15:00"
         },
         {
           "nome": "Corrida Grid Invertido",
           "data": "04/07/2026",
-          "horario": "14:05"
+          "horario": "15:05"
         },
         {
           "nome": "Corrida Feature",
           "data": "05/07/2026",
-          "horario": "06:00"
+          "horario": "07:00"
         }
       ]
     },
@@ -104,22 +104,22 @@
         {
           "nome": "Treino Livre",
           "data": "21/08/2026",
-          "horario": "09:00"
+          "horario": "10:00"
         },
         {
           "nome": "Classificação",
           "data": "22/08/2026",
-          "horario": "04:20"
+          "horario": "05:20"
         },
         {
           "nome": "Corrida Grid Invertido",
           "data": "22/08/2026",
-          "horario": "09:35"
+          "horario": "10:35"
         },
         {
           "nome": "Corrida Feature",
           "data": "23/08/2026",
-          "horario": "05:30"
+          "horario": "06:30"
         }
       ]
     },
@@ -133,27 +133,27 @@
         {
           "nome": "Treino Livre",
           "data": "22/10/2026",
-          "horario": "14:25"
+          "horario": "15:25"
         },
         {
           "nome": "Classificação",
           "data": "22/10/2026",
-          "horario": "18:30"
+          "horario": "19:30"
         },
         {
           "nome": "Corrida de Abertura",
           "data": "23/10/2026",
-          "horario": "19:50"
+          "horario": "20:50"
         },
         {
           "nome": "Corrida Grid Invertido",
           "data": "24/10/2026",
-          "horario": "20:00"
+          "horario": "21:00"
         },
         {
           "nome": "Corrida Feature",
           "data": "25/10/2026",
-          "horario": "14:00"
+          "horario": "15:00"
         }
       ]
     },
