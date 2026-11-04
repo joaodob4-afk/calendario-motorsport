@@ -184,4 +184,12 @@
     <string name="cd_mostrar_categoria">Mostrar %s na página inicial</string>
     <string name="cd_ocultar_categoria">Ocultar %s da página inicial</string>
     <string name="personalizar_categorias">Avisos por categoria</string>
+
+    <string name="widget_proxima_sessao_titulo">PRÓXIMA SESSÃO</string>
+    <string name="widget_proxima_sessao_vazia">Nenhuma sessão futura</string>
+    <string name="widget_proxima_sessao_vazia_dica">Abra o aplicativo para atualizar os calendários.</string>
+    <string name="widget_comeca_em">Começa em %1$s</string>
+    <string name="widget_contagem_dias_horas">%1$d d %2$d h</string>
+    <string name="widget_contagem_horas_minutos">%1$d h %2$d min</string>
+    <string name="widget_contagem_minutos">%1$d min</string>
 </resources>

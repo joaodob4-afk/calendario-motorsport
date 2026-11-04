@@ -185,4 +185,12 @@
     <string name="cd_mostrar_categoria">Show %s on the home screen</string>
     <string name="cd_ocultar_categoria">Hide %s from the home screen</string>
     <string name="personalizar_categorias">Alerts by category</string>
+
+    <string name="widget_proxima_sessao_titulo">NEXT SESSION</string>
+    <string name="widget_proxima_sessao_vazia">No upcoming session</string>
+    <string name="widget_proxima_sessao_vazia_dica">Open the app to refresh the calendars.</string>
+    <string name="widget_comeca_em">Starts in %1$s</string>
+    <string name="widget_contagem_dias_horas">%1$d d %2$d h</string>
+    <string name="widget_contagem_horas_minutos">%1$d h %2$d min</string>
+    <string name="widget_contagem_minutos">%1$d min</string>
 </resources>

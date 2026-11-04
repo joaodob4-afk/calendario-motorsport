@@ -340,6 +340,7 @@ class MainActivity : AppCompatActivity() {
                 etapasNascarXfinityDinamicas = nascarXfinity
                 etapasNascarTruckDinamicas = nascarTruck
                 sessoes = coletadas
+                ProximaSessaoWidget.atualizar(this@MainActivity)
                 carregandoCalendarios = false
 
                 // Filtros restaurados de uma rotação podem apontar para algo que não existe mais.
@@ -422,6 +423,7 @@ class MainActivity : AppCompatActivity() {
                 if (isFinishing || isDestroyed) return@runOnUiThread
                 if (etapas != null) aplicar(etapas)
                 sessoes = coletadas
+                ProximaSessaoWidget.atualizar(this@MainActivity)
                 redesenharListaDepois()
             }
         }.start()
@@ -430,6 +432,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        ProximaSessaoWidget.atualizar(this)
 
         // O tema pode ter sido trocado nas configurações enquanto esta tela estava parada.
         atualizarParaOTema()
