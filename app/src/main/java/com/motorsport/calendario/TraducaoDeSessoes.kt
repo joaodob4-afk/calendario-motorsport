@@ -1,9 +1,11 @@
 package com.motorsport.calendario
 
 /**
- * Os nomes das sessões vêm dos calendários em português. Para quem usa o app em inglês,
- * esta tradução é aplicada só na hora de mostrar o texto. Nomes desconhecidos (Hyperpole,
- * Warm-up, Practice...) ficam como estão. A lógica do app continua usando o nome original.
+ * Tradução dos nomes de sessões para os dois idiomas.
+ *
+ * Os calendários podem fornecer nomes em português ou em inglês, dependendo da categoria
+ * e da fonte. Por isso, a tradução é bidirecional e acontece somente na apresentação:
+ * a lógica e os dados originais permanecem intactos.
  */
 internal object TraducaoDeSessoes {
 
@@ -23,6 +25,29 @@ internal object TraducaoDeSessoes {
         "Treino" to "Practice"
     )
 
+    // Nomes adicionais encontrados em calendários internacionais.
+    private val nomesEmIngles = listOf(
+        "Warm-up" to "Aquecimento",
+        "Warm Up" to "Aquecimento",
+        "Pit Stop Competition" to "Competição de Pit Stop",
+        "Reverse Grid Race" to "Corrida Grid Invertido",
+        "Opening Race" to "Corrida de Abertura",
+        "Feature Race" to "Corrida Feature",
+        "Sprint Qualifying" to "Classificação Sprint",
+        "Sprint Race" to "Corrida Sprint",
+        "Final Practice" to "Treino Final",
+        "Free Practice" to "Treino Livre",
+        "Qualifying" to "Classificação",
+        "Practice" to "Treino",
+        "Race" to "Corrida",
+        "Round" to "Rodada"
+    )
+
     fun paraIngles(nome: String): String =
         trocas.fold(nome) { texto, (de, para) -> texto.replace(de, para) }
+
+    fun paraPortugues(nome: String): String =
+        nomesEmIngles.fold(nome) { texto, (de, para) ->
+            texto.replace(de, para, ignoreCase = true)
+        }
 }

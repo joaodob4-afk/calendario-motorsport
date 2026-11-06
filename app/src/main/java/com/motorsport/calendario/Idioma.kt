@@ -23,9 +23,10 @@ internal object Idioma {
     fun evento(@Suppress("UNUSED_PARAMETER") context: Context, nome: String): String =
         TraducaoDeNomes.evento(nome)
 
-    /** Nome de sessão ("Treino Livre 1") no idioma do app. */
+    /** Traduz nomes de sessão conforme o idioma do app, mesmo quando a fonte já vem em inglês. */
     fun sessao(context: Context, nome: String): String =
-        if (ingles(context)) TraducaoDeSessoes.paraIngles(nome) else nome
+        if (ingles(context)) TraducaoDeSessoes.paraIngles(nome)
+        else TraducaoDeSessoes.paraPortugues(nome)
 
     /** País ou cidade no idioma do app. */
     fun lugar(context: Context, nome: String): String =
