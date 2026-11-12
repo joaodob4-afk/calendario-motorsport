@@ -98,37 +98,72 @@ def descobrir_calendario():
     return None, []
 
 def sub_eventos(html):
-    """Extrai subEvent de JSON-LD simples, em lista ou dentro de @graph."""
+    """Extrai e normaliza sessões de estruturas JSON-LD simples ou aninhadas."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
+    encontrados = []
+    vistos = set()
 
-    def procurar(dados):
+    def valor_escalar(valor):
+        if isinstance(valor, dict):
+            return valor.get("@value") or valor.get("name") or ""
+        return valor if isinstance(valor, str) else ""
+
+    def adicionar(valor):
+        if isinstance(valor, dict) and isinstance(valor.get("@list"), list):
+            for item in valor["@list"]:
+                adicionar(item)
+            return
+        if not isinstance(valor, dict):
+            return
+
+        nome = valor_escalar(valor.get("name")).strip()
+        inicio = valor_escalar(valor.get("startDate")).strip()
+        if not nome or not inicio:
+            return
+        try:
+            instante = parse_utc(inicio)
+        except (TypeError, ValueError):
+            return
+
+        chave = (nome.casefold(), instante.isoformat())
+        if chave in vistos:
+            return
+        vistos.add(chave)
+        encontrados.append({"name": nome, "startDate": inicio})
+
+    def percorrer(dados):
         if isinstance(dados, list):
             for item in dados:
-                resultado = procurar(item)
-                if resultado:
-                    return resultado
-        elif isinstance(dados, dict):
-            subs = dados.get("subEvent")
-            if isinstance(subs, dict):
-                return [subs]
-            if isinstance(subs, list) and subs:
-                return subs
-            grafo = dados.get("@graph")
-            if isinstance(grafo, (dict, list)):
-                return procurar(grafo)
-        return []
+                percorrer(item)
+            return
+        if not isinstance(dados, dict):
+            return
+
+        subs = dados.get("subEvent")
+        if isinstance(subs, list):
+            for item in subs:
+                adicionar(item)
+        elif isinstance(subs, dict):
+            adicionar(subs)
+
+        # JSON-LD pode distribuir o evento entre @graph, @included ou
+        # propriedades aninhadas; percorremos o restante sem duplicar sessões.
+        for chave, valor in dados.items():
+            if chave != "subEvent" and isinstance(valor, (dict, list)):
+                percorrer(valor)
 
     for bloco in blocos:
         try:
             dados = json.loads(bloco)
         except ValueError:
             continue
-        resultado = procurar(dados)
-        if resultado:
-            return resultado
-    return []
+        percorrer(dados)
+
+    return encontrados
+
+
 def traduzir_sessoes(subs):
     """Retorna lista de (nome_pt, datetime_utc) em ordem cronologica."""
     itens = []
