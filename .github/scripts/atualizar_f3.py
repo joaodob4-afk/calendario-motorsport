@@ -100,7 +100,7 @@ def descobrir_calendario():
 def sub_eventos(html):
     """Extrai e normaliza sessões de estruturas JSON-LD simples ou aninhadas."""
     blocos = re.findall(
-        r'<script[^>]*application/ld\\+json[^>]*>(.*?)</script>', html, flags=re.S
+        r'<script[^>]*application/ld\+json[^>]*>(.*?)</script>', html, flags=re.S
     )
     encontrados = []
     vistos = set()
