@@ -318,7 +318,7 @@ class MainActivity : AppCompatActivity() {
             val nascarCup = lerEtapas("NASCAR Cup") {
                 NascarCupCalendarJson.comoEtapas(NascarCupCalendarJson.carregar(app))
             }
-            val nascarXfinity = lerEtapas("NASCAR Xfinity") {
+            val nascarXfinity = lerEtapas("NASCAR O'Reilly") {
                 NascarXfinityCalendarJson.comoEtapas(NascarXfinityCalendarJson.carregar(app))
             }
             val nascarTruck = lerEtapas("NASCAR Truck") {
@@ -830,7 +830,7 @@ class MainActivity : AppCompatActivity() {
             "IndyCar" -> abrirEventoIndyCarPelaEtapa(etapa)
             "MotoGP", "Moto2", "Moto3", "WEC" -> abrirEventoMotoPelaEtapa(etapa)
             "NASCAR Cup Series" -> abrirEventoNascarPelaEtapa(etapa, NascarCupCalendarJson, NascarCupActivity::class.java)
-            "NASCAR Xfinity Series" -> abrirEventoNascarPelaEtapa(etapa, NascarXfinityCalendarJson, NascarXfinityActivity::class.java)
+            "NASCAR O'Reilly Auto Parts Series" -> abrirEventoNascarPelaEtapa(etapa, NascarXfinityCalendarJson, NascarXfinityActivity::class.java)
             "NASCAR Craftsman Truck Series" -> abrirEventoNascarPelaEtapa(etapa, NascarTruckCalendarJson, NascarTruckActivity::class.java)
         }
     }
