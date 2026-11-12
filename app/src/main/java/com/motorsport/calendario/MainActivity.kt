@@ -1457,7 +1457,7 @@ class MainActivity : AppCompatActivity() {
             "Moto3" -> "MOTO3"
             "WEC" -> "WEC"
             "NASCAR Cup Series" -> getString(R.string.nascar_cup)
-            "NASCAR Xfinity Series" -> getString(R.string.nascar_xfinity)
+            "NASCAR O'Reilly Auto Parts Series" -> getString(R.string.nascar_xfinity)
             "NASCAR Craftsman Truck Series" -> getString(R.string.nascar_truck)
             else -> getString(R.string.formula_e)
         }
@@ -1560,7 +1560,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 "NASCAR Cup Series" -> abrirCalendarioNascar(NascarCupCalendarActivity::class.java)
-                "NASCAR Xfinity Series" -> abrirCalendarioNascar(NascarXfinityCalendarActivity::class.java)
+                "NASCAR O'Reilly Auto Parts Series" -> abrirCalendarioNascar(NascarXfinityCalendarActivity::class.java)
                 "NASCAR Craftsman Truck Series" -> abrirCalendarioNascar(NascarTruckCalendarActivity::class.java)
 
                 else -> {
