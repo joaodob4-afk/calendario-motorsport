@@ -30,7 +30,7 @@ internal object Categorias {
         CategoriaInfo("WEC", "#CBD5E1"),
         // NASCAR: família de verdes (cores livres), longe das demais categorias e distintas entre si
         CategoriaInfo("NASCAR Cup Series", "#81BF43", "NASCAR CUP"),
-        CategoriaInfo("NASCAR Xfinity Series", "#DBFABB", "NASCAR XFINITY"),
+        CategoriaInfo("NASCAR O'Reilly Auto Parts Series", "#DBFABB", "NASCAR O'REILLY"),
         CategoriaInfo("NASCAR Craftsman Truck Series", "#2FEB2F", "NASCAR TRUCK")
     )
 
