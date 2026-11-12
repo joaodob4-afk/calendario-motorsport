@@ -29,6 +29,22 @@ class CalendarioJsonTemporadaTest {
     }
 
     @Test
+    fun temporadaFormulaEComDoisAnosEquivaleAoAnoFinalDoAsset() {
+        assertEquals(
+            json("2026/27"),
+            CalendarioJsonTemporada.selecionar(json("2026/27"), json("2027"))
+        )
+    }
+
+    @Test
+    fun temporadaFormulaENovaVenceAssetDoAnoAnterior() {
+        assertEquals(
+            json("2027/28"),
+            CalendarioJsonTemporada.selecionar(json("2027/28"), json("2027"))
+        )
+    }
+
+    @Test
     fun usaAssetQuandoNaoExisteCache() {
         assertEquals(json("2026"), CalendarioJsonTemporada.selecionar(null, json("2026")))
     }
