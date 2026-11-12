@@ -164,12 +164,17 @@ internal object ColetorDeSessoes {
                 .ifBlank { corrida.optString("raceName", "") }
 
             val circuito = corrida.optJSONObject("Circuit")
-            val evento = NomesDeEventos.nome(
-                "F1",
-                circuito?.optJSONObject("Location")?.optString("locality", "").orEmpty(),
-                circuito?.optString("circuitId", "").orEmpty(),
-                circuito?.optJSONObject("Location")?.optString("country", "").orEmpty()
-            ) ?: corrida.optString("raceName", "")
+            // A notificação deve usar o mesmo nome oficial que a API entrega e a tela exibe.
+            // Só recorre ao nome normalizado quando a resposta não traz raceName.
+            val nomeDaApi = corrida.optString("raceName", "").trim()
+            val evento = nomeDaApi.ifBlank {
+                NomesDeEventos.nome(
+                    "F1",
+                    circuito?.optJSONObject("Location")?.optString("locality", "").orEmpty(),
+                    circuito?.optString("circuitId", "").orEmpty(),
+                    circuito?.optJSONObject("Location")?.optString("country", "").orEmpty()
+                ).orEmpty()
+            }
 
             for ((campo, nome) in camposF1) {
                 val sessao = corrida.optJSONObject(campo) ?: continue

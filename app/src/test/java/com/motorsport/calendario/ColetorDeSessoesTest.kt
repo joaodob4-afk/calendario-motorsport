@@ -45,10 +45,23 @@ class ColetorDeSessoesTest {
     }
 
     @Test
-    fun guardaONomeDoEventoDaF1ParaAAparenciaDoAviso() {
+    fun preservaONomeOficialDaApiDaF1ParaAAparenciaDoAviso() {
         val sessoes = ColetorDeSessoes.sessoesDaF1(json)
 
-        assertTrue(sessoes.filter { it.local == "Melbourne" }.all { it.evento == "GP da Austrália" })
+        assertTrue(sessoes.filter { it.local == "Melbourne" }.all { it.evento == "Australian Grand Prix" })
+    }
+
+    @Test
+    fun notificacaoDaF1UsaOMesmoNomeOficialExibidoPelaApi() {
+        val jsonBrasil = json
+            .replace("Australian Grand Prix", "Brazilian Grand Prix")
+            .replace("albert_park", "interlagos")
+            .replace("Melbourne", "São Paulo")
+
+        val corrida = ColetorDeSessoes.sessoesDaF1(jsonBrasil).first { it.nome == "Corrida" }
+
+        assertEquals("Brazilian Grand Prix", corrida.evento)
+        assertEquals("Brazilian Grand Prix", TraducaoDeNomes.evento(corrida.evento))
     }
 
     @Test
