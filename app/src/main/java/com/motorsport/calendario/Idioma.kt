@@ -17,6 +17,30 @@ internal object Idioma {
         if (ingles(context)) Locale.ENGLISH else Locale("pt", "BR")
 
     /**
+     * Converte o identificador interno da categoria para o nome localizado nas notificações.
+     * Identificadores desconhecidos são preservados para não esconder categorias futuras.
+     */
+    fun categoria(context: Context, nome: String): String {
+        val recurso = recursoCategoria(nome) ?: return nome
+        return context.getString(recurso)
+    }
+
+    /** Separado para permitir testar o mapeamento sem depender de um Context Android. */
+    internal fun recursoCategoria(nome: String): Int? =
+        when (nome.trim().lowercase(Locale.ROOT)) {
+            "f1", "formula 1", "fórmula 1" -> R.string.formula_1
+            "f2", "formula 2", "fórmula 2" -> R.string.formula_2
+            "f3", "formula 3", "fórmula 3" -> R.string.formula_3
+            "f1 academy" -> R.string.f1_academy
+            "formula e", "fórmula e" -> R.string.formula_e
+            "indycar" -> R.string.nome_indycar
+            "nascar cup series" -> R.string.nascar_cup
+            "nascar xfinity series" -> R.string.nascar_xfinity
+            "nascar craftsman truck series" -> R.string.nascar_truck
+            else -> null
+        }
+
+    /**
      * Nome de evento no original ("Italian Grand Prix", "6 Hours of Monza"), igual em qualquer
      * idioma do app. Os nomes guardados em português só servem de chave para achar o original.
      */
