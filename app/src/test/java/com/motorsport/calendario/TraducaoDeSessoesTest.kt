@@ -46,4 +46,16 @@ class TraducaoDeSessoesTest {
         assertEquals("Treino Livre 1", TraducaoDeSessoes.paraPortugues("Treino Livre 1"))
         assertEquals("Corrida", TraducaoDeSessoes.paraPortugues("Corrida"))
     }
+
+    @Test
+    fun naoSubstituiPalavrasDentroDeOutrosNomes() {
+        assertEquals("Pre-Race Show", TraducaoDeSessoes.paraPortugues("Pre-Race Show"))
+        assertEquals("Race Control", TraducaoDeSessoes.paraPortugues("Race Control"))
+    }
+
+    @Test
+    fun reconheceVariacoesDeMaiusculasEMinusculas() {
+        assertEquals("Treino Livre 1", TraducaoDeSessoes.paraPortugues("FREE PRACTICE 1"))
+        assertEquals("Free Practice 1", t("TREINO LIVRE 1"))
+    }
 }
