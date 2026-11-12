@@ -10,7 +10,7 @@ package com.motorsport.calendario
  */
 internal object CalendarioJsonTemporada {
     private val temporadaNoJson =
-        Regex("\\\"temporada\\\"\\\\s*:\\\\s*\\\"?(\\\\d{4})(?:/(\\\\d{2,4}))?")
+        Regex("\"temporada\"\\s*:\\s*\"?(\\d{4})(?:/(\\d{2,4}))?")
 
     /**
      * Usa o ano final como referência para temporadas que atravessam dois anos:
