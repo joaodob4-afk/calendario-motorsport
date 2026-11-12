@@ -35,7 +35,7 @@ internal object Idioma {
             "formula e", "fórmula e" -> R.string.formula_e
             "indycar" -> R.string.nome_indycar
             "nascar cup series" -> R.string.nascar_cup
-            "nascar xfinity series" -> R.string.nascar_xfinity
+            "nascar xfinity series", "nascar o'reilly auto parts series" -> R.string.nascar_xfinity
             "nascar craftsman truck series" -> R.string.nascar_truck
             else -> null
         }
