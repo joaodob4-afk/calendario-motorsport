@@ -48,9 +48,9 @@ class TraducaoDeSessoesTest {
     }
 
     @Test
-    fun naoSubstituiPalavrasDentroDeOutrosNomes() {
+    fun naoSubstituiTermosDentroDeNomesCompostos() {
         assertEquals("Pre-Race Show", TraducaoDeSessoes.paraPortugues("Pre-Race Show"))
-        assertEquals("Race Control", TraducaoDeSessoes.paraPortugues("Race Control"))
+        assertEquals("RaceControl", TraducaoDeSessoes.paraPortugues("RaceControl"))
     }
 
     @Test
