@@ -4,13 +4,14 @@ package com.motorsport.calendario
  * Tradução dos nomes de sessões para os dois idiomas.
  *
  * Os calendários podem fornecer nomes em português ou em inglês, dependendo da categoria
- * e da fonte. Por isso, a tradução é bidirecional e acontece somente na apresentação:
- * a lógica e os dados originais permanecem intactos.
+ * e da fonte. A tradução acontece somente na apresentação; os dados originais permanecem
+ * intactos. O idioma de destino é decidido uma única vez por Idioma, conforme os recursos
+ * localizados pelo Android para o idioma do aparelho.
  */
 internal object TraducaoDeSessoes {
 
-    // Ordem importa: expressões mais longas vêm antes das palavras soltas.
-    private val trocas = listOf(
+    // Expressões compostas precisam vir antes dos termos genéricos.
+    private val paraIngles = listOf(
         "Classificação Sprint" to "Sprint Qualifying",
         "Corrida de Abertura" to "Opening Race",
         "Corrida Grid Invertido" to "Reverse Grid Race",
@@ -25,8 +26,7 @@ internal object TraducaoDeSessoes {
         "Treino" to "Practice"
     )
 
-    // Nomes adicionais encontrados em calendários internacionais.
-    private val nomesEmIngles = listOf(
+    private val paraPortugues = listOf(
         "Warm-up" to "Aquecimento",
         "Warm Up" to "Aquecimento",
         "Pit Stop Competition" to "Competição de Pit Stop",
@@ -43,11 +43,20 @@ internal object TraducaoDeSessoes {
         "Round" to "Rodada"
     )
 
-    fun paraIngles(nome: String): String =
-        trocas.fold(nome) { texto, (de, para) -> texto.replace(de, para) }
-
-    fun paraPortugues(nome: String): String =
-        nomesEmIngles.fold(nome) { texto, (de, para) ->
-            texto.replace(de, para, ignoreCase = true)
+    /**
+     * Substitui termos completos, sem alterar palavras maiores como "Pre-Race".
+     * A ordenação preserva expressões específicas antes dos nomes genéricos.
+     */
+    private fun substituir(nome: String, regras: List<Pair<String, String>>): String =
+        regras.fold(nome) { texto, (origem, destino) ->
+            val termo = Regex(
+                "(?<![\\p{L}\\p{N}-])${Regex.escape(origem)}(?![\\p{L}\\p{N}-])",
+                RegexOption.IGNORE_CASE
+            )
+            termo.replace(texto, destino)
         }
+
+    fun paraIngles(nome: String): String = substituir(nome, paraIngles)
+
+    fun paraPortugues(nome: String): String = substituir(nome, paraPortugues)
 }
