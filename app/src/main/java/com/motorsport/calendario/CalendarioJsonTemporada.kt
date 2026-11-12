@@ -9,14 +9,34 @@ package com.motorsport.calendario
  *   do APK, o JSON do APK (mais novo) vence até um novo download.
  */
 internal object CalendarioJsonTemporada {
-    private val anoNoJson = Regex("\"temporada\"\\s*:\\s*\"?(\\d{4})")
+    private val temporadaNoJson =
+        Regex("\\\"temporada\\\"\\\\s*:\\\\s*\\\"?(\\\\d{4})(?:/(\\\\d{2,4}))?")
+
+    /**
+     * Usa o ano final como referência para temporadas que atravessam dois anos:
+     * "2026/27" equivale a 2027 e "2027/28" equivale a 2028.
+     * Calendários anuais, como "2027", continuam equivalendo ao próprio ano.
+     */
+    private fun anoDaTemporada(json: String): Int? {
+        val grupos = temporadaNoJson.find(json)?.groupValues ?: return null
+        val anoInicial = grupos.getOrNull(1)?.toIntOrNull() ?: return null
+        val sufixo = grupos.getOrNull(2).orEmpty()
+        if (sufixo.isBlank()) return anoInicial
+
+        val anoFinal = if (sufixo.length == 2) {
+            (anoInicial / 100) * 100 + (sufixo.toIntOrNull() ?: return null)
+        } else {
+            sufixo.toIntOrNull() ?: return null
+        }
+        return if (anoFinal < anoInicial) anoFinal + 100 else anoFinal
+    }
 
     fun selecionar(cache: String?, asset: String?, cacheAnteriorAoApk: Boolean = false): String? {
         if (cache.isNullOrBlank()) return asset
         if (asset.isNullOrBlank()) return cache
 
-        val anoCache = anoNoJson.find(cache)?.groupValues?.get(1)?.toIntOrNull()
-        val anoAsset = anoNoJson.find(asset)?.groupValues?.get(1)?.toIntOrNull()
+        val anoCache = anoDaTemporada(cache)
+        val anoAsset = anoDaTemporada(asset)
 
         return when {
             anoCache == null -> asset
