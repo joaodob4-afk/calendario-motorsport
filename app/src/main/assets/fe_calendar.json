@@ -1,90 +1,90 @@
 {
   "indice_confirmado": true,
-  "temporada": "2026/27",
+  "temporada": "2027",
   "categoria": "Formula E",
   "etapas": [
     {
       "etapa": 1,
-      "circuito": "Jeddah",
-      "pais": "Arábia Saudita",
-      "inicio": "18/12/2026",
-      "fim": "19/12/2026",
-      "sessoes": [
-        {
-          "nome": "Corrida (Rodada 1)",
-          "data": "18/12/2026",
-          "horario": "A confirmar"
-        },
-        {
-          "nome": "Corrida (Rodada 2)",
-          "data": "19/12/2026",
-          "horario": "A confirmar"
-        }
-      ]
-    },
-    {
-      "etapa": 2,
       "circuito": "Cidade do México",
       "pais": "México",
       "inicio": "15/01/2027",
       "fim": "15/01/2027",
       "sessoes": [
         {
-          "nome": "Corrida (Rodada 3)",
+          "nome": "Corrida (Rodada 1)",
           "data": "15/01/2027",
           "horario": "A confirmar"
         }
       ]
     },
     {
-      "etapa": 3,
+      "etapa": 2,
       "circuito": "Austin",
       "pais": "Estados Unidos",
       "inicio": "06/02/2027",
       "fim": "06/02/2027",
       "sessoes": [
         {
-          "nome": "Corrida (Rodada 4)",
+          "nome": "Corrida (Rodada 2)",
           "data": "06/02/2027",
           "horario": "A confirmar"
         }
       ]
     },
     {
-      "etapa": 4,
+      "etapa": 3,
       "circuito": "Miami",
       "pais": "Estados Unidos",
       "inicio": "20/02/2027",
       "fim": "20/02/2027",
       "sessoes": [
         {
-          "nome": "Corrida (Rodada 5)",
+          "nome": "Corrida (Rodada 3)",
           "data": "20/02/2027",
           "horario": "A confirmar"
         }
       ]
     },
     {
-      "etapa": 5,
+      "etapa": 4,
       "circuito": "São Paulo",
       "pais": "Brasil",
       "inicio": "13/03/2027",
       "fim": "13/03/2027",
       "sessoes": [
         {
-          "nome": "Corrida (Rodada 6)",
+          "nome": "Corrida (Rodada 4)",
           "data": "13/03/2027",
           "horario": "A confirmar"
         }
       ]
     },
     {
-      "etapa": 6,
+      "etapa": 5,
       "circuito": "Sanya",
       "pais": "China",
-      "inicio": "17/04/2027",
+      "inicio": "03/04/2027",
+      "fim": "03/04/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida (Rodada 5)",
+          "data": "03/04/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 6,
+      "circuito": "Jeddah",
+      "pais": "Arábia Saudita",
+      "inicio": "16/04/2027",
       "fim": "17/04/2027",
       "sessoes": [
+        {
+          "nome": "Corrida (Rodada 6)",
+          "data": "16/04/2027",
+          "horario": "A confirmar"
+        },
         {
           "nome": "Corrida (Rodada 7)",
           "data": "17/04/2027",
