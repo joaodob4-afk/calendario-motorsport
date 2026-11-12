@@ -52,14 +52,17 @@ class AvisoReceiver : BroadcastReceiver() {
         // Android tenha atrasado o alarme em alguns segundos.
         val minutos = if (naHora) 0L else Math.round(restanteMs / 60_000.0)
 
-        // Linha 1: "F1 · GP da Austrália". Linha 2: "Classificação · Começa em 30 min".
+        // Linha 1: categoria localizada + nome oficial do evento.
         // Sem nome de evento conhecido, mostra o local (cidade/circuito), como antes.
         val eventoExibido = when {
             evento.isNotBlank() -> Idioma.evento(context, evento)
             local.isNotBlank() -> Idioma.lugar(context, local)
             else -> ""
         }
-        val titulo = listOf(categoria, eventoExibido).filter { it.isNotBlank() }.joinToString(" · ")
+        val categoriaExibida = Idioma.categoria(context, categoria)
+        val titulo = listOf(categoriaExibida, eventoExibido)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
         val texto = "${nomeParaExibir(context, nome)} · ${textoDeAntecedencia(context, minutos)}"
 
         Notificacoes.mostrar(context, codigo, titulo.ifBlank { nomeParaExibir(context, nome) }, texto)
