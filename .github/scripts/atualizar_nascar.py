@@ -1,6 +1,6 @@
 """Atualiza os calendários NASCAR usando os feeds oficiais por série.
 
-Cup possui endpoint próprio. Xfinity/O'Reilly e Truck compartilham o feed
+Cup possui endpoint próprio. O'Reilly e Truck compartilham o feed
 geral e são separados pelas chaves series_2 e series_3.
 """
 import sys
@@ -15,7 +15,7 @@ BASE = "https://cf.nascar.com/cacher"
 BRASILIA = ZoneInfo("America/Sao_Paulo")
 SERIES = {
     1: ("NASCAR Cup Series", "nascar_cup_calendar.json"),
-    2: ("NASCAR Xfinity Series", "nascar_xfinity_calendar.json"),
+    2: ("NASCAR O'Reilly Auto Parts Series", "nascar_xfinity_calendar.json"),
     3: ("NASCAR Craftsman Truck Series", "nascar_truck_calendar.json"),
 }
 PAISES_POR_PISTA = {
