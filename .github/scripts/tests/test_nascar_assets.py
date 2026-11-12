@@ -8,7 +8,7 @@ ASSETS = ROOT / "app" / "src" / "main" / "assets"
 
 CALENDARIOS = {
     "nascar_cup_calendar.json": "NASCAR Cup Series",
-    "nascar_xfinity_calendar.json": "NASCAR Xfinity Series",
+    "nascar_xfinity_calendar.json": "NASCAR O'Reilly Auto Parts Series",
     "nascar_truck_calendar.json": "NASCAR Craftsman Truck Series",
 }
 

@@ -85,10 +85,10 @@ internal object ColetorDeSessoes {
                     }
                 }
             } +
-            seguro("NASCAR Xfinity") {
+            seguro("NASCAR O'Reilly") {
                 NascarXfinityCalendarJson.carregar(context).flatMap { evento ->
                     evento.sessoes.mapNotNull {
-                        sessao("NASCAR Xfinity Series", evento.circuito, it.nome, it.data, it.horario, evento.nomeEvento.ifBlank { evento.circuito })
+                        sessao("NASCAR O'Reilly Auto Parts Series", evento.circuito, it.nome, it.data, it.horario, evento.nomeEvento.ifBlank { evento.circuito })
                     }
                 }
             } +

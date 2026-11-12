@@ -9,7 +9,7 @@ object NascarCupCalendarJson : CalendarioFormulaJunior(
 )
 
 object NascarXfinityCalendarJson : CalendarioFormulaJunior(
-    categoria = "NASCAR Xfinity Series",
+    categoria = "NASCAR O'Reilly Auto Parts Series",
     urlJson = "https://raw.githubusercontent.com/joaodob4-afk/calendario-motorsport/main/app/src/main/assets/nascar_xfinity_calendar.json",
     arquivoAsset = "nascar_xfinity_calendar.json",
     arquivoCache = "nascar_xfinity_calendar_cache.json"

@@ -16,6 +16,7 @@ class IdiomaTest {
         assertEquals(R.string.nome_indycar, Idioma.recursoCategoria("IndyCar"))
         assertEquals(R.string.nascar_cup, Idioma.recursoCategoria("NASCAR Cup Series"))
         assertEquals(R.string.nascar_xfinity, Idioma.recursoCategoria("NASCAR Xfinity Series"))
+        assertEquals(R.string.nascar_xfinity, Idioma.recursoCategoria("NASCAR O'Reilly Auto Parts Series"))
         assertEquals(R.string.nascar_truck, Idioma.recursoCategoria("NASCAR Craftsman Truck Series"))
     }
 
