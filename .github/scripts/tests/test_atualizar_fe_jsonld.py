@@ -215,7 +215,7 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
           <tr><td>Practice 1</td><td>Fri 15 Jan</td><td>16:15 – 17:00</td></tr>
         </table>
         """
-        with self.assertRaisesRegex(ValueError, "sem sessão de corrida"):
+        with self.assertRaisesRegex(ValueError, "Programação incompleta"):
             fe.extrair_sessoes_evento(html, 2027, "America/Mexico_City", 1)
 
 
