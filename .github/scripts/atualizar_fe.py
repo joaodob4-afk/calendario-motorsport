@@ -66,7 +66,7 @@ SLUGS_POR_CIDADE = {
     "Jeddah": "jeddah",
     "Monte Carlo": "monaco",
     "Berlim": "berlin",
-    "Brands Hatch": "london",
+    "Brands Hatch": "great-britain",
     "Zandvoort": "zandvoort",
     "Madrid": "madrid",
     "Xangai": "shanghai",
