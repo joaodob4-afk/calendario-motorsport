@@ -225,7 +225,7 @@ def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
         ano = datetime.strptime(proxima["inicio"], "%d/%m/%Y").year
         sessoes = extrair_sessoes_evento(html, ano, fuso, rodada)
         proxima["sessoes"] = sessoes
-        print(f"Sessões oficiais encontradas para {cidade}: {len(sessoes)}")
+        # O calendário-base pode trazer apenas o dia da corrida. A etapa precisa\n        # abranger também os dias de treinos e classificação publicados depois.\n        ultimo_dia = max(\n            datetime.strptime(sessao["data"], "%d/%m/%Y").date()\n            for sessao in sessoes\n        )\n        fim_atual = datetime.strptime(proxima["fim"], "%d/%m/%Y").date()\n        if ultimo_dia > fim_atual:\n            proxima["fim"] = fmt(ultimo_dia)\n        print(f"Sessões oficiais encontradas para {cidade}: {len(sessoes)}")
         for sessao in sessoes:
             print(f"  {sessao['data']} {sessao['horario']} - {sessao['nome']}")
         return True
