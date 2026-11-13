@@ -183,8 +183,8 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodada):
             "horario": instante.strftime("%H:%M"),
         })
 
-    if not sessoes:
-        raise ValueError("Tabela oficial de sessões não encontrada ou sem horários")
+    if not any(re.search(r"Rodada\\s+\\d+", s["nome"], re.I) for s in sessoes):
+        raise ValueError("Tabela oficial sem sessão de corrida")
     sessoes.sort(key=lambda sessao: (
         datetime.strptime(sessao["data"] + " " + sessao["horario"], "%d/%m/%Y %H:%M")
     ))
