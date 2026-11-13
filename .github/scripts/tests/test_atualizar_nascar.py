@@ -70,6 +70,20 @@ class AtualizarNascarTest(unittest.TestCase):
             ["Fresh From Florida 250", "North Carolina Education Lottery 200"]
         )
 
+    def test_nome_explicito_da_sessao_tem_prioridade_sobre_run_type_inconsistente(self):
+        etapas = [corrida("North Carolina Education Lottery 200", "Charlotte Motor Speedway", [
+            sessao("Practice", 3, "2026-05-22T23:00:00Z"),
+            sessao("Qualifying", 3, "2026-05-24T02:00:00Z"),
+            sessao("North Carolina Education Lottery 200", 3, "2026-05-24T14:00:00Z"),
+        ])]
+
+        dados = extrair_temporada(2026, 3, {"series_3": etapas})
+
+        self.assertEqual(
+            [item["nome"] for item in dados["etapas"][0]["sessoes"]],
+            ["Practice", "Qualifying", "Corrida"]
+        )
+
     def test_feed_sem_chave_da_serie_e_rejeitado(self):
         with self.assertRaises(ValueError):
             selecionar_corridas({"Series_2": self.xfinity}, 3)
