@@ -11,9 +11,24 @@
       "fim": "15/01/2027",
       "sessoes": [
         {
-          "nome": "Corrida (Rodada 1)",
+          "nome": "Treino Livre 1",
           "data": "15/01/2027",
-          "horario": "A confirmar"
+          "horario": "19:15"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "16/01/2027",
+          "horario": "10:30"
+        },
+        {
+          "nome": "Classificação",
+          "data": "16/01/2027",
+          "horario": "13:00"
+        },
+        {
+          "nome": "Corrida (Rodada 1)",
+          "data": "16/01/2027",
+          "horario": "18:05"
         }
       ]
     },
