@@ -196,6 +196,25 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
         corridas = [s["nome"] for s in sessoes if s["nome"].startswith("Corrida")]
         self.assertEqual(corridas, ["Corrida (Rodada 8)", "Corrida (Rodada 9)"])
 
+    def test_etapa_de_rodada_dupla_reconhece_eprix_unleashed(self):
+        html = """
+        <table>
+          <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+          <tr><td>Practice 1</td><td>Fri 30 Apr</td><td>09:00 – 09:45</td></tr>
+          <tr><td>Qualifying</td><td>Sat 01 May</td><td>10:00 – 11:00</td></tr>
+          <tr><td>E-Prix Unleashed</td><td>Sat 01 May</td><td>13:00 – 13:30</td></tr>
+          <tr><td>Race</td><td>Sun 02 May</td><td>15:00 – 16:00</td></tr>
+        </table>
+        """
+        sessoes = fe.extrair_sessoes_evento(
+            html, 2027, "Europe/Monaco", [8, 9]
+        )
+        corridas = [s["nome"] for s in sessoes if "Rodada" in s["nome"]]
+        self.assertEqual(
+            corridas,
+            ["E-Prix Unleashed (Rodada 8)", "Corrida (Rodada 9)"],
+        )
+
     def test_etapa_de_rodada_dupla_rejeita_programacao_com_uma_corrida(self):
         html = """
         <table>
