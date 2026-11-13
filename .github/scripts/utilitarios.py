@@ -60,8 +60,6 @@ def parse_utc(texto):
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
 
-
-
 def traduzir_sessoes_formula(subs):
     """Normaliza sessões F2/F3 e preserva a ordem cronológica da fonte."""
     import re
@@ -79,7 +77,7 @@ def traduzir_sessoes_formula(subs):
         if normalizado.startswith("practice"):
             traduzido = "Treino Livre"
         elif normalizado.startswith("qualifying"):
-            grupo = re.search(r"group\\s*([ab])", normalizado)
+            grupo = re.search(r"group\s*([ab])", normalizado)
             traduzido = "Classificação" + (
                 f" Grupo {grupo.group(1).upper()}" if grupo else ""
             )
