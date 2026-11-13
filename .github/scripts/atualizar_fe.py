@@ -7,8 +7,10 @@ A pagina traz so datas (sem horarios de sessao); as sessoes ficam como
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
+from html.parser import HTMLParser
 from pathlib import Path
+from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import baixar_texto as baixar, formatar_data as fmt, gravar_se_mudou  # noqa: E402
 
@@ -52,6 +54,185 @@ CIDADES = {
     "Tokyo": "Tóquio",
     "Berlin": "Berlim",
 }
+
+# Páginas oficiais de evento publicam a programação completa (horário local da pista).
+# O JSON do calendário geral continua sendo a fonte do índice e das datas.
+SLUGS_POR_CIDADE = {
+    "Cidade do México": "mexicocity",
+    "Austin": "austin",
+    "Miami": "miami",
+    "São Paulo": "saopaulo",
+    "Sanya": "sanya",
+    "Jeddah": "jeddah",
+    "Monte Carlo": "monaco",
+    "Berlim": "berlin",
+    "Brands Hatch": "london",
+    "Zandvoort": "zandvoort",
+    "Madrid": "madrid",
+    "Xangai": "shanghai",
+    "Tóquio": "tokyo",
+}
+
+FUSOS_POR_CIDADE = {
+    "Cidade do México": "America/Mexico_City",
+    "Austin": "America/Chicago",
+    "Miami": "America/New_York",
+    "São Paulo": "America/Sao_Paulo",
+    "Sanya": "Asia/Shanghai",
+    "Jeddah": "Asia/Riyadh",
+    "Monte Carlo": "Europe/Monaco",
+    "Berlim": "Europe/Berlin",
+    "Brands Hatch": "Europe/London",
+    "Zandvoort": "Europe/Amsterdam",
+    "Madrid": "Europe/Madrid",
+    "Xangai": "Asia/Shanghai",
+    "Tóquio": "Asia/Tokyo",
+}
+
+MESES = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+class _LeitorTabelas(HTMLParser):
+    """Extrai células de tabelas sem depender de classes CSS do site."""
+
+    def __init__(self):
+        super().__init__()
+        self.linhas = []
+        self.linha = None
+        self.celula = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "tr":
+            self.linha = []
+        elif tag in ("td", "th") and self.linha is not None:
+            self.celula = []
+
+    def handle_data(self, data):
+        if self.celula is not None:
+            self.celula.append(data)
+
+    def handle_endtag(self, tag):
+        if tag in ("td", "th") and self.celula is not None:
+            self.linha.append(" ".join(" ".join(self.celula).split()))
+            self.celula = None
+        elif tag == "tr" and self.linha is not None:
+            if self.linha:
+                self.linhas.append(self.linha)
+            self.linha = None
+
+
+def extrair_sessoes_evento(html, ano, fuso_local, rodada):
+    """Lê a tabela oficial Schedule e converte horário da pista para Brasília."""
+    leitor = _LeitorTabelas()
+    leitor.feed(html)
+    cabecalho = None
+    sessoes = []
+
+    for linha in leitor.linhas:
+        normalizada = [celula.casefold() for celula in linha]
+        if cabecalho is None:
+            if (
+                any("session" in celula for celula in normalizada)
+                and any("date" in celula for celula in normalizada)
+                and any("track time" in celula for celula in normalizada)
+            ):
+                cabecalho = True
+            continue
+
+        if len(linha) < 3:
+            continue
+
+        nome, texto_data, texto_hora = linha[0], linha[1], linha[2]
+        data_match = re.search(
+            r"\b(?:mon|tue|wed|thu|fri|sat|sun)\s+(\d{1,2})\s+([a-z]{3})\b",
+            texto_data,
+            flags=re.I,
+        )
+        hora_match = re.search(r"\b(\d{1,2}):(\d{2})\b", texto_hora)
+        if not data_match or not hora_match:
+            continue
+
+        mes = MESES.get(data_match.group(2).casefold())
+        if mes is None:
+            continue
+        data_local = date(ano, mes, int(data_match.group(1)))
+        hora_local = datetime.strptime(
+            f"{hora_match.group(1)}:{hora_match.group(2)}", "%H:%M"
+        ).time()
+        instante = datetime.combine(
+            data_local, hora_local, tzinfo=ZoneInfo(fuso_local)
+        ).astimezone(ZoneInfo("America/Sao_Paulo"))
+
+        nome_normalizado = nome.casefold()
+        if nome_normalizado in ("race", "e-prix"):
+            nome_exibicao = f"Corrida (Rodada {rodada})"
+        elif nome_normalizado.startswith("practice"):
+            sufixo = nome[len("Practice"):].strip()
+            nome_exibicao = "Treino Livre" + (f" {sufixo}" if sufixo else "")
+        elif nome_normalizado == "qualifying":
+            nome_exibicao = "Classificação"
+        else:
+            nome_exibicao = nome
+
+        sessoes.append({
+            "nome": nome_exibicao,
+            "data": fmt(instante.date()),
+            "horario": instante.strftime("%H:%M"),
+        })
+
+    if not any(re.search(r"Rodada\s+\d+", s["nome"], re.I) for s in sessoes):
+        raise ValueError("Tabela oficial sem sessão de corrida")
+    sessoes.sort(key=lambda sessao: (
+        datetime.strptime(sessao["data"] + " " + sessao["horario"], "%d/%m/%Y %H:%M")
+    ))
+    return sessoes
+
+
+def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
+    """Preenche as sessões do próximo evento quando a página oficial as publica."""
+    hoje = hoje or date.today()
+    proximas = [
+        etapa for etapa in etapas
+        if datetime.strptime(etapa["inicio"], "%d/%m/%Y").date() >= hoje
+    ]
+    if not proximas:
+        print("Não há próximo evento para consultar sessões.")
+        return False
+
+    proxima = min(proximas, key=lambda etapa: datetime.strptime(
+        etapa["inicio"], "%d/%m/%Y"
+    ).date())
+    cidade = proxima["circuito"]
+    slug = SLUGS_POR_CIDADE.get(cidade)
+    fuso = FUSOS_POR_CIDADE.get(cidade)
+    if not slug or not fuso:
+        print(f"Página/fuso do próximo evento ainda não mapeado: {cidade}")
+        return False
+
+    url = f"https://www.fiaformulae.com/en/{slug}"
+    try:
+        html = baixar_html(url)
+        corrida = next(
+            (s for s in proxima["sessoes"] if re.search(r"Rodada\s+\d+", s["nome"], re.I)),
+            None,
+        )
+        if corrida is None:
+            raise ValueError("Número da rodada não encontrado no calendário")
+        rodada = int(re.search(r"Rodada\s+(\d+)", corrida["nome"], re.I).group(1))
+        ano = datetime.strptime(proxima["inicio"], "%d/%m/%Y").year
+        sessoes = extrair_sessoes_evento(html, ano, fuso, rodada)
+        proxima["sessoes"] = sessoes
+        print(f"Sessões oficiais encontradas para {cidade}: {len(sessoes)}")
+        for sessao in sessoes:
+            print(f"  {sessao['data']} {sessao['horario']} - {sessao['nome']}")
+        return True
+    except Exception as erro:  # noqa: BLE001
+        print(f"Sessões do próximo evento ainda não disponíveis ({cidade}): {erro}")
+        return False
+
 
 
 def lista_do_calendario(html):
@@ -203,6 +384,7 @@ def main():
         return 1
 
     etapas = montar(agrupar_etapas(rodadas))
+    preencher_sessoes_proximo_evento(etapas)
     for e in etapas:
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
