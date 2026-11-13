@@ -269,7 +269,7 @@ class TodasEtapasFuturasTest(unittest.TestCase):
         )
         self.assertEqual(etapas[0]["sessoes"][-1]["horario"], "18:05")
         self.assertEqual(etapas[1]["sessoes"][-1]["nome"], "Corrida (Rodada 2)")
-        self.assertEqual(etapas[1]["sessoes"][-1]["horario"], "22:00")
+        self.assertEqual(etapas[1]["sessoes"][-1]["horario"], "18:00")
 
 
 if __name__ == "__main__":
