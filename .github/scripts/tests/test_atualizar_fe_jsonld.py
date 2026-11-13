@@ -237,6 +237,34 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Programação incompleta"):
             fe.extrair_sessoes_evento(html, 2027, "America/Mexico_City", 1)
 
+    def test_etapa_brands_hatch_usa_slug_oficial_great_britain(self):
+        etapa = {
+            "etapa": 9,
+            "circuito": "Brands Hatch",
+            "pais": "Reino Unido",
+            "inicio": "29/05/2027",
+            "fim": "29/05/2027",
+            "sessoes": [
+                {"nome": "Corrida (Rodada 12)", "data": "29/05/2027", "horario": "A confirmar"}
+            ],
+        }
+        urls = []
+
+        def baixar(url):
+            urls.append(url)
+            return """
+            <table>
+              <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+              <tr><td>Race</td><td>Sat 29 May</td><td>15:00 – 16:00</td></tr>
+            </table>
+            """
+
+        resultado = fe.preencher_sessoes_etapa(etapa, baixar_html=baixar)
+
+        self.assertTrue(resultado)
+        self.assertEqual(urls, ["https://www.fiaformulae.com/en/great-britain"])
+        self.assertEqual(etapa["sessoes"][0]["nome"], "Corrida (Rodada 12)")
+
 
 class TodasEtapasFuturasTest(unittest.TestCase):
     def test_consulta_todas_as_etapas_futuras_sem_parar_na_primeira(self):
