@@ -139,5 +139,58 @@ class DatasTest(unittest.TestCase):
         self.assertEqual(u.formatar_data(date(2026, 3, 6)), "06/03/2026")
 
 
+class SessoesFormulaCompartilhadasTest(unittest.TestCase):
+    def test_traduz_e_ordena_sessoes_f2_f3(self):
+        subs = [
+            {"name": "Qualifying Group B", "startDate": "2026-06-05T09:29:00Z"},
+            {"name": "Sprint Race", "startDate": "2026-06-06T08:45:00Z"},
+            {"name": "Practice", "startDate": "2026-06-04T11:25:00Z"},
+            {"name": "Qualifying Group A", "startDate": "2026-06-05T09:05:00Z"},
+            {"name": "Feature Race", "startDate": "2026-06-07T05:45:00Z"},
+        ]
+        resultado = u.traduzir_sessoes_formula(subs)
+        self.assertEqual(
+            [nome for nome, _ in resultado],
+            [
+                "Treino Livre",
+                "Classificação Grupo A",
+                "Classificação Grupo B",
+                "Corrida Sprint",
+                "Corrida Feature",
+            ],
+        )
+        self.assertEqual(resultado, sorted(resultado, key=lambda item: item[1]))
+
+    def test_corridas_race_sem_nome_explicito_preservam_regra_sprint_feature(self):
+        subs = [
+            {"name": "Race", "startDate": "2026-09-12T08:00:00Z"},
+            {"name": "Race", "startDate": "2026-09-13T08:00:00Z"},
+            {"name": "Race", "startDate": "2026-09-14T08:00:00Z"},
+        ]
+        self.assertEqual(
+            [nome for nome, _ in u.traduzir_sessoes_formula(subs)],
+            ["Corrida Sprint", "Corrida Feature 1", "Corrida Feature 2"],
+        )
+
+    def test_sessao_desconhecida_e_nome_repetido_sao_preservados(self):
+        subs = [
+            {"name": "Pit Lane Walk", "startDate": "2026-06-04T10:00:00Z"},
+            {"name": "Pit Lane Walk", "startDate": "2026-06-04T11:00:00Z"},
+        ]
+        self.assertEqual(
+            [nome for nome, _ in u.traduzir_sessoes_formula(subs)],
+            ["Pit Lane Walk 1", "Pit Lane Walk 2"],
+        )
+
+    def test_avisos_de_horario_nao_descartam_sessoes(self):
+        from datetime import datetime, timezone
+        instante = datetime(2026, 9, 25, 10, 0, tzinfo=timezone.utc)
+        avisos = u.avisos_de_horario(
+            "baku", [("Corrida Sprint", instante), ("Corrida Feature", instante)]
+        )
+        self.assertEqual(len(avisos), 1)
+        self.assertIn("mesmo horário de Brasília", avisos[0])
+
+
 if __name__ == "__main__":
     unittest.main()
