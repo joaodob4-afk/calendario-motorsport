@@ -219,5 +219,58 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
             fe.extrair_sessoes_evento(html, 2027, "America/Mexico_City", 1)
 
 
+class TodasEtapasFuturasTest(unittest.TestCase):
+    def test_consulta_todas_as_etapas_futuras_sem_parar_na_primeira(self):
+        etapas = [
+            {
+                "etapa": 1, "circuito": "Cidade do México", "pais": "México",
+                "inicio": "15/01/2027", "fim": "16/01/2027",
+                "sessoes": [
+                    {"nome": "Corrida (Rodada 1)", "data": "16/01/2027", "horario": "A confirmar"}
+                ],
+            },
+            {
+                "etapa": 2, "circuito": "Austin", "pais": "Estados Unidos",
+                "inicio": "06/02/2027", "fim": "06/02/2027",
+                "sessoes": [
+                    {"nome": "Corrida (Rodada 2)", "data": "06/02/2027", "horario": "A confirmar"}
+                ],
+            },
+        ]
+        html_austin = """
+        <table>
+          <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+          <tr><td>Practice 1</td><td>Sat 06 Feb</td><td>09:00 – 09:45</td></tr>
+          <tr><td>Qualifying</td><td>Sat 06 Feb</td><td>10:00 – 11:00</td></tr>
+          <tr><td>Race</td><td>Sat 06 Feb</td><td>15:00 – 16:00</td></tr>
+        </table>
+        """
+        urls = []
+
+        def baixar(url):
+            urls.append(url)
+            if url.endswith("/mexicocity"):
+                return SessoesOficiaisEventoTest.HTML_MEXICO
+            if url.endswith("/austin"):
+                return html_austin
+            raise AssertionError(f"URL inesperada: {url}")
+
+        resultado = fe.preencher_sessoes_eventos(
+            etapas, hoje=fe.date(2027, 1, 1), baixar_html=baixar
+        )
+
+        self.assertTrue(resultado)
+        self.assertEqual(
+            urls,
+            [
+                "https://www.fiaformulae.com/en/mexicocity",
+                "https://www.fiaformulae.com/en/austin",
+            ],
+        )
+        self.assertEqual(etapas[0]["sessoes"][-1]["horario"], "18:05")
+        self.assertEqual(etapas[1]["sessoes"][-1]["nome"], "Corrida (Rodada 2)")
+        self.assertEqual(etapas[1]["sessoes"][-1]["horario"], "22:00")
+
+
 if __name__ == "__main__":
     unittest.main()
