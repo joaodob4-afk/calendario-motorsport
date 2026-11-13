@@ -174,10 +174,16 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodadas):
         ).astimezone(ZoneInfo("America/Sao_Paulo"))
 
         nome_normalizado = nome.casefold()
-        if nome_normalizado in ("race", "e-prix"):
+        if (
+            nome_normalizado in ("race", "e-prix", "e-prix unleashed", "e-prixunleashed")
+        ):
             if corridas_encontradas >= len(rodadas):
                 raise ValueError("Programação contém mais corridas que rodadas no calendário")
-            nome_exibicao = f"Corrida (Rodada {rodadas[corridas_encontradas]})"
+            rodada = rodadas[corridas_encontradas]
+            if "unleashed" in nome_normalizado:
+                nome_exibicao = f"E-Prix Unleashed (Rodada {rodada})"
+            else:
+                nome_exibicao = f"Corrida (Rodada {rodada})"
             corridas_encontradas += 1
         elif nome_normalizado.startswith("practice"):
             sufixo = nome[len("Practice"):].strip()
@@ -204,8 +210,69 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodadas):
     return sessoes
 
 
+def preencher_sessoes_etapa(etapa, baixar_html=baixar):
+    """Atualiza as sessões de uma etapa usando sua página oficial."""
+    cidade = etapa["circuito"]
+    slug = SLUGS_POR_CIDADE.get(cidade)
+    fuso = FUSOS_POR_CIDADE.get(cidade)
+    if not slug or not fuso:
+        print(f"Página/fuso da etapa ainda não mapeado: {cidade}")
+        return False
+
+    url = f"https://www.fiaformulae.com/en/{slug}"
+    try:
+        html = baixar_html(url)
+        rodadas = [
+            int(match.group(1))
+            for sessao in etapa["sessoes"]
+            if (match := re.search(r"Rodada\s+(\d+)", sessao["nome"], re.I))
+        ]
+        if not rodadas:
+            raise ValueError("Número da rodada não encontrado no calendário")
+        ano = datetime.strptime(etapa["inicio"], "%d/%m/%Y").year
+        sessoes = extrair_sessoes_evento(html, ano, fuso, rodadas)
+        etapa["sessoes"] = sessoes
+
+        # A etapa deve abranger todos os dias publicados na programação oficial.
+        ultimo_dia = max(
+            datetime.strptime(sessao["data"], "%d/%m/%Y").date()
+            for sessao in sessoes
+        )
+        fim_atual = datetime.strptime(etapa["fim"], "%d/%m/%Y").date()
+        if ultimo_dia > fim_atual:
+            etapa["fim"] = fmt(ultimo_dia)
+
+        print(f"Sessões oficiais encontradas para {cidade}: {len(sessoes)}")
+        for sessao in sessoes:
+            print(f"  {sessao['data']} {sessao['horario']} - {sessao['nome']}")
+        return True
+    except Exception as erro:  # noqa: BLE001
+        print(f"Sessões de {cidade} ainda não disponíveis: {erro}")
+        return False
+
+
+def preencher_sessoes_eventos(etapas, hoje=None, baixar_html=baixar):
+    """Consulta todas as etapas futuras, sem parar quando uma ainda não tem horários."""
+    hoje = hoje or date.today()
+    futuras = [
+        etapa for etapa in etapas
+        if datetime.strptime(etapa["inicio"], "%d/%m/%Y").date() >= hoje
+    ]
+    if not futuras:
+        print("Não há eventos futuros para consultar sessões.")
+        return False
+
+    atualizadas = 0
+    for etapa in futuras:
+        if preencher_sessoes_etapa(etapa, baixar_html=baixar_html):
+            atualizadas += 1
+
+    print(f"Etapas com programação oficial atualizada: {atualizadas}/{len(futuras)}")
+    return atualizadas > 0
+
+
 def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
-    """Preenche as sessões do próximo evento quando a página oficial as publica."""
+    """Compatibilidade: atualiza somente a próxima etapa."""
     hoje = hoje or date.today()
     proximas = [
         etapa for etapa in etapas
@@ -215,45 +282,11 @@ def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
         print("Não há próximo evento para consultar sessões.")
         return False
 
-    proxima = min(proximas, key=lambda etapa: datetime.strptime(
-        etapa["inicio"], "%d/%m/%Y"
-    ).date())
-    cidade = proxima["circuito"]
-    slug = SLUGS_POR_CIDADE.get(cidade)
-    fuso = FUSOS_POR_CIDADE.get(cidade)
-    if not slug or not fuso:
-        print(f"Página/fuso do próximo evento ainda não mapeado: {cidade}")
-        return False
-
-    url = f"https://www.fiaformulae.com/en/{slug}"
-    try:
-        html = baixar_html(url)
-        rodadas = [
-            int(match.group(1))
-            for sessao in proxima["sessoes"]
-            if (match := re.search(r"Rodada\s+(\d+)", sessao["nome"], re.I))
-        ]
-        if not rodadas:
-            raise ValueError("Número da rodada não encontrado no calendário")
-        ano = datetime.strptime(proxima["inicio"], "%d/%m/%Y").year
-        sessoes = extrair_sessoes_evento(html, ano, fuso, rodadas)
-        proxima["sessoes"] = sessoes
-        # O calendário-base pode trazer apenas o dia da corrida. A etapa precisa
-        # abranger também os dias de treinos e classificação publicados depois.
-        ultimo_dia = max(
-            datetime.strptime(sessao["data"], "%d/%m/%Y").date()
-            for sessao in sessoes
-        )
-        fim_atual = datetime.strptime(proxima["fim"], "%d/%m/%Y").date()
-        if ultimo_dia > fim_atual:
-            proxima["fim"] = fmt(ultimo_dia)
-        print(f"Sessões oficiais encontradas para {cidade}: {len(sessoes)}")
-        for sessao in sessoes:
-            print(f"  {sessao['data']} {sessao['horario']} - {sessao['nome']}")
-        return True
-    except Exception as erro:  # noqa: BLE001
-        print(f"Sessões do próximo evento ainda não disponíveis ({cidade}): {erro}")
-        return False
+    proxima = min(
+        proximas,
+        key=lambda etapa: datetime.strptime(etapa["inicio"], "%d/%m/%Y").date(),
+    )
+    return preencher_sessoes_etapa(proxima, baixar_html=baixar_html)
 
 
 
@@ -406,7 +439,7 @@ def main():
         return 1
 
     etapas = montar(agrupar_etapas(rodadas))
-    preencher_sessoes_proximo_evento(etapas)
+    preencher_sessoes_eventos(etapas)
     for e in etapas:
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
