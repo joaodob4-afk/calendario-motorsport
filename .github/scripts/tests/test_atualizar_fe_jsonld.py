@@ -177,6 +177,37 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
         self.assertEqual(etapas[0]["fim"], "16/01/2027")
         self.assertEqual(etapas[1]["sessoes"][0]["horario"], "A confirmar")
 
+
+    def test_etapa_de_rodada_dupla_associa_cada_corrida_a_sua_rodada(self):
+        html = """
+        <table>
+          <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+          <tr><td>Practice 1</td><td>Fri 30 Apr</td><td>09:00 – 09:45</td></tr>
+          <tr><td>Qualifying</td><td>Sat 01 May</td><td>10:00 – 11:00</td></tr>
+          <tr><td>Race</td><td>Sat 01 May</td><td>15:00 – 16:00</td></tr>
+          <tr><td>Practice 2</td><td>Sun 02 May</td><td>09:00 – 09:45</td></tr>
+          <tr><td>Qualifying</td><td>Sun 02 May</td><td>10:00 – 11:00</td></tr>
+          <tr><td>Race</td><td>Sun 02 May</td><td>15:00 – 16:00</td></tr>
+        </table>
+        """
+        sessoes = fe.extrair_sessoes_evento(
+            html, 2027, "Europe/Monaco", [8, 9]
+        )
+        corridas = [s["nome"] for s in sessoes if s["nome"].startswith("Corrida")]
+        self.assertEqual(corridas, ["Corrida (Rodada 8)", "Corrida (Rodada 9)"])
+
+    def test_etapa_de_rodada_dupla_rejeita_programacao_com_uma_corrida(self):
+        html = """
+        <table>
+          <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+          <tr><td>Race</td><td>Sat 01 May</td><td>15:00 – 16:00</td></tr>
+        </table>
+        """
+        with self.assertRaisesRegex(ValueError, "Programação incompleta"):
+            fe.extrair_sessoes_evento(
+                html, 2027, "Europe/Monaco", [8, 9]
+            )
+
     def test_nao_substitui_placeholder_se_pagina_nao_tiver_corrida(self):
         html = """
         <table>
