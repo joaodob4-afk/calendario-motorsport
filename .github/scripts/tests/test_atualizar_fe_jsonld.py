@@ -109,5 +109,83 @@ class DescobertaItemListJsonLdTest(unittest.TestCase):
             fe.rotulo_temporada([])
 
 
+class SessoesOficiaisEventoTest(unittest.TestCase):
+    HTML_MEXICO = """
+    <html><body>
+      <h2>Schedule</h2>
+      <table>
+        <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+        <tr><td>Practice 1</td><td>Fri 15 Jan</td><td>16:15 – 17:00</td></tr>
+        <tr><td>Practice 2</td><td>Sat 16 Jan</td><td>07:30 – 08:15</td></tr>
+        <tr><td>Qualifying</td><td>Sat 16 Jan</td><td>10:00 – 11:10</td></tr>
+        <tr><td>Race</td><td>Sat 16 Jan</td><td>15:05 – 16:00</td></tr>
+      </table>
+    </body></html>
+    """
+
+    def test_extrai_sessoes_e_converte_horario_local_para_brasilia(self):
+        sessoes = fe.extrair_sessoes_evento(
+            self.HTML_MEXICO, 2027, "America/Mexico_City", 1
+        )
+
+        self.assertEqual(
+            sessoes,
+            [
+                {"nome": "Treino Livre 1", "data": "15/01/2027", "horario": "19:15"},
+                {"nome": "Treino Livre 2", "data": "16/01/2027", "horario": "10:30"},
+                {"nome": "Classificação", "data": "16/01/2027", "horario": "13:00"},
+                {"nome": "Corrida (Rodada 1)", "data": "16/01/2027", "horario": "18:05"},
+            ],
+        )
+
+    def test_preenche_sessoes_apenas_para_o_proximo_evento(self):
+        etapas = [
+            {
+                "etapa": 1,
+                "circuito": "Cidade do México",
+                "pais": "México",
+                "inicio": "15/01/2027",
+                "fim": "16/01/2027",
+                "sessoes": [
+                    {"nome": "Corrida (Rodada 1)", "data": "15/01/2027", "horario": "A confirmar"}
+                ],
+            },
+            {
+                "etapa": 2,
+                "circuito": "Austin",
+                "pais": "Estados Unidos",
+                "inicio": "06/02/2027",
+                "fim": "06/02/2027",
+                "sessoes": [
+                    {"nome": "Corrida (Rodada 2)", "data": "06/02/2027", "horario": "A confirmar"}
+                ],
+            },
+        ]
+        urls = []
+
+        def baixar(url):
+            urls.append(url)
+            return self.HTML_MEXICO
+
+        resultado = fe.preencher_sessoes_proximo_evento(
+            etapas, hoje=fe.date(2026, 11, 12), baixar_html=baixar
+        )
+
+        self.assertTrue(resultado)
+        self.assertEqual(urls, ["https://www.fiaformulae.com/en/mexicocity"])
+        self.assertEqual(len(etapas[0]["sessoes"]), 4)
+        self.assertEqual(etapas[1]["sessoes"][0]["horario"], "A confirmar")
+
+    def test_nao_substitui_placeholder_se_pagina_nao_tiver_corrida(self):
+        html = """
+        <table>
+          <tr><th>Session</th><th>Date</th><th>Track time</th></tr>
+          <tr><td>Practice 1</td><td>Fri 15 Jan</td><td>16:15 – 17:00</td></tr>
+        </table>
+        """
+        with self.assertRaisesRegex(ValueError, "sem sessão de corrida"):
+            fe.extrair_sessoes_evento(html, 2027, "America/Mexico_City", 1)
+
+
 if __name__ == "__main__":
     unittest.main()
