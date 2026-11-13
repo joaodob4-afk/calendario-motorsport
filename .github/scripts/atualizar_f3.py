@@ -12,7 +12,15 @@ from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_texto as baixar, gravar_se_mudou, localizar_evento_jsonld, obter_leitura_confirmada, parse_utc  # noqa: E402
+from utilitarios import (  # noqa: E402
+    avisos_de_horario,
+    baixar_texto as baixar,
+    gravar_se_mudou,
+    localizar_evento_jsonld,
+    obter_leitura_confirmada,
+    parse_utc,
+    traduzir_sessoes_formula as traduzir_sessoes,
+)
 
 BASE = "https://www.fiaformula3.com"
 # Ano atual primeiro; o anterior só serve de reserva no começo do ano, antes de o site publicar
@@ -162,75 +170,6 @@ def sub_eventos(html):
         percorrer(dados)
 
     return encontrados
-
-
-def traduzir_sessoes(subs):
-    """Retorna lista de (nome_pt, datetime_utc) em ordem cronologica."""
-    itens = []
-    for s in subs:
-        nome = (s.get("name") or "").split(" - ")[0].strip()
-        itens.append((nome, parse_utc(s["startDate"])))
-    itens.sort(key=lambda x: x[1])
-
-    corridas = [i for i, (n, _) in enumerate(itens) if n.lower() == "race"]
-    resultado = []
-    for idx, (nome, dt) in enumerate(itens):
-        baixo = nome.lower()
-        if baixo.startswith("practice"):
-            pt = "Treino Livre"
-        elif baixo.startswith("qualifying"):
-            g = re.search(r"group\s*([ab])", baixo)
-            pt = "Classificação" + (f" Grupo {g.group(1).upper()}" if g else "")
-        elif "sprint" in baixo:
-            pt = "Corrida Sprint"
-        elif "feature" in baixo:
-            pt = "Corrida Feature"
-        elif baixo == "race":
-            # Etapa normal: 2 corridas (Sprint, Feature). Etapa "supersized"
-            # (ex.: Baku 2026): Sprint + 2 Features. A 1a é sempre a Sprint.
-            if len(corridas) == 1:
-                pt = "Corrida Feature"
-            else:
-                pt = "Corrida Sprint" if corridas.index(idx) == 0 else "Corrida Feature"
-        else:
-            # Nome novo no site: mantém o texto original em vez de recusar a atualização.
-            print(f"AVISO: sessão desconhecida {nome!r}; mantendo o nome original")
-            pt = nome or "Sessão"
-        resultado.append((pt, dt))
-
-    # Nomes repetidos na mesma etapa ganham número (ex.: Feature 1 e 2).
-    total = {}
-    for pt, _ in resultado:
-        total[pt] = total.get(pt, 0) + 1
-    visto = {}
-    final = []
-    for pt, dt in resultado:
-        if total[pt] > 1:
-            visto[pt] = visto.get(pt, 0) + 1
-            pt = f"{pt} {visto[pt]}"
-        final.append((pt, dt))
-    return final
-
-
-
-def avisos_de_horario(slug, sessoes):
-    """Lista (sem recusar a atualização) sessões com o mesmo dia e horário em Brasília.
-
-    Não é um erro: o app apenas mostra as duas sessões. Serve de alerta no log.
-    """
-    vistos = {}
-    avisos = []
-    for nome, instante in sessoes:
-        local = instante.astimezone(BRASILIA)
-        chave = (local.strftime("%d/%m/%Y"), local.strftime("%H:%M"))
-        anterior = vistos.get(chave)
-        if anterior is not None:
-            avisos.append(
-                f"{slug}: {anterior!r} e {nome!r} aparecem no mesmo "
-                f"horário de Brasília ({chave[0]} {chave[1]})"
-            )
-        vistos[chave] = nome
-    return avisos
 
 
 def montar_etapa(slug, html):
