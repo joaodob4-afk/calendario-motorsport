@@ -225,7 +225,7 @@ def preencher_sessoes_etapa(etapa, baixar_html=baixar):
         rodadas = [
             int(match.group(1))
             for sessao in etapa["sessoes"]
-            if (match := re.search(r"Rodada\\s+(\\d+)", sessao["nome"], re.I))
+            if (match := re.search(r"Rodada\s+(\d+)", sessao["nome"], re.I))
         ]
         if not rodadas:
             raise ValueError("Número da rodada não encontrado no calendário")
