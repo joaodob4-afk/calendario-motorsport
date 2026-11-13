@@ -167,22 +167,22 @@
         {
           "nome": "Treino Livre",
           "data": "19/11/2026",
-          "horario": "A confirmar"
+          "horario": "23:00"
         },
         {
           "nome": "Classificação",
-          "data": "19/11/2026",
-          "horario": "A confirmar"
+          "data": "20/11/2026",
+          "horario": "02:30"
         },
         {
           "nome": "Corrida Grid Invertido",
           "data": "20/11/2026",
-          "horario": "A confirmar"
+          "horario": "23:15"
         },
         {
           "nome": "Corrida Feature",
           "data": "21/11/2026",
-          "horario": "A confirmar"
+          "horario": "21:20"
         }
       ]
     }
