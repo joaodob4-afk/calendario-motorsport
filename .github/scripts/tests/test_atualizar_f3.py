@@ -183,6 +183,39 @@ class AtualizadorF3SessoesTest(unittest.TestCase):
             [{"name": "Practice", "startDate": "2026-06-04T11:25:00Z"}],
         )
 
+    def test_extrai_sessoes_de_jsonld_aninhado_em_included_e_list(self):
+        html = '''<script type="application/ld+json">{
+          "@context":"https://schema.org",
+          "@included":[
+            {"@type":"Event","subEvent":{"@list":[
+              {"name":{"@value":"Practice"},"startDate":{"@value":"2026-06-04T11:25:00Z"}},
+              {"name":"Feature Race","startDate":"2026-06-07T05:45:00Z"}
+            ]}}
+          ]
+        }</script>'''
+        self.assertEqual(
+            f3.sub_eventos(html),
+            [
+                {"name": "Practice", "startDate": "2026-06-04T11:25:00Z"},
+                {"name": "Feature Race", "startDate": "2026-06-07T05:45:00Z"},
+            ],
+        )
+
+    def test_ignora_sessoes_invalidas_e_remove_duplicatas_jsonld(self):
+        html = '''<script type="application/ld+json">{"@graph":[
+          {"@type":"Event","subEvent":[
+            {"name":"Practice","startDate":"2026-06-04T11:25:00Z"},
+            {"name":"Practice","startDate":"2026-06-04T11:25:00Z"},
+            {"name":"Sem data"},
+            {"name":"Data inválida","startDate":"não é uma data"},
+            "referência sem objeto"
+          ]}
+        ]}</script>'''
+        self.assertEqual(
+            f3.sub_eventos(html),
+            [{"name": "Practice", "startDate": "2026-06-04T11:25:00Z"}],
+        )
+
     def test_ignora_jsonld_invalido_e_continua_procurando(self):
         html = '''<script type="application/ld+json">{inválido}</script>
         <script type="application/ld+json">{"subEvent":[
