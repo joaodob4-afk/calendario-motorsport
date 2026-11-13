@@ -57,8 +57,10 @@ class FormulaEActivity : AppCompatActivity() {
 
         montarTela()
 
-        // Baixa o calendário mais recente para a próxima abertura.
-        FormulaECalendarJson.atualizar(this)
+        // Exibe o cache/asset imediatamente e redesenha quando o download terminar.
+        FormulaECalendarJson.atualizar(this) {
+            carregarEvento()
+        }
 
         carregarEvento()
     }
