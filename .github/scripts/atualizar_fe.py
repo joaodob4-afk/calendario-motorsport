@@ -124,12 +124,19 @@ class _LeitorTabelas(HTMLParser):
             self.linha = None
 
 
-def extrair_sessoes_evento(html, ano, fuso_local, rodada):
-    """Lê a tabela oficial Schedule e converte horário da pista para Brasília."""
+def extrair_sessoes_evento(html, ano, fuso_local, rodadas):
+    """Lê a programação oficial e associa cada corrida à rodada correspondente."""
+    if isinstance(rodadas, int):
+        rodadas = [rodadas]
+    rodadas = list(rodadas)
+    if not rodadas:
+        raise ValueError("Nenhuma rodada informada para a programação")
+
     leitor = _LeitorTabelas()
     leitor.feed(html)
     cabecalho = None
     sessoes = []
+    corridas_encontradas = 0
 
     for linha in leitor.linhas:
         normalizada = [celula.casefold() for celula in linha]
@@ -168,7 +175,10 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodada):
 
         nome_normalizado = nome.casefold()
         if nome_normalizado in ("race", "e-prix"):
-            nome_exibicao = f"Corrida (Rodada {rodada})"
+            if corridas_encontradas >= len(rodadas):
+                raise ValueError("Programação contém mais corridas que rodadas no calendário")
+            nome_exibicao = f"Corrida (Rodada {rodadas[corridas_encontradas]})"
+            corridas_encontradas += 1
         elif nome_normalizado.startswith("practice"):
             sufixo = nome[len("Practice"):].strip()
             nome_exibicao = "Treino Livre" + (f" {sufixo}" if sufixo else "")
@@ -183,8 +193,11 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodada):
             "horario": instante.strftime("%H:%M"),
         })
 
-    if not any(re.search(r"Rodada\s+\d+", s["nome"], re.I) for s in sessoes):
-        raise ValueError("Tabela oficial sem sessão de corrida")
+    if corridas_encontradas != len(rodadas):
+        raise ValueError(
+            f"Programação incompleta: {corridas_encontradas} corrida(s) para "
+            f"{len(rodadas)} rodada(s)"
+        )
     sessoes.sort(key=lambda sessao: (
         datetime.strptime(sessao["data"] + " " + sessao["horario"], "%d/%m/%Y %H:%M")
     ))
@@ -215,15 +228,15 @@ def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
     url = f"https://www.fiaformulae.com/en/{slug}"
     try:
         html = baixar_html(url)
-        corrida = next(
-            (s for s in proxima["sessoes"] if re.search(r"Rodada\s+\d+", s["nome"], re.I)),
-            None,
-        )
-        if corrida is None:
+        rodadas = [
+            int(match.group(1))
+            for sessao in proxima["sessoes"]
+            if (match := re.search(r"Rodada\s+(\d+)", sessao["nome"], re.I))
+        ]
+        if not rodadas:
             raise ValueError("Número da rodada não encontrado no calendário")
-        rodada = int(re.search(r"Rodada\s+(\d+)", corrida["nome"], re.I).group(1))
         ano = datetime.strptime(proxima["inicio"], "%d/%m/%Y").year
-        sessoes = extrair_sessoes_evento(html, ano, fuso, rodada)
+        sessoes = extrair_sessoes_evento(html, ano, fuso, rodadas)
         proxima["sessoes"] = sessoes
         # O calendário-base pode trazer apenas o dia da corrida. A etapa precisa
         # abranger também os dias de treinos e classificação publicados depois.
