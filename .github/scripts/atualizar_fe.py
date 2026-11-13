@@ -174,10 +174,16 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodadas):
         ).astimezone(ZoneInfo("America/Sao_Paulo"))
 
         nome_normalizado = nome.casefold()
-        if nome_normalizado in ("race", "e-prix"):
+        if (
+            nome_normalizado in ("race", "e-prix", "e-prix unleashed", "e-prixunleashed")
+        ):
             if corridas_encontradas >= len(rodadas):
                 raise ValueError("Programação contém mais corridas que rodadas no calendário")
-            nome_exibicao = f"Corrida (Rodada {rodadas[corridas_encontradas]})"
+            rodada = rodadas[corridas_encontradas]
+            if "unleashed" in nome_normalizado:
+                nome_exibicao = f"E-Prix Unleashed (Rodada {rodada})"
+            else:
+                nome_exibicao = f"Corrida (Rodada {rodada})"
             corridas_encontradas += 1
         elif nome_normalizado.startswith("practice"):
             sufixo = nome[len("Practice"):].strip()
