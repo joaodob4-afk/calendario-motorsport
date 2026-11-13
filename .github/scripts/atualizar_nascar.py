@@ -46,11 +46,24 @@ def _chave_sessao(sessao):
 
 
 def nome_sessao(evento, tipo):
+    """Usa o nome explícito da sessão quando o feed o fornece.
+
+    Alguns fins de semana mantêm no campo schedule atividades como Practice e
+    Qualifying mesmo quando run_type vem inconsistente como 3. Só classifica
+    como Corrida quando o nome do run não identifica outra sessão.
+    """
+    nome = str(evento or "").strip()
+    normalizado = nome.casefold()
+
+    if normalizado.startswith(("practice", "treino", "warm-up", "warm up")):
+        return nome
+    if normalizado.startswith(("qualifying", "classificação", "classificacao")):
+        return nome
     if tipo == 3:
         return "Corrida"
     if tipo == 2:
-        return evento or "Classificação"
-    return evento or "Treino"
+        return nome or "Classificação"
+    return nome or "Treino"
 
 
 def selecionar_corridas(resposta, series_id):
