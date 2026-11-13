@@ -145,7 +145,7 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
                 "circuito": "Cidade do México",
                 "pais": "México",
                 "inicio": "15/01/2027",
-                "fim": "16/01/2027",
+                "fim": "15/01/2027",
                 "sessoes": [
                     {"nome": "Corrida (Rodada 1)", "data": "15/01/2027", "horario": "A confirmar"}
                 ],
@@ -174,6 +174,7 @@ class SessoesOficiaisEventoTest(unittest.TestCase):
         self.assertTrue(resultado)
         self.assertEqual(urls, ["https://www.fiaformulae.com/en/mexicocity"])
         self.assertEqual(len(etapas[0]["sessoes"]), 4)
+        self.assertEqual(etapas[0]["fim"], "16/01/2027")
         self.assertEqual(etapas[1]["sessoes"][0]["horario"], "A confirmar")
 
     def test_nao_substitui_placeholder_se_pagina_nao_tiver_corrida(self):
