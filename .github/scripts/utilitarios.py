@@ -60,6 +60,83 @@ def parse_utc(texto):
     return datetime.fromisoformat(texto.replace("Z", "+00:00"))
 
 
+
+
+def traduzir_sessoes_formula(subs):
+    """Normaliza sessões F2/F3 e preserva a ordem cronológica da fonte."""
+    import re
+
+    itens = []
+    for sessao in subs:
+        nome = (sessao.get("name") or "").split(" - ")[0].strip()
+        itens.append((nome, parse_utc(sessao["startDate"])))
+    itens.sort(key=lambda item: item[1])
+
+    corridas = [i for i, (nome, _) in enumerate(itens) if nome.lower() == "race"]
+    resultado = []
+    for indice, (nome, instante) in enumerate(itens):
+        normalizado = nome.lower()
+        if normalizado.startswith("practice"):
+            traduzido = "Treino Livre"
+        elif normalizado.startswith("qualifying"):
+            grupo = re.search(r"group\\s*([ab])", normalizado)
+            traduzido = "Classificação" + (
+                f" Grupo {grupo.group(1).upper()}" if grupo else ""
+            )
+        elif "sprint" in normalizado:
+            traduzido = "Corrida Sprint"
+        elif "feature" in normalizado:
+            traduzido = "Corrida Feature"
+        elif normalizado == "race":
+            # Em fins de semana normais, Race pode representar Sprint + Feature.
+            # Quando há uma única Race, ela representa a Feature.
+            if len(corridas) == 1:
+                traduzido = "Corrida Feature"
+            else:
+                traduzido = (
+                    "Corrida Sprint"
+                    if corridas.index(indice) == 0
+                    else "Corrida Feature"
+                )
+        else:
+            print(f"AVISO: sessão desconhecida {nome!r}; mantendo o nome original")
+            traduzido = nome or "Sessão"
+        resultado.append((traduzido, instante))
+
+    total = {}
+    for nome, _ in resultado:
+        total[nome] = total.get(nome, 0) + 1
+
+    vistos = {}
+    final = []
+    for nome, instante in resultado:
+        if total[nome] > 1:
+            vistos[nome] = vistos.get(nome, 0) + 1
+            nome = f"{nome} {vistos[nome]}"
+        final.append((nome, instante))
+    return final
+
+
+def avisos_de_horario(slug, sessoes):
+    """Lista sessões que compartilham dia e horário de Brasília, sem recusá-las."""
+    from zoneinfo import ZoneInfo
+
+    brasilia = ZoneInfo("America/Sao_Paulo")
+    vistos = {}
+    avisos = []
+    for nome, instante in sessoes:
+        local = instante.astimezone(brasilia)
+        chave = (local.strftime("%d/%m/%Y"), local.strftime("%H:%M"))
+        anterior = vistos.get(chave)
+        if anterior is not None:
+            avisos.append(
+                f"{slug}: {anterior!r} e {nome!r} aparecem no mesmo "
+                f"horário de Brasília ({chave[0]} {chave[1]})"
+            )
+        vistos[chave] = nome
+    return avisos
+
+
 def localizar_evento_jsonld(html):
     """Extrai nome e endereço da localização do evento principal em JSON-LD."""
     import re
