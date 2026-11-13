@@ -147,11 +147,11 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodada):
 
         nome, texto_data, texto_hora = linha[0], linha[1], linha[2]
         data_match = re.search(
-            r"\\b(?:mon|tue|wed|thu|fri|sat|sun)\\s+(\\d{1,2})\\s+([a-z]{3})\\b",
+            r"\b(?:mon|tue|wed|thu|fri|sat|sun)\s+(\d{1,2})\s+([a-z]{3})\b",
             texto_data,
             flags=re.I,
         )
-        hora_match = re.search(r"\\b(\\d{1,2}):(\\d{2})\\b", texto_hora)
+        hora_match = re.search(r"\b(\d{1,2}):(\d{2})\b", texto_hora)
         if not data_match or not hora_match:
             continue
 
@@ -183,7 +183,7 @@ def extrair_sessoes_evento(html, ano, fuso_local, rodada):
             "horario": instante.strftime("%H:%M"),
         })
 
-    if not any(re.search(r"Rodada\\s+\\d+", s["nome"], re.I) for s in sessoes):
+    if not any(re.search(r"Rodada\s+\d+", s["nome"], re.I) for s in sessoes):
         raise ValueError("Tabela oficial sem sessão de corrida")
     sessoes.sort(key=lambda sessao: (
         datetime.strptime(sessao["data"] + " " + sessao["horario"], "%d/%m/%Y %H:%M")
@@ -216,12 +216,12 @@ def preencher_sessoes_proximo_evento(etapas, hoje=None, baixar_html=baixar):
     try:
         html = baixar_html(url)
         corrida = next(
-            (s for s in proxima["sessoes"] if re.search(r"Rodada\\s+\\d+", s["nome"], re.I)),
+            (s for s in proxima["sessoes"] if re.search(r"Rodada\s+\d+", s["nome"], re.I)),
             None,
         )
         if corrida is None:
             raise ValueError("Número da rodada não encontrado no calendário")
-        rodada = int(re.search(r"Rodada\\s+(\\d+)", corrida["nome"], re.I).group(1))
+        rodada = int(re.search(r"Rodada\s+(\d+)", corrida["nome"], re.I).group(1))
         ano = datetime.strptime(proxima["inicio"], "%d/%m/%Y").year
         sessoes = extrair_sessoes_evento(html, ano, fuso, rodada)
         proxima["sessoes"] = sessoes
