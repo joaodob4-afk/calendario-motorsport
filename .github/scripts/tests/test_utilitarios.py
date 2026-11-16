@@ -231,5 +231,46 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
         self.assertEqual(novo["etapas"][0]["sessoes"], [])
 
 
+class PreservacaoF1Test(unittest.TestCase):
+    def test_preserva_sessao_por_circuito_e_ajusta_data_da_temporada(self):
+        anterior = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2025-07-06",
+            "time": "14:00:00Z",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2025-07-04", "time": "11:30:00Z"},
+        }]}}}
+        novo = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2026-07-05",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+        }]}}}
+
+        total = u.preservar_horarios_f1_temporada_anterior(novo, anterior)
+
+        corrida = novo["MRData"]["RaceTable"]["Races"][0]
+        self.assertEqual(total, 2)
+        self.assertEqual(corrida["time"], "14:00:00Z")
+        self.assertTrue(corrida["time_provisorio"])
+        self.assertEqual(corrida["FirstPractice"]["date"], "2026-07-03")
+        self.assertTrue(corrida["FirstPractice"]["provisorio"])
+
+    def test_horario_atual_da_f1_nao_e_substituido(self):
+        anterior = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2025-07-06",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2025-07-04", "time": "11:30:00Z"},
+        }]}}}
+        novo = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2026-07-05",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2026-07-03", "time": "12:00:00Z"},
+        }]}}}
+
+        self.assertEqual(u.preservar_horarios_f1_temporada_anterior(novo, anterior), 0)
+        self.assertEqual(
+            novo["MRData"]["RaceTable"]["Races"][0]["FirstPractice"]["time"],
+            "12:00:00Z",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
