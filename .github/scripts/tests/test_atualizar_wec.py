@@ -2,9 +2,11 @@
 import importlib.util
 import json
 import re
+import tempfile
 import unittest
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 RAIZ = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
@@ -296,6 +298,46 @@ class AtualizadorWecTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "WEC: 6-hours-of-barcelona-2026"):
             wec.coletar(baixar=baixar)
+
+
+    def test_main_preserva_sessoes_da_temporada_anterior(self):
+        anterior = {
+            "temporada": 2026,
+            "categoria": "WEC",
+            "etapas": [{
+                "etapa": 1,
+                "circuito": "Imola",
+                "pais": "Itália",
+                "inicio": "10/04/2026",
+                "fim": "12/04/2026",
+                "sessoes": [
+                    {"nome": "Treino Livre 1", "data": "10/04/2026", "horario": "08:30"}
+                ],
+            }],
+        }
+        etapas_atuais = [{
+            "circuito": "Imola",
+            "pais": "Itália",
+            "inicio": "09/04/2027",
+            "fim": "11/04/2027",
+            "sessoes": [],
+        }]
+
+        with tempfile.TemporaryDirectory() as pasta:
+            arquivo = Path(pasta) / "wec_calendar.json"
+            arquivo.write_text(json.dumps(anterior), encoding="utf-8")
+            with patch.object(wec, "ARQUIVO", arquivo), patch.object(
+                wec, "coletar", return_value={2027: etapas_atuais}
+            ):
+                wec.main()
+
+            salvo = json.loads(arquivo.read_text(encoding="utf-8"))
+
+        sessao = salvo["etapas"][0]["sessoes"][0]
+        self.assertEqual(sessao["nome"], "Treino Livre 1")
+        self.assertEqual(sessao["horario"], "08:30")
+        self.assertEqual(sessao["data"], "09/04/2027")
+        self.assertTrue(sessao["provisorio"])
 
 
 class CalendarioWecEmbutidoTest(unittest.TestCase):
