@@ -139,5 +139,161 @@ class DatasTest(unittest.TestCase):
         self.assertEqual(u.formatar_data(date(2026, 3, 6)), "06/03/2026")
 
 
+class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
+    def test_copia_sessoes_ausentes_e_marca_como_provisorias(self):
+        anterior = {
+            "temporada": 2025,
+            "etapas": [{
+                "nome": "British Grand Prix",
+                "circuito": "Silverstone",
+                "pais": "Reino Unido",
+                "inicio": "04/07/2025",
+                "sessoes": [
+                    {"nome": "Treino Livre 1", "data": "04/07/2025", "horario": "11:30"},
+                    {"nome": "Classificação", "data": "05/07/2025", "horario": "15:00"},
+                ],
+            }],
+        }
+        novo = {
+            "temporada": 2026,
+            "etapas": [{
+                "nome": "British Grand Prix",
+                "circuito": "Silverstone",
+                "pais": "Reino Unido",
+                "inicio": "03/07/2026",
+                "sessoes": [],
+            }],
+        }
+
+        total = u.preservar_sessoes_temporada_anterior(novo, anterior)
+
+        self.assertEqual(total, 2)
+        self.assertEqual(
+            novo["etapas"][0]["sessoes"],
+            [
+                {"nome": "Treino Livre 1", "data": "03/07/2026", "horario": "11:30", "provisorio": True},
+                {"nome": "Classificação", "data": "04/07/2026", "horario": "15:00", "provisorio": True},
+            ],
+        )
+
+    def test_horario_oficial_atual_tem_prioridade_sobre_o_anterior(self):
+        anterior = {
+            "temporada": 2025,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido", "inicio": "04/07/2025",
+                "sessoes": [{"nome": "Corrida", "data": "06/07/2025", "horario": "14:00"}],
+            }]
+        }
+        novo = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido", "inicio": "05/07/2026",
+                "sessoes": [{"nome": "Corrida", "data": "05/07/2026", "horario": "15:00"}],
+            }]
+        }
+
+        total = u.preservar_sessoes_temporada_anterior(novo, anterior)
+
+        self.assertEqual(total, 0)
+        self.assertEqual(novo["etapas"][0]["sessoes"][0]["horario"], "15:00")
+        self.assertNotIn("provisorio", novo["etapas"][0]["sessoes"][0])
+
+    def test_nao_reutiliza_sessoes_que_ja_eram_provisorias(self):
+        anterior = {
+            "temporada": 2025,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido",
+                "sessoes": [{"nome": "Corrida", "data": "06/07/2025", "horario": "14:00", "provisorio": True}],
+            }]
+        }
+        novo = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido", "sessoes": [],
+            }]
+        }
+
+        self.assertEqual(u.preservar_sessoes_temporada_anterior(novo, anterior), 0)
+        self.assertEqual(novo["etapas"][0]["sessoes"], [])
+
+
+    def test_nao_reutiliza_sessoes_da_mesma_temporada_quando_fonte_removeu_sessao(self):
+        calendario = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido",
+                "sessoes": [{"nome": "Treino Livre", "data": "03/07/2026", "horario": "11:30"}],
+            }],
+        }
+        novo = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido", "sessoes": [],
+            }],
+        }
+
+        self.assertEqual(u.preservar_sessoes_temporada_anterior(novo, calendario), 0)
+        self.assertEqual(novo["etapas"][0]["sessoes"], [])
+
+    def test_nao_associa_duas_etapas_ambiguas_no_mesmo_circuito(self):
+        anterior = {
+            "etapas": [
+                {"nome": "Race 1", "circuito": "Milwaukee Mile", "pais": "Estados Unidos",
+                 "sessoes": [{"nome": "Corrida", "data": "28/08/2025", "horario": "14:00"}]},
+                {"nome": "Race 2", "circuito": "Milwaukee Mile", "pais": "Estados Unidos",
+                 "sessoes": [{"nome": "Corrida", "data": "29/08/2025", "horario": "15:00"}]},
+            ]
+        }
+        novo = {
+            "etapas": [{
+                "circuito": "Milwaukee Mile", "pais": "Estados Unidos", "sessoes": [],
+            }]
+        }
+
+        self.assertEqual(u.preservar_sessoes_temporada_anterior(novo, anterior), 0)
+        self.assertEqual(novo["etapas"][0]["sessoes"], [])
+
+
+class PreservacaoF1Test(unittest.TestCase):
+    def test_preserva_sessao_por_circuito_e_ajusta_data_da_temporada(self):
+        anterior = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2025-07-06",
+            "time": "14:00:00Z",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2025-07-04", "time": "11:30:00Z"},
+        }]}}}
+        novo = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2026-07-05",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+        }]}}}
+
+        total = u.preservar_horarios_f1_temporada_anterior(novo, anterior)
+
+        corrida = novo["MRData"]["RaceTable"]["Races"][0]
+        self.assertEqual(total, 2)
+        self.assertEqual(corrida["time"], "14:00:00Z")
+        self.assertTrue(corrida["time_provisorio"])
+        self.assertEqual(corrida["FirstPractice"]["date"], "2026-07-03")
+        self.assertTrue(corrida["FirstPractice"]["provisorio"])
+
+    def test_horario_atual_da_f1_nao_e_substituido(self):
+        anterior = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2025-07-06",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2025-07-04", "time": "11:30:00Z"},
+        }]}}}
+        novo = {"MRData": {"RaceTable": {"Races": [{
+            "date": "2026-07-05",
+            "Circuit": {"circuitId": "silverstone", "circuitName": "Silverstone", "Location": {"country": "UK"}},
+            "FirstPractice": {"date": "2026-07-03", "time": "12:00:00Z"},
+        }]}}}
+
+        self.assertEqual(u.preservar_horarios_f1_temporada_anterior(novo, anterior), 0)
+        self.assertEqual(
+            novo["MRData"]["RaceTable"]["Races"][0]["FirstPractice"]["time"],
+            "12:00:00Z",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
