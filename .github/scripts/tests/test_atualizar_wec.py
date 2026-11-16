@@ -113,6 +113,25 @@ class AtualizadorWecTest(unittest.TestCase):
             ],
         )
 
+    def test_nao_confia_no_horario_jsonld_quando_site_mostra_tbc(self):
+        html = pagina(
+            "24 Hours of Le Mans",
+            "From 6 to 13 June 2027",
+            "WEC 24 Hours of Le Mans 2027",
+            [
+                ("Free Practice 1 - 24 Hours of Le Mans", "2027-06-06T07:00:00+02:00"),
+                ("Race - 24 Hours of Le Mans", "2027-06-12T07:00:00+02:00"),
+            ],
+        ).replace("</body>", "<p>June 6th Free Practice 1 TBC</p><p>June 12th Race 04:00 PM</p></body>")
+
+        etapa = wec.ler_etapa("24-hours-of-le-mans-2027", html)
+        sessoes = {s["nome"]: s for s in etapa["sessoes"]}
+
+        self.assertEqual(sessoes["Treino Livre 1"]["horario"], "A confirmar")
+        self.assertEqual(sessoes["Treino Livre 1"]["data"], "06/06/2027")
+        self.assertEqual(sessoes["Corrida"]["horario"], "11:00")
+        self.assertEqual(sessoes["Corrida"]["data"], "12/06/2027")
+
     def test_periodo_vem_do_texto_logo_depois_do_titulo(self):
         etapa = wec.ler_etapa("6-hours-of-barcelona-2026", HTML_BARCELONA)
 
