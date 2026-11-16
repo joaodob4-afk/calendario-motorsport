@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_texto, formatar_data as fmt, gravar_se_mudou, obter_leitura_confirmada  # noqa: E402
+from utilitarios import (baixar_texto, formatar_data as fmt, gravar_se_mudou, ler_existente, obter_leitura_confirmada, preservar_sessoes_temporada_anterior)  # noqa: E402
 
 
 def baixar(url):
@@ -380,6 +380,8 @@ def main():
 
     ano = next(iter(cartoes.values()))["ano"]
     novo = {"indice_confirmado": True, "temporada": ano, "categoria": "IndyCar", "etapas": saida}
+    preservadas = preservar_sessoes_temporada_anterior(novo, ler_existente(SAIDA) or {})
+    print(f"Sessões provisórias recuperadas da temporada anterior: {preservadas}")
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
