@@ -13,7 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_json,
     gravar_se_mudou,
+    ler_existente,
     obter_leitura_confirmada,
+    preservar_horarios_f1_temporada_anterior,
 )
 
 URL = "https://api.jolpi.ca/f1/alpha/schedules/{ano}/"
@@ -188,6 +190,8 @@ def main():
         return 1
 
     print("Corridas:", len(_corridas(novo)), "| sessões:", _total_de_sessoes(novo))
+    preservados = preservar_horarios_f1_temporada_anterior(novo, ler_existente(SAIDA) or {})
+    print(f"Horários provisórios recuperados da temporada anterior: {preservados}")
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
