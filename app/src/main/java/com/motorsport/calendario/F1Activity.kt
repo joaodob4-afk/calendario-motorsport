@@ -679,139 +679,15 @@ class F1Activity : AppCompatActivity() {
 
     private fun adicionarGrupoDia(data: LocalDate) {
         val titulo = data.format(
-            DateTimeFormatter.ofPattern(
-                getString(R.string.formato_dia_semana),
-                idioma
-            )
+            DateTimeFormatter.ofPattern(getString(R.string.formato_dia_semana), idioma)
         ).uppercase(idioma)
-
-        val linha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val marcador = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        linha.addView(
-            marcador,
-            LinearLayout.LayoutParams(dp(3), dp(20)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val texto = TextView(this).apply {
-            text = titulo
-            textSize = 12f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-medium",
-                Typeface.BOLD
-            )
-        }
-
-        linha.addView(
-            texto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        conteudo.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(7)
-                bottomMargin = dp(9)
-            }
-        )
+        estilo.grupoDia(conteudo, titulo)
     }
-
     private fun adicionarSessao(sessao: Sessao) {
-        val cartao = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-
-            background = GradientDrawable().apply {
-                cornerRadius = dp(12).toFloat()
-
-                setColor(
-                    if (sessao.corrida) {
-                        fundoCorrida
-                    } else {
-                        fundoCard
-                    }
-                )
-
-                setStroke(
-                    dp(if (sessao.corrida) 2 else 1),
-                    if (sessao.corrida) verde else verdeEscuro
-                )
-            }
-        }
-
-        val nome = TextView(this).apply {
-            text = sessao.nome
-            textSize = 12f
-            setTextColor(if (sessao.corrida) verde else branco)
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            letterSpacing = 0.02f
-        }
-
-        cartao.addView(
-            nome,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        val horarioTexto = sessao.horario
-            ?.let { Hora.deZonedDateTime(this, it) }
-            ?: "--:--"
-
-        val horario = TextView(this).apply {
-            text = horarioTexto
-            textSize = 14f
-            setTextColor(if (sessao.corrida) verde else branco)
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            gravity = Gravity.END
-        }
-
-        cartao.addView(
-            horario,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                leftMargin = dp(10)
-            }
-        )
-
-        conteudo.addView(
-            cartao,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
-        )
+        val horario = sessao.horario?.let { Hora.deZonedDateTime(this, it) }
+            ?: getString(R.string.a_confirmar)
+        estilo.sessao(conteudo, sessao.nome, horario, sessao.corrida)
     }
-
     private fun adicionarTexto(
         texto: String,
         tamanho: Float,
