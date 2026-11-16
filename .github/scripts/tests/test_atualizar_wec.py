@@ -394,7 +394,7 @@ class CalendarioWecEmbutidoTest(unittest.TestCase):
                 with self.subTest(etapa=e["etapa"], sessao=s["nome"]):
                     self.assertTrue(s["nome"].strip())
                     self.assertEqual(s["nome"], s["nome"].strip())
-                    self.assertRegex(s["horario"], r"^\d{2}:\d{2}$")
+                    self.assertRegex(s["horario"], r"^(?:\d{2}:\d{2}|A confirmar)$")
                     dia = datetime.strptime(s["data"], "%d/%m/%Y")
                     self.assertTrue(inicio - timedelta(days=2) <= dia <= fim + timedelta(days=2))
 
