@@ -198,6 +198,8 @@ def preservar_sessoes_temporada_anterior(novo, anterior):
     etapas_antigas = anterior.get("etapas") if isinstance(anterior, dict) else None
     if not isinstance(etapas_novas, list) or not isinstance(etapas_antigas, list):
         return 0
+    if str(novo.get("temporada", "")) == str(anterior.get("temporada", "")):
+        return 0
 
     antigas_por_identidade = {}
     antigas_por_circuito = {}
@@ -304,6 +306,11 @@ def preservar_horarios_f1_temporada_anterior(novo, anterior):
             .get("Races", [])
             if isinstance(dados, dict) else []
         )
+
+    temporada_nova = str((novo.get("MRData", {}).get("RaceTable", {}) or {}).get("season", ""))
+    temporada_antiga = str((anterior.get("MRData", {}).get("RaceTable", {}) or {}).get("season", ""))
+    if temporada_nova and temporada_nova == temporada_antiga:
+        return 0
 
     def identidade(corrida):
         circuito = corrida.get("Circuit") or {}
