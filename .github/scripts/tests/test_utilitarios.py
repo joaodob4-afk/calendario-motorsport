@@ -237,6 +237,7 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
 
     def test_nao_associa_duas_etapas_ambiguas_no_mesmo_circuito(self):
         anterior = {
+            "temporada": 2025,
             "etapas": [
                 {"nome": "Race 1", "circuito": "Milwaukee Mile", "pais": "Estados Unidos",
                  "sessoes": [{"nome": "Corrida", "data": "28/08/2025", "horario": "14:00"}]},
@@ -245,6 +246,7 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
             ]
         }
         novo = {
+            "temporada": 2026,
             "etapas": [{
                 "circuito": "Milwaukee Mile", "pais": "Estados Unidos", "sessoes": [],
             }]
