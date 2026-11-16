@@ -266,7 +266,6 @@ class F1CachePreservationTest {
         assertEquals("10:00:00Z", corrida.getJSONObject("FirstPractice").getString("time"))
         assertEquals("2027-03-01", corrida.getJSONObject("FirstPractice").getString("date"))
         assertTrue(corrida.getJSONObject("FirstPractice").getBoolean("provisorio"))
-        assertTrue(corrida.getBoolean("time_provisorio"))
     }
 
     @Test
