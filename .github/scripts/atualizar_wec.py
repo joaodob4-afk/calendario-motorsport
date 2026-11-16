@@ -283,7 +283,7 @@ def ler_etapa(caminho, html):
     sessoes_locais = sessoes_do_evento(evento, html) if evento else []
     periodo = periodo_da_pagina(html)
 
-    dias = [m.date() for m, _ in sessoes_locais]
+    dias = [m.date() for m, _ in sessoes_locais if m is not None]
     if periodo:
         inicio, fim = periodo
         if dias:
