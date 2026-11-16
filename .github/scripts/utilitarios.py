@@ -290,3 +290,84 @@ def preservar_sessoes_temporada_anterior(novo, anterior):
             atualizadas += 1
 
     return atualizadas
+
+
+def preservar_horarios_f1_temporada_anterior(novo, anterior):
+    """Preserva horários de sessões da F1 por circuito quando a API ainda não os publicou."""
+    from copy import deepcopy
+    from datetime import date
+
+    def corridas(dados):
+        return (
+            dados.get("MRData", {})
+            .get("RaceTable", {})
+            .get("Races", [])
+            if isinstance(dados, dict) else []
+        )
+
+    def identidade(corrida):
+        circuito = corrida.get("Circuit") or {}
+        local = circuito.get("Location") or {}
+        return (
+            _chave_texto(circuito.get("circuitId")),
+            _chave_texto(circuito.get("circuitName")),
+            _chave_texto(local.get("country")),
+        )
+
+    antigas_por_id = {}
+    antigas_por_nome = {}
+    for corrida in corridas(anterior):
+        circuito_id, circuito_nome, pais = identidade(corrida)
+        if not pais or not (circuito_id or circuito_nome):
+            continue
+        antigas_por_id.setdefault((circuito_id, pais), []).append(corrida)
+        antigas_por_nome.setdefault((circuito_nome, pais), []).append(corrida)
+
+    atualizadas = 0
+    for corrida in corridas(novo):
+        circuito_id, circuito_nome, pais = identidade(corrida)
+        candidatas = antigas_por_id.get((circuito_id, pais), []) if circuito_id else []
+        if len(candidatas) != 1:
+            candidatas = antigas_por_nome.get((circuito_nome, pais), []) if circuito_nome else []
+        if len(candidatas) != 1:
+            continue
+        antiga = candidatas[0]
+
+        try:
+            deslocamento = (
+                date.fromisoformat(corrida["date"]) - date.fromisoformat(antiga["date"])
+            )
+        except (KeyError, TypeError, ValueError):
+            deslocamento = None
+
+        for campo in ("time", "FirstPractice", "SecondPractice", "ThirdPractice",
+                      "Qualifying", "SprintQualifying", "SprintShootout", "Sprint"):
+            valor_antigo = antiga.get(campo)
+            if campo == "time":
+                if corrida.get(campo):
+                    continue
+                if not valor_antigo:
+                    continue
+                corrida[campo] = valor_antigo
+                corrida["time_provisorio"] = True
+                atualizadas += 1
+                continue
+
+            if not isinstance(valor_antigo, dict) or valor_antigo.get("provisorio"):
+                continue
+            valor_atual = corrida.get(campo)
+            if isinstance(valor_atual, dict) and valor_atual.get("time"):
+                continue
+            copia = deepcopy(valor_antigo)
+            if deslocamento and copia.get("date"):
+                try:
+                    copia["date"] = (
+                        date.fromisoformat(copia["date"]) + deslocamento
+                    ).isoformat()
+                except ValueError:
+                    pass
+            copia["provisorio"] = True
+            corrida[campo] = copia
+            atualizadas += 1
+
+    return atualizadas
