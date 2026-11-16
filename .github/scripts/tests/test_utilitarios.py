@@ -212,6 +212,25 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
         self.assertEqual(u.preservar_sessoes_temporada_anterior(novo, anterior), 0)
         self.assertEqual(novo["etapas"][0]["sessoes"], [])
 
+
+    def test_nao_reutiliza_sessoes_da_mesma_temporada_quando_fonte_removeu_sessao(self):
+        calendario = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido",
+                "sessoes": [{"nome": "Treino Livre", "data": "03/07/2026", "horario": "11:30"}],
+            }],
+        }
+        novo = {
+            "temporada": 2026,
+            "etapas": [{
+                "circuito": "Silverstone", "pais": "Reino Unido", "sessoes": [],
+            }],
+        }
+
+        self.assertEqual(u.preservar_sessoes_temporada_anterior(novo, calendario), 0)
+        self.assertEqual(novo["etapas"][0]["sessoes"], [])
+
     def test_nao_associa_duas_etapas_ambiguas_no_mesmo_circuito(self):
         anterior = {
             "etapas": [
