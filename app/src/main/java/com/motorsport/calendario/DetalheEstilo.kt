@@ -227,6 +227,107 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         return card
     }
 
+    /**
+     * Cabeçalho de um dia da programação, compartilhado por todas as categorias.
+     * O texto (dia da semana ou data completa) continua sendo definido pela categoria.
+     */
+    fun grupoDia(destino: LinearLayout, titulo: String) {
+        val linha = LinearLayout(tela).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        linha.addView(
+            View(tela).apply { setBackgroundColor(corDeDestaque) },
+            LinearLayout.LayoutParams(dp(3f), dp(20f)).apply {
+                marginEnd = dp(9f)
+            }
+        )
+
+        linha.addView(
+            TextView(tela).apply {
+                text = titulo
+                textSize = 12f
+                setTextColor(textoPrincipal)
+                typeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+            },
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        destino.addView(
+            linha,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(7f)
+                bottomMargin = dp(9f)
+            }
+        )
+    }
+
+    /**
+     * Cartão de sessão padronizado. A categoria continua responsável por traduzir
+     * o nome, formatar o horário e decidir qual sessão recebe destaque.
+     */
+    fun sessao(
+        destino: LinearLayout,
+        nome: String,
+        horario: String,
+        destaque: Boolean
+    ) {
+        val cartao = LinearLayout(tela).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(14f), dp(14f), dp(14f), dp(14f))
+            background = GradientDrawable().apply {
+                cornerRadius = dp(12f).toFloat()
+                setColor(if (destaque) fundoCorrida else superficie)
+                setStroke(
+                    dp(if (destaque) 2f else 1f),
+                    if (destaque) corDeDestaque else borda
+                )
+            }
+        }
+
+        cartao.addView(
+            TextView(tela).apply {
+                text = nome
+                textSize = 12f
+                setTextColor(if (destaque) corDeDestaque else textoPrincipal)
+                typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                letterSpacing = 0.02f
+            },
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        cartao.addView(
+            TextView(tela).apply {
+                text = horario
+                textSize = 14f
+                setTextColor(if (destaque) corDeDestaque else textoPrincipal)
+                typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                gravity = Gravity.END
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = dp(10f)
+            }
+        )
+
+        destino.addView(
+            cartao,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = dp(8f)
+            }
+        )
+    }
+
     /** Texto do selo do cartão: HOJE, AMANHÃ, "N DIAS", EM ANDAMENTO ou FINALIZADA. */
     fun contador(inicio: LocalDate?, fim: LocalDate?): String {
         if (inicio == null) return tela.getString(R.string.status_agendada)
