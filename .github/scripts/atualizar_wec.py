@@ -182,7 +182,8 @@ def horario_publicado(html, nome_sessao, evento_curto, momento):
         valor = encontrado.group(1).strip()
         if valor.upper() in ("TBC", "TBA"):
             return None
-        hora = datetime.strptime(valor.upper().replace(" ", ""), "%I:%M%p" if re.search(r"[AP]M$", valor, re.I) else "%H:%M").time()
+        formato = "%I:%M%p" if re.search(r"[AP]M$", valor, re.I) else "%H:%M"
+        hora = datetime.strptime(valor.upper().replace(" ", ""), formato).time()
         return datetime.combine(momento.date(), hora, tzinfo=momento.tzinfo)
 
     # Se a página já sinaliza horários pendentes, nunca usamos o horário genérico do JSON-LD.
@@ -296,7 +297,7 @@ def ler_etapa(caminho, html):
 
     sessoes = []
     vistos = set()
-    for momento, nome in sorted(sessoes_locais, key=lambda x: x[0] or datetime.max.replace(tzinfo=BRASILIA)):
+    for momento, nome in sorted(sessoes_locais, key=lambda x: (x[0] is None, x[0].timestamp() if x[0] else 0)):
         if momento is None:
             # Mantém o dia divulgado pela página, mas não inventa um horário.
             sub = next((s for s in evento.get("subEvent", []) if traduzir_sessao(s.get("name", ""), nome_curto_do_evento(evento.get("name"))) == nome), {})
