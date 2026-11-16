@@ -178,12 +178,14 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
 
     def test_horario_oficial_atual_tem_prioridade_sobre_o_anterior(self):
         anterior = {
+            "temporada": 2025,
             "etapas": [{
                 "circuito": "Silverstone", "pais": "Reino Unido", "inicio": "04/07/2025",
                 "sessoes": [{"nome": "Corrida", "data": "06/07/2025", "horario": "14:00"}],
             }]
         }
         novo = {
+            "temporada": 2026,
             "etapas": [{
                 "circuito": "Silverstone", "pais": "Reino Unido", "inicio": "05/07/2026",
                 "sessoes": [{"nome": "Corrida", "data": "05/07/2026", "horario": "15:00"}],
@@ -198,12 +200,14 @@ class PreservacaoTemporadaAnteriorTest(unittest.TestCase):
 
     def test_nao_reutiliza_sessoes_que_ja_eram_provisorias(self):
         anterior = {
+            "temporada": 2025,
             "etapas": [{
                 "circuito": "Silverstone", "pais": "Reino Unido",
                 "sessoes": [{"nome": "Corrida", "data": "06/07/2025", "horario": "14:00", "provisorio": True}],
             }]
         }
         novo = {
+            "temporada": 2026,
             "etapas": [{
                 "circuito": "Silverstone", "pais": "Reino Unido", "sessoes": [],
             }]
