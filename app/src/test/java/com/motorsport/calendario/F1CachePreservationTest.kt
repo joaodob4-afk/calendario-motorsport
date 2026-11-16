@@ -251,4 +251,36 @@ class F1CachePreservationTest {
             limpar(context)
         }
     }
+    @Test
+    fun horariosDaTemporadaAnteriorSaoUsadosAtePublicacaoDaNova() {
+        val anterior = jsonComCorridas(1, temporada = "2026", comSessoes = true)
+        val novo = jsonComCorridas(1, temporada = "2027", comSessoes = false)
+
+        val resultado = F1CalendarApi.preservarHorariosDaTemporadaAnterior(novo, anterior)
+        val corrida = JSONObject(resultado)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
+            .getJSONObject(0)
+
+        assertEquals("10:00:00Z", corrida.getJSONObject("FirstPractice").getString("time"))
+        assertEquals("2027-03-01", corrida.getJSONObject("FirstPractice").getString("date"))
+        assertTrue(corrida.getJSONObject("FirstPractice").getBoolean("provisorio"))
+    }
+
+    @Test
+    fun horariosDaMesmaTemporadaNaoSaoRestauradosSeFonteRemoveuSessao() {
+        val anterior = jsonComCorridas(1, temporada = "2027", comSessoes = true)
+        val novo = jsonComCorridas(1, temporada = "2027", comSessoes = false)
+
+        val resultado = F1CalendarApi.preservarHorariosDaTemporadaAnterior(novo, anterior)
+        val corrida = JSONObject(resultado)
+            .getJSONObject("MRData")
+            .getJSONObject("RaceTable")
+            .getJSONArray("Races")
+            .getJSONObject(0)
+
+        assertFalse(corrida.has("FirstPractice"))
+    }
+
 }

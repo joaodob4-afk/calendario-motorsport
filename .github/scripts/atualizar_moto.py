@@ -13,7 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_json,
     gravar_se_mudou,
+    ler_existente,
     obter_leitura_confirmada,
+    preservar_sessoes_temporada_anterior,
     total_de_sessoes,
 )
 
@@ -284,6 +286,8 @@ def main():
     # Só grava depois que as três classes passaram na validação.
     for arquivo, dados in saidas.items():
         caminho = PASTA / arquivo
+        preservadas = preservar_sessoes_temporada_anterior(dados, ler_existente(caminho) or {})
+        print(f"{dados.get('categoria')}: sessões provisórias recuperadas: {preservadas}")
         if not gravar_se_mudou(caminho, dados):
             print(f"{arquivo}: sem mudanças")
             continue

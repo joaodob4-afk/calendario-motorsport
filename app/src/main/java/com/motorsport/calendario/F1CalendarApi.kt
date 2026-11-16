@@ -240,6 +240,7 @@ object F1CalendarApi {
         Thread {
             var gravou = false
             var apiRespondeu = false
+            semearDoAsset(app)
 
             try {
                 // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
@@ -257,7 +258,10 @@ object F1CalendarApi {
                     interpretar(normalizado).size >= MINIMO_CORRIDAS_VALIDAS
                 ) {
                     apiRespondeu = true
-                    gravou = gravarCacheSeguro(app.filesDir, normalizado)
+                    val comHorariosAnteriores = preservarHorariosDaTemporadaAnterior(
+                        normalizado, lerCacheTexto(app)
+                    )
+                    gravou = gravarCacheSeguro(app.filesDir, comHorariosAnteriores)
                 } else {
                     // Compatibilidade: se o endpoint detalhado falhar, mantém o calendário básico.
                     val basico = baixarTexto(URL_API)
@@ -268,7 +272,10 @@ object F1CalendarApi {
                     ) {
                         // Não substitui um cache detalhado da mesma temporada por
                         // um calendário básico, que apagaria treinos e classificação offline.
-                        gravou = gravarCacheSeguro(app.filesDir, basico)
+                        val comHorariosAnteriores = preservarHorariosDaTemporadaAnterior(
+                            basico, lerCacheTexto(app)
+                        )
+                        gravou = gravarCacheSeguro(app.filesDir, comHorariosAnteriores)
                     }
                 }
             } catch (e: Exception) {
@@ -292,6 +299,99 @@ object F1CalendarApi {
                 }
             }
         }.start()
+    }
+
+    private fun lerCacheTexto(context: Context): String? = try {
+        val arquivo = File(context.applicationContext.filesDir, ARQUIVO_CACHE)
+        if (arquivo.isFile) arquivo.readText(Charsets.UTF_8) else null
+    } catch (e: Exception) {
+        registrarFalha("F1CalendarApi.lerCacheTexto", e)
+        null
+    }
+
+    /** Mescla horários do cache da temporada anterior sem substituir dados atuais. */
+    internal fun preservarHorariosDaTemporadaAnterior(
+        novoTexto: String,
+        anteriorTexto: String?
+    ): String {
+        if (anteriorTexto.isNullOrBlank()) return novoTexto
+        return try {
+            val novo = JSONObject(novoTexto)
+            val anterior = JSONObject(anteriorTexto)
+            val tabelaNova = novo.getJSONObject("MRData").getJSONObject("RaceTable")
+            val tabelaAntiga = anterior.getJSONObject("MRData").getJSONObject("RaceTable")
+            val temporadaNova = tabelaNova.optString("season")
+            val temporadaAntiga = tabelaAntiga.optString("season")
+            if (temporadaNova.isBlank() || temporadaNova == temporadaAntiga) return novoTexto
+
+            val corridasNovas = tabelaNova.getJSONArray("Races")
+            val corridasAntigas = tabelaAntiga.getJSONArray("Races")
+            val antigasPorCircuito = mutableMapOf<String, MutableList<JSONObject>>()
+
+            fun chave(corrida: JSONObject): String {
+                val circuito = corrida.optJSONObject("Circuit") ?: JSONObject()
+                val local = circuito.optJSONObject("Location") ?: JSONObject()
+                val nome = circuito.optString("circuitName").trim().lowercase()
+                val pais = local.optString("country").trim().lowercase()
+                return "$nome|$pais"
+            }
+
+            for (i in 0 until corridasAntigas.length()) {
+                val antiga = corridasAntigas.optJSONObject(i) ?: continue
+                antigasPorCircuito.getOrPut(chave(antiga)) { mutableListOf() }.add(antiga)
+            }
+
+            var preservados = 0
+            for (i in 0 until corridasNovas.length()) {
+                val corrida = corridasNovas.optJSONObject(i) ?: continue
+                val candidatas = antigasPorCircuito[chave(corrida)] ?: continue
+                if (candidatas.size != 1) continue
+                val antiga = candidatas.single()
+
+                val deslocamento = try {
+                    java.time.temporal.ChronoUnit.DAYS.between(
+                        LocalDate.parse(antiga.getString("date")),
+                        LocalDate.parse(corrida.getString("date"))
+                    )
+                } catch (e: Exception) {
+                    registrarDescarte("F1CalendarApi.preservarHorarios", e)
+                    0L
+                }
+
+                if (!corrida.has("time") && antiga.has("time") && !antiga.optBoolean("time_provisorio")) {
+                    corrida.put("time", antiga.getString("time"))
+                    corrida.put("time_provisorio", true)
+                    preservados++
+                }
+
+                for (campo in SESSOES) {
+                    val sessaoAntiga = antiga.optJSONObject(campo) ?: continue
+                    if (sessaoAntiga.optBoolean("provisorio")) continue
+                    val sessaoAtual = corrida.optJSONObject(campo)
+                    if (sessaoAtual?.optString("time").orEmpty().isNotBlank()) continue
+
+                    val copia = JSONObject(sessaoAntiga.toString())
+                    val dataAntiga = copia.optString("date")
+                    if (dataAntiga.isNotBlank()) {
+                        try {
+                            copia.put("date", LocalDate.parse(dataAntiga).plusDays(deslocamento).toString())
+                        } catch (e: Exception) {
+                            registrarDescarte("F1CalendarApi.preservarHorarios.data", e)
+                        }
+                    }
+                    copia.put("provisorio", true)
+                    corrida.put(campo, copia)
+                    preservados++
+                }
+            }
+            if (preservados > 0) {
+                android.util.Log.i("F1CalendarApi", "Horários provisórios recuperados: $preservados")
+            }
+            novo.toString()
+        } catch (e: Exception) {
+            registrarFalha("F1CalendarApi.preservarHorarios", e)
+            novoTexto
+        }
     }
 
     /**

@@ -9,7 +9,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_json, formatar_data, gravar_se_mudou  # noqa: E402
+from utilitarios import (baixar_json, formatar_data, gravar_se_mudou, ler_existente, preservar_sessoes_temporada_anterior)  # noqa: E402
 
 BASE = "https://cf.nascar.com/cacher"
 BRASILIA = ZoneInfo("America/Sao_Paulo")
@@ -186,7 +186,10 @@ def atualizar(temporada=None, saida=None, baixar=baixar_json):
 
     for series_id, (categoria, arquivo) in SERIES.items():
         dados = extrair_temporada(temporada, series_id, respostas[series_id])
-        gravou = gravar_se_mudou(saida / arquivo, dados)
+        caminho = saida / arquivo
+        preservadas = preservar_sessoes_temporada_anterior(dados, ler_existente(caminho) or {})
+        print(f"{categoria}: sessões provisórias recuperadas: {preservadas}")
+        gravou = gravar_se_mudou(caminho, dados)
         resultados[categoria] = {
             "etapas": len(dados["etapas"]),
             "alterado": gravou,

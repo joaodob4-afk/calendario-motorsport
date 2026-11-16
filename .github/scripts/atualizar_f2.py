@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import CABECALHOS_PAGINA, gravar_se_mudou, localizar_evento_jsonld, obter_leitura_confirmada, parse_utc  # noqa: E402
+from utilitarios import (CABECALHOS_PAGINA, gravar_se_mudou, ler_existente, localizar_evento_jsonld, obter_leitura_confirmada, parse_utc, preservar_sessoes_temporada_anterior)  # noqa: E402
 
 BASE = "https://www.fiaformula2.com"
 TEMPORADA_ATUAL = datetime.now().year
@@ -336,6 +336,8 @@ def main():
     ]
 
     novo = {"indice_confirmado": True, "temporada": temporada, "categoria": "F2", "etapas": etapas}
+    preservadas = preservar_sessoes_temporada_anterior(novo, ler_existente(SAIDA) or {})
+    print(f"Sessões provisórias recuperadas da temporada anterior: {preservadas}")
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
