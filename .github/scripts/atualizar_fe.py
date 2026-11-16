@@ -12,7 +12,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utilitarios import baixar_texto as baixar, formatar_data as fmt, gravar_se_mudou  # noqa: E402
+from utilitarios import (baixar_texto as baixar, formatar_data as fmt, gravar_se_mudou, ler_existente, preservar_sessoes_temporada_anterior)  # noqa: E402
 
 URL = "https://www.fiaformulae.com/en/calendar"
 SAIDA = Path("app/src/main/assets/fe_calendar.json")
@@ -444,6 +444,8 @@ def main():
         print(f"  {e['etapa']:>2}  {e['circuito']} ({e['pais']})  {e['inicio']} a {e['fim']}")
 
     novo = {"indice_confirmado": True, "temporada": rotulo_temporada(rodadas), "categoria": "Formula E", "etapas": etapas}
+    preservadas = preservar_sessoes_temporada_anterior(novo, ler_existente(SAIDA) or {})
+    print(f"Sessões provisórias recuperadas da temporada anterior: {preservadas}")
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
