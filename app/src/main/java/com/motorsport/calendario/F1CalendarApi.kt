@@ -240,6 +240,7 @@ object F1CalendarApi {
         Thread {
             var gravou = false
             var apiRespondeu = false
+            semearDoAsset(app)
 
             try {
                 // Prioriza o endpoint detalhado, que inclui as sessões e seus horários.
