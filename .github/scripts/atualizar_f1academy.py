@@ -17,7 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_texto as baixar,
     gravar_se_mudou,
+    ler_existente,
     obter_leitura_confirmada,
+    preservar_sessoes_temporada_anterior,
 )
 
 BASE = "https://www.f1academy.com"
@@ -215,6 +217,8 @@ def main():
         print("Nada foi alterado.")
         return 1
 
+    preservadas = preservar_sessoes_temporada_anterior(novo, ler_existente(SAIDA) or {})
+    print(f"Sessões provisórias recuperadas da temporada anterior: {preservadas}")
     if not gravar_se_mudou(SAIDA, novo):
         print("Sem mudanças no calendário.")
         return 0
