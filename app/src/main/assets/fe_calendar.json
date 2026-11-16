@@ -36,12 +36,12 @@
       "etapa": 2,
       "circuito": "Austin",
       "pais": "Estados Unidos",
-      "inicio": "06/02/2027",
-      "fim": "06/02/2027",
+      "inicio": "05/02/2027",
+      "fim": "05/02/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 2)",
-          "data": "06/02/2027",
+          "data": "05/02/2027",
           "horario": "A confirmar"
         }
       ]
@@ -50,12 +50,12 @@
       "etapa": 3,
       "circuito": "Miami",
       "pais": "Estados Unidos",
-      "inicio": "20/02/2027",
-      "fim": "20/02/2027",
+      "inicio": "19/02/2027",
+      "fim": "19/02/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 3)",
-          "data": "20/02/2027",
+          "data": "19/02/2027",
           "horario": "A confirmar"
         }
       ]
@@ -64,12 +64,12 @@
       "etapa": 4,
       "circuito": "São Paulo",
       "pais": "Brasil",
-      "inicio": "13/03/2027",
-      "fim": "13/03/2027",
+      "inicio": "12/03/2027",
+      "fim": "12/03/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 4)",
-          "data": "13/03/2027",
+          "data": "12/03/2027",
           "horario": "A confirmar"
         }
       ]
@@ -78,12 +78,12 @@
       "etapa": 5,
       "circuito": "Sanya",
       "pais": "China",
-      "inicio": "03/04/2027",
-      "fim": "03/04/2027",
+      "inicio": "02/04/2027",
+      "fim": "02/04/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 5)",
-          "data": "03/04/2027",
+          "data": "02/04/2027",
           "horario": "A confirmar"
         }
       ]
@@ -92,17 +92,17 @@
       "etapa": 6,
       "circuito": "Jeddah",
       "pais": "Arábia Saudita",
-      "inicio": "16/04/2027",
-      "fim": "17/04/2027",
+      "inicio": "15/04/2027",
+      "fim": "16/04/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 6)",
-          "data": "16/04/2027",
+          "data": "15/04/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 7)",
-          "data": "17/04/2027",
+          "data": "16/04/2027",
           "horario": "A confirmar"
         }
       ]
@@ -111,17 +111,17 @@
       "etapa": 7,
       "circuito": "Monte Carlo",
       "pais": "Mônaco",
-      "inicio": "01/05/2027",
-      "fim": "02/05/2027",
+      "inicio": "30/04/2027",
+      "fim": "01/05/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 8)",
-          "data": "01/05/2027",
+          "data": "30/04/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 9)",
-          "data": "02/05/2027",
+          "data": "01/05/2027",
           "horario": "A confirmar"
         }
       ]
@@ -130,17 +130,17 @@
       "etapa": 8,
       "circuito": "Berlim",
       "pais": "Alemanha",
-      "inicio": "08/05/2027",
-      "fim": "09/05/2027",
+      "inicio": "07/05/2027",
+      "fim": "08/05/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 10)",
-          "data": "08/05/2027",
+          "data": "07/05/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 11)",
-          "data": "09/05/2027",
+          "data": "08/05/2027",
           "horario": "A confirmar"
         }
       ]
@@ -149,17 +149,17 @@
       "etapa": 9,
       "circuito": "Brands Hatch",
       "pais": "Reino Unido",
-      "inicio": "29/05/2027",
-      "fim": "30/05/2027",
+      "inicio": "28/05/2027",
+      "fim": "29/05/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 12)",
-          "data": "29/05/2027",
+          "data": "28/05/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 13)",
-          "data": "30/05/2027",
+          "data": "29/05/2027",
           "horario": "A confirmar"
         }
       ]
@@ -168,17 +168,17 @@
       "etapa": 10,
       "circuito": "Zandvoort",
       "pais": "Holanda",
-      "inicio": "18/06/2027",
-      "fim": "19/06/2027",
+      "inicio": "17/06/2027",
+      "fim": "18/06/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 14)",
-          "data": "18/06/2027",
+          "data": "17/06/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 15)",
-          "data": "19/06/2027",
+          "data": "18/06/2027",
           "horario": "A confirmar"
         }
       ]
@@ -187,17 +187,17 @@
       "etapa": 11,
       "circuito": "Madrid",
       "pais": "Espanha",
-      "inicio": "26/06/2027",
-      "fim": "27/06/2027",
+      "inicio": "25/06/2027",
+      "fim": "26/06/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 16)",
-          "data": "26/06/2027",
+          "data": "25/06/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 17)",
-          "data": "27/06/2027",
+          "data": "26/06/2027",
           "horario": "A confirmar"
         }
       ]
@@ -206,17 +206,17 @@
       "etapa": 12,
       "circuito": "Xangai",
       "pais": "China",
-      "inicio": "10/07/2027",
-      "fim": "11/07/2027",
+      "inicio": "09/07/2027",
+      "fim": "10/07/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 18)",
-          "data": "10/07/2027",
+          "data": "09/07/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 19)",
-          "data": "11/07/2027",
+          "data": "10/07/2027",
           "horario": "A confirmar"
         }
       ]
@@ -225,17 +225,17 @@
       "etapa": 13,
       "circuito": "Tóquio",
       "pais": "Japão",
-      "inicio": "24/07/2027",
-      "fim": "25/07/2027",
+      "inicio": "23/07/2027",
+      "fim": "24/07/2027",
       "sessoes": [
         {
           "nome": "Corrida (Rodada 20)",
-          "data": "24/07/2027",
+          "data": "23/07/2027",
           "horario": "A confirmar"
         },
         {
           "nome": "Corrida (Rodada 21)",
-          "data": "25/07/2027",
+          "data": "24/07/2027",
           "horario": "A confirmar"
         }
       ]
