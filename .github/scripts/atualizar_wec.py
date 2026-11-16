@@ -164,8 +164,36 @@ def ler_data_hora(texto):
     return datetime.fromisoformat(str(texto).strip().replace("Z", "+00:00"))
 
 
-def sessoes_do_evento(evento):
-    """[(datetime com o fuso do circuito, nome em português)]."""
+def horario_publicado(html, nome_sessao, evento_curto, momento):
+    """Lê o horário exibido no cronograma; JSON-LD pode conter horários provisórios."""
+    texto = texto_visivel(html)
+    nome_base = str(nome_sessao)
+    sufixo = " - " + evento_curto
+    if evento_curto and nome_base.lower().endswith(sufixo.lower()):
+        nome_base = nome_base[:-len(sufixo)].strip()
+
+    rotulo = re.escape(" ".join(nome_base.split())).replace(r"\ ", r"\s+")
+    padrao = re.compile(
+        rotulo + r"\s+(TBC|TBA|\d{1,2}:\d{2}(?:\s*[AP]M)?)",
+        flags=re.I,
+    )
+    encontrado = padrao.search(texto)
+    if encontrado:
+        valor = encontrado.group(1).strip()
+        if valor.upper() in ("TBC", "TBA"):
+            return None
+        formato = "%I:%M%p" if re.search(r"[AP]M$", valor, re.I) else "%H:%M"
+        hora = datetime.strptime(valor.upper().replace(" ", ""), formato).time()
+        return datetime.combine(momento.date(), hora, tzinfo=momento.tzinfo)
+
+    # Se a página já sinaliza horários pendentes, nunca usamos o horário genérico do JSON-LD.
+    if re.search(r"\b(?:TBC|TBA)\b", texto, flags=re.I):
+        return None
+    return momento
+
+
+def sessoes_do_evento(evento, html=""):
+    """[(datetime local confirmado ou None, nome em português)]."""
     curto = nome_curto_do_evento(evento.get("name"))
     resultado = []
     for sub in evento.get("subEvent") or []:
@@ -179,6 +207,7 @@ def sessoes_do_evento(evento):
         if momento.tzinfo is None:
             print("Aviso: sessão ignorada por falta de fuso:", sub.get("name"))
             continue
+        momento = horario_publicado(html, sub["name"], curto, momento)
         resultado.append((momento, traduzir_sessao(sub["name"], curto)))
     return resultado
 
@@ -251,10 +280,10 @@ def ler_etapa(caminho, html):
         if evento:
             break
 
-    sessoes_locais = sessoes_do_evento(evento) if evento else []
+    sessoes_locais = sessoes_do_evento(evento, html) if evento else []
     periodo = periodo_da_pagina(html)
 
-    dias = [m.date() for m, _ in sessoes_locais]
+    dias = [m.date() for m, _ in sessoes_locais if m is not None]
     if periodo:
         inicio, fim = periodo
         if dias:
@@ -268,9 +297,18 @@ def ler_etapa(caminho, html):
 
     sessoes = []
     vistos = set()
-    for momento, nome in sorted(sessoes_locais, key=lambda x: x[0]):
-        em_brasilia = momento.astimezone(BRASILIA)
-        item = (nome, em_brasilia.strftime("%d/%m/%Y"), em_brasilia.strftime("%H:%M"))
+    for momento, nome in sorted(sessoes_locais, key=lambda x: (x[0] is None, x[0].timestamp() if x[0] else 0)):
+        if momento is None:
+            # Mantém o dia divulgado pela página, mas não inventa um horário.
+            sub = next((s for s in evento.get("subEvent", []) if traduzir_sessao(s.get("name", ""), nome_curto_do_evento(evento.get("name"))) == nome), {})
+            try:
+                data_sessao = ler_data_hora(sub.get("startDate")).strftime("%d/%m/%Y")
+            except (ValueError, TypeError):
+                data_sessao = inicio.strftime("%d/%m/%Y")
+            item = (nome, data_sessao, "A confirmar")
+        else:
+            em_brasilia = momento.astimezone(BRASILIA)
+            item = (nome, em_brasilia.strftime("%d/%m/%Y"), em_brasilia.strftime("%H:%M"))
         if item in vistos:
             continue
         vistos.add(item)
