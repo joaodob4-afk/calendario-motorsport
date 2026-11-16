@@ -285,157 +285,26 @@ class MotoActivity : AppCompatActivity() {
     }
 
     private fun adicionarGrupoDia(data: String) {
-        val linha = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-        }
-
-        val marcador = View(this).apply {
-            setBackgroundColor(verde)
-        }
-
-        linha.addView(
-            marcador,
-            LinearLayout.LayoutParams(dp(3), dp(20)).apply {
-                rightMargin = dp(9)
-            }
-        )
-
-        val texto = TextView(this).apply {
-            text = data.uppercase(idioma)
-            textSize = 12f
-            setTextColor(branco)
-            typeface = Typeface.create(
-                "sans-serif-medium",
-                Typeface.BOLD
-            )
-        }
-
-        linha.addView(
-            texto,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        conteudo.addView(
-            linha,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = dp(7)
-                bottomMargin = dp(9)
-            }
-        )
+        estilo.grupoDia(conteudo, data.uppercase(idioma))
     }
-
     private fun adicionarSessao(sessao: MotoSession) {
         val nomeOriginal = sessao.nome.trim()
         val nomeNormalizado = nomeOriginal.lowercase(idioma)
-
         val corridaPrincipal =
             nomeNormalizado.contains("feature") ||
             nomeNormalizado.contains("corrida principal") ||
             nomeNormalizado == "corrida" ||
             nomeNormalizado == "race"
-
-        val sprint = nomeNormalizado.contains("sprint")
-
-        // Os nomes já vêm prontos no JSON (Treino Livre 1, Classificação 2, Warm-up...).
         val nomeExibido = Idioma.sessao(this, nomeOriginal).uppercase(idioma)
-
-        val cartao = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-
-            background = GradientDrawable().apply {
-                cornerRadius = dp(12).toFloat()
-
-                setColor(
-                    if (corridaPrincipal) {
-                        fundoCorrida
-                    } else {
-                        fundoCard
-                    }
-                )
-
-                setStroke(
-                    dp(if (corridaPrincipal) 2 else 1),
-                    if (corridaPrincipal) verde else verdeEscuro
-                )
+        val horario = sessao.horario.trim().let {
+            if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
+                getString(R.string.a_confirmar)
+            } else {
+                Hora.deTexto(this, it)
             }
         }
-
-        val nome = TextView(this).apply {
-            text = nomeExibido
-            textSize = 12f
-            setTextColor(
-                if (corridaPrincipal) verde else branco
-            )
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            letterSpacing = 0.02f
-        }
-
-        cartao.addView(
-            nome,
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
-        )
-
-        val horarioTexto = sessao.horario
-            .trim()
-            .let {
-                if (it.isBlank() || it.equals("a confirmar", ignoreCase = true)) {
-                    getString(R.string.a_confirmar)
-                } else {
-                    Hora.deTexto(this, it)
-                }
-            }
-
-        val horario = TextView(this).apply {
-            text = horarioTexto
-            textSize = 14f
-            setTextColor(
-                if (corridaPrincipal) verde else branco
-            )
-            typeface = Typeface.create(
-                "sans-serif",
-                Typeface.BOLD
-            )
-            gravity = Gravity.END
-        }
-
-        cartao.addView(
-            horario,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                leftMargin = dp(10)
-            }
-        )
-
-        conteudo.addView(
-            cartao,
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(8)
-            }
-        )
+        estilo.sessao(conteudo, nomeExibido, horario, corridaPrincipal)
     }
-
     private fun adicionarTexto(
         texto: String,
         tamanho: Float,
