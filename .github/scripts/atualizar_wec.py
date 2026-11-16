@@ -16,7 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utilitarios import (  # noqa: E402
     baixar_texto as baixar_texto_comum,
     gravar_se_mudou,
+    ler_existente,
     obter_leitura_confirmada,
+    preservar_sessoes_temporada_anterior,
     total_de_sessoes,
 )
 
@@ -360,6 +362,9 @@ def main():
 
     novo = montar(por_ano[ano], ano)
     validar(novo)
+
+    preservadas = preservar_sessoes_temporada_anterior(novo, ler_existente(ARQUIVO) or {})
+    print(f"Sessões provisórias recuperadas da temporada anterior: {preservadas}")
 
     if not gravar_se_mudou(ARQUIVO, novo):
         print("wec_calendar.json: sem mudanças")
