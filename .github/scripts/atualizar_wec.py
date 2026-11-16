@@ -172,9 +172,9 @@ def horario_publicado(html, nome_sessao, evento_curto, momento):
     if evento_curto and nome_base.lower().endswith(sufixo.lower()):
         nome_base = nome_base[:-len(sufixo)].strip()
 
-    rotulo = re.escape(" ".join(nome_base.split())).replace(r"\\ ", r"\\s+")
+    rotulo = re.escape(" ".join(nome_base.split())).replace(r"\ ", r"\s+")
     padrao = re.compile(
-        rotulo + r"\\s+(TBC|TBA|\\d{1,2}:\\d{2}(?:\\s*[AP]M)?)",
+        rotulo + r"\s+(TBC|TBA|\d{1,2}:\d{2}(?:\s*[AP]M)?)",
         flags=re.I,
     )
     encontrado = padrao.search(texto)
@@ -186,7 +186,7 @@ def horario_publicado(html, nome_sessao, evento_curto, momento):
         return datetime.combine(momento.date(), hora, tzinfo=momento.tzinfo)
 
     # Se a página já sinaliza horários pendentes, nunca usamos o horário genérico do JSON-LD.
-    if re.search(r"\\b(?:TBC|TBA)\\b", texto, flags=re.I):
+    if re.search(r"\b(?:TBC|TBA)\b", texto, flags=re.I):
         return None
     return momento
 
