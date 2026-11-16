@@ -261,7 +261,7 @@ def preservar_sessoes_temporada_anterior(novo, anterior):
             if not isinstance(antiga, dict):
                 continue
             horario = str(antiga.get("horario") or "").strip()
-            if not horario or horario.casefold() in ("a confirmar", "tbc", "tba"):
+            if antiga.get("provisorio") or not horario or horario.casefold() in ("a confirmar", "tbc", "tba"):
                 continue
             chave = _chave_texto(antiga.get("nome"))
             if not chave:
@@ -353,7 +353,7 @@ def preservar_horarios_f1_temporada_anterior(novo, anterior):
             if campo == "time":
                 if corrida.get(campo):
                     continue
-                if not valor_antigo:
+                if not valor_antigo or antiga.get("time_provisorio"):
                     continue
                 corrida[campo] = valor_antigo
                 corrida["time_provisorio"] = True
