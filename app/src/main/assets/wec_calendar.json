@@ -10,44 +10,44 @@
       "fim": "27/03/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "24/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "24/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Treino Livre 3",
-          "data": "25/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Classificação LMGT3",
-          "data": "25/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Hyperpole LMGT3",
-          "data": "25/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Classificação Hypercar",
-          "data": "25/03/2027",
-          "horario": "20:00"
-        },
-        {
-          "nome": "Hyperpole Hypercar",
-          "data": "25/03/2027",
-          "horario": "20:00"
-        },
-        {
           "nome": "Corrida",
           "data": "27/03/2027",
           "horario": "09:00"
+        },
+        {
+          "nome": "Treino Livre 1",
+          "data": "25/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "25/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "26/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "26/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "26/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "26/03/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "26/03/2027",
+          "horario": "A confirmar"
         }
       ]
     },
@@ -59,44 +59,44 @@
       "fim": "11/04/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "08/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "08/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 3",
-          "data": "09/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação LMGT3",
-          "data": "09/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole LMGT3",
-          "data": "09/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação Hypercar",
-          "data": "09/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole Hypercar",
-          "data": "09/04/2027",
-          "horario": "19:00"
-        },
-        {
           "nome": "Corrida",
           "data": "11/04/2027",
           "horario": "08:00"
+        },
+        {
+          "nome": "Treino Livre 1",
+          "data": "09/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "09/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "10/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "10/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "10/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "10/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "10/04/2027",
+          "horario": "A confirmar"
         }
       ]
     },
@@ -108,44 +108,44 @@
       "fim": "25/04/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "22/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "22/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 3",
-          "data": "23/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação LMGT3",
-          "data": "23/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole LMGT3",
-          "data": "23/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação HYPERPOLE",
-          "data": "23/04/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole Hypercar",
-          "data": "23/04/2027",
-          "horario": "19:00"
-        },
-        {
           "nome": "Corrida",
           "data": "25/04/2027",
           "horario": "08:00"
+        },
+        {
+          "nome": "Treino Livre 1",
+          "data": "23/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "23/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "24/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "24/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "24/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação HYPERPOLE",
+          "data": "24/04/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "24/04/2027",
+          "horario": "A confirmar"
         }
       ]
     },
@@ -157,44 +157,44 @@
       "fim": "15/05/2027",
       "sessoes": [
         {
-          "nome": "Treino Livre 1",
-          "data": "12/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 2",
-          "data": "12/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Treino Livre 3",
-          "data": "13/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação LMGT3",
-          "data": "13/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole LMGT3",
-          "data": "13/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Classificação Hypercar",
-          "data": "13/05/2027",
-          "horario": "19:00"
-        },
-        {
-          "nome": "Hyperpole Hypercar",
-          "data": "13/05/2027",
-          "horario": "19:00"
-        },
-        {
           "nome": "Corrida",
           "data": "15/05/2027",
           "horario": "09:00"
+        },
+        {
+          "nome": "Treino Livre 1",
+          "data": "13/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 2",
+          "data": "13/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Treino Livre 3",
+          "data": "14/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação LMGT3",
+          "data": "14/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole LMGT3",
+          "data": "14/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Classificação Hypercar",
+          "data": "14/05/2027",
+          "horario": "A confirmar"
+        },
+        {
+          "nome": "Hyperpole Hypercar",
+          "data": "14/05/2027",
+          "horario": "A confirmar"
         }
       ]
     },
@@ -206,64 +206,64 @@
       "fim": "13/06/2027",
       "sessoes": [
         {
+          "nome": "Corrida",
+          "data": "12/06/2027",
+          "horario": "11:00"
+        },
+        {
           "nome": "Treino Livre 1",
           "data": "06/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 2",
           "data": "06/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 3",
           "data": "09/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação LMP2 & LMGT3",
           "data": "09/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação Hypercar",
           "data": "09/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole 1 LMP2 & LMGT3",
           "data": "10/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole 2 LMP2 & LMGT3",
           "data": "10/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole 1 Hypercar",
           "data": "10/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole 2 Hypercar",
           "data": "10/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 4",
           "data": "10/06/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Warm-up",
           "data": "12/06/2027",
-          "horario": "07:00"
-        },
-        {
-          "nome": "Corrida",
-          "data": "12/06/2027",
-          "horario": "11:00"
+          "horario": "A confirmar"
         }
       ]
     },
@@ -275,44 +275,44 @@
       "fim": "11/07/2027",
       "sessoes": [
         {
+          "nome": "Corrida",
+          "data": "11/07/2027",
+          "horario": "A confirmar"
+        },
+        {
           "nome": "Treino Livre 1",
           "data": "09/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 2",
           "data": "09/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 3",
           "data": "10/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação LMGT3",
           "data": "10/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole LMGT3",
           "data": "10/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação Hypercar",
           "data": "10/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole Hypercar",
           "data": "10/07/2027",
-          "horario": "07:00"
-        },
-        {
-          "nome": "Corrida",
-          "data": "11/07/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         }
       ]
     },
@@ -326,42 +326,42 @@
         {
           "nome": "Treino Livre 1",
           "data": "10/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 2",
           "data": "10/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 3",
           "data": "11/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação LMGT3",
           "data": "11/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole LMGT3",
           "data": "11/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação Hypercar",
           "data": "11/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole Hypercar",
           "data": "11/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Corrida",
           "data": "12/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         }
       ]
     },
@@ -375,42 +375,42 @@
         {
           "nome": "Treino Livre 1",
           "data": "24/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 2",
           "data": "24/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 3",
           "data": "25/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação LMGT3",
           "data": "25/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole LMGT3",
           "data": "25/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação Hypercar",
           "data": "25/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole Hypercar",
           "data": "25/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Corrida",
           "data": "26/09/2027",
-          "horario": "07:00"
+          "horario": "A confirmar"
         }
       ]
     },
@@ -424,42 +424,42 @@
         {
           "nome": "Treino Livre 1",
           "data": "04/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 2",
           "data": "04/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Treino Livre 3",
           "data": "05/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação LMGT3",
           "data": "05/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole LMGT3",
           "data": "05/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Classificação Hypercar",
           "data": "05/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Hyperpole Hypercar",
           "data": "05/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         },
         {
           "nome": "Corrida",
           "data": "06/11/2027",
-          "horario": "08:00"
+          "horario": "A confirmar"
         }
       ]
     }
