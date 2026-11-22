@@ -376,22 +376,22 @@
         {
           "nome": "Treino Livre",
           "data": "27/11/2026",
-          "horario": "06:00"
+          "horario": "08:00"
         },
         {
           "nome": "Classificação",
           "data": "27/11/2026",
-          "horario": "10:00"
+          "horario": "12:00"
         },
         {
           "nome": "Corrida Sprint",
           "data": "28/11/2026",
-          "horario": "07:00"
+          "horario": "13:15"
         },
         {
           "nome": "Corrida Feature",
           "data": "29/11/2026",
-          "horario": "06:00"
+          "horario": "09:00"
         }
       ]
     },
