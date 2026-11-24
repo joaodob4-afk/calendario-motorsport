@@ -85,6 +85,22 @@
     },
     {
       "etapa": 6,
+      "nome": "Kansas Speedway",
+      "circuito": "Kansas Speedway",
+      "local": "Kansas City, Kansas",
+      "pais": "Estados Unidos",
+      "inicio": "08/05/2027",
+      "fim": "08/05/2027",
+      "sessoes": [
+        {
+          "nome": "Corrida",
+          "data": "08/05/2027",
+          "horario": "A confirmar"
+        }
+      ]
+    },
+    {
+      "etapa": 7,
       "nome": "Indianapolis Motor Speedway Road Course",
       "circuito": "IMS Road Course",
       "local": "Indianapolis, Indiana",
@@ -100,7 +116,7 @@
       ]
     },
     {
-      "etapa": 7,
+      "etapa": 8,
       "nome": "111th Running of the Indianapolis 500",
       "circuito": "Indianapolis Motor Speedway",
       "local": "Indianapolis, Indiana",
@@ -116,7 +132,7 @@
       ]
     },
     {
-      "etapa": 8,
+      "etapa": 9,
       "nome": "Streets of Detroit",
       "circuito": "Streets of Detroit",
       "local": "Detroit, Michigan",
@@ -132,7 +148,7 @@
       ]
     },
     {
-      "etapa": 9,
+      "etapa": 10,
       "nome": "World Wide Technology Raceway",
       "circuito": "World Wide Technology Raceway",
       "local": "Madison, Illinois",
@@ -148,7 +164,7 @@
       ]
     },
     {
-      "etapa": 10,
+      "etapa": 11,
       "nome": "Road America",
       "circuito": "Road America",
       "local": "Elkhart Lake, Wisconsin",
@@ -164,7 +180,7 @@
       ]
     },
     {
-      "etapa": 11,
+      "etapa": 12,
       "nome": "Mid-Ohio Sports Car Course",
       "circuito": "Mid-Ohio Sports Car Course",
       "local": "Lexington, Ohio",
@@ -180,7 +196,7 @@
       ]
     },
     {
-      "etapa": 12,
+      "etapa": 13,
       "nome": "Circuit de Barcelona-Catalunya",
       "circuito": "Circuit de Barcelona-Catalunya",
       "local": "Barcelona",
@@ -196,7 +212,7 @@
       ]
     },
     {
-      "etapa": 13,
+      "etapa": 14,
       "nome": "Portland International Raceway",
       "circuito": "Portland International Raceway",
       "local": "Portland, Oregon",
@@ -212,7 +228,7 @@
       ]
     },
     {
-      "etapa": 14,
+      "etapa": 15,
       "nome": "Streets of Markham",
       "circuito": "Streets of Markham",
       "local": "Markham, Ontario",
@@ -228,7 +244,7 @@
       ]
     },
     {
-      "etapa": 15,
+      "etapa": 16,
       "nome": "Milwaukee Mile - Race 1",
       "circuito": "Milwaukee Mile",
       "local": "West Allis, Wisconsin",
@@ -244,7 +260,7 @@
       ]
     },
     {
-      "etapa": 16,
+      "etapa": 17,
       "nome": "Milwaukee Mile - Race 2",
       "circuito": "Milwaukee Mile",
       "local": "West Allis, Wisconsin",
@@ -260,7 +276,7 @@
       ]
     },
     {
-      "etapa": 17,
+      "etapa": 18,
       "nome": "WeatherTech Raceway Laguna Seca",
       "circuito": "WeatherTech Raceway Laguna Seca",
       "local": "Monterey, California",
