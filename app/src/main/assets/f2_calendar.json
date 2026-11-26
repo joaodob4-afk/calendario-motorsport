@@ -405,22 +405,22 @@
         {
           "nome": "Treino Livre",
           "data": "04/12/2026",
-          "horario": "A confirmar"
+          "horario": "04:05"
         },
         {
           "nome": "Classificação",
           "data": "04/12/2026",
-          "horario": "A confirmar"
+          "horario": "08:00"
         },
         {
           "nome": "Corrida Sprint",
           "data": "05/12/2026",
-          "horario": "A confirmar"
+          "horario": "09:15"
         },
         {
           "nome": "Corrida Feature",
           "data": "06/12/2026",
-          "horario": "A confirmar"
+          "horario": "06:15"
         }
       ]
     }
