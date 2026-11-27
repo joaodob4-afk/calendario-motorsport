@@ -16,7 +16,7 @@ class PreparadorDeSessoesTest {
     @Test fun dataInvalidaFicaDepoisDasDatasValidas() {
         val formato = SimpleDateFormat("dd/MM/yyyy", Locale.US).apply { isLenient = false }
         val sessoes = listOf(Sessao("Sem data", "invalida", "A confirmar"), Sessao("Com data", "01/03/2026", "09:30"))
-        val resultado = PreparadorDeSessoes.ordenar(sessoes, { formato.parse(it.data) }, { it.horario })
+        val resultado = PreparadorDeSessoes.ordenar(sessoes, { runCatching { formato.parse(it.data) }.getOrNull() }, { it.horario })
         assertEquals(listOf("Com data", "Sem data"), resultado.map { it.sessao.nome })
     }
     private data class Sessao(val nome: String, val data: String, val horario: String)
