@@ -34,6 +34,12 @@ class MotoActivity : AppCompatActivity() {
     private val fundoCorrida: Int get() = estilo.fundoCorrida
 
     private val idioma: Locale by lazy { Idioma.locale(this) }
+    private val parsersData: List<SimpleDateFormat> by lazy {
+        listOf("yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy")
+            .map { formato -> SimpleDateFormat(formato, idioma).apply { isLenient = false } }
+    }
+    private val formatoDiaSemana by lazy { SimpleDateFormat(getString(R.string.formato_dia_semana), idioma) }
+    private val formatoDiaMes by lazy { SimpleDateFormat(getString(R.string.formato_dia_mes), idioma) }
 
     private lateinit var conteudo: LinearLayout
 
@@ -283,18 +289,17 @@ class MotoActivity : AppCompatActivity() {
             return
         }
 
-        val sessoesOrdenadas = evento.sessoes.map { it.noFusoDoAparelho() }.sortedWith(
-            compareBy<MotoSession> {
-                converterData(it.data)?.time ?: Long.MAX_VALUE
-            }.thenBy {
-                extrairMinutos(it.horario)
-            }
+        val sessoesOrdenadas = PreparadorDeSessoes.ordenar(
+            evento.sessoes.map { it.noFusoDoAparelho() },
+            obterData = { converterData(it.data) },
+            obterHorario = { it.horario }
         )
 
         var dataAtual: String? = null
 
-        for (sessao in sessoesOrdenadas) {
-            val dataSessao = formatarDiaPorExtenso(sessao.data)
+        for (preparada in sessoesOrdenadas) {
+            val sessao = preparada.sessao
+            val dataSessao = formatarDiaPorExtenso(preparada.data, sessao.data)
                 .ifBlank { sessao.data }
 
             if (dataSessao != dataAtual) {
@@ -377,64 +382,26 @@ class MotoActivity : AppCompatActivity() {
 
 
     /** "QUINTA-FEIRA, 19 DE OUTUBRO": o dia da semana e a data por extenso (maiúsculas ao exibir). */
-    private fun formatarDiaPorExtenso(data: String): String {
-        if (data.isBlank()) return ""
-
-        val convertida = converterData(data) ?: return data
-
-        return SimpleDateFormat(getString(R.string.formato_dia_semana), idioma).format(convertida)
-    }
+    private fun formatarDiaPorExtenso(data: Date?, original: String): String =
+        data?.let { formatoDiaSemana.format(it) } ?: original
 
     private fun formatarData(data: String): String {
         if (data.isBlank()) return ""
-
         val convertida = converterData(data) ?: return data
-
-        return SimpleDateFormat(getString(R.string.formato_dia_mes), idioma).format(convertida)
+        return formatoDiaMes.format(convertida)
     }
 
     private fun converterData(data: String): Date? {
-        val formatos = listOf(
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd",
-            "dd/MM/yyyy",
-            "dd-MM-yyyy"
-        )
-
-        for (formato in formatos) {
+        if (data.isBlank()) return null
+        for (parser in parsersData) {
             try {
-                val parser = SimpleDateFormat(
-                    formato,
-                    idioma
-                )
-                parser.isLenient = false
-
                 val resultado = parser.parse(data)
-
-                if (resultado != null) {
-                    return resultado
-                }
+                if (resultado != null) return resultado
             } catch (e: Exception) {
                 registrarDescarte("MotoActivity.converterData", e)
-                // Tenta o próximo formato.
             }
         }
-
         return null
-    }
-
-    private fun extrairMinutos(horario: String): Int {
-        val partes = horario.trim().split(":")
-
-        if (partes.size < 2) return Int.MAX_VALUE
-
-        return try {
-            partes[0].toInt() * 60 + partes[1].take(2).toInt()
-        } catch (e: Exception) {
-            registrarDescarte("MotoActivity.extrairMinutos", e)
-            Int.MAX_VALUE
-        }
     }
 
     private fun dp(valor: Int): Int {
