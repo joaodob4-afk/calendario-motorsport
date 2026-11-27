@@ -55,7 +55,7 @@ internal object TraducaoDeSessoes {
 
         return regras.fold(normalizado) { texto, (origem, destino) ->
             val termo = Regex(
-                "(?<![\\p{L}\\p{N}-])\${Regex.escape(origem)}(?![\\p{L}\\p{N}-])",
+                "(?<![\\p{L}\\p{N}-])${Regex.escape(origem)}(?![\\p{L}\\p{N}-])",
                 RegexOption.IGNORE_CASE
             )
             termo.replace(texto, destino)
