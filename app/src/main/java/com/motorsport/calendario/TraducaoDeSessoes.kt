@@ -45,16 +45,22 @@ internal object TraducaoDeSessoes {
 
     /**
      * Substitui termos completos, sem alterar palavras maiores como "Pre-Race".
-     * A ordenação preserva expressões específicas antes dos nomes genéricos.
+     * Normaliza espaços repetidos e não separáveis que podem vir das fontes.
      */
-    private fun substituir(nome: String, regras: List<Pair<String, String>>): String =
-        regras.fold(nome) { texto, (origem, destino) ->
+    private fun substituir(nome: String, regras: List<Pair<String, String>>): String {
+        val normalizado = nome
+            .replace('\u00A0', ' ')
+            .replace(Regex("\\s+"), " ")
+            .trim()
+
+        return regras.fold(normalizado) { texto, (origem, destino) ->
             val termo = Regex(
                 "(?<![\\p{L}\\p{N}-])${Regex.escape(origem)}(?![\\p{L}\\p{N}-])",
                 RegexOption.IGNORE_CASE
             )
             termo.replace(texto, destino)
         }
+    }
 
     fun paraIngles(nome: String): String = substituir(nome, paraIngles)
 

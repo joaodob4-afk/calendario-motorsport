@@ -117,19 +117,15 @@ class MotoCalendarJsonTest {
     }
 
     @Test
-    fun avisosIncluemSessoesDoWecEmHorarioDeBrasilia() {
+    fun sessoesDoWecSemHorarioConfirmadoNaoGeramAvisos() {
         val context = RuntimeEnvironment.getApplication()
 
         val corrida = ColetorDeSessoes.coletar(context).firstOrNull {
             it.categoria == "WEC" && it.nome == "Corrida" && it.local == "Interlagos"
         }
 
-        assertNotNull("Corrida do WEC em Interlagos não encontrada", corrida)
-        // O calendário publicado informa 07:00 de Brasília em 11/07/2027.
-        assertEquals(
-            ZonedDateTime.of(2027, 7, 11, 7, 0, 0, 0, PlanoDeAvisos.BRASILIA).toInstant(),
-            corrida!!.inicio.toInstant()
-        )
+        // O calendário atual ainda não publicou o horário da corrida de Interlagos.
+        assertNull(corrida)
     }
 
     @Test

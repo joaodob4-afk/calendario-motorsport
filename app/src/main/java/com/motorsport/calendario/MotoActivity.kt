@@ -4,6 +4,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -15,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class MotoActivity : AppCompatActivity() {
 
@@ -32,6 +36,10 @@ class MotoActivity : AppCompatActivity() {
     private val idioma: Locale by lazy { Idioma.locale(this) }
 
     private lateinit var conteudo: LinearLayout
+
+    private val executorCarregamento = Executors.newSingleThreadExecutor()
+    private val handlerPrincipal = Handler(Looper.getMainLooper())
+    private val geracaoCarregamento = AtomicInteger(0)
 
     private var etapaEhProxima = true
 
@@ -69,13 +77,37 @@ class MotoActivity : AppCompatActivity() {
         carregarEvento()
     }
 
+    /** Lê e interpreta o calendário fora da thread principal para não bloquear os detalhes. */
     private fun carregarEvento() {
+        if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
+
+        val geracao = geracaoCarregamento.incrementAndGet()
+
+        executorCarregamento.execute {
+            val resultado = runCatching {
+                MotoCalendarJson.carregar(this, classe)
+            }
+
+            handlerPrincipal.post {
+                if (geracao != geracaoCarregamento.get() || isFinishing || isDestroyed) {
+                    return@post
+                }
+
+                val eventos = resultado.getOrElse {
+                    registrarFalha("MotoActivity.carregarEvento", it)
+                    emptyList()
+                }
+                mostrarEventoCarregado(eventos)
+            }
+        }
+    }
+
+    /** Atualiza a interface somente na thread principal, com o resultado mais recente. */
+    private fun mostrarEventoCarregado(eventos: List<MotoEvent>) {
         if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
 
         conteudo.removeAllViews()
 
-        // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
-        val eventos = MotoCalendarJson.carregar(this, classe)
         val proximaEtapa = obterProximaEtapa(eventos)
         val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
         val evento = eventos.find { it.etapa == etapaEscolhida }
@@ -99,6 +131,12 @@ class MotoActivity : AppCompatActivity() {
                 false
             )
         }
+    }
+
+    override fun onDestroy() {
+        geracaoCarregamento.incrementAndGet()
+        executorCarregamento.shutdownNow()
+        super.onDestroy()
     }
 
     private fun obterProximaEtapa(
