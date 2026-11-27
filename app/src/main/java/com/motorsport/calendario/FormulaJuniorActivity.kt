@@ -4,6 +4,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -15,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Tela de detalhes de uma etapa de F2 ou F3 (mesmo layout e mesma lógica).
@@ -39,8 +43,17 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
     private val fundoCorrida: Int get() = estilo.fundoCorrida
 
     private val idioma: Locale by lazy { Idioma.locale(this) }
+    private val parsersData: List<SimpleDateFormat> by lazy {
+        listOf("yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd", "dd/MM/yyyy", "dd-MM-yyyy")
+            .map { formato -> SimpleDateFormat(formato, idioma).apply { isLenient = false } }
+    }
+    private val formatoDiaSemana by lazy { SimpleDateFormat(getString(R.string.formato_dia_semana), idioma) }
+    private val formatoDiaMes by lazy { SimpleDateFormat(getString(R.string.formato_dia_mes), idioma) }
 
     private lateinit var conteudo: LinearLayout
+    private val executorCarregamento = Executors.newSingleThreadExecutor()
+    private val handlerPrincipal = Handler(Looper.getMainLooper())
+    private val geracaoCarregamento = AtomicInteger(0)
 
     private var etapaEhProxima = true
 
@@ -73,36 +86,42 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
         carregarEvento()
     }
 
+    /** Lê e interpreta o calendário fora da thread principal. */
     private fun carregarEvento() {
         if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
+        val geracao = geracaoCarregamento.incrementAndGet()
+        executorCarregamento.execute {
+            val resultado = runCatching { calendario.carregar(this) }
+            handlerPrincipal.post {
+                if (geracao != geracaoCarregamento.get() || isFinishing || isDestroyed) return@post
+                val eventos = resultado.getOrElse {
+                    registrarFalha("FormulaJuniorActivity.carregarEvento", it)
+                    emptyList()
+                }
+                mostrarEventoCarregado(eventos)
+            }
+        }
+    }
 
+    private fun mostrarEventoCarregado(eventos: List<FormulaJuniorEvent>) {
+        if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
         conteudo.removeAllViews()
-
-        // Carrega o JSON local e mantém a etapa selecionada pelo usuário.
-        val eventos = calendario.carregar(this)
         val proximaEtapa = obterProximaEtapa(eventos)
         val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-        val evento = eventos.find { it.etapa == etapaEscolhida }
-            ?: proximaEtapa
-
+        val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximaEtapa
         etapaEhProxima = evento == null || evento == proximaEtapa
-
         if (evento != null) {
             mostrarEvento(evento)
         } else {
-            adicionarTexto(
-                getString(R.string.calendario_indisponivel),
-                17f,
-                verde,
-                true
-            )
-            adicionarTexto(
-                getString(R.string.sem_proxima_etapa_calendario),
-                14f,
-                cinza,
-                false
-            )
+            adicionarTexto(getString(R.string.calendario_indisponivel), 17f, verde, true)
+            adicionarTexto(getString(R.string.sem_proxima_etapa_calendario), 14f, cinza, false)
         }
+    }
+
+    override fun onDestroy() {
+        geracaoCarregamento.incrementAndGet()
+        executorCarregamento.shutdownNow()
+        super.onDestroy()
     }
 
     private fun obterProximaEtapa(
@@ -254,18 +273,17 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
             return
         }
 
-        val sessoesOrdenadas = evento.sessoes.map { it.noFusoDoAparelho() }.sortedWith(
-            compareBy<FormulaJuniorSession> {
-                converterData(it.data)?.time ?: Long.MAX_VALUE
-            }.thenBy {
-                extrairMinutos(it.horario)
-            }
+        val sessoesOrdenadas = PreparadorDeSessoes.ordenar(
+            evento.sessoes.map { it.noFusoDoAparelho() },
+            obterData = { converterData(it.data) },
+            obterHorario = { it.horario }
         )
 
         var dataAtual: String? = null
 
-        for (sessao in sessoesOrdenadas) {
-            val dataSessao = formatarDiaPorExtenso(sessao.data)
+        for (preparada in sessoesOrdenadas) {
+            val sessao = preparada.sessao
+            val dataSessao = formatarDiaPorExtenso(preparada.data, sessao.data)
                 .ifBlank { sessao.data }
 
             if (dataSessao != dataAtual) {
@@ -371,64 +389,26 @@ abstract class FormulaJuniorActivity : AppCompatActivity() {
 
 
     /** "QUINTA-FEIRA, 19 DE OUTUBRO": o dia da semana e a data por extenso (maiúsculas ao exibir). */
-    private fun formatarDiaPorExtenso(data: String): String {
-        if (data.isBlank()) return ""
-
-        val convertida = converterData(data) ?: return data
-
-        return SimpleDateFormat(getString(R.string.formato_dia_semana), idioma).format(convertida)
-    }
+    private fun formatarDiaPorExtenso(data: Date?, original: String): String =
+        data?.let { formatoDiaSemana.format(it) } ?: original
 
     private fun formatarData(data: String): String {
         if (data.isBlank()) return ""
-
         val convertida = converterData(data) ?: return data
-
-        return SimpleDateFormat(getString(R.string.formato_dia_mes), idioma).format(convertida)
+        return formatoDiaMes.format(convertida)
     }
 
     private fun converterData(data: String): Date? {
-        val formatos = listOf(
-            "yyyy-MM-dd'T'HH:mm:ss",
-            "yyyy-MM-dd'T'HH:mm",
-            "yyyy-MM-dd",
-            "dd/MM/yyyy",
-            "dd-MM-yyyy"
-        )
-
-        for (formato in formatos) {
+        if (data.isBlank()) return null
+        for (parser in parsersData) {
             try {
-                val parser = SimpleDateFormat(
-                    formato,
-                    idioma
-                )
-                parser.isLenient = false
-
                 val resultado = parser.parse(data)
-
-                if (resultado != null) {
-                    return resultado
-                }
+                if (resultado != null) return resultado
             } catch (e: Exception) {
                 registrarDescarte("FormulaJuniorActivity.converterData", e)
-                // Tenta o próximo formato.
             }
         }
-
         return null
-    }
-
-    private fun extrairMinutos(horario: String): Int {
-        val partes = horario.trim().split(":")
-
-        if (partes.size < 2) return Int.MAX_VALUE
-
-        return try {
-            partes[0].toInt() * 60 + partes[1].take(2).toInt()
-        } catch (e: Exception) {
-            registrarDescarte("FormulaJuniorActivity.extrairMinutos", e)
-            Int.MAX_VALUE
-        }
     }
 
     private fun dp(valor: Int): Int {
