@@ -4,6 +4,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -14,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 class FormulaEActivity : AppCompatActivity() {
 
@@ -33,6 +37,9 @@ class FormulaEActivity : AppCompatActivity() {
 
     private lateinit var conteudo: LinearLayout
     private lateinit var scrollView: ScrollView
+    private val executorCarregamento = Executors.newSingleThreadExecutor()
+    private val handlerPrincipal = Handler(Looper.getMainLooper())
+    private val geracaoCarregamento = AtomicInteger(0)
 
     data class Sessao(
         val nome: String,
@@ -135,35 +142,48 @@ class FormulaEActivity : AppCompatActivity() {
         }
     }
 
+    /** Lê e interpreta o calendário fora da thread principal. */
     private fun carregarEvento() {
+        if (isFinishing || isDestroyed) return
+        val geracao = geracaoCarregamento.incrementAndGet()
+        executorCarregamento.execute {
+            val resultado = runCatching { FormulaECalendarJson.carregar(this) }
+            handlerPrincipal.post {
+                if (geracao != geracaoCarregamento.get() || isFinishing || isDestroyed) return@post
+                val eventos = resultado.getOrElse {
+                    registrarFalha("FormulaEActivity.carregarEvento", it)
+                    emptyList()
+                }
+                mostrarEventoCarregado(eventos)
+            }
+        }
+    }
+
+    private fun mostrarEventoCarregado(eventos: List<FormulaEEvent>) {
+        if (isFinishing || isDestroyed) return
         conteudo.removeAllViews()
-
-        val eventos = FormulaECalendarJson.carregar(this)
-
         if (eventos.isEmpty()) {
-            mostrarErro(
-                getString(R.string.calendario_nao_carregado, getString(R.string.nome_formula_e))
-            )
+            mostrarErro(getString(R.string.calendario_nao_carregado, getString(R.string.nome_formula_e)))
             return
         }
-
         val hoje = LocalDate.now()
-
         val proximo = eventos.firstOrNull {
             val fim = lerData(it.fim)
             fim != null && !fim.isBefore(hoje)
         }
-
         val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-
         val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximo
-
         if (evento == null) {
             mostrarErro(getString(R.string.temporada_terminou, getString(R.string.nome_formula_e)))
             return
         }
-
         mostrarEvento(evento, evento == proximo)
+    }
+
+    override fun onDestroy() {
+        geracaoCarregamento.incrementAndGet()
+        executorCarregamento.shutdownNow()
+        super.onDestroy()
     }
 
     private fun mostrarEvento(
