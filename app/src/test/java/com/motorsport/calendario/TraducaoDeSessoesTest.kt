@@ -60,6 +60,13 @@ class TraducaoDeSessoesTest {
     }
 
     @Test
+    fun normalizaEspacosNosNomesDasSessoesDaF1Academy() {
+        assertEquals("Reverse Grid Race", t("  Corrida   Grid Invertido  "))
+        assertEquals("Feature Race", t("Corrida\u00A0Feature"))
+        assertEquals("Corrida Grid Invertido", TraducaoDeSessoes.paraPortugues("Reverse   Grid Race"))
+    }
+
+    @Test
     fun mantemNomesEmPortuguesAoTraduzirParaPortugues() {
         assertEquals("Treino Livre 1", TraducaoDeSessoes.paraPortugues("Treino Livre 1"))
         assertEquals("Corrida", TraducaoDeSessoes.paraPortugues("Corrida"))
