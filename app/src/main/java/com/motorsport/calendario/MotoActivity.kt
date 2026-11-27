@@ -49,6 +49,12 @@ class MotoActivity : AppCompatActivity() {
 
     private var etapaEhProxima = true
 
+    private data class EventoPreparado(
+        val evento: MotoEvent?,
+        val sessoes: List<PreparadorDeSessoes.Preparada<MotoSession>>,
+        val etapaEhProxima: Boolean
+    )
+
     /** Classe (MotoGP, Moto2 ou Moto3) recebida pela Intent. */
     private var classe = ClasseMoto.MOTOGP
 
@@ -91,7 +97,26 @@ class MotoActivity : AppCompatActivity() {
 
         executorCarregamento.execute {
             val resultado = runCatching {
-                MotoCalendarJson.carregar(this, classe)
+                val eventos = MotoCalendarJson.carregar(this, classe)
+                val proximaEtapa = obterProximaEtapa(eventos)
+                val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
+                val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximaEtapa
+                val sessoes = evento?.sessoes
+                    ?.map { it.noFusoDoAparelho() }
+                    ?.let {
+                        PreparadorDeSessoes.ordenar(
+                            it,
+                            obterData = { converterData(it.data) },
+                            obterHorario = { it.horario }
+                        )
+                    }
+                    .orEmpty()
+
+                EventoPreparado(
+                    evento = evento,
+                    sessoes = sessoes,
+                    etapaEhProxima = evento == null || evento == proximaEtapa
+                )
             }
 
             handlerPrincipal.post {
@@ -99,30 +124,25 @@ class MotoActivity : AppCompatActivity() {
                     return@post
                 }
 
-                val eventos = resultado.getOrElse {
+                val preparado = resultado.getOrElse {
                     registrarFalha("MotoActivity.carregarEvento", it)
-                    emptyList()
+                    EventoPreparado(null, emptyList(), true)
                 }
-                mostrarEventoCarregado(eventos)
+                mostrarEventoCarregado(preparado)
             }
         }
     }
 
     /** Atualiza a interface somente na thread principal, com o resultado mais recente. */
-    private fun mostrarEventoCarregado(eventos: List<MotoEvent>) {
+    private fun mostrarEventoCarregado(preparado: EventoPreparado) {
         if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
 
         conteudo.removeAllViews()
+        etapaEhProxima = preparado.etapaEhProxima
 
-        val proximaEtapa = obterProximaEtapa(eventos)
-        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-        val evento = eventos.find { it.etapa == etapaEscolhida }
-            ?: proximaEtapa
-
-        etapaEhProxima = evento == null || evento == proximaEtapa
-
+        val evento = preparado.evento
         if (evento != null) {
-            mostrarEvento(evento)
+            mostrarEvento(evento, preparado.sessoes)
         } else {
             adicionarTexto(
                 getString(R.string.calendario_indisponivel),
@@ -232,7 +252,10 @@ class MotoActivity : AppCompatActivity() {
         )
     }
 
-    private fun mostrarEvento(evento: MotoEvent) {
+    private fun mostrarEvento(
+        evento: MotoEvent,
+        sessoesOrdenadas: List<PreparadorDeSessoes.Preparada<MotoSession>>
+    ) {
         conteudo.removeAllViews()
 
         val nomeAutodromo = Autodromos.nome(evento.circuito)
@@ -288,12 +311,6 @@ class MotoActivity : AppCompatActivity() {
             )
             return
         }
-
-        val sessoesOrdenadas = PreparadorDeSessoes.ordenar(
-            evento.sessoes.map { it.noFusoDoAparelho() },
-            obterData = { converterData(it.data) },
-            obterHorario = { it.horario }
-        )
 
         var dataAtual: String? = null
 
