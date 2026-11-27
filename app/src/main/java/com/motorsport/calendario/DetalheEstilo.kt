@@ -13,6 +13,10 @@ import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.core.graphics.ColorUtils
 import java.time.LocalDate
 import java.time.ZoneId
@@ -276,46 +280,38 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         horario: String,
         destaque: Boolean
     ) {
-        val cartao = LinearLayout(tela).apply {
-            orientation = LinearLayout.HORIZONTAL
+        // Um único TextView por sessão evita criar uma linha, um rótulo e um horário separados.
+        // A lista fica mais compacta e reduz o trabalho de layout nas telas de detalhes.
+        val texto = SpannableStringBuilder()
+            .append(
+                nome,
+                StyleSpan(Typeface.BOLD),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            .append("  ·  ")
+            .append(
+                horario,
+                ForegroundColorSpan(if (destaque) corDeDestaque else textoSuave),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+        val cartao = TextView(tela).apply {
+            this.text = texto
+            textSize = 13f
+            setTextColor(if (destaque) corDeDestaque else textoPrincipal)
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14f), dp(14f), dp(14f), dp(14f))
+            setPadding(dp(14f), dp(12f), dp(14f), dp(12f))
+            minHeight = dp(44f)
+            letterSpacing = 0.01f
             background = GradientDrawable().apply {
-                cornerRadius = dp(12f).toFloat()
+                cornerRadius = dp(10f).toFloat()
                 setColor(if (destaque) fundoCorrida else superficie)
                 setStroke(
-                    dp(if (destaque) 2f else 1f),
+                    dp(if (destaque) 1.5f else 1f),
                     if (destaque) corDeDestaque else borda
                 )
             }
         }
-
-        cartao.addView(
-            TextView(tela).apply {
-                text = nome
-                textSize = 12f
-                setTextColor(if (destaque) corDeDestaque else textoPrincipal)
-                typeface = Typeface.create("sans-serif", Typeface.BOLD)
-                letterSpacing = 0.02f
-            },
-            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        )
-
-        cartao.addView(
-            TextView(tela).apply {
-                text = horario
-                textSize = 14f
-                setTextColor(if (destaque) corDeDestaque else textoPrincipal)
-                typeface = Typeface.create("sans-serif", Typeface.BOLD)
-                gravity = Gravity.END
-            },
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                marginStart = dp(10f)
-            }
-        )
 
         destino.addView(
             cartao,
@@ -323,7 +319,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                bottomMargin = dp(8f)
+                bottomMargin = dp(6f)
             }
         )
     }
