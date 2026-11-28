@@ -131,7 +131,7 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
                 weight = 0f
             }
         }
-        (card as? android.view.ViewGroup)?.getChildAt(2)?.let { conteudo ->
+        (card as? android.view.ViewGroup)?.getChildAt(3)?.let { conteudo ->
             (conteudo as? LinearLayout)?.setPadding(dp(16f), dp(16f), dp(16f), dp(14f))
         }
         card.minimumHeight = 0
