@@ -49,12 +49,6 @@ class MotoActivity : AppCompatActivity() {
 
     private var etapaEhProxima = true
 
-    private data class EventoPreparado(
-        val evento: MotoEvent?,
-        val sessoes: List<PreparadorDeSessoes.Preparada<MotoSession>>,
-        val etapaEhProxima: Boolean
-    )
-
     /** Classe (MotoGP, Moto2 ou Moto3) recebida pela Intent. */
     private var classe = ClasseMoto.MOTOGP
 
@@ -89,7 +83,7 @@ class MotoActivity : AppCompatActivity() {
         carregarEvento()
     }
 
-    /** Lê e interpreta o calendário fora da thread principal para não bloquear os detalhes. */
+    /** Lê o calendário em segundo plano; a montagem da programação segue o fluxo anterior. */
     private fun carregarEvento() {
         if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
 
@@ -97,26 +91,7 @@ class MotoActivity : AppCompatActivity() {
 
         executorCarregamento.execute {
             val resultado = runCatching {
-                val eventos = MotoCalendarJson.carregar(this, classe)
-                val proximaEtapa = obterProximaEtapa(eventos)
-                val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
-                val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximaEtapa
-                val sessoes = evento?.sessoes
-                    ?.map { it.noFusoDoAparelho() }
-                    ?.let {
-                        PreparadorDeSessoes.ordenar(
-                            it,
-                            obterData = { converterData(it.data) },
-                            obterHorario = { it.horario }
-                        )
-                    }
-                    .orEmpty()
-
-                EventoPreparado(
-                    evento = evento,
-                    sessoes = sessoes,
-                    etapaEhProxima = evento == null || evento == proximaEtapa
-                )
+                MotoCalendarJson.carregar(this, classe)
             }
 
             handlerPrincipal.post {
@@ -124,25 +99,29 @@ class MotoActivity : AppCompatActivity() {
                     return@post
                 }
 
-                val preparado = resultado.getOrElse {
+                val eventos = resultado.getOrElse {
                     registrarFalha("MotoActivity.carregarEvento", it)
-                    EventoPreparado(null, emptyList(), true)
+                    emptyList()
                 }
-                mostrarEventoCarregado(preparado)
+                mostrarEventoCarregado(eventos)
             }
         }
     }
 
     /** Atualiza a interface somente na thread principal, com o resultado mais recente. */
-    private fun mostrarEventoCarregado(preparado: EventoPreparado) {
+    private fun mostrarEventoCarregado(eventos: List<MotoEvent>) {
         if (!::conteudo.isInitialized || isFinishing || isDestroyed) return
 
         conteudo.removeAllViews()
-        etapaEhProxima = preparado.etapaEhProxima
 
-        val evento = preparado.evento
+        val proximaEtapa = obterProximaEtapa(eventos)
+        val etapaEscolhida = intent.getIntExtra("ETAPA", -1)
+        val evento = eventos.find { it.etapa == etapaEscolhida } ?: proximaEtapa
+
+        etapaEhProxima = evento == null || evento == proximaEtapa
+
         if (evento != null) {
-            mostrarEvento(evento, preparado.sessoes)
+            mostrarEvento(evento)
         } else {
             adicionarTexto(
                 getString(R.string.calendario_indisponivel),
@@ -252,10 +231,7 @@ class MotoActivity : AppCompatActivity() {
         )
     }
 
-    private fun mostrarEvento(
-        evento: MotoEvent,
-        sessoesOrdenadas: List<PreparadorDeSessoes.Preparada<MotoSession>>
-    ) {
+    private fun mostrarEvento(evento: MotoEvent) {
         conteudo.removeAllViews()
 
         val nomeAutodromo = Autodromos.nome(evento.circuito)
@@ -313,6 +289,12 @@ class MotoActivity : AppCompatActivity() {
         }
 
         var dataAtual: String? = null
+
+        val sessoesOrdenadas = PreparadorDeSessoes.ordenar(
+            evento.sessoes.map { it.noFusoDoAparelho() },
+            obterData = { converterData(it.data) },
+            obterHorario = { it.horario }
+        )
 
         for (preparada in sessoesOrdenadas) {
             val sessao = preparada.sessao
