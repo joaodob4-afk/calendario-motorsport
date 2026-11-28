@@ -13,10 +13,6 @@ import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
-import android.text.style.StyleSpan
 import androidx.core.graphics.ColorUtils
 import java.time.LocalDate
 import java.time.ZoneId
@@ -131,11 +127,15 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         // esticaria o cartão até o fim da tela, então vira um espaço fixo.
         card.findViewById<View>(R.id.destaqueEspaco).apply {
             layoutParams = (layoutParams as LinearLayout.LayoutParams).apply {
-                height = dp(22f)
+                height = dp(8f)
                 weight = 0f
             }
         }
+        (card as? android.view.ViewGroup)?.getChildAt(3)?.let { conteudo ->
+            (conteudo as? LinearLayout)?.setPadding(dp(16f), dp(16f), dp(16f), dp(14f))
+        }
         card.minimumHeight = 0
+        card.findViewById<TextView>(R.id.destaqueMarca).visibility = View.GONE
 
         val raio = dp(20f).toFloat()
 
@@ -184,8 +184,8 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.findViewById<TextView>(R.id.destaqueNome).apply {
             text = nome
             // Nomes longos (ex.: IndyCar) usam letra menor e podem ocupar mais linhas.
-            textSize = if (nome.length > 26) 20f else 24f
-            maxLines = 5
+            textSize = if (nome.length > 26) 19f else 21f
+            maxLines = 3
         }
 
         card.findViewById<TextView>(R.id.destaqueCircuito).apply {
@@ -213,8 +213,8 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         card.findViewById<TextView>(R.id.destaqueData).apply {
             text = periodo
             // Letra menor e até duas linhas: a data nunca fica escondida pelo selo da contagem.
-            textSize = 14f
-            letterSpacing = 0.02f
+            textSize = 13f
+            letterSpacing = 0.01f
         }
 
         card.findViewById<TextView>(R.id.destaqueStatus).apply {
@@ -280,47 +280,49 @@ internal class DetalheEstilo(private val tela: Activity, val categoria: String) 
         horario: String,
         destaque: Boolean
     ) {
-        // Um único TextView por sessão evita criar uma linha, um rótulo e um horário separados.
-        // A lista fica mais compacta e reduz o trabalho de layout nas telas de detalhes.
-        val texto = SpannableStringBuilder()
-            .append(
-                nome,
-                StyleSpan(Typeface.BOLD),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            .append("  ·  ")
-            .append(
-                horario,
-                ForegroundColorSpan(if (destaque) corDeDestaque else textoSuave),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-
-        val cartao = TextView(tela).apply {
-            this.text = texto
-            textSize = 13f
-            setTextColor(if (destaque) corDeDestaque else textoPrincipal)
+        val linha = LinearLayout(tela).apply {
+            orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(14f), dp(12f), dp(14f), dp(12f))
-            minHeight = dp(44f)
-            letterSpacing = 0.01f
+            setPadding(dp(14f), dp(10f), dp(14f), dp(10f))
             background = GradientDrawable().apply {
                 cornerRadius = dp(10f).toFloat()
                 setColor(if (destaque) fundoCorrida else superficie)
-                setStroke(
-                    dp(if (destaque) 1.5f else 1f),
-                    if (destaque) corDeDestaque else borda
-                )
+                setStroke(dp(if (destaque) 1.5f else 1f), if (destaque) corDeDestaque else borda)
             }
         }
 
+        linha.addView(
+            TextView(tela).apply {
+                text = nome
+                textSize = 13f
+                setTextColor(textoPrincipal)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                maxLines = 2
+            },
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        )
+
+        linha.addView(
+            TextView(tela).apply {
+                text = horario
+                textSize = 14f
+                setTextColor(if (destaque) corDeDestaque else textoPrincipal)
+                typeface = Typeface.create("sans-serif", Typeface.BOLD)
+                gravity = Gravity.END or Gravity.CENTER_VERTICAL
+                maxLines = 1
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = dp(12f) }
+        )
+
         destino.addView(
-            cartao,
+            linha,
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = dp(6f)
-            }
+            ).apply { bottomMargin = dp(6f) }
         )
     }
 
